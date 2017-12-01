@@ -74,6 +74,9 @@ typedef struct EdgeNodeItem
     /** variableData.*/
     void *variableData;
 
+    /** array length **/
+    int arrayLength;
+
     /** EdgeNodeId.*/
     EdgeNodeId *sourceNodeId;
 } EdgeNodeItem;

@@ -1,6 +1,7 @@
 #include "message_dispatcher.h"
 #include "queue.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
 
@@ -55,7 +56,6 @@ static void* sendQ_run(void* ptr) {
       dequeue(sendQueue);                 // remove the element from queue
     }
   }
-
   return NULL;
 }
 
@@ -70,8 +70,7 @@ static void* recvQ_run(void* ptr) {
       dequeue(recvQueue);                 // remove the element from queue
     }
   }
-
-  return NULL;
+return NULL;
 }
 
 bool add_to_sendQ(EdgeMessage* msg) {
@@ -96,8 +95,7 @@ static void handleMessage(EdgeMessage* data) {
 
   if (SEND_REQUEST == data->type
           || SEND_REQUESTS == data->type) {
-//        ProtocolManager* send = ProtocolManager::getProtocolManagerInstance();
-//        send->onSendMessage(data);
+        onSendMessage(data);
       } else if (GENERAL_RESPONSE == data->type
            || BROWSE_RESPONSE == data->type) {
 //         ProtocolManager* receiver = ProtocolManager::getProtocolManagerInstance();

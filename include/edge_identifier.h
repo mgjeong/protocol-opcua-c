@@ -36,6 +36,7 @@ typedef enum
 {
     READ = 1,
     WRITE = 2,
+    READ_WRITE = 3,
     HISTORY_READ = 4,
     HISTORY_WRITE = 8,
     SEMANTIC_CHANGE = 10,

@@ -29,8 +29,6 @@
 
 //#include <open62541.h>
 
-#include "opcua_manager.h"
-
 #include "edge_command_type.h"
 #include "edge_identifier.h"
 #include "edge_message_type.h"
@@ -40,6 +38,8 @@
 #include "edge_status_code.h"
 #include "common_client.h"
 #include "common_server.h"
+
+#include "opcua_manager.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -143,6 +143,7 @@ typedef struct EdgeNodeId
     EdgeNodeTypeCommon type;
 
     /** NodeId.*/
+    char* nodeId;
 //    UA_NodeId *nodeId;
 
 } EdgeNodeId;
@@ -166,6 +167,9 @@ typedef struct EdgeRequest
 {
     /** EdgeVersatility.*/
     //EdgeVersatility value;
+    void *value;
+
+    EdgeNodeIdentifier type;
 
     /** EdgeSubRequest.*/
     EdgeSubRequest *subMsg;
@@ -211,6 +215,8 @@ typedef struct EdgeMessage
 
     /** EdgeResponse.*/
     EdgeResponse **responses;
+
+    int responseLength;
 
     /** EdgeResult.*/
     EdgeResult *result;
