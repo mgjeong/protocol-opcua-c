@@ -28,6 +28,7 @@
 #define EDGE_COMMON_CLIENT_H_
 
 #include "opcua_common.h"
+#include "edge_node_identifier.h"
 
 #include <stdbool.h>
 
@@ -43,6 +44,9 @@ typedef struct EdgeResponse
 {
     /** EdgeVersatility.*/
     //      EdgeVersatility* value;
+    void *value;
+
+    EdgeNodeIdentifier type;
 
     /** EdgeNodeInfo.*/
     EdgeNodeInfo *nodeInfo;

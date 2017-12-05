@@ -7,17 +7,20 @@
 extern "C" {
 #endif
 
-  /* Create and add namespace */
-  void createNamespace(char* namespaceUri,
-                       char* rootNodeIdentifier,
-                       char* rootNodeBrowseName,
-                       char* rootNodeDisplayName);
+/* Create and add namespace */
+void createNamespaceInServer(char* namespaceUri,
+                     char* rootNodeIdentifier,
+                     char* rootNodeBrowseName,
+                     char* rootNodeDisplayName);
+
+EdgeResult* addNodesInServer(EdgeNodeItem *item);
+EdgeResult* addReferenceInServer(EdgeReference *reference);
 
   /* Start the Server */
   EdgeResult* start_server(EdgeEndPointInfo* epInfo);
 
   /* Stop the server */
-  void stop_server();
+  void stop_server(EdgeEndPointInfo* epInfo);
 
 #ifdef __cplusplus
 }
