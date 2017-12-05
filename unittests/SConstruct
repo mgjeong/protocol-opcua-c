@@ -1,0 +1,46 @@
+
+import os 
+env = Environment()
+
+def do__(self, arg):
+	Execute(arg)
+	print "\n"
+
+package='gtest'
+packageRevision='1.8.0'
+libDir='libs'
+gtestLibDir= package + '/googletest-release-' + packageRevision + '/googlemock/gtest'
+gtestIncDir= package + '/googletest-release-' + packageRevision + '/googletest/include'
+opcuaLibDir = '../build'
+incPath= '../include'
+
+
+AddMethod(env, do__)
+
+createLibDir = 'mkdir -p ' + libDir
+env.do__(createLibDir )
+
+copyGtestLib='cp -rf ' + gtestLibDir + '/*.so ' + libDir
+env.do__(copyGtestLib)
+
+copyOpcuaLib='cp -rf ' + opcuaLibDir + '/*.so ' + libDir
+env.do__(copyOpcuaLib)
+
+exportLibPath='export LD_LIBRARY_PATH=' + libDir
+env.do__(exportLibPath)
+
+
+env['CPPPATH'] = [incPath, '../extlibs', gtestIncDir]
+print env['CPPPATH']
+
+env.PrependUnique(CCFLAGS=['-g', '-Wwrite-strings'])
+
+env.PrependUnique(LIBS=['opcua-adapter', 'gtest', 'gtest_main'])
+env.AppendUnique(LIBPATH=[libDir])
+
+env.Program('opcuaTest.cpp')
+
+#runTests='./opcuaTest --gtest_output="xml:./opcuatestReport.xml"'
+#env.do__(runTests)
+
+

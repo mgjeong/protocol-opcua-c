@@ -3,8 +3,12 @@
 #include <string.h>
 
 #include <opcua_manager.h>
-#include "opcua_common.h"
+#include <opcua_common.h>
 
+#define COLOR_GREEN        "\x1b[32m"
+#define COLOR_YELLOW      "\x1b[33m"
+#define COLOR_PURPLE      "\x1b[35m"
+#define COLOR_RESET         "\x1b[0m"
 
 static bool startFlag = false;
 static bool stopFlag = false;
@@ -22,6 +26,8 @@ static char node_arr[6][10] = {
   "Int32",
   "UInt16"
 };
+
+static void startClient(char* addr, int port, char *securityPolicyUri);
 
 static void response_msg_cb (EdgeMessage* data) {
   if (data->type == GENERAL_RESPONSE) {
@@ -60,8 +66,17 @@ static void error_msg_cb (void* data) {
 
 }
 
-static void browse_msg_cb () {
-
+static void browse_msg_cb (EdgeMessage* data) {
+  if (data->type == BROWSE_RESPONSE) {
+      EdgeBrowseResult **browseResult = data->browseResult;
+      int idx = 0;
+      printf("\n[Application browse response callback] List of Browse Names\n");
+      printf("================================================\n");
+      for (idx = 0; idx < data->browseResponseLength; idx++) {
+        printf("[%d] %s\n", idx+1, browseResult[idx]->browseName);
+      }
+      printf("================================================\n");
+    }
 }
 
 /* status callbacks */
@@ -84,11 +99,21 @@ static void status_network_cb (EdgeEndPointInfo* epInfo, EdgeStatusCode status) 
 }
 
 /* discovery callback */
-static void endpoint_found_cb (EdgeDevice* device, void* data) {
+static void endpoint_found_cb (EdgeDevice* device) {
+  if (device) {
+    int num_endpoints = device->num_endpoints;
+    int idx = 0;
+    for (idx = 0; idx < num_endpoints; idx++) {
+      printf("\n[Application Callback] EndpointUri :: %s\n", device->endpointsInfo[idx]->endpointUri);
+      printf("[Application Callback] Address :: %s, Port : %d, ServerName :: %s\n", device->address, device->port, device->serverName);
+      printf("[Application Callback] SecurityPolicyUri :: %s\n\n", device->endpointsInfo[idx]->config->securityPolicyUri);
 
+      startClient(device->address, device->port, device->endpointsInfo[idx]->config->securityPolicyUri);
+    }
+  }
 }
 
-static void device_found_cb (EdgeDevice* device, void* data) {
+static void device_found_cb (EdgeDevice* device) {
 
 }
 
@@ -112,14 +137,37 @@ static void init() {
   registerCallbacks(config);
 }
 
-static void startClient() {
+static void testGetEndpoints() {
   EdgeEndpointConfig* endpointConfig = (EdgeEndpointConfig*) malloc(sizeof(EdgeEndpointConfig));
-  endpointConfig->bindAddress = ipAddress;
-  endpointConfig->bindPort = 12686;
   endpointConfig->applicationName = DEFAULT_SERVER_APP_NAME_VALUE;
   endpointConfig->applicationUri = DEFAULT_SERVER_APP_URI_VALUE;
   endpointConfig->productUri = DEFAULT_PRODUCT_URI_VALUE;
-  endpointConfig->securityPolicyUri = NULL;
+  endpointConfig->serverName = DEFAULT_SERVER_NAME_VALUE;
+
+  EdgeEndPointInfo* ep = (EdgeEndPointInfo*) malloc(sizeof(EdgeEndPointInfo));
+  ep->endpointUri = endpointUri;
+  ep->config = endpointConfig;
+
+  EdgeMessage* msg = (EdgeMessage*) malloc(sizeof(EdgeMessage));
+  msg->endpointInfo = ep;
+  msg->command = CMD_START_SERVER;
+  msg->type = SEND_REQUEST;
+
+  getEndpointInfo(ep);
+}
+
+static void startClient(char* addr, int port, char *securityPolicyUri) {
+  printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET);
+  printf("\n" COLOR_YELLOW "                       Client connect            "COLOR_RESET);
+  printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET "\n\n");
+
+  EdgeEndpointConfig* endpointConfig = (EdgeEndpointConfig*) malloc(sizeof(EdgeEndpointConfig));
+  endpointConfig->bindAddress = addr;
+  endpointConfig->bindPort = port;
+  endpointConfig->applicationName = DEFAULT_SERVER_APP_NAME_VALUE;
+  endpointConfig->applicationUri = DEFAULT_SERVER_APP_URI_VALUE;
+  endpointConfig->productUri = DEFAULT_PRODUCT_URI_VALUE;
+  endpointConfig->securityPolicyUri = securityPolicyUri;
   endpointConfig->serverName = DEFAULT_SERVER_NAME_VALUE;
   endpointConfig->requestTimeout = 60000;
 
@@ -153,9 +201,73 @@ static void deinit() {
   stopClient();
 }
 
+static void testBrowse() {
+  EdgeEndPointInfo* ep = (EdgeEndPointInfo*) malloc(sizeof(EdgeEndPointInfo));
+  ep->endpointUri = endpointUri;
+  ep->config = NULL;
+
+  EdgeNodeInfo *nodeInfo = (EdgeNodeInfo*) malloc(sizeof(EdgeNodeInfo));
+  nodeInfo->nodeId = (EdgeNodeId*) malloc(sizeof(EdgeNodeId));
+  nodeInfo->nodeId->type = INTEGER;
+  nodeInfo->nodeId->integerNodeId = RootFolder;
+  nodeInfo->nodeId->nameSpace = SYSTEM_NAMESPACE_INDEX;
+
+  EdgeRequest *request = (EdgeRequest*) malloc(sizeof(EdgeRequest));
+  request->nodeInfo = nodeInfo;
+
+  EdgeMessage *msg = (EdgeMessage*) malloc(sizeof(EdgeMessage));
+  msg->endpointInfo = ep;
+  msg->command = CMD_BROWSE;
+  msg->request = request;
+
+  printf("\n\n" COLOR_YELLOW "********** Browse Nodes in RootFolder in system namespace **********" COLOR_RESET "\n");
+  browseNode(msg);
+
+  // ------------------------------------------------- //
+  free (nodeInfo);
+  nodeInfo = NULL;
+
+  nodeInfo = (EdgeNodeInfo*) malloc(sizeof(EdgeNodeInfo));
+  nodeInfo->nodeId = (EdgeNodeId*) malloc(sizeof(EdgeNodeId));
+
+  nodeInfo->nodeId->type = INTEGER;
+  nodeInfo->nodeId->integerNodeId = ObjectsFolder;
+  nodeInfo->nodeId->nameSpace = SYSTEM_NAMESPACE_INDEX;
+
+  request->nodeInfo = nodeInfo;
+  msg->request = request;
+
+  printf("\n" COLOR_YELLOW "********** Browse Nodes in Objects in system namespace **********" COLOR_RESET  "\n");
+  browseNode(msg);
+
+  // ------------------------------------------------- //
+  free (nodeInfo);
+  nodeInfo = NULL;
+
+  nodeInfo = (EdgeNodeInfo*) malloc(sizeof(EdgeNodeInfo));
+  nodeInfo->nodeId = (EdgeNodeId*) malloc(sizeof(EdgeNodeId));
+
+  nodeInfo->nodeId->type = STRING;
+  nodeInfo->nodeId->nodeId = "Object1";
+  nodeInfo->nodeId->nameSpace = 1;
+
+  request->nodeInfo = nodeInfo;
+  msg->request = request;
+
+  printf("\n" COLOR_YELLOW "********** Browse \"Object1\" node **********" COLOR_RESET "\n");
+  browseNode(msg);
+
+  // ------------------------------------------------- //
+  free (nodeInfo);
+  nodeInfo = NULL;
+  free (request); request = NULL;
+  free (ep); ep = NULL;
+  free(msg); msg = NULL;
+}
+
 static void testRead() {
   int option;
-  printf("\n\n ********************** Available nodes to test the read service **********************\n");
+  printf("\n\n" COLOR_YELLOW  "********************** Available nodes to test the read service **********************" COLOR_RESET "\n");
   printf("[1] String1\n");
   printf("[2] String2\n");
   printf("[3] String3\n");
@@ -170,7 +282,7 @@ static void testRead() {
     return ;
   }
 
-  printf("\n\n **********************  Reading the node with browse name \"%s\" **********************\n\n", node_arr[option-1]);
+  printf("\n\n" COLOR_YELLOW  "**********************  Reading the node with browse name \"%s\" **********************" COLOR_RESET "\n\n", node_arr[option-1]);
   EdgeEndPointInfo* ep = (EdgeEndPointInfo*) malloc(sizeof(EdgeEndPointInfo));
   ep->endpointUri = endpointUri;
   ep->config = NULL;
@@ -198,7 +310,7 @@ static void testWrite() {
   EdgeNodeIdentifier type;
   void *new_value = NULL;
 
-  printf("\n\n ********************** Available nodes to test the write service **********************\n");
+  printf("\n\n" COLOR_YELLOW  "********************** Available nodes to test the write service **********************" COLOR_RESET "\n");
   printf("[1] String1\n");
   printf("[2] String2\n");
   printf("[3] String3\n");
@@ -235,7 +347,7 @@ static void testWrite() {
     new_value = (void*) &u_value;
   }
 
-  printf("\n\n ********************** Writing the value to the node \"%s\" **********************\n\n", node_arr[option-1]);
+  printf("\n\n" COLOR_YELLOW  "********************** Writing the value to the node \"%s\" **********************" COLOR_RESET  "\n\n", node_arr[option-1]);
   EdgeEndPointInfo* ep = (EdgeEndPointInfo*) malloc(sizeof(EdgeEndPointInfo));
   ep->endpointUri = endpointUri;
   ep->config = NULL;
@@ -259,10 +371,10 @@ static void testWrite() {
 static void print_menu() {
   printf("=============== OPC UA =======================\n\n");
 
-  printf("start : start opcua client \n");
-  printf("read_t : read attribute for target node\n");
-//  printf("getnode : get node information\n");
-//  printf("getnode2 : get node information with browseName\n");
+  printf("start : Get endpoints and start opcua client \n");
+  printf("read : read attribute for target node\n");
+  printf("write : write attribute into nodes\n");
+  printf("browse : browse nodes\n");
   printf("quit : terminate/stop opcua server/client and then quit\n");
   printf("help : print menu\n");
 
@@ -283,28 +395,27 @@ int main() {
       break;
     } else if(!strcmp(command, "start")) {
 
-      printf("\n ------------------------------------------------------");
-      printf("\n                       Client connect            ");
-      printf("\n ------------------------------------------------------\n\n");
+      printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET);
+      printf("\n" COLOR_YELLOW "                  Client get endpoints             " COLOR_RESET);
+      printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET "\n\n");
 
-      printf("[Please input server endpoint uri] : ");
+      //printf("[Please input server endpoint uri] : ");
       //scanf("%s", ipAddress);
-      int len = strlen("opc.tcp://localhost:12686");
-      strcpy(ipAddress, "opc.tcp://localhost:12686");
+      int len = strlen("opc.tcp://localhost:12686/edge-opc-server");
+      strcpy(ipAddress, "opc.tcp://localhost:12686/edge-opc-server");
       ipAddress[len] = '\0';
       strcpy(endpointUri, ipAddress);
       endpointUri[len] = '\0';
 
-
-      startClient();
+      testGetEndpoints();
       //startFlag = true;
 
     } else if(!strcmp(command, "read_t")) {
       testRead();
     } else if(!strcmp(command, "write_t")) {
       testWrite();
-    } else if(!strcmp(command, "getnode2")) {
-
+    } else if(!strcmp(command, "browse")) {
+      testBrowse();
     } else if(!strcmp(command, "quit")) {
       deinit();
       //stopFlag = true;

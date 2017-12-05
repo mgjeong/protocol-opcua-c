@@ -18,7 +18,7 @@ typedef struct EdgeReference EdgeReference;
 typedef void (*response_msg_cb_t) (EdgeMessage* data);
 typedef void (*monitored_msg_cb_t) (void* data);
 typedef void (*error_msg_cb_t) (void* data);
-typedef void (*browse_msg_cb_t) ();
+typedef void (*browse_msg_cb_t) (EdgeMessage* data);
 
 /* status callbacks */
 typedef void (*status_start_cb_t) (EdgeEndPointInfo* epInfo, EdgeStatusCode status);
@@ -26,8 +26,8 @@ typedef void (*status_stop_cb_t) (EdgeEndPointInfo* epInfo, EdgeStatusCode statu
 typedef void (*status_network_cb_t) (EdgeEndPointInfo* epInfo, EdgeStatusCode status);
 
 /* discovery callback */
-typedef void (*endpoint_found_cb_t) (EdgeDevice* device, void* data);
-typedef void (*device_found_cb_t) (EdgeDevice* device, void* data);
+typedef void (*endpoint_found_cb_t) (EdgeDevice* device);
+typedef void (*device_found_cb_t) (EdgeDevice* device);
 
 
 typedef struct ReceivedMessageCallback {
@@ -57,6 +57,7 @@ typedef struct DiscoveryCallback {
 //void onSendMessage(EdgeMessage* msg);
 void onResponseMessage(EdgeMessage *msg);
 void onStatusCallback(EdgeEndPointInfo* epInfo, EdgeStatusCode status);
+void onDiscoveryCallback(EdgeDevice *device);
 
 
 // Server
@@ -64,6 +65,7 @@ __attribute__((visibility("default"))) void createServer(EdgeEndPointInfo *epInf
 __attribute__((visibility("default"))) void closeServer(EdgeEndPointInfo *epInfo);
 
 // Client
+__attribute__((visibility("default"))) void getEndpointInfo(EdgeEndPointInfo* epInfo);
 __attribute__((visibility("default"))) void connectClient(EdgeEndPointInfo *epInfo);
 __attribute__((visibility("default"))) void disconnectClient(EdgeEndPointInfo *epInfo);
 
@@ -75,6 +77,7 @@ __attribute__((visibility("default"))) EdgeResult* createNode(char* namespaceUri
 __attribute__((visibility("default"))) EdgeResult* addReference(EdgeReference *reference);
 __attribute__((visibility("default"))) EdgeResult* readNode(EdgeMessage *msg);
 __attribute__((visibility("default"))) EdgeResult* writeNode(EdgeMessage *msg);
+__attribute__((visibility("default"))) EdgeResult* browseNode(EdgeMessage *msg);
 
 
 

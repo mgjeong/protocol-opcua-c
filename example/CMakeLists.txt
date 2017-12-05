@@ -12,6 +12,7 @@ INCLUDE_DIRECTORIES(
   #${CMAKE_SOURCE_DIR}/../src/queue
   ${CMAKE_SOURCE_DIR}/../src/node
   ${CMAKE_SOURCE_DIR}/../src/command
+  ${CMAKE_SOURCE_DIR}/../src/utils}
 )
 
 add_executable(server ${CMAKE_SOURCE_DIR}/server.c)

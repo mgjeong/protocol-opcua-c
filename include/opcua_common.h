@@ -58,7 +58,7 @@ typedef struct EdgeConfigure
     /** ReceivedMessageCallback.*/
     ReceivedMessageCallback *recvCallback;
 
-    /** ReceivedMessageCallback.*/
+    /** StatusCallback.*/
     StatusCallback  *statusCallback;
 
     /** DiscoveryCallback.*/
@@ -124,7 +124,10 @@ typedef struct EdgeDevice
     char *serverName;
 
     /** EdgeEndPointInfo.*/
-    EdgeEndPointInfo *endpointsInfo[];
+    EdgeEndPointInfo **endpointsInfo;
+
+    /** Number of Endpoints */
+    int num_endpoints;
 
 } EdgeDevice;
 
@@ -144,7 +147,8 @@ typedef struct EdgeNodeId
 
     /** NodeId.*/
     char* nodeId;
-//    UA_NodeId *nodeId;
+
+    int integerNodeId;
 
 } EdgeNodeId;
 
@@ -227,166 +231,9 @@ typedef struct EdgeMessage
     /** EdgeBrowseResult.*/
     EdgeBrowseResult **browseResult;
 
-} EdgeMessage;
-
-
-#if 0
-
-typedef struct EdgeDevice
-{
-    /** browseName.*/
-    char *address;
-
-    /** port.*/
-    int port;
-
-    /** serverName.*/
-    char *serverName;
-
-    /** EdgeEndPointInfo.*/
-    EdgeEndPointInfo *endpointsInfo[];
-
-} EdgeDevice;
-
-
-typedef struct EdgeEndpointConfig
-{
-    /** requestTimeout.*/
-    int requestTimeout;
-
-    /** applicationName.*/
-    char *applicationName;
-
-    /** applicationUri.*/
-    char *applicationUri;
-
-    /** productUri.*/
-    char *productUri;
-
-    /** securityPolicyUri.*/
-    char *securityPolicyUri;
-
-    /** serverName.*/
-    char *serverName;
-
-    /** bindAddress.*/
-    char *bindAddress;
-
-    /** bindPort.*/
-    int bindPort;
-
-} EdgeEndpointConfig;
-
-
-typedef struct EdgeEndPointInfo
-{
-    /** endpointUri.*/
-    char *endpointUri;
-
-    /** EdgeEndpointConfig.*/
-    EdgeEndpointConfig *config;
-
-} EdgeEndPointInfo;
-
-
-typedef struct EdgeMessage
-{
-    /** EdgeMessageType.*/
-    EdgeMessageType type;
-
-    /** EdgeCommand.*/
-    EdgeCommand command;
-
-    /** EdgeEndPointInfo.*/
-    EdgeEndPointInfo *endpointInfo;
-
-    /** EdgeRequest.*/
-    EdgeRequest *request;
-
-    /** EdgeRequests.*/
-    EdgeRequest *requests[];
-
-    /** EdgeResponse.*/
-    EdgeResponse *responses[];
-
-    /** EdgeResult.*/
-    EdgeResult *result;
-
-    /** EdgeBrowseParameter.*/
-    //      EdgeBrowseParameter *m_browseMsg;
-
-    /** EdgeBrowseResult.*/
-    EdgeBrowseResult *browseResult[];
+    int browseResponseLength;
 
 } EdgeMessage;
-
-
-typedef struct EdgeNodeId
-{
-    /** nameSpace.*/
-    int nameSpace;
-
-    /** nodeUri.*/
-    char *nodeUri;
-
-    /** EdgeNodeIdentifier.*/
-    EdgeNodeIdentifier nodeIdentifier;
-
-    /** EdgeNodeTypeCommon.*/
-    EdgeNodeTypeCommon type;
-
-    /** NodeId.*/
-//    UA_NodeId *nodeId;
-
-} EdgeNodeId;
-
-
-typedef struct EdgeNodeInfo
-{
-    /** methodName.*/
-    char *methodName;
-
-    /** EdgeNodeId.*/
-    EdgeNodeId *nodeId;
-
-    /** valueAlias.*/
-    char *valueAlias;
-
-} EdgeNodeInfo;
-
-
-typedef struct EdgeRequest
-{
-    /** EdgeVersatility.*/
-    //EdgeVersatility value;
-
-    /** EdgeSubRequest.*/
-    EdgeSubRequest *subMsg;
-
-    /** EdgeNodeInfo.*/
-    EdgeNodeInfo *nodeInfo;
-
-    /** requestId.*/
-    int requestId;
-
-    /** returnDiagnostic.*/
-    int returnDiagnostic;
-
-    /** browseName.*/
-    //int seed;
-} EdgeRequest;
-
-
-typedef struct EdgeResult
-{
-    /** EdgeNodeInfo.*/
-    EdgeNodeInfo *endpoint;
-
-    /** EdgeStatusCode.*/
-    EdgeStatusCode code;
-} EdgeResult;
-
-#endif
 
 #ifdef __cplusplus
 }

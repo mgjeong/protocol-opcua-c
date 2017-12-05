@@ -8,10 +8,10 @@
 #include "opcua_common.h"
 #include "edge_identifier.h"
 
-#define COLOR_GREEN        L"\u001B[32m"
-#define COLOR_YELLOW      L"\u001B[33m"
-#define COLOR_PURPLE      L"\u001B[35m"
-#define COLOR_RESET         L"\u001B[0m"
+#define COLOR_GREEN        "\x1b[32m"
+#define COLOR_YELLOW      "\x1b[33m"
+#define COLOR_PURPLE      "\x1b[35m"
+#define COLOR_RESET         "\x1b[0m"
 
 static bool startFlag = false;
 static bool stopFlag = false;
@@ -37,7 +37,7 @@ static void error_msg_cb (void* data) {
 
 }
 
-static void browse_msg_cb () {
+static void browse_msg_cb (EdgeMessage* data) {
 
 }
 
@@ -64,11 +64,11 @@ static void status_network_cb (EdgeEndPointInfo* epInfo, EdgeStatusCode status) 
 }
 
 /* discovery callback */
-static void endpoint_found_cb (EdgeDevice* device, void* data) {
+static void endpoint_found_cb (EdgeDevice* device) {
 
 }
 
-static void device_found_cb (EdgeDevice* device, void* data) {
+static void device_found_cb (EdgeDevice* device) {
 
 }
 
@@ -101,7 +101,7 @@ static void startServer() {
   endpointConfig->bindAddress = ipAddress;
   endpointConfig->bindPort = 12686;
   endpointConfig->applicationName = DEFAULT_SERVER_APP_NAME_VALUE;
-  endpointConfig->applicationUri = DEFAULT_SERVER_URI_VALUE;
+  endpointConfig->applicationUri = DEFAULT_SERVER_APP_URI_VALUE;
   endpointConfig->productUri = DEFAULT_PRODUCT_URI_VALUE;
   endpointConfig->securityPolicyUri = NULL;
   endpointConfig->serverName = DEFAULT_SERVER_NAME_VALUE;
@@ -119,7 +119,6 @@ static void startServer() {
   printf("start server\n\n");
   //send(msg);
   createServer(ep);
-  printf("end\n\n");
 }
 
 static void stopServer() {
@@ -138,7 +137,7 @@ static void stopServer() {
 }
 
 static void testCreateNamespace() {
-  printf("\n=========================== Creating namespace ==================\n");
+  printf("\n" COLOR_YELLOW "===================== Creating namespace ==================" COLOR_RESET "\n");
   createNamespace(DEFAULT_NAMESPACE_VALUE,
                               DEFAULT_ROOT_NODE_INFO_VALUE,
                               DEFAULT_ROOT_NODE_INFO_VALUE,
@@ -146,7 +145,7 @@ static void testCreateNamespace() {
 }
 
 static void testCreateNodes() {
-  printf("\n=========================== Creating nodes ==================\n");
+  printf("\n" COLOR_YELLOW "==================== Creating nodes ==================" COLOR_RESET "\n");
   int index = 0;
 
   printf("\n-------------------------------------------------------");
@@ -397,9 +396,9 @@ int main() {
       break;
     } else if(!strcmp(command, "start")) {
 
-      printf("\n ------------------------------------------------------");
-      printf("\n                       Start Server            ");
-      printf("\n ------------------------------------------------------\n\n");
+      printf("\n" COLOR_YELLOW " ------------------------------------------------------" COLOR_RESET);
+      printf("\n" COLOR_YELLOW "                     Start Server            " COLOR_RESET);
+      printf("\n" COLOR_YELLOW " ------------------------------------------------------" COLOR_RESET "\n\n");
 
 //      printf("[Please input server address] : ");
 //      scanf("%s", ipAddress);
