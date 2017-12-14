@@ -14,6 +14,7 @@ SET(INTERNAL_INC_DIR
 	#src/queue
 	src/node
 	src/command
+	src/utils
 )
 
 SET(EXTLIB_INC_DIR
@@ -45,6 +46,10 @@ SET(SRCS
   #command
   src/command/read.c
   src/command/write.c
+	src/command/browse.c
+
+	#utils
+	src/utils/edge_utils.c
 )
 
 add_library(${proj_name} SHARED ${SRCS} ${INC_DIR} ${INTERNAL_INC_DIR} ${EXTLIB_INC_DIR})

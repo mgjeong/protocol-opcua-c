@@ -11,9 +11,10 @@ extern "C" {
 
 bool connect_client(char* endpoint);
 void disconnect_client(EdgeEndPointInfo* epInfo);
-void* getEndpoints(char *endpointUri);
+void* getClientEndpoints(char *endpointUri);
 EdgeResult* readNodesFromServer(EdgeMessage* msg);
 EdgeResult* writeNodesInServer(EdgeMessage* msg);
+EdgeResult* browseNodesInServer(EdgeMessage *msg);
 
 #ifdef __cplusplus
 }

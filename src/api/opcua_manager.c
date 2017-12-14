@@ -60,6 +60,11 @@ EdgeResult* writeNode(EdgeMessage *msg) {
   return result;
 }
 
+EdgeResult* browseNode(EdgeMessage *msg) {
+  EdgeResult* result = browseNodesInServer(msg);
+  return result;
+}
+
 void createServer(EdgeEndPointInfo *epInfo) {
   printf ("\n[Received command] :: Server start \n");
   if (b_serverInitialized) {
@@ -80,6 +85,11 @@ void closeServer(EdgeEndPointInfo *epInfo) {
     stop_server(epInfo);
     b_serverInitialized = false;
   }
+}
+
+void getEndpointInfo(EdgeEndPointInfo* epInfo) {
+  printf("\n[Received command] :: Get endpoint info for [%s] \n\n", epInfo->endpointUri);
+  getClientEndpoints(epInfo->endpointUri);
 }
 
 void connectClient(EdgeEndPointInfo *epInfo) {
@@ -147,19 +157,29 @@ void disconnectClient(EdgeEndPointInfo *epInfo) {
 //}
 
 void onResponseMessage(EdgeMessage *msg) {
-  if (!receivedMsgCb) {
+  if (NULL == receivedMsgCb) {
     printf("receiver callback not registered\n\n");
     return ;
   }
-
   if (receivedMsgCb && msg->type == GENERAL_RESPONSE) {
     receivedMsgCb->resp_msg_cb(msg);
+  }
+  if (receivedMsgCb && msg->type == BROWSE_RESPONSE) {
+    receivedMsgCb->browse_msg_cb(msg);
   }
 
 }
 
+void onDiscoveryCallback(EdgeDevice *device) {
+  if (NULL == discoveryCb) {
+    // discovery callback not registered by application.
+    return ;
+  }
+  discoveryCb->endpoint_found_cb(device);
+}
+
 void onStatusCallback(EdgeEndPointInfo* epInfo, EdgeStatusCode status) {
-  if (statusCb == NULL) {
+  if (NULL == statusCb) {
     // status callback not registered by application.
     return ;
   }
