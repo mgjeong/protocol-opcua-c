@@ -1,0 +1,74 @@
+#******************************************************************
+#
+# Copyright 2017 Samsung Electronics All Rights Reserved. 
+#
+#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+Import('env')
+
+##
+# Examples build script
+##
+example_env = env.Clone()
+outDir = 'out'
+srcPath = '../src/'
+incPath = '../include/'
+
+example_env.Execute('rm -rf ' + outDir)
+example_env.Execute('mkdir -p ' + outDir)
+
+
+######################################################################
+# Build flags
+######################################################################
+
+example_env['CCFLAGS'] = ['-fvisibility=hidden', '-fPIC',  '-Wall', '-Werror', '-std=gnu99']
+
+example_env['CPPPATH'] = [incPath,
+			'../extlib',
+			srcPath + '/command',
+			srcPath + '/node',
+			#srcPath + '/queue',
+			srcPath + '/session',
+			srcPath + '/utils'
+]
+
+example_env.AppendUnique(LIBS = ['rt', 'pthread', 'opcua-adapter'])
+example_env.AppendUnique(LIBPATH=['../build'])
+
+test = ARGUMENTS.get('TEST')
+if ARGUMENTS.get('TEST', False) in [
+            'y', 'yes', 'true', 't', '1', 'on', 'all', True
+    ]:
+    print "TEST IS ENABLED"
+    example_env.AppendUnique(CCFLAGS=['-fprofile-arcs', '-ftest-coverage'])
+    example_env.AppendUnique(LINKFLAGS=['-lgcov', '--coverage'])
+else:
+    print "TEST IS DISABLED"
+
+
+######################################################################
+# Source files and Targets
+######################################################################
+
+example_env.VariantDir(variant_dir = (outDir + '/'), src_dir = '.', duplicate = 0)
+
+#example_env.Execute('export LD_LIBRARY_PATH=../build')
+
+example_env.Program(outDir + '/server', outDir + '/server.c')
+example_env.Program(outDir + '/client', outDir + '/client.c')
+
