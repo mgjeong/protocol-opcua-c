@@ -15,6 +15,7 @@ void createNamespaceInServer(char* namespaceUri,
 
 EdgeResult* addNodesInServer(EdgeNodeItem *item);
 EdgeResult* addReferenceInServer(EdgeReference *reference);
+EdgeResult* addMethodNodeInServer(EdgeNodeItem *item, EdgeMethod *method);
 
   /* Start the Server */
   EdgeResult* start_server(EdgeEndPointInfo* epInfo);

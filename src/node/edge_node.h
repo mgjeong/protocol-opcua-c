@@ -10,6 +10,7 @@ extern "C" {
 #endif
 
 EdgeResult* addNodes(UA_Server* server, EdgeNodeItem* item);
+EdgeResult* addMethodNode(UA_Server *server, EdgeNodeItem *item, EdgeMethod *method);
 EdgeResult* addDataAccessNode(EdgeNodeItem* item);
 EdgeResult* modifyNode(char* nodeUri);
 EdgeResult* modifyNode2(EdgeNodeIdentifier nodeType);

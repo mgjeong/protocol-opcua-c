@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #include <pthread.h>
 
@@ -73,7 +74,29 @@ static void device_found_cb (EdgeDevice* device) {
 }
 
 
+/**************************************************************************************************/
+// Method callbacks
 
+static void sqrt_method(int inpSize, void **input, int outSize, void **output) {
+  double *inp = (double*) input[0];
+  double *sq_root = (double*) malloc(sizeof(double));
+  *sq_root = sqrt(*inp);
+  output[0] = (void*) sq_root;
+}
+
+static void increment_int32Array_method(int inpSize, void **input, int outSize, void **output) {
+  int32_t* inputArray = (int32_t*) input[0];
+  int* delta = (int*) input[1];
+
+  int32_t* outputArray = (int32_t*) malloc(sizeof(int32_t) * 5);
+  for (int i = 0; i < 5; i++) {
+    outputArray[i] = inputArray[i] + *delta;
+  }
+  output[0] = (void*) outputArray;
+}
+
+
+/**************************************************************************************************/
 
 static void init() {
   config = (EdgeConfigure*) malloc(sizeof(EdgeConfigure));
@@ -356,6 +379,65 @@ static void testCreateNodes() {
   item->sourceNodeId = (EdgeNodeId*) malloc (sizeof(EdgeNodeId));
   item->sourceNodeId->nodeId = "ReferenceTypeNode1";
   createNode(DEFAULT_NAMESPACE_VALUE, item);
+
+  /******************* Method Node *********************/
+  printf("\n-------------------------------------------------------\n");
+  printf("\n[%d]) Method Node \n", ++index);
+  EdgeNodeItem *methodNodeItem = (EdgeNodeItem*) malloc(sizeof(EdgeNodeItem));
+  methodNodeItem->browseName = "square_root";
+  methodNodeItem->sourceNodeId = NULL;
+
+  EdgeMethod* method = (EdgeMethod*) malloc(sizeof(EdgeMethod));
+  method->description = "Calculate square root";
+  method->methodNodeName = "square_root";
+  method->method_fn = sqrt_method;
+  method->num_inpArgs = 1;
+  method->inpArg = (EdgeArgument**) malloc(sizeof(EdgeArgument*) * method->num_inpArgs);
+  for (int idx = 0; idx < method->num_inpArgs; idx++) {
+    method->inpArg[idx] = (EdgeArgument*) malloc(sizeof(EdgeArgument));
+    method->inpArg[idx]->argType = Double;
+    method->inpArg[idx]->valType = SCALAR;
+  }
+
+  method->num_outArgs = 1;
+  method->outArg = (EdgeArgument**) malloc(sizeof(EdgeArgument*) * method->num_outArgs);
+  for (int idx = 0; idx < method->num_outArgs; idx++) {
+    method->outArg[idx] = (EdgeArgument*) malloc(sizeof(EdgeArgument));
+    method->outArg[idx]->argType = Double;
+    method->inpArg[idx]->valType = SCALAR;
+  }
+  createMethodNode(DEFAULT_NAMESPACE_VALUE, methodNodeItem, method);
+
+  printf("\n[%d]) Method Node \n", ++index);
+  EdgeNodeItem *methodNodeItem1 = (EdgeNodeItem*) malloc(sizeof(EdgeNodeItem));
+  methodNodeItem1->browseName = "incrementInc32Array";
+  methodNodeItem1->sourceNodeId = NULL;
+
+  EdgeMethod* method1 = (EdgeMethod*) malloc(sizeof(EdgeMethod));
+  method1->description = "Increment int32 array by delta";
+  method1->methodNodeName = "incrementInc32Array";
+  method1->method_fn = increment_int32Array_method;
+
+  method1->num_inpArgs = 2;
+  method1->inpArg = (EdgeArgument**) malloc(sizeof(EdgeArgument*) * method1->num_inpArgs);
+  method1->inpArg[0] = (EdgeArgument*) malloc(sizeof(EdgeArgument));
+  method1->inpArg[0]->argType = Int32;
+  method1->inpArg[0]->valType = ARRAY_1D;
+  method1->inpArg[0]->arrayLength = 5;
+
+  method1->inpArg[1] = (EdgeArgument*) malloc(sizeof(EdgeArgument));
+  method1->inpArg[1]->argType = Int32;
+  method1->inpArg[1]->valType = SCALAR;
+
+  method1->num_outArgs = 1;
+  method1->outArg = (EdgeArgument**) malloc(sizeof(EdgeArgument*) * method1->num_outArgs);
+  for (int idx = 0; idx < method1->num_outArgs; idx++) {
+    method1->outArg[idx] = (EdgeArgument*) malloc(sizeof(EdgeArgument));
+    method1->outArg[idx]->argType = Int32;
+    method1->outArg[idx]->valType = ARRAY_1D;
+    method1->outArg[idx]->arrayLength = 5;
+  }
+  createMethodNode(DEFAULT_NAMESPACE_VALUE, methodNodeItem1, method1);
 
 
 

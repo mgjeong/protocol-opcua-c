@@ -19,7 +19,11 @@ static void read(UA_Client *client, EdgeMessage *msg) {
   if (response) {
     response->nodeInfo = msg->request->nodeInfo;
     response->requestId = msg->request->requestId;
-    response->value = val->data;
+
+    EdgeVersatility *versatility = (EdgeVersatility*) malloc(sizeof(EdgeVersatility));
+    versatility->arrayLength = 0;
+    versatility->isArray = false;
+    versatility->value = val->data;
 
     if (val->type == &UA_TYPES[UA_TYPES_BOOLEAN])
       response->type = Boolean;
@@ -41,13 +45,14 @@ static void read(UA_Client *client, EdgeMessage *msg) {
       response->type = Double;
     } else if(val->type == &UA_TYPES[UA_TYPES_STRING]) {
       UA_String str = *((UA_String*) val->data);
-      response->value = (void*) str.data;
+      versatility->value = (void*) str.data;
       response->type = String;
     } else if(val->type == &UA_TYPES[UA_TYPES_BYTE]) {
       response->type = Byte;
     } else if(val->type == &UA_TYPES[UA_TYPES_DATETIME]) {
       response->type = DateTime;
     }
+    response->message = versatility;
 
 
     EdgeMessage *resultMsg = (EdgeMessage*) malloc(sizeof(EdgeMessage));

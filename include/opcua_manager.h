@@ -74,10 +74,13 @@ __attribute__((visibility("default"))) void registerCallbacks(EdgeConfigure *con
 __attribute__((visibility("default"))) EdgeResult* createNamespace(char* name, char* rootNodeId,
                                                                    char* rootBrowseName, char* rootDisplayName);
 __attribute__((visibility("default"))) EdgeResult* createNode(char* namespaceUri, EdgeNodeItem* item);
+__attribute__((visibility("default"))) EdgeResult* createMethodNode(char *namespaceUri, EdgeNodeItem *item, EdgeMethod *method);
 __attribute__((visibility("default"))) EdgeResult* addReference(EdgeReference *reference);
 __attribute__((visibility("default"))) EdgeResult* readNode(EdgeMessage *msg);
 __attribute__((visibility("default"))) EdgeResult* writeNode(EdgeMessage *msg);
 __attribute__((visibility("default"))) EdgeResult* browseNode(EdgeMessage *msg);
+__attribute__((visibility("default"))) EdgeResult* callMethod(EdgeMessage *msg);
+
 
 
 

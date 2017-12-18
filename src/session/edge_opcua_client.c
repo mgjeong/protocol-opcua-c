@@ -2,6 +2,7 @@
 #include "read.h"
 #include "write.h"
 #include "browse.h"
+#include "method.h"
 
 #include <stdio.h>
 #include <open62541.h>
@@ -23,6 +24,11 @@ EdgeResult* writeNodesInServer(EdgeMessage* msg) {
 
 EdgeResult* browseNodesInServer(EdgeMessage *msg) {
   EdgeResult* result = executeBrowse(m_client, msg);
+  return result;
+}
+
+EdgeResult* callMethodInServer(EdgeMessage *msg) {
+  EdgeResult* result = executeMethod(m_client, msg);
   return result;
 }
 

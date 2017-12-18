@@ -7,7 +7,6 @@
 static edgeMap *browseMap;
 static int browseNamesCount = 0;
 
-
 static bool isMapElementPresent(keyValue key) {
   edgeMapNode *temp = browseMap->head;
   while(temp != NULL)
