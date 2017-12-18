@@ -410,9 +410,9 @@ int main() {
       testGetEndpoints();
       //startFlag = true;
 
-    } else if(!strcmp(command, "read_t")) {
+    } else if(!strcmp(command, "read")) {
       testRead();
-    } else if(!strcmp(command, "write_t")) {
+    } else if(!strcmp(command, "write")) {
       testWrite();
     } else if(!strcmp(command, "browse")) {
       testBrowse();
