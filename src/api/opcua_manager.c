@@ -65,6 +65,16 @@ EdgeResult* browseNode(EdgeMessage *msg) {
   return result;
 }
 
+EdgeResult* callMethod(EdgeMessage *msg) {
+  EdgeResult* result = callMethodInServer(msg);
+  return result;
+}
+
+EdgeResult* createMethodNode(char *namespaceUri, EdgeNodeItem *item, EdgeMethod *method) {
+  EdgeResult* result = addMethodNodeInServer(item, method);
+  return result;
+}
+
 void createServer(EdgeEndPointInfo *epInfo) {
   printf ("\n[Received command] :: Server start \n");
   if (b_serverInitialized) {

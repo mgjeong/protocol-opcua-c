@@ -28,7 +28,8 @@ static void write(UA_Client *client, EdgeMessage *msg) {
   if (response) {
     response->nodeInfo = msg->request->nodeInfo;
     response->requestId = msg->request->requestId;
-    response->value = UA_STATUSCODE_GOOD;
+    response->message = NULL;
+//    response->value = UA_STATUSCODE_GOOD;
 
     EdgeMessage *resultMsg = (EdgeMessage*) malloc(sizeof(EdgeMessage));
     resultMsg->endpointInfo = msg->endpointInfo;

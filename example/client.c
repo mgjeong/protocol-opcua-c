@@ -35,24 +35,56 @@ static void response_msg_cb (EdgeMessage* data) {
     int len = data->responseLength;
     int idx = 0;
     for (idx = 0; idx < len; idx++) {
-      if(data->responses[idx]->type == Int16)
-        printf("[Application response Callback] Data read from node ===>> [%d]\n", *((int*)data->responses[idx]->value));
-      else if(data->responses[idx]->type == UInt16)
-        printf("[Application response Callback] Data read from node ===>> [%d]\n", *((int*)data->responses[idx]->value));
-      else if(data->responses[idx]->type == Int32)
-        printf("[Application response Callback] Data read from node ===>>  [%d]\n", *((int*)data->responses[idx]->value));
-      else if(data->responses[idx]->type == UInt32)
-        printf("[Application response Callback] Data read from node ===>>  [%d]\n", *((int*)data->responses[idx]->value));
-      else if(data->responses[idx]->type == Int64)
-        printf("[Application response Callback] Data read from node ===>>  [%ld]\n", *((long*)data->responses[idx]->value));
-      else if(data->responses[idx]->type == UInt64)
-        printf("[Application response Callback] Data read from node ===>>  [%ld]\n", *((long*)data->responses[idx]->value));
-      else if(data->responses[idx]->type == Float)
-        printf("[Application response Callback] Data read from node ===>>  [%f]\n", *((float*)data->responses[idx]->value));
-      else if(data->responses[idx]->type == Double)
-        printf("[Application response Callback] Data read from node ===>>  [%f]\n", *((double*)data->responses[idx]->value));
-      else if(data->responses[idx]->type == String)
-        printf("[Application response Callback] Data read from node ===>>  [%s]\n", ((char*)data->responses[idx]->value));
+      if (data->responses[idx]->message != NULL) {
+        if (data->responses[idx]->message->isArray) {
+          // Handle Output array
+          int arrayLen = data->responses[idx]->message->arrayLength;
+
+          if(data->responses[idx]->type == Int16) {
+            /* Handle int16 output array */
+          } else if(data->responses[idx]->type == UInt16)  {
+            /* Handle UInt16 output array */
+          } else if(data->responses[idx]->type == Int32) {
+            /* Handle Int32 output array */
+            printf("Int32 output array length :: [%d]\n\n", arrayLen);
+            for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++) {
+              printf("%d  ", ((int32_t*) data->responses[idx]->message->value)[arrayIdx]);
+            }
+            printf("\n");
+          } else if(data->responses[idx]->type == UInt32) {
+            /* Handle UInt32 output array */
+          } else if(data->responses[idx]->type == Int64) {
+            /* Handle Int64 output array */
+          } else if(data->responses[idx]->type == UInt64) {
+            /* Handle UInt64 output array */
+          } else if(data->responses[idx]->type == Float) {
+            /* Handle Float output array */
+          } else if(data->responses[idx]->type == Double) {
+            /* Handle Double output array */
+          } else if(data->responses[idx]->type == String) {
+            /* Handle String output array */
+          }
+        } else {
+          if(data->responses[idx]->type == Int16)
+            printf("[Application response Callback] Data read from node ===>> [%d]\n", *((int*)data->responses[idx]->message->value));
+          else if(data->responses[idx]->type == UInt16)
+            printf("[Application response Callback] Data read from node ===>> [%d]\n", *((int*)data->responses[idx]->message->value));
+          else if(data->responses[idx]->type == Int32)
+            printf("[Application response Callback] Data read from node ===>>  [%d]\n", *((int*)data->responses[idx]->message->value));
+          else if(data->responses[idx]->type == UInt32)
+            printf("[Application response Callback] Data read from node ===>>  [%d]\n", *((int*)data->responses[idx]->message->value));
+          else if(data->responses[idx]->type == Int64)
+            printf("[Application response Callback] Data read from node ===>>  [%ld]\n", *((long*)data->responses[idx]->message->value));
+          else if(data->responses[idx]->type == UInt64)
+            printf("[Application response Callback] Data read from node ===>>  [%ld]\n", *((long*)data->responses[idx]->message->value));
+          else if(data->responses[idx]->type == Float)
+            printf("[Application response Callback] Data read from node ===>>  [%f]\n", *((float*)data->responses[idx]->message->value));
+          else if(data->responses[idx]->type == Double)
+            printf("[Application response Callback] Data read from node ===>>  [%f]\n", *((double*)data->responses[idx]->message->value));
+          else if(data->responses[idx]->type == String)
+            printf("[Application response Callback] Data read from node ===>>  [%s]\n", ((char*)data->responses[idx]->message->value));
+        }
+      }
     }
     printf("\n\n");
   }
@@ -180,7 +212,7 @@ static void startClient(char* addr, int port, char *securityPolicyUri) {
   msg->command = CMD_START_CLIENT;
   msg->type = SEND_REQUEST;
 
-  printf("\n********************** startClient **********************\n");
+  printf("\n" COLOR_YELLOW "********************** startClient **********************" COLOR_RESET"\n");
   connectClient(ep);
 }
 
@@ -193,7 +225,7 @@ static void stopClient() {
   msg->endpointInfo = ep;
   msg->command = CMD_STOP_CLIENT;
 
-  printf("\n********************** stop client **********************\n");
+  printf("\n" COLOR_YELLOW "********************** stop client **********************" COLOR_RESET"\n");
   disconnectClient(ep);
 }
 
@@ -202,6 +234,9 @@ static void deinit() {
 }
 
 static void testBrowse() {
+  printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET);
+  printf("\n" COLOR_YELLOW "                       Browse Node            "COLOR_RESET);
+  printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET "\n\n");
   EdgeEndPointInfo* ep = (EdgeEndPointInfo*) malloc(sizeof(EdgeEndPointInfo));
   ep->endpointUri = endpointUri;
   ep->config = NULL;
@@ -266,6 +301,9 @@ static void testBrowse() {
 }
 
 static void testRead() {
+  printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET);
+  printf("\n" COLOR_YELLOW "                       Read            "COLOR_RESET);
+  printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET "\n\n");
   int option;
   printf("\n\n" COLOR_YELLOW  "********************** Available nodes to test the read service **********************" COLOR_RESET "\n");
   printf("[1] String1\n");
@@ -302,6 +340,9 @@ static void testRead() {
 }
 
 static void testWrite() {
+  printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET);
+  printf("\n" COLOR_YELLOW "                       Write            "COLOR_RESET);
+  printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET "\n\n");
   char s_value[512];
   double d_value;
   unsigned int u_value;
@@ -368,6 +409,95 @@ static void testWrite() {
   writeNode(msg);
 }
 
+static void testMethod() {
+  printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET);
+  printf("\n" COLOR_YELLOW "                       Method Call            "COLOR_RESET);
+  printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET "\n\n");
+
+  EdgeEndPointInfo* ep = (EdgeEndPointInfo*) malloc(sizeof(EdgeEndPointInfo));
+  ep->endpointUri = endpointUri;
+  ep->config = NULL;
+
+  EdgeNodeInfo *nodeInfo = (EdgeNodeInfo*) malloc(sizeof(EdgeNodeInfo));
+  nodeInfo->valueAlias = "square_root";
+
+  EdgeMethodRequestParams *methodParams = (EdgeMethodRequestParams*) malloc(sizeof(EdgeMethodRequestParams));
+  methodParams->num_inpArgs = 1;
+  methodParams->inpArg = (EdgeArgument**) malloc(sizeof(EdgeArgument*) * methodParams->num_inpArgs);
+  methodParams->inpArg[0] = (EdgeArgument*) malloc(sizeof(EdgeArgument));
+  methodParams->inpArg[0]->argType = Double;
+  methodParams->inpArg[0]->valType = SCALAR;
+  double d = 16.0;
+  methodParams->inpArg[0]->scalarValue = (void*) &d;
+
+  EdgeRequest *request = (EdgeRequest*) malloc(sizeof(EdgeRequest));
+  request->nodeInfo = nodeInfo;
+  request->methodParams = methodParams;
+
+  EdgeMessage *msg = (EdgeMessage*) malloc(sizeof(EdgeMessage));
+  msg->endpointInfo = ep;
+  msg->command = CMD_METHOD;
+  msg->request = request;
+
+  callMethod(msg);
+
+
+  for (int i = 0; i < methodParams->num_inpArgs; i++) {
+    free (methodParams->inpArg[0]); methodParams->inpArg[0] = NULL;
+  }
+  free (methodParams->inpArg); methodParams->inpArg = NULL;
+  free (methodParams); methodParams = NULL;
+
+  free(nodeInfo); nodeInfo = NULL;
+  free(request); request = NULL;
+  free (msg); msg = NULL;
+
+  printf("\n=====================================\n\n");
+
+  nodeInfo = (EdgeNodeInfo*) malloc(sizeof(EdgeNodeInfo));
+  nodeInfo->valueAlias = "incrementInc32Array";
+
+  methodParams = (EdgeMethodRequestParams*) malloc(sizeof(EdgeMethodRequestParams));
+  methodParams->num_inpArgs = 2;
+  methodParams->inpArg = (EdgeArgument**) malloc(sizeof(EdgeArgument*) * methodParams->num_inpArgs);
+  methodParams->inpArg[0] = (EdgeArgument*) malloc(sizeof(EdgeArgument));
+  methodParams->inpArg[0]->argType = Int32;
+  methodParams->inpArg[0]->valType = ARRAY_1D;
+  int32_t array[5] = {10,20,30,40,50};
+  methodParams->inpArg[0]->arrayData = (void*) array;
+  methodParams->inpArg[0]->arrayLength = 5;
+
+  methodParams->inpArg[1] = (EdgeArgument*) malloc(sizeof(EdgeArgument));
+  methodParams->inpArg[1]->argType = Int32;
+  methodParams->inpArg[1]->valType = SCALAR;
+  int delta = 5;
+  methodParams->inpArg[1]->scalarValue = (void*) &delta;
+
+  request = (EdgeRequest*) malloc(sizeof(EdgeRequest));
+  request->nodeInfo = nodeInfo;
+  request->methodParams = methodParams;
+
+  msg = (EdgeMessage*) malloc(sizeof(EdgeMessage));
+  msg->endpointInfo = ep;
+  msg->command = CMD_METHOD;
+  msg->request = request;
+
+  callMethod(msg);
+
+  for (int i = 0; i < methodParams->num_inpArgs; i++) {
+    free (methodParams->inpArg[0]); methodParams->inpArg[0] = NULL;
+  }
+  free (methodParams->inpArg); methodParams->inpArg = NULL;
+  free (methodParams); methodParams = NULL;
+
+  free(nodeInfo); nodeInfo = NULL;
+  free(request); request = NULL;
+  free (msg); msg = NULL;
+
+
+
+}
+
 static void print_menu() {
   printf("=============== OPC UA =======================\n\n");
 
@@ -375,6 +505,7 @@ static void print_menu() {
   printf("read : read attribute for target node\n");
   printf("write : write attribute into nodes\n");
   printf("browse : browse nodes\n");
+  printf("method : method call\n");
   printf("quit : terminate/stop opcua server/client and then quit\n");
   printf("help : print menu\n");
 
@@ -416,6 +547,8 @@ int main() {
       testWrite();
     } else if(!strcmp(command, "browse")) {
       testBrowse();
+    } else if(!strcmp(command, "method")) {
+      testMethod();
     } else if(!strcmp(command, "quit")) {
       deinit();
       //stopFlag = true;

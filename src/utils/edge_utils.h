@@ -8,6 +8,10 @@
 #ifndef EDGE_UTILS_H_
 #define EDGE_UTILS_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef void *keyValue;
 
 typedef struct edgeMapNode
@@ -62,5 +66,9 @@ keyValue getMapElement(edgeMap *map, keyValue key);
  * @return keyValue
  */
 void deleteMap(edgeMap *map);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* EDGE_UTILS_H_ */

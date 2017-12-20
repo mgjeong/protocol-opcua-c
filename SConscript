@@ -36,17 +36,18 @@ AddMethod(env, do__)
 # Build flags
 ######################################################################
 
-env.AppendUnique(CCFLAGS=['-fvisibility=hidden', '-fPIC',  '-Wall', '-Werror', '-std=gnu99'])
+env.AppendUnique(CCFLAGS=['-fPIC',  '-Wall', '-Werror', '-std=gnu99'])
 
 test = ARGUMENTS.get('TEST')
 if ARGUMENTS.get('TEST', False) in [
             'y', 'yes', 'true', 't', '1', 'on', 'all', True
     ]:
     print "TEST IS ENABLED"
-    env.AppendUnique(CCFLAGS=['-fprofile-arcs', '-ftest-coverage'])
+    env.AppendUnique(CCFLAGS=['-fvisibility=default', '-fprofile-arcs', '-ftest-coverage'])
     env.AppendUnique(LINKFLAGS=['-lgcov', '--coverage'])
 else:
     print "TEST IS DISABLED"
+    env.AppendUnique(CCFLAGS=['-fvisibility=hidden'])
 
 delBuildDir = 'rm -rf ' + buildDir
 env.do__(delBuildDir)
@@ -76,6 +77,7 @@ src = [
 		buildDir + srcPath + '/command/browse.c',
 		buildDir + srcPath + '/command/read.c',
 		buildDir + srcPath + '/command/write.c',
+		buildDir + srcPath + '/command/method.c',
 		buildDir + srcPath + '/node/edge_node.c',
 		#buildDir + srcPath + '/queue/message_dispatcher.c',
 		#buildDir + srcPath + '/queue/queue.c',

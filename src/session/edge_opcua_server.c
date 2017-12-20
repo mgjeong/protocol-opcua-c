@@ -38,6 +38,11 @@ EdgeResult* addReferenceInServer(EdgeReference *reference) {
   return result;
 }
 
+EdgeResult* addMethodNodeInServer(EdgeNodeItem *item, EdgeMethod *method) {
+  EdgeResult* result = addMethodNode(m_server, item, method);
+  return result;
+}
+
 static void* server_loop(void* ptr) {
   while (b_running) {
     UA_Server_run_iterate(m_server, true);
@@ -47,6 +52,15 @@ static void* server_loop(void* ptr) {
 }
 
 EdgeResult* start_server(EdgeEndPointInfo* epInfo) {
+    
+    EdgeResult* result = (EdgeResult*) malloc(sizeof(EdgeResult));
+    result->code = STATUS_OK;
+    
+    if(!epInfo)
+    {
+        result->code = STATUS_PARAM_INVALID;
+        return result;
+    }
 
   EdgeEndpointConfig* config = epInfo->config;
 

@@ -166,17 +166,35 @@ typedef struct EdgeNodeInfo
 
 } EdgeNodeInfo;
 
+typedef struct EdgeMethodRequestParams
+{
+  /** number of input arguments */
+  int num_inpArgs;
+
+  /** Input arguments */
+  EdgeArgument** inpArg;
+
+  /** number of output arguments */
+  int num_outArgs;
+
+  /** Input arguments */
+  EdgeArgument** outArg;
+
+} EdgeMethodRequestParams;
+
 
 typedef struct EdgeRequest
 {
     /** EdgeVersatility.*/
-    //EdgeVersatility value;
     void *value;
 
     EdgeNodeIdentifier type;
 
     /** EdgeSubRequest.*/
     EdgeSubRequest *subMsg;
+
+    /** EdgeMethodRequest */
+    EdgeMethodRequestParams *methodParams;
 
     /** EdgeNodeInfo.*/
     EdgeNodeInfo *nodeInfo;

@@ -58,7 +58,6 @@ keyValue getMapElement(edgeMap *map, keyValue key)
 
     while(temp != NULL)
     {
-      //              printf("\n\n========= found :: [%d] =============== \n\n", (int) temp->value);
             if(temp->key == key)
             {
                     return temp->value;
@@ -66,7 +65,6 @@ keyValue getMapElement(edgeMap *map, keyValue key)
             temp = temp->next;
     }
 
-//    printf("not found\n");
 return NULL;
 }
 

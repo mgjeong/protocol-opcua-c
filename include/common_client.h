@@ -40,10 +40,23 @@ extern "C"
 typedef struct EdgeNodeInfo EdgeNodeInfo;
 typedef struct EdgeResult EdgeResult;
 
+typedef struct EdgeVersatility {
+  /** data*/
+  void* value;
+
+  /** Array/Scalar type */
+  bool isArray;
+
+  /** Array Size */
+  int arrayLength;
+
+} EdgeVersatility;
+
 typedef struct EdgeResponse
 {
     /** EdgeVersatility.*/
-    //      EdgeVersatility* value;
+    EdgeVersatility* message;
+
     void *value;
 
     EdgeNodeIdentifier type;

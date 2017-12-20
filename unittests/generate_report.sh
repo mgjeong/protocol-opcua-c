@@ -195,7 +195,7 @@ generate_report_OPC_UA()
     fi
 
     tests_list=(
-                "${OPC_UA_BASE}/unittests/opcuaTest"
+                "${OPC_UA_BASE}/unittests/test"
                );
 
     for exe in ${tests_list[@]}; do

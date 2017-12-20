@@ -15,6 +15,7 @@ void* getClientEndpoints(char *endpointUri);
 EdgeResult* readNodesFromServer(EdgeMessage* msg);
 EdgeResult* writeNodesInServer(EdgeMessage* msg);
 EdgeResult* browseNodesInServer(EdgeMessage *msg);
+EdgeResult* callMethodInServer(EdgeMessage *msg);
 
 #ifdef __cplusplus
 }
