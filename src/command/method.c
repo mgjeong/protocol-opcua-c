@@ -12,7 +12,9 @@ EdgeResult *executeMethod(UA_Client *client, EdgeMessage *msg) {
   EdgeRequest *request = msg->request;
   EdgeMethodRequestParams *params = request->methodParams;
   int idx = 0;
-  UA_Variant *input = (UA_Variant*) malloc(sizeof(UA_Variant) * params->num_inpArgs);
+  UA_Variant *input = NULL;
+  if (params->num_inpArgs > 0)
+    input = (UA_Variant*) malloc(sizeof(UA_Variant) * params->num_inpArgs);
 
   for (idx =0; idx < params->num_inpArgs; idx++) {
     UA_Variant_init(&input[idx]);
@@ -29,8 +31,8 @@ EdgeResult *executeMethod(UA_Client *client, EdgeMessage *msg) {
       if (type == UA_TYPES_STRING) {
         char **data = (char**) params->inpArg[idx]->arrayData;
         UA_String *array = (UA_String*) UA_Array_new(params->inpArg[idx]->arrayLength, &UA_TYPES[type]);
-        for (int idx1 = 0; idx1 < params->inpArg[idx]->arrayLength; idx++) {
-          array[idx] = UA_STRING_ALLOC(data[idx]);
+        for (int idx1 = 0; idx1 < params->inpArg[idx]->arrayLength; idx1++) {
+          array[idx1] = UA_STRING_ALLOC(data[idx1]);
         }
         UA_Variant_setArrayCopy(&input[idx], array, params->inpArg[idx]->arrayLength, &UA_TYPES[type]);
       } else {
@@ -141,7 +143,10 @@ EdgeResult *executeMethod(UA_Client *client, EdgeMessage *msg) {
       free(response); response = NULL;
       free(resultMsg); resultMsg = NULL;
 
-      free(input);
+      if (input) {
+        free(input);
+        input = NULL;
+      }
       result->code = STATUS_OK;
     }
   } else {

@@ -300,44 +300,57 @@ static UA_StatusCode methodCallback(UA_Server *server,
     EdgeMethod *method = (EdgeMethod*) value;
     method_func method_to_call = (method_func) (method->method_fn);
 
-    void **inp = malloc(sizeof(void*) * inputSize);
-    for (int i = 0; i < inputSize; i++) {
-      inp[i] = input[i].data;
+    void **inp = NULL;
+    if (inputSize > 0) {
+      inp = malloc(sizeof(void*) * inputSize);
+      for (int i = 0; i < inputSize; i++) {
+        inp[i] = input[i].data;
+      }
     }
-    void **out = malloc(sizeof(void*) * outputSize);
+    void **out = NULL;
+    if (outputSize > 0) {
+      out = malloc(sizeof(void*) * outputSize);
+      for (int i = 0; i < outputSize; i++) {
+        out[i] = NULL;
+      }
+    }
     method_to_call(inputSize, inp, outputSize, out);
 
-    free (inp); inp = NULL;
+    if (inp) {
+      free (inp);
+      inp = NULL;
+    }
 
     for (int idx = 0; idx < method->num_outArgs; idx++) {
-      int type = (int) method->outArg[idx]->argType - 1;
-
-      if (method->outArg[idx]->valType == SCALAR) {
-        // Scalar copy
-        if (type == UA_TYPES_STRING) {
-          UA_String val = UA_STRING_ALLOC((char*) *out);
-          UA_Variant_setScalarCopy(&output[idx], &val, &UA_TYPES[type]);
-        } else {
-          UA_Variant *variant = &output[idx];
-          UA_Variant_setScalarCopy(variant, *out, &UA_TYPES[type]);
-        }
-      } else if (method->outArg[idx]->valType == ARRAY_1D) {
-        // Array copy
-        if (type == UA_TYPES_STRING) {
-          char **data = (char**) out;
-          UA_String *array = (UA_String*) UA_Array_new(method->outArg[idx]->arrayLength, &UA_TYPES[type]);
-          for (int idx1 = 0; idx1 <method->outArg[idx]->arrayLength; idx++) {
-            array[idx] = UA_STRING_ALLOC(data[idx]);
+      if (out[idx] != NULL) {
+        int type = (int) method->outArg[idx]->argType - 1;
+        if (method->outArg[idx]->valType == SCALAR) {
+          // Scalar copy
+          if (type == UA_TYPES_STRING) {
+            UA_String val = UA_STRING_ALLOC((char*) *out);
+            UA_Variant_setScalarCopy(&output[idx], &val, &UA_TYPES[type]);
+          } else {
+            UA_Variant *variant = &output[idx];
+            UA_Variant_setScalarCopy(variant, *out, &UA_TYPES[type]);
           }
-          UA_Variant *variant = &output[idx];          
-          UA_Variant_setArrayCopy(variant, array, method->outArg[idx]->arrayLength, &UA_TYPES[type]);
-        } else {
-          UA_Variant *variant = &output[idx];
-          UA_Variant_setArrayCopy(variant, out[idx], method->outArg[idx]->arrayLength, &UA_TYPES[type]);
+        } else if (method->outArg[idx]->valType == ARRAY_1D) {
+          // Array copy
+          if (type == UA_TYPES_STRING) {
+            char **data = (char**) out;
+            UA_String *array = (UA_String*) UA_Array_new(method->outArg[idx]->arrayLength, &UA_TYPES[type]);
+            for (int idx1 = 0; idx1 <method->outArg[idx]->arrayLength; idx++) {
+              array[idx] = UA_STRING_ALLOC(data[idx]);
+            }
+            UA_Variant *variant = &output[idx];
+            UA_Variant_setArrayCopy(variant, array, method->outArg[idx]->arrayLength, &UA_TYPES[type]);
+          } else {
+            UA_Variant *variant = &output[idx];
+            UA_Variant_setArrayCopy(variant, out[idx], method->outArg[idx]->arrayLength, &UA_TYPES[type]);
+          }
         }
+        free (out[idx]);
+        out[idx] = NULL;
       }
-      free (out[idx]);
-      out[idx] = NULL;
     }
     return UA_STATUSCODE_GOOD;
   } else {
@@ -406,9 +419,10 @@ EdgeResult* addMethodNode(UA_Server *server, EdgeNodeItem *item, EdgeMethod *met
       inputArguments[idx].valueRank = -1;    /* Scalar */
     } else if (method->inpArg[idx]->valType == ARRAY_1D) {
       inputArguments[idx].valueRank = 1;    /* Array with one dimensions */      
-      UA_UInt32 inputDimensions = method->inpArg[idx]->arrayLength;
+      UA_UInt32 *inputDimensions = (UA_UInt32*) malloc(sizeof(UA_UInt32));
+      inputDimensions[0] = method->inpArg[idx]->arrayLength;
       inputArguments[idx].arrayDimensionsSize = 1;
-      inputArguments[idx].arrayDimensions =&inputDimensions;
+      inputArguments[idx].arrayDimensions = inputDimensions;
     }
   }
 
@@ -424,9 +438,10 @@ EdgeResult* addMethodNode(UA_Server *server, EdgeNodeItem *item, EdgeMethod *met
       outputArguments[idx].valueRank = -1;    /* Scalar */
     } else if (method->outArg[idx]->valType == ARRAY_1D) {
       outputArguments[idx].valueRank = 1;    /* Array with one dimensions */
-      UA_UInt32 outputDimensions = method->outArg[idx]->arrayLength;
+      UA_UInt32 *outputDimensions = (UA_UInt32*) malloc(sizeof(UA_UInt32));
+      outputDimensions[0] = method->outArg[idx]->arrayLength;
       outputArguments[idx].arrayDimensionsSize = 1;
-      outputArguments[idx].arrayDimensions =&outputDimensions;
+      outputArguments[idx].arrayDimensions = outputDimensions;
     }
   }
 

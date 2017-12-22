@@ -2,6 +2,8 @@
 import os 
 env = Environment()
 
+buildDir= 'out/'
+
 def do__(self, arg):
 	Execute(arg)
 	print "\n"
@@ -29,17 +31,31 @@ env.do__(copyOpcuaLib)
 exportLibPath='export LD_LIBRARY_PATH=' + libDir
 env.do__(exportLibPath)
 
+delBuildDir = 'rm -rf ' + buildDir
+env.do__(delBuildDir)
+
+createBuildDir = 'mkdir -p ' + buildDir
+env.do__(createBuildDir )
+
 
 env['CPPPATH'] = [incPath, '../extlibs', gtestIncDir, '../src/utils']
 print env['CPPPATH']
 
 env.PrependUnique(CCFLAGS=['-g', '-Wwrite-strings'])
 
-env.PrependUnique(LIBS=['opcua-adapter', 'gtest', 'gtest_main'])
+env.PrependUnique(LIBS=['opcua-adapter', 'gtest', 'gtest_main', 'm'])
 env.AppendUnique(LIBPATH=[libDir])
 
 
-env.Program('test', ['opcuaTest.cpp', 'utilTests.cpp'])
+env.VariantDir(variant_dir = buildDir, src_dir = '.', duplicate = 0)
+
+env.Program(target = [buildDir + 'server'], source = [buildDir + 'serverTest.c'])
+
+env.Program(target = 'test', source = [
+					buildDir + 'opcuaTest.cpp',
+					buildDir +  'utilTests.cpp'
+					])
+#env.Program('test', ['opcuaTest.cpp', 'utilTests.cpp'])
 
 #runTests='./opcuaTest --gtest_output="xml:./opcuatestReport.xml"'
 #env.do__(runTests)

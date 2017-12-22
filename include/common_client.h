@@ -59,6 +59,7 @@ typedef struct EdgeResponse
 
     void *value;
 
+    /** EdgeNodeIdentifier */
     EdgeNodeIdentifier type;
 
     /** EdgeNodeInfo.*/
@@ -77,23 +78,32 @@ typedef struct EdgeResponse
 
 typedef struct EdgeSubRequest
 {
-    /** sourcePath.*/
-    char *sourcePath;
+  /** EdgeNodeIdentifier */
+  EdgeNodeIdentifier subType;
 
-    /** sourceNamespace.*/
-    char *sourceNamespace;
+  /** sampling interval */
+  double samplingInterval;
 
-    /** targetPath.*/
-    char *targetPath;
+  /** Publishing Interval */
+  double publishingInterval;
 
-    /** targetNamespace.*/
-    char *targetNamespace;
+  /** Lifetime count */
+  int lifetimeCount;
 
-    /** EdgeNodeIdentifier.*/
-    EdgeNodeIdentifier referenceId;
+  /** max keepalive count */
+  int maxKeepAliveCount;
 
-    /** forward.*/
-    bool forward;
+  /** Max Notifications per Publish */
+  int maxNotificationsPerPublish;
+
+  /** Publishing enabled ? */
+  bool publishingEnabled;
+
+  /** Priority */
+  int priority;
+
+  /** Queue Size */
+  int queueSize;
 } EdgeSubRequest;
 
 #ifdef __cplusplus
