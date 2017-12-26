@@ -232,10 +232,16 @@ static void addViewNode(UA_Server *server, EdgeNodeItem* item) {
   }
 }
 
-EdgeResult* addReferences(UA_Server* server, EdgeReference* reference) {
+EdgeResult addReferences(UA_Server* server, EdgeReference* reference) {
 
-    EdgeResult* result = (EdgeResult*) malloc(sizeof(EdgeResult));
-    result->code = STATUS_OK;
+  EdgeResult result;
+  result.code = STATUS_OK;
+
+  if(!server) {
+    printf("Server Handle invalid!! \n");
+    result.code = STATUS_ERROR;
+    return result;
+  }
 
   UA_ExpandedNodeId expanded_nodeId = UA_EXPANDEDNODEID_STRING(1, reference->targetPath);
   UA_StatusCode status = UA_Server_addReference(server, UA_NODEID_STRING(1, reference->sourcePath),
@@ -243,7 +249,7 @@ EdgeResult* addReferences(UA_Server* server, EdgeReference* reference) {
   if (status == UA_STATUSCODE_GOOD) {
     printf("\n+++ addReference success +++\n");
   } else {
-    result->code = STATUS_ERROR;
+    result.code = STATUS_ERROR;
     printf("\n+++ addReference failed +++\n");
   }
 
@@ -360,14 +366,14 @@ static UA_StatusCode methodCallback(UA_Server *server,
 
 /****************************** Member functions ***********************************/
 
-EdgeResult* addNodes(UA_Server* server, EdgeNodeItem* item) {
+EdgeResult addNodes(UA_Server* server, EdgeNodeItem* item) {
 
-  EdgeResult* result = (EdgeResult*) malloc(sizeof(EdgeResult));
-  result->code = STATUS_OK;
+  EdgeResult result;
+  result.code = STATUS_OK;
 
     if(item == NULL)
     {
-        result->code = STATUS_PARAM_INVALID;
+        result.code = STATUS_PARAM_INVALID;
         return result;
     }
       
@@ -389,17 +395,19 @@ EdgeResult* addNodes(UA_Server* server, EdgeNodeItem* item) {
   } else if (item->nodeType == REFERENCE_TYPE_NODE) {
     addReferenceTypeNode(server, item);
   } else {
-    result->code = STATUS_ERROR;
+    result.code = STATUS_ERROR;
   }
 
   return result;
 }
 
-EdgeResult* addMethodNode(UA_Server *server, EdgeNodeItem *item, EdgeMethod *method) {
-  EdgeResult* result = (EdgeResult*) malloc(sizeof(EdgeResult));
+EdgeResult addMethodNode(UA_Server *server, EdgeNodeItem *item, EdgeMethod *method) {
+  EdgeResult result;
+  result.code = STATUS_OK;
+
   if (!server) {
     printf("Server handle Invalid\n");
-    result->code = STATUS_ERROR;
+    result.code = STATUS_ERROR;
     return result;
   }
 
@@ -478,20 +486,69 @@ EdgeResult* addMethodNode(UA_Server *server, EdgeNodeItem *item, EdgeMethod *met
     printf("\n+++ addMethodNode failed +++\n");
   }
 
-  result->code = STATUS_OK;
+  result.code = STATUS_OK;
   return result;
 }
 
-EdgeResult* addDataAccessNode(EdgeNodeItem* item) {
-  return NULL;
+EdgeResult addDataAccessNode(EdgeNodeItem* item) {
+  EdgeResult result;
+  result.code = STATUS_OK;
+  return result;
 }
 
-EdgeResult* modifyNode(char* nodeUri) {
-  return NULL;
+EdgeResult modifyNode(UA_Server *server, char* nodeUri, EdgeVersatility *value) {
+  EdgeResult result;
+  result.code = STATUS_OK;
+
+  if (!server) {
+    printf("Server handle Invalid\n");
+    result.code = STATUS_ERROR;
+    return result;
+  }
+
+  // read the value;
+  UA_NodeId node = UA_NODEID_STRING(1, nodeUri);
+  UA_Variant *readval = UA_Variant_new();
+  UA_StatusCode ret = UA_Server_readValue(server, node, readval);
+  if (ret != UA_STATUSCODE_GOOD) {
+    printf("error in read value during modify node \n");
+    result.code = STATUS_ERROR;
+    return result;
+  }
+
+  const UA_DataType* type = readval->type;
+  UA_Variant *myVariant = UA_Variant_new();
+  if (type == &UA_TYPES[UA_TYPES_STRING]) {
+    UA_String val = UA_STRING_ALLOC((char*) value->value);
+    ret = UA_Variant_setScalarCopy(myVariant, &val, type);
+  } else {
+    ret = UA_Variant_setScalarCopy(myVariant, value->value, type);
+  }
+
+  if (ret != UA_STATUSCODE_GOOD) {
+    printf("error in set scalar copy during modify node \n");
+    result.code = STATUS_ERROR;
+    return result;
+  }
+
+  UA_StatusCode retVal = UA_Server_writeValue(server, node, *myVariant);
+  if  (retVal != UA_STATUSCODE_GOOD) {
+    printf("Error in modifying node value:: 0x%08x\n", retVal);
+    result.code = STATUS_ERROR;
+    return result;
+  } else {
+    printf("+++ write successful +++\n\n");
+  }
+  UA_Variant_delete(myVariant);
+
+  result.code = STATUS_OK;
+  return result;
 }
 
-EdgeResult* modifyNode2(EdgeNodeIdentifier nodeType) {
-  return NULL;
+EdgeResult modifyNode2(EdgeNodeIdentifier nodeType) {
+  EdgeResult result;
+  result.code = STATUS_OK;
+  return result;
 }
 
 /***********************************************************************************/

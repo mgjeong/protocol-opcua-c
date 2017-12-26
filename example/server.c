@@ -8,6 +8,7 @@
 #include <opcua_manager.h>
 #include "opcua_common.h"
 #include "edge_identifier.h"
+#include "open62541.h"
 
 #define COLOR_GREEN        "\x1b[32m"
 #define COLOR_YELLOW      "\x1b[33m"
@@ -215,6 +216,58 @@ static void testCreateNodes() {
   item->variableData = (void*) "test3";
   createNode(DEFAULT_NAMESPACE_VALUE, item);
 
+  printf("\n[%d]) Variable node with XML ELEMENT variant ", ++index);
+  UA_XmlElement* xml_value = (UA_XmlElement*) malloc(sizeof(UA_XmlElement));
+  xml_value->length = 2;
+  xml_value->data = (UA_Byte*) "ab";
+  item->browseName = "xml_value";
+  item->variableItemName = "Location";
+  item->variableIdentifier = XmlElement;
+  item->variableData = (void*) xml_value;
+  createNode(DEFAULT_NAMESPACE_VALUE, item);
+
+  printf("\n[%d]) Variable node with localized text variant ", ++index);
+  UA_String* lt_textLocale = (UA_String*) malloc(sizeof(UA_String));
+  lt_textLocale->length = 5;
+  lt_textLocale->data = (UA_Byte*) "india";
+  UA_String* lt_text = (UA_String*) malloc(sizeof(UA_String));
+  lt_text->length = 5;
+  lt_text->data = (UA_Byte*) "korea"; 
+  UA_LocalizedText* lt_value = (UA_LocalizedText*) malloc(sizeof(UA_LocalizedText));
+  lt_value->locale= *lt_textLocale;
+  lt_value->text= *lt_text;
+  item->browseName = "LocalizedText";
+  item->variableItemName = "Location";
+  item->variableIdentifier = LocalizedText;
+  item->variableData = (void*) lt_value;
+  createNode(DEFAULT_NAMESPACE_VALUE, item);
+
+  printf("\n[%d]) Variable node with byte string variant ", ++index);
+  UA_ByteString* bs_value = (UA_ByteString*) malloc(sizeof(UA_ByteString));
+  bs_value->length = 7;
+  bs_value->data = (UA_Byte*) "samsung";
+  item->browseName = "ByteString";
+  item->variableItemName = "Location";
+  item->variableIdentifier = ByteString;
+  item->variableData = (void*) bs_value;
+  createNode(DEFAULT_NAMESPACE_VALUE, item);
+
+  printf("\n[%d]) Variable node with byte variant ", ++index);
+  UA_Byte b_value = 2;
+  item->browseName = "Byte";
+  item->variableItemName = "Location";
+  item->variableIdentifier = Byte;
+  item->variableData = (void*) &b_value;
+  createNode(DEFAULT_NAMESPACE_VALUE, item);
+
+  printf("\n[%d]) Variable node with float variant ", ++index);
+  float f_value = 4.4;
+  item->browseName = "Float";
+  item->variableItemName = "Location";
+  item->variableIdentifier = Float;
+  item->variableData = (void*) &f_value;
+  createNode(DEFAULT_NAMESPACE_VALUE, item);
+
   printf("\n[%d]) Variable node with int variant ", ++index);
   int value = 30;
   item->browseName = "UInt16";
@@ -223,6 +276,7 @@ static void testCreateNodes() {
   item->variableData = (void*) &value;
   createNode(DEFAULT_NAMESPACE_VALUE, item);
 
+  printf("\n[%d]) Variable node with Int32 variant ", ++index);
   value = 40;
   item->browseName = "Int32";
   item->variableItemName = "Location";
@@ -230,6 +284,35 @@ static void testCreateNodes() {
   item->variableData = (void*) &value;
   createNode(DEFAULT_NAMESPACE_VALUE, item);
 
+  printf("\n[%d]) Variable node with int64 variant ", ++index);
+  value = 32700;
+  item->browseName = "Int64";
+  item->variableItemName = "Location";
+  item->variableIdentifier = Int64;
+  item->variableData = (void*) &value;
+  createNode(DEFAULT_NAMESPACE_VALUE, item);
+
+  
+  printf("\n[%d]) Variable node with UInt32 variant ", ++index);
+  value = 4456;
+  item->userAccessLevel = WRITE;
+  item->browseName = "UInt32";
+  item->variableItemName = "Location";
+  item->variableIdentifier = UInt32;
+  item->variableData = (void*) &value;
+  createNode(DEFAULT_NAMESPACE_VALUE, item);
+
+  item->userAccessLevel = READ;
+  printf("\n[%d]) Variable node with UInt64 variant ", ++index);
+  value = 3270000;
+  item->browseName = "UInt64";
+  item->variableItemName = "Location";
+  item->variableIdentifier = UInt64;
+  item->variableData = (void*) &value;
+  createNode(DEFAULT_NAMESPACE_VALUE, item);
+
+  printf("\n[%d]) Variable node with double variant ", ++index);
+  item->userAccessLevel = READ_WRITE;
   double d_val = 50.4;
   item->browseName = "Double";
   item->variableItemName = "Location";
@@ -248,28 +331,37 @@ static void testCreateNodes() {
   /******************* Array *********************/
   printf("\n-------------------------------------------------------");
   printf("\n[%d]) Array node with double values ", ++index);
-  double* data = (double*) malloc(sizeof(double) * 2);
+  double* data = (double*) malloc(sizeof(double) * 5);
   data[0] = 10.2;
   data[1] = 20.2;
+  data[2] = 30.2;
+  data[3] = 40.2;
+  data[4] = 50.2;
   item->browseName = "IntArray";
   item->nodeType = ARRAY_NODE;
   item->variableItemName = "IntArray";
   item->variableIdentifier = Double;
-  item->arrayLength = 2;
+  item->arrayLength = 5;
   item->variableData = (void*) data;
   createNode(DEFAULT_NAMESPACE_VALUE, item);
 
   printf("\n[%d]) Array node with string values ", ++index);
-  char** data1 = (char**) malloc(sizeof(char*) * 2);
+  char** data1 = (char**) malloc(sizeof(char*) * 5);
   data1[0] = (char*) malloc(10);
-  strcpy(data1[0], "string");
+  strcpy(data1[0], "apple");
   data1[1] = (char*) malloc(10);
-  strcpy(data1[1], "array");
+  strcpy(data1[1], "ball");
+  data1[2] = (char*) malloc(10);
+  strcpy(data1[2], "cats");
+  data1[3] = (char*) malloc(10);
+  strcpy(data1[3], "dogs");
+  data1[4] = (char*) malloc(10);
+  strcpy(data1[4], "elephant");
   item->browseName = "CharArray";
   item->nodeType = ARRAY_NODE;
   item->variableItemName = "CharArray";
   item->variableIdentifier = String;
-  item->arrayLength = 2;
+  item->arrayLength = 5;
   item->variableData = (void*) (data1);
   createNode(DEFAULT_NAMESPACE_VALUE, item);
 
@@ -509,10 +601,94 @@ static void testCreateNodes() {
   printf("\n\n");
 }
 
+static void testModifyNode() {
+
+  printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET);
+  printf("\n" COLOR_YELLOW "                  Modify Variable Node            "COLOR_RESET);
+  printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET "\n\n");
+  char s_value[512];
+  double d_value;
+  unsigned int u_value;
+  int i_value;
+  int option;
+  void *new_value = NULL;
+  char name[128];
+
+  printf("\n\n" COLOR_YELLOW  "********************** Available nodes to test the 'modifyVariableNode' service **********************" COLOR_RESET "\n");
+  printf("[1] String1\n");
+  printf("[2] String2\n");
+  printf("[3] String3\n");
+  printf("[4] Double\n");
+  printf("[5] Int32\n");
+  printf("[6] UInt16\n");
+  printf("\nEnter any of the above option :: ");
+  scanf("%d", &option);
+
+  if (option < 1 || option > 6) {
+    printf( "Invalid Option!!! \n\n");
+    return ;
+  }
+
+  printf("\nEnter the new value :: ");
+  if (option == 1) {
+    scanf("%s", s_value);
+    strcpy(name, "String1");
+    new_value = (void*) s_value;
+  }
+  else if (option == 2) {
+    scanf("%s", s_value);
+    strcpy(name, "String2");
+    new_value = (void*) s_value;
+  }
+  else if (option == 3) {
+    scanf("%s", s_value);
+    strcpy(name, "String3");
+    new_value = (void*) s_value;
+  }
+  else if (option == 4) {
+    scanf("%lf", &d_value);
+    strcpy(name, "Double");
+    new_value = (void*) &d_value;
+  }
+  else if (option == 5) {
+    scanf("%d", &i_value);
+    strcpy(name, "Int32");
+    new_value = (void*) &i_value;
+  }
+  else if (option == 6) {
+    scanf("%u", &u_value);
+    strcpy(name, "UInt16");
+    new_value = (void*) &u_value;
+  }
+
+  EdgeVersatility *message = (EdgeVersatility*) malloc(sizeof(EdgeVersatility));
+  message->value = new_value;
+
+  modifyVariableNode(DEFAULT_NAMESPACE_VALUE, name, message);
+
+  free(message); message = NULL;
+}
+
 static void deinit() {
   if (startFlag) {
     stopServer();
     startFlag = false;
+
+    if (config) {
+      if(config->recvCallback) {
+        free (config->recvCallback);
+        config->recvCallback = NULL;
+      }
+      if(config->statusCallback) {
+        free (config->statusCallback);
+        config->statusCallback = NULL;
+      }
+      if(config->discoveryCallback) {
+        free (config->discoveryCallback);
+        config->discoveryCallback = NULL;
+      }
+      free (config); config = NULL;
+    }
   }
 }
 
@@ -520,9 +696,7 @@ static void print_menu() {
   printf("=============== OPC UA =======================\n\n");
 
   printf("start : start opcua server\n");
-//  printf("start CNC : start CNC server cycle\n");
-//  printf("getnode : get node information\n");
-//  printf("getnode2 : get node information with browseName\n");
+  printf("modify_node : modify variable node\n");
   printf("quit : terminate/stop opcua server/client and then quit\n");
   printf("help : print menu\n");
 
@@ -561,12 +735,8 @@ int main() {
       startServer();
       //startFlag = true;
 
-    } else if(!strcmp(command, "start CNC")) {
-
-    } else if(!strcmp(command, "getnode")) {
-
-    } else if(!strcmp(command, "getnode2")) {
-
+    } else if(!strcmp(command, "modify_node")) {
+      testModifyNode();
     } else if(!strcmp(command, "quit")) {
       deinit();
     } else if(!strcmp(command, "help")) {

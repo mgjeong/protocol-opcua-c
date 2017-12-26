@@ -85,11 +85,11 @@ void browse(UA_Client *client, EdgeMessage *msg, UA_NodeId *node) {
       UA_BrowseResponse_deleteMembers(&bResp);
 }
 
-EdgeResult *executeBrowse(UA_Client *client, EdgeMessage *msg) {
-  EdgeResult* result = (EdgeResult*) malloc(sizeof(EdgeResult));
+EdgeResult executeBrowse(UA_Client *client, EdgeMessage *msg) {
+  EdgeResult result;
   if (!client) {
     printf("Client handle Invalid\n");
-    result->code = STATUS_ERROR;
+    result.code = STATUS_ERROR;
     return result;
   }
 
@@ -111,7 +111,8 @@ EdgeResult *executeBrowse(UA_Client *client, EdgeMessage *msg) {
   browseMap = NULL;
 
   EdgeMessage *resultMsg = (EdgeMessage*) malloc(sizeof(EdgeMessage));
-  resultMsg->endpointInfo = msg->endpointInfo;
+  resultMsg->endpointInfo = (EdgeEndPointInfo*) malloc(sizeof(EdgeEndPointInfo));
+  memcpy(resultMsg->endpointInfo, msg->endpointInfo, sizeof(EdgeEndPointInfo));
   resultMsg->type = BROWSE_RESPONSE;
   resultMsg->browseResult = browseResult;
   resultMsg->browseResponseLength = browseNamesCount;
@@ -127,6 +128,6 @@ EdgeResult *executeBrowse(UA_Client *client, EdgeMessage *msg) {
 
   free (resultMsg);
 
-  result->code = STATUS_OK;
+  result.code = STATUS_OK;
   return result;
 }

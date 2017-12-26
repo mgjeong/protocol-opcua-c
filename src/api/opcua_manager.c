@@ -31,52 +31,58 @@ void registerCallbacks(EdgeConfigure *config) {
 }
 
 
-EdgeResult* createNamespace(char* name, char* rootNodeId,
+EdgeResult createNamespace(char* name, char* rootNodeId,
                                                                    char* rootBrowseName, char* rootDisplayName) {
   createNamespaceInServer(name, rootNodeId, rootBrowseName, rootDisplayName);
-  EdgeResult* result = (EdgeResult*) malloc(sizeof(EdgeResult));
-  result->code = STATUS_OK;
+  EdgeResult result;
+  result.code = STATUS_OK;
   return result;
 }
 
-EdgeResult* createNode(char* namespaceUri, EdgeNodeItem* item) {
+EdgeResult createNode(char* namespaceUri, EdgeNodeItem* item) {
   // add Nodes in server
-  EdgeResult* result = addNodesInServer(item);
+  EdgeResult result = addNodesInServer(item);
   return result;
 }
 
-EdgeResult* addReference(EdgeReference *reference) {
-  EdgeResult* result = addReferenceInServer(reference);
+EdgeResult modifyVariableNode(char* namespaceUri, char* nodeUri, EdgeVersatility *value) {
+  // modify variable nodes
+  EdgeResult result = modifyNodeInServer(nodeUri, value);
   return result;
 }
 
-EdgeResult* readNode(EdgeMessage *msg) {
-  EdgeResult* result = readNodesFromServer(msg);
+EdgeResult addReference(EdgeReference *reference) {
+  EdgeResult result = addReferenceInServer(reference);
   return result;
 }
 
-EdgeResult* writeNode(EdgeMessage *msg) {
-  EdgeResult* result = writeNodesInServer(msg);
+EdgeResult readNode(EdgeMessage *msg) {
+  EdgeResult result = readNodesFromServer(msg);
   return result;
 }
 
-EdgeResult* browseNode(EdgeMessage *msg) {
-  EdgeResult* result = browseNodesInServer(msg);
+EdgeResult writeNode(EdgeMessage *msg) {
+  EdgeResult result = writeNodesInServer(msg);
   return result;
 }
 
-EdgeResult* callMethod(EdgeMessage *msg) {
-  EdgeResult* result = callMethodInServer(msg);
+EdgeResult browseNode(EdgeMessage *msg) {
+  EdgeResult result = browseNodesInServer(msg);
   return result;
 }
 
-EdgeResult* handleSubscription(EdgeMessage *msg) {
-  EdgeResult* result = executeSubscriptionInServer(msg);
+EdgeResult callMethod(EdgeMessage *msg) {
+  EdgeResult result = callMethodInServer(msg);
   return result;
 }
 
-EdgeResult* createMethodNode(char *namespaceUri, EdgeNodeItem *item, EdgeMethod *method) {
-  EdgeResult* result = addMethodNodeInServer(item, method);
+EdgeResult handleSubscription(EdgeMessage *msg) {
+  EdgeResult result = executeSubscriptionInServer(msg);
+  return result;
+}
+
+EdgeResult createMethodNode(char *namespaceUri, EdgeNodeItem *item, EdgeMethod *method) {
+  EdgeResult result = addMethodNodeInServer(item, method);
   return result;
 }
 
@@ -86,13 +92,10 @@ void createServer(EdgeEndPointInfo *epInfo) {
     printf( "Server already initialised");
     return ;
   }
-  EdgeResult* result = start_server(epInfo);
-  if (result == NULL)
-    return ;
-  if (result->code == STATUS_OK) {
+  EdgeResult result = start_server(epInfo);
+  if (result.code == STATUS_OK) {
     b_serverInitialized = true;
   }
-  free (result); result = NULL;
 }
 
 void closeServer(EdgeEndPointInfo *epInfo) {

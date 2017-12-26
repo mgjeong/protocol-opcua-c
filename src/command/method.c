@@ -2,11 +2,12 @@
 
 #include <stdio.h>
 
-EdgeResult *executeMethod(UA_Client *client, EdgeMessage *msg) {
-  EdgeResult* result = (EdgeResult*) malloc(sizeof(EdgeResult));
+EdgeResult executeMethod(UA_Client *client, EdgeMessage *msg) {
+  EdgeResult result;
+  result.code = STATUS_OK;
   if (!client) {
     printf("Client handle Invalid\n");
-    result->code = STATUS_ERROR;
+    result.code = STATUS_ERROR;
     return result;
   }
   EdgeRequest *request = msg->request;
@@ -53,7 +54,8 @@ EdgeResult *executeMethod(UA_Client *client, EdgeMessage *msg) {
       for (int i =0 ; i < outputSize; i++) {
         response[i] = (EdgeResponse*) malloc(sizeof(EdgeResponse));
 
-        response[i]->nodeInfo = msg->request->nodeInfo;
+        response[i]->nodeInfo = (EdgeNodeInfo*) malloc(sizeof(EdgeNodeInfo));
+        memcpy(response[i]->nodeInfo, msg->request->nodeInfo, sizeof(EdgeNodeInfo));
         response[i]->requestId = msg->request->requestId;
 //        response[i]->value = output[i].data;
 
@@ -129,7 +131,8 @@ EdgeResult *executeMethod(UA_Client *client, EdgeMessage *msg) {
       }
 
       EdgeMessage *resultMsg = (EdgeMessage*) malloc(sizeof(EdgeMessage));
-      resultMsg->endpointInfo = msg->endpointInfo;
+      resultMsg->endpointInfo = (EdgeEndPointInfo*) malloc(sizeof(EdgeEndPointInfo));
+      memcpy(resultMsg->endpointInfo, msg->endpointInfo, sizeof(EdgeEndPointInfo));
       resultMsg->type = GENERAL_RESPONSE;
       resultMsg->responseLength = outputSize;
       resultMsg->responses = (EdgeResponse**) malloc(1 * sizeof(EdgeResponse));
@@ -138,20 +141,22 @@ EdgeResult *executeMethod(UA_Client *client, EdgeMessage *msg) {
       onResponseMessage(resultMsg);
 
       for (int i =0 ; i < outputSize; i++) {
+        free(response[i]->nodeInfo); response[i]->nodeInfo = NULL;
         free(response[i]); response[i] = NULL;
       }
       free(response); response = NULL;
+      free(resultMsg->endpointInfo); resultMsg->endpointInfo = NULL;
       free(resultMsg); resultMsg = NULL;
 
       if (input) {
         free(input);
         input = NULL;
       }
-      result->code = STATUS_OK;
+      result.code = STATUS_OK;
     }
   } else {
     printf("method call failed 0x%08x\n", retVal);
-    result->code = STATUS_ERROR;
+    result.code = STATUS_ERROR;
   }
 
   return result;

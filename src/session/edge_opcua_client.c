@@ -13,28 +13,28 @@ static UA_Client *m_client = NULL;
 static char* m_endpointUri;
 //static char* m_securityUri;
 
-EdgeResult* readNodesFromServer(EdgeMessage* msg) {
-  EdgeResult* result = executeRead(m_client, msg);
+EdgeResult readNodesFromServer(EdgeMessage* msg) {
+  EdgeResult result = executeRead(m_client, msg);
   return result;
 }
 
-EdgeResult* writeNodesInServer(EdgeMessage* msg) {
-  EdgeResult* result = executeWrite(m_client, msg);
+EdgeResult writeNodesInServer(EdgeMessage* msg) {
+  EdgeResult result = executeWrite(m_client, msg);
   return result;
 }
 
-EdgeResult* browseNodesInServer(EdgeMessage *msg) {
-  EdgeResult* result = executeBrowse(m_client, msg);
+EdgeResult browseNodesInServer(EdgeMessage *msg) {
+  EdgeResult result = executeBrowse(m_client, msg);
   return result;
 }
 
-EdgeResult* callMethodInServer(EdgeMessage *msg) {
-  EdgeResult* result = executeMethod(m_client, msg);
+EdgeResult callMethodInServer(EdgeMessage *msg) {
+  EdgeResult result = executeMethod(m_client, msg);
   return result;
 }
 
-EdgeResult* executeSubscriptionInServer(EdgeMessage *msg) {
-  EdgeResult* result = executeSub(m_client, msg);
+EdgeResult executeSubscriptionInServer(EdgeMessage *msg) {
+  EdgeResult result = executeSub(m_client, msg);
   return result;
 }
 

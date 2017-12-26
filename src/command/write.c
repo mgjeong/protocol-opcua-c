@@ -26,13 +26,15 @@ static void write(UA_Client *client, EdgeMessage *msg) {
   printf("[WRITE] SUCCESS response received from server\n");
   EdgeResponse* response = (EdgeResponse*) malloc(sizeof(EdgeResponse));
   if (response) {
-    response->nodeInfo = msg->request->nodeInfo;
+    response->nodeInfo = (EdgeNodeInfo*) malloc(sizeof(EdgeNodeInfo));
+    memcpy(response->nodeInfo, msg->request->nodeInfo, sizeof(EdgeNodeInfo));
     response->requestId = msg->request->requestId;
     response->message = NULL;
 //    response->value = UA_STATUSCODE_GOOD;
 
     EdgeMessage *resultMsg = (EdgeMessage*) malloc(sizeof(EdgeMessage));
-    resultMsg->endpointInfo = msg->endpointInfo;
+    resultMsg->endpointInfo = (EdgeEndPointInfo*) malloc(sizeof(EdgeEndPointInfo));
+    memcpy(resultMsg->endpointInfo, msg->endpointInfo, sizeof(EdgeEndPointInfo));
     resultMsg->type = GENERAL_RESPONSE;
     resultMsg->responseLength = 1;
     resultMsg->responses = (EdgeResponse**) malloc(1 * sizeof(EdgeResponse));
@@ -40,21 +42,24 @@ static void write(UA_Client *client, EdgeMessage *msg) {
 
     onResponseMessage(resultMsg);
 
+    free(response->nodeInfo); response->nodeInfo = NULL;
     free(response); response = NULL;
+    free (resultMsg->endpointInfo); resultMsg->endpointInfo = NULL;
+    free (resultMsg->responses);resultMsg->responses = NULL;
     free(resultMsg); resultMsg = NULL;
 
     UA_Variant_delete(myVariant);
   }
 }
 
-EdgeResult *executeWrite(UA_Client *client, EdgeMessage *msg) {
-  EdgeResult* result = (EdgeResult*) malloc(sizeof(EdgeResult));
+EdgeResult executeWrite(UA_Client *client, EdgeMessage *msg) {
+  EdgeResult result;
   if (!client) {
     printf("Client handle Invalid\n");
-    result->code = STATUS_ERROR;
+    result.code = STATUS_ERROR;
     return result;
   }
   write(client, msg);
-  result->code = STATUS_OK;
+  result.code = STATUS_OK;
   return result;
 }

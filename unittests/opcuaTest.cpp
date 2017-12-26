@@ -685,12 +685,12 @@ TEST_F(OPC_serverTests , ServerCreateNamespace_P)
 
     EXPECT_EQ(startServerFlag, true);
 
-    EdgeResult* result = createNamespace(DEFAULT_NAMESPACE_VALUE,
+    EdgeResult result = createNamespace(DEFAULT_NAMESPACE_VALUE,
                               DEFAULT_ROOT_NODE_INFO_VALUE,
                               DEFAULT_ROOT_NODE_INFO_VALUE,
                               DEFAULT_ROOT_NODE_INFO_VALUE);
 
-    EXPECT_EQ(result->code, STATUS_OK);
+    EXPECT_EQ(result.code, STATUS_OK);
 
     deleteMessage(msg, ep);
 
@@ -738,14 +738,14 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     EXPECT_EQ(startServerFlag, true);
 
     //NULL NODE
-    EdgeResult* result = createNode(DEFAULT_NAMESPACE_VALUE, NULL);
-    EXPECT_EQ(result->code, STATUS_PARAM_INVALID);
+    EdgeResult result = createNode(DEFAULT_NAMESPACE_VALUE, NULL);
+    EXPECT_EQ(result.code, STATUS_PARAM_INVALID);
 
     // NULL NODE->ITEM
     EdgeNodeItem* item = (EdgeNodeItem*) malloc(sizeof(EdgeNodeItem));
     item->nodeType = MILTI_FOLDER_NODE_TYPE; // NOT SUPPORTED YET
     result = createNode(DEFAULT_NAMESPACE_VALUE, item);
-    EXPECT_EQ(result->code, STATUS_ERROR);
+    EXPECT_EQ(result.code, STATUS_ERROR);
 
     // VARIABLE NODE with string variant:
     item->nodeType = VARIABLE_NODE;
@@ -759,14 +759,14 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     item->variableIdentifier = String;
     item->variableData = (void*) "test1";
     result = createNode(DEFAULT_NAMESPACE_VALUE, item);
-    EXPECT_EQ(result->code, STATUS_OK);
+    EXPECT_EQ(result.code, STATUS_OK);
     int value = 30;
     item->browseName = "UInt16";
     item->variableItemName = "Location";
     item->variableIdentifier = UInt16;
     item->variableData = (void*) &value;
     result = createNode(DEFAULT_NAMESPACE_VALUE, item);
-    EXPECT_EQ(result->code, STATUS_OK);
+    EXPECT_EQ(result.code, STATUS_OK);
 
     //Array Nodes with double values
     double* data = (double*) malloc(sizeof(double) * 2);
@@ -779,7 +779,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     item->arrayLength = 2;
     item->variableData = (void*) data;
     result = createNode(DEFAULT_NAMESPACE_VALUE, item);
-    EXPECT_EQ(result->code, STATUS_OK);
+    EXPECT_EQ(result.code, STATUS_OK);
 
     //OBJECT NODE
     item->nodeType = OBJECT_NODE;
@@ -787,13 +787,13 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     item->sourceNodeId = (EdgeNodeId*) malloc (sizeof(EdgeNodeId));
     item->sourceNodeId->nodeId = NULL;    // no source node
     result = createNode(DEFAULT_NAMESPACE_VALUE, item);
-    EXPECT_EQ(result->code, STATUS_OK);
+    EXPECT_EQ(result.code, STATUS_OK);
     item->nodeType = OBJECT_NODE;
     item->browseName = "Object2";
     item->sourceNodeId = (EdgeNodeId*) malloc (sizeof(EdgeNodeId));
     item->sourceNodeId->nodeId = "Object1";
     result = createNode(DEFAULT_NAMESPACE_VALUE, item);
-    EXPECT_EQ(result->code, STATUS_OK);
+    EXPECT_EQ(result.code, STATUS_OK);
 
     //OBJECT TYPE NDOE
     item->nodeType = OBJECT_TYPE_NODE;
@@ -801,13 +801,13 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     item->sourceNodeId = (EdgeNodeId*) malloc (sizeof(EdgeNodeId));
     item->sourceNodeId->nodeId = NULL;    // no source node
     result = createNode(DEFAULT_NAMESPACE_VALUE, item);
-    EXPECT_EQ(result->code, STATUS_OK);
+    EXPECT_EQ(result.code, STATUS_OK);
     item->nodeType = OBJECT_TYPE_NODE;
     item->browseName = "ObjectType2";
     item->sourceNodeId = (EdgeNodeId*) malloc (sizeof(EdgeNodeId));
     item->sourceNodeId->nodeId = "ObjectType1";
     result = createNode(DEFAULT_NAMESPACE_VALUE, item);
-    EXPECT_EQ(result->code, STATUS_OK);
+    EXPECT_EQ(result.code, STATUS_OK);
 
     //DATA TYPE NODE
     item->nodeType = DATA_TYPE_NODE;
@@ -815,14 +815,14 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     item->sourceNodeId = (EdgeNodeId*) malloc (sizeof(EdgeNodeId));
     item->sourceNodeId->nodeId = NULL;    // no source node
     result = createNode(DEFAULT_NAMESPACE_VALUE, item);
-    EXPECT_EQ(result->code, STATUS_OK);
+    EXPECT_EQ(result.code, STATUS_OK);
 
     item->nodeType = DATA_TYPE_NODE;
     item->browseName = "DataType2";
     item->sourceNodeId = (EdgeNodeId*) malloc (sizeof(EdgeNodeId));
     item->sourceNodeId->nodeId = "DataType1";
     result = createNode(DEFAULT_NAMESPACE_VALUE, item);
-    EXPECT_EQ(result->code, STATUS_OK);
+    EXPECT_EQ(result.code, STATUS_OK);
 
     //VIEW NODE
     item->nodeType = VIEW_NODE;
@@ -830,13 +830,13 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     item->sourceNodeId = (EdgeNodeId*) malloc (sizeof(EdgeNodeId));
     item->sourceNodeId->nodeId = NULL;    // no source node
     result = createNode(DEFAULT_NAMESPACE_VALUE, item);
-    EXPECT_EQ(result->code, STATUS_OK);
+    EXPECT_EQ(result.code, STATUS_OK);
     item->nodeType = VIEW_NODE;
     item->browseName = "ViewNode2";
     item->sourceNodeId = (EdgeNodeId*) malloc (sizeof(EdgeNodeId));
     item->sourceNodeId->nodeId = "ViewNode1";    // no source node
     result = createNode(DEFAULT_NAMESPACE_VALUE, item);
-    EXPECT_EQ(result->code, STATUS_OK);
+    EXPECT_EQ(result.code, STATUS_OK);
 
     //REFERENCE NODE
     EdgeReference* reference = (EdgeReference*) malloc(sizeof(EdgeReference));
@@ -846,7 +846,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     reference->targetNamespace = DEFAULT_NAMESPACE_VALUE;
     reference->targetPath = "ObjectType2";
     result = addReference(reference);
-    EXPECT_EQ(result->code, STATUS_OK);
+    EXPECT_EQ(result.code, STATUS_OK);
     addReference(reference);
     reference->forward=  true;
     reference->sourceNamespace = DEFAULT_NAMESPACE_VALUE;
@@ -854,7 +854,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     reference->targetNamespace = DEFAULT_NAMESPACE_VALUE;
     reference->targetPath = "ObjectType2";
     result = addReference(reference);
-    EXPECT_EQ(result->code, STATUS_OK);
+    EXPECT_EQ(result.code, STATUS_OK);
 
     //REFERENCE TYPE NODE
     item->nodeType = REFERENCE_TYPE_NODE;
@@ -862,13 +862,13 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     item->sourceNodeId = (EdgeNodeId*) malloc (sizeof(EdgeNodeId));
     item->sourceNodeId->nodeId = NULL;    // no source node
     result = createNode(DEFAULT_NAMESPACE_VALUE, item);
-    EXPECT_EQ(result->code, STATUS_OK);
+    EXPECT_EQ(result.code, STATUS_OK);
     item->nodeType = REFERENCE_TYPE_NODE;
     item->browseName = "ReferenceTypeNode2";
     item->sourceNodeId = (EdgeNodeId*) malloc (sizeof(EdgeNodeId));
     item->sourceNodeId->nodeId = "ReferenceTypeNode1";
     result = createNode(DEFAULT_NAMESPACE_VALUE, item);
-    EXPECT_EQ(result->code, STATUS_OK);  
+    EXPECT_EQ(result.code, STATUS_OK);
 
     deleteMessage(msg, ep);
 

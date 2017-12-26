@@ -1,6 +1,6 @@
 /* THIS IS A SINGLE-FILE DISTRIBUTION CONCATENATED FROM THE OPEN62541 SOURCES
  * visit http://open62541.org/ for information about this software
- * Git-Revision: f038c7e
+ * Git-Revision: 386a2f4
  */
 
 /*
@@ -36,7 +36,7 @@ extern "C" {
 #define UA_OPEN62541_VER_MINOR 3
 #define UA_OPEN62541_VER_PATCH 0
 #define UA_OPEN62541_VER_LABEL "dev" /* Release candidate label, etc. */
-#define UA_OPEN62541_VER_COMMIT "f038c7e"
+#define UA_OPEN62541_VER_COMMIT "386a2f4"
 
 /**
  * Feature Options
@@ -73,6 +73,9 @@ extern "C" {
 #if !defined(_MSC_VER) || _MSC_VER >= 1600
 # include <stdint.h>
 # include <stdbool.h> /* C99 Boolean */
+# if defined(_WRS_KERNEL)
+# define UINT32_C(x) ((x) + (UINT32_MAX - UINT32_MAX)) 
+# endif
 #else
 # if !defined(__bool_true_false_are_defined)
 #  define bool short
@@ -227,21 +230,15 @@ extern "C" {
  * ^^^^^^^^^^^^^^^^^^
  * The definition ``UA_BINARY_OVERLAYABLE_INTEGER`` is true when the integer
  * representation of the target architecture is little-endian. */
-#if defined(_WIN32) || (defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__) && \
-                        (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__))
+#if defined(_WIN32)
 # define UA_BINARY_OVERLAYABLE_INTEGER 1
-#elif defined(__ANDROID__) /* Andoid */
+#elif (defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__) && \
+      (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__))
+# define UA_BINARY_OVERLAYABLE_INTEGER 1
+#elif defined(__linux__) /* Linux (including Android) */
 # include <endian.h>
 # if __BYTE_ORDER == __LITTLE_ENDIAN
 #  define UA_BINARY_OVERLAYABLE_INTEGER 1
-# endif
-#elif defined(__linux__) /* Linux */
-# include <endian.h>
-# if __BYTE_ORDER == __LITTLE_ENDIAN
-#  define UA_BINARY_OVERLAYABLE_INTEGER 1
-# endif
-# if __FLOAT_BYTE_ORDER == __LITTLE_ENDIAN
-#  define UA_BINARY_OVERLAYABLE_FLOAT 1
 # endif
 #elif defined(__OpenBSD__) /* OpenBSD */
 # include <sys/endian.h>
@@ -284,6 +281,11 @@ extern "C" {
 #elif defined(__FLOAT_WORD_ORDER) && defined(__LITTLE_ENDIAN) && \
     (__FLOAT_WORD_ORDER == __LITTLE_ENDIAN) /* Defined only in GCC */
 # define UA_BINARY_OVERLAYABLE_FLOAT 1
+#elif defined(__linux__) /* Linux (including Android) */
+# include <endian.h>
+# if __FLOAT_WORD_ORDER == __LITTLE_ENDIAN
+#  define UA_BINARY_OVERLAYABLE_FLOAT 1
+# endif
 #elif defined(_WRS_KERNEL)
 # define UA_BINARY_OVERLAYABLE_FLOAT 1
 #endif
@@ -2361,27 +2363,29 @@ UA_STRING(char *chars) {
  * ^^^^^^^^
  * An instance in time. A DateTime value is encoded as a 64-bit signed integer
  * which represents the number of 100 nanosecond intervals since January 1, 1601
- * (UTC). */
+ * (UTC).
+ *
+ * The methods providing an interface to the system clock are provided by a
+ * "plugin" that is statically linked with the library. */
+
 typedef int64_t UA_DateTime;
 
-/* Multiply to convert units for time difference computations */
-#define UA_USEC_TO_DATETIME 10LL
-#define UA_MSEC_TO_DATETIME (UA_USEC_TO_DATETIME * 1000LL)
-#define UA_SEC_TO_DATETIME (UA_MSEC_TO_DATETIME * 1000LL)
-#define UA_DATETIME_TO_USEC (1/10.0)
-#define UA_DATETIME_TO_MSEC (UA_DATETIME_TO_USEC / 1000.0)
-#define UA_DATETIME_TO_SEC (UA_DATETIME_TO_MSEC / 1000.0)
+/* Multiples to convert durations to DateTime */
+#define UA_DATETIME_USEC 10LL
+#define UA_DATETIME_MSEC (UA_DATETIME_USEC * 1000LL)
+#define UA_DATETIME_SEC (UA_DATETIME_MSEC * 1000LL)
 
-/* Datetime of 1 Jan 1970 00:00 UTC */
-#define UA_DATETIME_UNIX_EPOCH (11644473600LL * UA_SEC_TO_DATETIME)
-
-/* The current time */
+/* The current time in UTC time */
 UA_DateTime UA_EXPORT UA_DateTime_now(void);
 
-/* CPU clock invariant to system time changes. Use only for time diffs, not
- * current time */
+/* Offset between local time and UTC time */
+UA_Int64 UA_EXPORT UA_DateTime_localTimeUtcOffset(void);
+
+/* CPU clock invariant to system time changes. Use only to measure durations,
+ * not absolute time. */
 UA_DateTime UA_EXPORT UA_DateTime_nowMonotonic(void);
 
+/* Represents a Datetime as a structure */
 typedef struct UA_DateTimeStruct {
     UA_UInt16 nanoSec;
     UA_UInt16 microSec;
@@ -2396,7 +2400,23 @@ typedef struct UA_DateTimeStruct {
 
 UA_DateTimeStruct UA_EXPORT UA_DateTime_toStruct(UA_DateTime t);
 
-UA_String UA_EXPORT UA_DateTime_toString(UA_DateTime t);
+/* The C99 standard (7.23.1) says: "The range and precision of times
+ * representable in clock_t and time_t are implementation-defined." On most
+ * systems, time_t is a 4 or 8 byte integer counting seconds since the UTC Unix
+ * epoch. The following methods are used for conversion. */
+
+/* Datetime of 1 Jan 1970 00:00 */
+#define UA_DATETIME_UNIX_EPOCH (11644473600LL * UA_DATETIME_SEC)
+
+static UA_INLINE UA_Int64
+UA_DateTime_toUnixTime(UA_DateTime date) {
+    return (date - UA_DATETIME_UNIX_EPOCH) / UA_DATETIME_SEC;
+}
+
+static UA_INLINE UA_DateTime
+UA_DateTime_fromUnixTime(UA_Int64 unixDate) {
+    return (unixDate * UA_DATETIME_SEC) + UA_DATETIME_UNIX_EPOCH;
+}
 
 /**
  * Guid
@@ -2832,7 +2852,7 @@ UA_Variant_setRangeCopy(UA_Variant *v, const void *array,
  *
  * ExtensionObjects may contain scalars of any data type. Even those that are
  * unknown to the receiver. See the section on :ref:`generic-types` on how types
- * are described. If the received data type is unkown, the encoded string and
+ * are described. If the received data type is unknown, the encoded string and
  * target NodeId is stored instead of the decoded value. */
 typedef enum {
     UA_EXTENSIONOBJECT_ENCODED_NOBODY     = 0,
@@ -2935,7 +2955,7 @@ typedef struct {
                                      types */
     UA_Byte   padding;            /* How much padding is there before this
                                      member element? For arrays this is the
-                                     padding before the size_t lenght member.
+                                     padding before the size_t length member.
                                      (No padding between size_t and the
                                      following ptr.) */
     UA_Boolean namespaceZero : 1; /* The type of the member is defined in
@@ -3111,6 +3131,22 @@ UA_StatusCode_explanation(UA_StatusCode code) {
     return statusCodeExplanation_default.name;
 }
 
+UA_DEPRECATED UA_String
+UA_DateTime_toString(UA_DateTime t);
+
+/* The old DateTime conversion macros */
+UA_DEPRECATED static UA_INLINE double
+deprecatedDateTimeMultiple(double multiple) {
+    return multiple;
+}
+
+#define UA_USEC_TO_DATETIME deprecatedDateTimeMultiple((UA_Double)UA_DATETIME_USEC)
+#define UA_MSEC_TO_DATETIME deprecatedDateTimeMultiple((UA_Double)UA_DATETIME_MSEC)
+#define UA_SEC_TO_DATETIME deprecatedDateTimeMultiple((UA_Double)UA_DATETIME_SEC)
+#define UA_DATETIME_TO_USEC deprecatedDateTimeMultiple(1.0 / ((UA_Double)UA_DATETIME_USEC))
+#define UA_DATETIME_TO_MSEC deprecatedDateTimeMultiple(1.0 / ((UA_Double)UA_DATETIME_MSEC))
+#define UA_DATETIME_TO_SEC deprecatedDateTimeMultiple(1.0 / ((UA_Double)UA_DATETIME_SEC))
+
 #ifdef __cplusplus
 } // extern "C"
 #endif
@@ -3119,7 +3155,7 @@ UA_StatusCode_explanation(UA_StatusCode code) {
 /*********************************** amalgamated original file "/home/travis/build/open62541/open62541/build/src_generated/ua_types_generated.h" ***********************************/
 
 /* Generated from Opc.Ua.Types.bsd with script /home/travis/build/open62541/open62541/tools/generate_datatypes.py
- * on host travis-job-949bf0d3-b1f8-4117-91b7-051287362f9d by user travis at 2017-11-13 09:48:45 */
+ * on host travis-job-5fe0ea38-4d78-4be1-96f0-cdf39f315504 by user travis at 2017-12-24 03:27:03 */
 
 
 #ifdef __cplusplus
@@ -5701,7 +5737,7 @@ typedef struct {
 /*********************************** amalgamated original file "/home/travis/build/open62541/open62541/build/src_generated/ua_types_generated_handling.h" ***********************************/
 
 /* Generated from Opc.Ua.Types.bsd with script /home/travis/build/open62541/open62541/tools/generate_datatypes.py
- * on host travis-job-949bf0d3-b1f8-4117-91b7-051287362f9d by user travis at 2017-11-13 09:48:45 */
+ * on host travis-job-5fe0ea38-4d78-4be1-96f0-cdf39f315504 by user travis at 2017-12-24 03:27:03 */
 
 
 #ifdef __cplusplus
@@ -10847,7 +10883,7 @@ UA_Server_changeRepeatedCallbackInterval(UA_Server *server, UA_UInt64 callbackId
  *
  * @param server The server object.
  * @param callbackId The id of the callback that shall be removed.
- * @return Upon sucess, UA_STATUSCODE_GOOD is returned.
+ * @return Upon success, UA_STATUSCODE_GOOD is returned.
  *         An error code otherwise. */
 UA_StatusCode UA_EXPORT
 UA_Server_removeRepeatedCallback(UA_Server *server, UA_UInt64 callbackId);
@@ -11394,6 +11430,18 @@ UA_Server_setNodeContext(UA_Server *server, UA_NodeId nodeId,
 typedef struct {
     /* Copies the data from the source into the provided value.
      *
+     * !! ZERO-COPY OPERATIONS POSSIBLE !!
+     * It is not required to return a copy of the actual content data. You can
+     * return a pointer to memory owned by the user. Memory can be reused
+     * between read callbacks of a DataSource, as the result is already encoded
+     * on the network buffer between each read operation.
+     *
+     * To use zero-copy reads, set the value of the `value->value` Variant
+     * without copying, e.g. with `UA_Variant_setScalar`. Then, also set
+     * `value->value.storageType` to `UA_VARIANT_DATA_NODELETE` to prevent the
+     * memory being cleaned up. Don't forget to also set `value->hasValue` to
+     * true to indicate the presence of a value.
+     *
      * @param handle An optional pointer to user-defined data for the
      *        specific data source
      * @param nodeid Id of the read node
@@ -11414,8 +11462,8 @@ typedef struct {
                           void *nodeContext, UA_Boolean includeSourceTimeStamp,
                           const UA_NumericRange *range, UA_DataValue *value);
 
-    /* Write into a data source. The write member of UA_DataSource can be empty
-     * if the operation is unsupported.
+    /* Write into a data source. This method pointer can be NULL if the
+     * operation is unsupported.
      *
      * @param handle An optional pointer to user-defined data for the
      *        specific data source
@@ -11519,7 +11567,7 @@ UA_Server_call(UA_Server *server, const UA_CallMethodRequest *request);
  * reference it later. When passing numeric NodeIds with a numeric identifier 0,
  * the stack evaluates this as "select a random unassigned numeric NodeId in
  * that namespace". To find out which NodeId was actually assigned to the new
- * node, you may pass a pointer `outNewNodeId`, which will (after a successfull
+ * node, you may pass a pointer `outNewNodeId`, which will (after a successful
  * node insertion) contain the nodeId of the new node. You may also pass a
  * ``NULL`` pointer if this result is not needed.
  *
@@ -11758,7 +11806,7 @@ UA_UInt16 UA_EXPORT UA_Server_addNamespace(UA_Server *server, const char* name);
  *
  * UA_Job API
  * ^^^^^^^^^^
- * UA_Job was replaced since it unneccessarily exposed server internals to the
+ * UA_Job was replaced since it unnecessarily exposed server internals to the
  * end-user. Please use plain UA_ServerCallbacks instead. The following UA_Job
  * definition contains just the fraction of the original struct that was useful
  * to end-users. */
@@ -11860,6 +11908,7 @@ struct UA_Connection {
     UA_Int32 sockfd;                 /* Most connectivity solutions run on
                                       * sockets. Having the socket id here
                                       * simplifies the design. */
+    UA_DateTime openingDate;         /* The date the connection was created */
     void *handle;                    /* A pointer to internal data */
     UA_ByteString incompleteMessage; /* A half-received message (TCP is a
                                       * streaming protocol) is stored here */
@@ -11948,7 +11997,7 @@ struct UA_ServerNetworkLayer {
      *
      * @param nl The network layer
      * @return Returns UA_STATUSCODE_GOOD or an error code. */
-    UA_StatusCode (*start)(UA_ServerNetworkLayer *nl);
+    UA_StatusCode (*start)(UA_ServerNetworkLayer *nl, const UA_String *customHostname);
 
     /* Listen for new and closed connections and arriving packets. Calls
      * UA_Server_processBinaryMessage for the arriving packets. Closed
@@ -12132,6 +12181,7 @@ UA_LOG_FATAL(UA_Logger logger, UA_LogCategory category, const char *msg, ...) {
 
 #define UA_PRINTF_STRING_FORMAT "\"%.*s\""
 #define UA_PRINTF_STRING_DATA(STRING) (int)(STRING).length, (STRING).data
+
 
 #ifdef __cplusplus
 } // extern "C"
@@ -12320,12 +12370,12 @@ typedef struct {
 } UA_SecurityPolicyCryptoModule;
 
 typedef struct {
-    /* Generates a thumprint for the specified certificate.
+    /* Generates a thumbprint for the specified certificate.
      *
      * @param securityPolicy the securityPolicy the function is invoked on.
      * @param certificate the certificate to make a thumbprint of.
      * @param thumbprint an output buffer for the resulting thumbprint. Always
-     *                   has the length specified in the thumprintLenght in the
+     *                   has the length specified in the thumbprintLength in the
      *                   asymmetricModule. */
     UA_StatusCode (*makeCertificateThumbprint)(const UA_SecurityPolicy *securityPolicy,
                                                const UA_ByteString *certificate,
@@ -12339,7 +12389,7 @@ typedef struct {
      * @param certificateThumbprint the certificate thumbprint to compare to the
      *                              one stored in the context.
      * @return if the thumbprints match UA_STATUSCODE_GOOD is returned. If they
-     *         don't match or an error occured an error code is returned. */
+     *         don't match or an error occurred an error code is returned. */
     UA_StatusCode (*compareCertificateThumbprint)(const UA_SecurityPolicy *securityPolicy,
                                                   const UA_ByteString *certificateThumbprint)
         UA_FUNC_ATTR_WARN_UNUSED_RESULT;
@@ -12382,7 +12432,7 @@ typedef struct {
 typedef struct {
     /* This method creates a new context data object.
      *
-     * The caller needs to call delete on the recieved object to free allocated
+     * The caller needs to call delete on the received object to free allocated
      * memory. Memory is only allocated if the function succeeds so there is no
      * need to manually free the memory pointed to by *channelContext or to
      * call delete in case of failure.
@@ -12459,7 +12509,7 @@ typedef struct {
      *                       certificate to compare to.
      * @param certificate the certificate to compare to the one stored in the context.
      * @return if the certificates match UA_STATUSCODE_GOOD is returned. If they
-     *         don't match or an errror occured an error code is returned. */
+     *         don't match or an errror occurred an error code is returned. */
     UA_StatusCode (*compareCertificate)(const void *channelContext,
                                         const UA_ByteString *certificate)
         UA_FUNC_ATTR_WARN_UNUSED_RESULT;
@@ -13081,7 +13131,8 @@ struct UA_ServerConfig {
     /* Networking */
     size_t networkLayersSize;
     UA_ServerNetworkLayer *networkLayers;
-
+    UA_String customHostname;
+    
     /* Available endpoints */
     size_t endpointsSize;
     UA_Endpoint *endpoints;
@@ -13100,7 +13151,21 @@ struct UA_ServerConfig {
     UA_UInt16 maxSessions;
     UA_Double maxSessionTimeout; /* in ms */
 
+    /* Operation limits */
+    UA_UInt32 maxNodesPerRead;
+    UA_UInt32 maxNodesPerWrite;
+    UA_UInt32 maxNodesPerMethodCall;
+    UA_UInt32 maxNodesPerBrowse;
+    UA_UInt32 maxNodesPerRegisterNodes;
+    UA_UInt32 maxNodesPerTranslateBrowsePathsToNodeIds;
+    UA_UInt32 maxNodesPerNodeManagement;
+    UA_UInt32 maxMonitoredItemsPerCall;
+
+    /* Limits for Requests */
+    UA_UInt32 maxReferencesPerNode;
+
     /* Limits for Subscriptions */
+    UA_UInt32 maxSubscriptionsPerSession;
     UA_DurationRange publishingIntervalLimits;
     UA_UInt32Range lifeTimeCountLimits;
     UA_UInt32Range keepAliveCountLimits;
@@ -13108,8 +13173,12 @@ struct UA_ServerConfig {
     UA_UInt32 maxRetransmissionQueueSize; /* 0 -> unlimited size */
 
     /* Limits for MonitoredItems */
+    UA_UInt32 maxMonitoredItemsPerSubscription;
     UA_DurationRange samplingIntervalLimits;
     UA_UInt32Range queueSizeLimits; /* Negotiated with the client */
+
+    /* Limits for PublishRequests */
+    UA_UInt32 maxPublishReqPerSession;
 
     /* Discovery */
 #ifdef UA_ENABLE_DISCOVERY
@@ -13230,9 +13299,13 @@ UA_StatusCode UA_EXPORT
 UA_Client_connect_username(UA_Client *client, const char *endpointUrl,
                            const char *username, const char *password);
 
-/* Close a connection to the selected server */
+/* Disconnect and close a connection to the selected server */
 UA_StatusCode UA_EXPORT
 UA_Client_disconnect(UA_Client *client);
+
+/* Close a connection to the selected server */
+UA_StatusCode UA_EXPORT
+UA_Client_close(UA_Client *client);
 
 /* Renew the underlying secure channel */
 UA_StatusCode UA_EXPORT
@@ -14177,7 +14250,8 @@ UA_Client_Subscriptions_addMonitoredItem(UA_Client *client,
                                          UA_NodeId nodeId, UA_UInt32 attributeID,
                                          UA_MonitoredItemHandlingFunction hf,
                                          void *hfContext,
-                                         UA_UInt32 *newMonitoredItemId);
+                                         UA_UInt32 *newMonitoredItemId,
+                                         UA_Double samplingInterval);
 
 UA_StatusCode UA_EXPORT
 UA_Client_Subscriptions_removeMonitoredItem(UA_Client *client,
@@ -14379,6 +14453,15 @@ UA_ServerConfig_new_default(void) {
     return UA_ServerConfig_new_minimal(4840, NULL);
 }
 
+/* Set a custom hostname in server configuration
+ *
+ * @param config A valid server configuration
+ * @param customHostname The custom hostname used by the server */
+
+UA_EXPORT void
+UA_ServerConfig_set_customHostname(UA_ServerConfig *config,
+                                   const UA_String customHostname);
+  
 /* Frees allocated memory in the server config */
 UA_EXPORT void
 UA_ServerConfig_delete(UA_ServerConfig *config);
@@ -14411,6 +14494,40 @@ UA_SecurityPolicy_None(UA_SecurityPolicy *policy, const UA_ByteString localCerti
 
 #ifdef __cplusplus
 }
+#endif
+
+
+/*********************************** amalgamated original file "/home/travis/build/open62541/open62541/plugins/ua_log_socket_error.h" ***********************************/
+
+/* This work is licensed under a Creative Commons CCZero 1.0 Universal License.
+ * See http://creativecommons.org/publicdomain/zero/1.0/ for more information. */
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
+#ifdef _WIN32
+#include <winsock2.h>
+#define UA_LOG_SOCKET_ERRNO_WRAP(LOG) { \
+    char *errno_str = NULL; \
+    FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, \
+    NULL, WSAGetLastError(), \
+    MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), \
+    (LPSTR)&errno_str, 0, NULL); \
+    LOG; \
+    LocalFree(errno_str); \
+}
+#else
+#define UA_LOG_SOCKET_ERRNO_WRAP(LOG) { \
+    char *errno_str = strerror(errno); \
+    LOG; \
+}
+#endif
+
+#ifdef __cplusplus
+} // extern "C"
 #endif
 
 #endif /* OPEN62541_H_ */

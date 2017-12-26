@@ -11,21 +11,33 @@
 #define COLOR_PURPLE      "\x1b[35m"
 #define COLOR_RESET         "\x1b[0m"
 
+#define MAX_CHAR_SIZE   512
+#define NODE_COUNT  6
+
 static bool startFlag = false;
 static bool stopFlag = false;
 
-static char ipAddress[512];
-static char endpointUri[512];
+static char ipAddress[MAX_CHAR_SIZE];
+static char endpointUri[MAX_CHAR_SIZE];
 
 static EdgeConfigure *config = NULL;
 
-static char node_arr[6][10] = {
+static char node_arr[NODE_COUNT][MAX_CHAR_SIZE] = {
   "String1",
   "String2",
   "String3",
   "Double",
   "Int32",
   "UInt16"
+};
+
+static bool subscription_done[NODE_COUNT] = {
+  false,
+  false,
+  false,
+  false,
+  false,
+  false
 };
 
 static void startClient(char* addr, int port, char *securityPolicyUri);
@@ -177,6 +189,27 @@ static void device_found_cb (EdgeDevice* device) {
 
 }
 
+static int getNodeOptions(const char *menu) {
+  printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET);
+  printf("\n" COLOR_YELLOW "                     %s            "COLOR_RESET, menu);
+  printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET "\n\n");
+  int option;
+  printf("\n\n" COLOR_YELLOW  "********************** Available nodes to test the '%s' service **********************" COLOR_RESET "\n", menu);
+  printf("[1] String1\n");
+  printf("[2] String2\n");
+  printf("[3] String3\n");
+  printf("[4] Double\n");
+  printf("[5] Int32\n");
+  printf("[6] UInt16\n");
+  printf("\nEnter any of the above option :: ");
+  scanf("%d", &option);
+  if (option < 1 || option > 6) {
+    printf( "Invalid Option!!! \n\n");
+    return -1;
+  }
+  return option;
+}
+
 static void init() {
   config = (EdgeConfigure*) malloc(sizeof(EdgeConfigure));
   config->recvCallback = (ReceivedMessageCallback*) malloc(sizeof(ReceivedMessageCallback));
@@ -214,6 +247,10 @@ static void testGetEndpoints() {
   msg->type = SEND_REQUEST;
 
   getEndpointInfo(ep);
+
+  free(endpointConfig); endpointConfig = NULL;
+  free(ep); ep = NULL;
+  free(msg); msg = NULL;
 }
 
 static void startClient(char* addr, int port, char *securityPolicyUri) {
@@ -242,6 +279,10 @@ static void startClient(char* addr, int port, char *securityPolicyUri) {
 
   printf("\n" COLOR_YELLOW "********************** startClient **********************" COLOR_RESET"\n");
   connectClient(ep);
+
+  free(endpointConfig); endpointConfig = NULL;
+  free(ep); ep = NULL;
+  free(msg); msg = NULL;
 }
 
 static void stopClient() {
@@ -255,10 +296,28 @@ static void stopClient() {
 
   printf("\n" COLOR_YELLOW "********************** stop client **********************" COLOR_RESET"\n");
   disconnectClient(ep);
+
+  free(ep); ep = NULL;
+  free(msg); msg = NULL;
 }
 
 static void deinit() {
   stopClient();
+  if (config) {
+    if(config->recvCallback) {
+      free (config->recvCallback);
+      config->recvCallback = NULL;
+    }
+    if(config->statusCallback) {
+      free (config->statusCallback);
+      config->statusCallback = NULL;
+    }
+    if(config->discoveryCallback) {
+      free (config->discoveryCallback);
+      config->discoveryCallback = NULL;
+    }
+    free (config); config = NULL;
+  }
 }
 
 static void testBrowse() {
@@ -321,32 +380,16 @@ static void testBrowse() {
   browseNode(msg);
 
   // ------------------------------------------------- //
-  free (nodeInfo);
-  nodeInfo = NULL;
-  free (request); request = NULL;
-  free (ep); ep = NULL;
+  free (nodeInfo); nodeInfo = NULL;
+  free(ep); ep = NULL;
+  free(request); request = NULL;
   free(msg); msg = NULL;
 }
 
 static void testRead() {
-  printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET);
-  printf("\n" COLOR_YELLOW "                       Read            "COLOR_RESET);
-  printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET "\n\n");
-  int option;
-  printf("\n\n" COLOR_YELLOW  "********************** Available nodes to test the read service **********************" COLOR_RESET "\n");
-  printf("[1] String1\n");
-  printf("[2] String2\n");
-  printf("[3] String3\n");
-  printf("[4] Double\n");
-  printf("[5] Int32\n");
-  printf("[6] UInt16\n");
-  printf("\nEnter any of the above option to read that node :: ");
-  scanf("%d", &option);
-
-  if (option < 1 || option > 6) {
-    printf( "Invalid Option!!! \n\n");
+  int option = getNodeOptions("Read");
+  if (option == -1)
     return ;
-  }
 
   printf("\n\n" COLOR_YELLOW  "**********************  Reading the node with browse name \"%s\" **********************" COLOR_RESET "\n\n", node_arr[option-1]);
   EdgeEndPointInfo* ep = (EdgeEndPointInfo*) malloc(sizeof(EdgeEndPointInfo));
@@ -365,34 +408,24 @@ static void testRead() {
   msg->request = request;
 
   readNode(msg);
+
+  free (nodeInfo); nodeInfo = NULL;
+  free(ep); ep = NULL;
+  free(request); request = NULL;
+  free(msg); msg = NULL;
 }
 
 static void testWrite() {
-  printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET);
-  printf("\n" COLOR_YELLOW "                       Write            "COLOR_RESET);
-  printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET "\n\n");
-  char s_value[512];
+  int option = getNodeOptions("Write");
+  if (option == -1)
+    return ;
+
+  char s_value[MAX_CHAR_SIZE];
   double d_value;
   unsigned int u_value;
   int i_value;
-  int option;
   EdgeNodeIdentifier type;
   void *new_value = NULL;
-
-  printf("\n\n" COLOR_YELLOW  "********************** Available nodes to test the write service **********************" COLOR_RESET "\n");
-  printf("[1] String1\n");
-  printf("[2] String2\n");
-  printf("[3] String3\n");
-  printf("[4] Double\n");
-  printf("[5] Int32\n");
-  printf("[6] UInt16\n");
-  printf("\nEnter any of the above option :: ");
-  scanf("%d", &option);
-
-  if (option < 1 || option > 6) {
-    printf( "Invalid Option!!! \n\n");
-    return ;
-  }
 
   printf("\nEnter the new value :: ");
   if (option == 1 || option == 2 || option == 3) {
@@ -435,6 +468,11 @@ static void testWrite() {
   msg->request = request;
 
   writeNode(msg);
+
+  free (nodeInfo); nodeInfo = NULL;
+  free(ep); ep = NULL;
+  free(request); request = NULL;
+  free(msg); msg = NULL;
 }
 
 static void testMethod() {
@@ -469,18 +507,22 @@ static void testMethod() {
 
   callMethod(msg);
 
-
   for (int i = 0; i < methodParams->num_inpArgs; i++) {
-    free (methodParams->inpArg[0]); methodParams->inpArg[0] = NULL;
+    free (methodParams->inpArg[i]); methodParams->inpArg[i] = NULL;
   }
   free (methodParams->inpArg); methodParams->inpArg = NULL;
   free (methodParams); methodParams = NULL;
 
   free(nodeInfo); nodeInfo = NULL;
   free(request); request = NULL;
+  free(ep); ep = NULL;
   free (msg); msg = NULL;
 
   printf("\n=====================================\n\n");
+
+  ep = (EdgeEndPointInfo*) malloc(sizeof(EdgeEndPointInfo));
+  ep->endpointUri = endpointUri;
+  ep->config = NULL;
 
   nodeInfo = (EdgeNodeInfo*) malloc(sizeof(EdgeNodeInfo));
   nodeInfo->valueAlias = "incrementInc32Array";
@@ -513,17 +555,28 @@ static void testMethod() {
   callMethod(msg);
 
   for (int i = 0; i < methodParams->num_inpArgs; i++) {
-    free (methodParams->inpArg[0]); methodParams->inpArg[0] = NULL;
+    free (methodParams->inpArg[i]); methodParams->inpArg[i] = NULL;
   }
   free (methodParams->inpArg); methodParams->inpArg = NULL;
   free (methodParams); methodParams = NULL;
 
   free(nodeInfo); nodeInfo = NULL;
   free(request); request = NULL;
+  free(ep); ep = NULL;
   free (msg); msg = NULL;
 }
 
 static void testSub() {
+
+  int option = getNodeOptions("Create Subscription");
+  if (option == -1)
+    return ;
+
+  if (subscription_done[option-1]) {
+    printf("subscription already created for this node \n");
+    return ;
+  }
+
   EdgeEndPointInfo* ep = (EdgeEndPointInfo*) malloc(sizeof(EdgeEndPointInfo));
   ep->endpointUri = endpointUri;
   ep->config = NULL;
@@ -540,7 +593,8 @@ static void testSub() {
   subReq->queueSize = 50;
 
   EdgeNodeInfo* nodeInfo = (EdgeNodeInfo*) malloc(sizeof(EdgeNodeInfo));
-  nodeInfo->valueAlias = "Double";
+  nodeInfo->valueAlias = (char*) malloc(strlen(node_arr[option-1]));
+  strcpy(nodeInfo->valueAlias, node_arr[option-1]);
 
   EdgeRequest *request = (EdgeRequest*) malloc(sizeof(EdgeRequest));
   request->nodeInfo = nodeInfo;
@@ -551,10 +605,28 @@ static void testSub() {
   msg->command = CMD_SUB;
   msg->request = request;
 
-  handleSubscription(msg);
+  EdgeResult result = handleSubscription(msg);
+  if (result.code == STATUS_OK) {
+    subscription_done[option-1] = true;
+  }
+
+  free(nodeInfo); nodeInfo = NULL;
+  free(subReq); subReq = NULL;
+  free(request); request = NULL;
+  free(ep); ep = NULL;
+  free (msg); msg = NULL;
 }
 
 static void testSubModify() {
+  int option = getNodeOptions("Modify Subscription");
+  if (option == -1)
+    return ;
+
+  if (!subscription_done[option-1]) {
+    printf("subscription not created yet. First create the subscription and then modify \n");
+    return ;
+  }
+
   EdgeEndPointInfo* ep = (EdgeEndPointInfo*) malloc(sizeof(EdgeEndPointInfo));
   ep->endpointUri = endpointUri;
   ep->config = NULL;
@@ -573,7 +645,8 @@ static void testSubModify() {
   subReq->queueSize = 50;
 
   EdgeNodeInfo* nodeInfo = (EdgeNodeInfo*) malloc(sizeof(EdgeNodeInfo));
-  nodeInfo->valueAlias = "Double";
+  nodeInfo->valueAlias = (char*) malloc(strlen(node_arr[option-1]));
+  strcpy(nodeInfo->valueAlias, node_arr[option-1]);
 
   EdgeRequest *request = (EdgeRequest*) malloc(sizeof(EdgeRequest));
   request->nodeInfo = nodeInfo;
@@ -585,9 +658,24 @@ static void testSubModify() {
   msg->request = request;
 
   handleSubscription(msg);
+
+  free(nodeInfo); nodeInfo = NULL;
+  free(subReq); subReq = NULL;
+  free(request); request = NULL;
+  free(ep); ep = NULL;
+  free (msg); msg = NULL;
 }
 
 static void testSubDelete() {
+  int option = getNodeOptions("Delete Subscription");
+  if (option == -1)
+    return ;
+
+  if (!subscription_done[option-1]) {
+    printf("subscription not created yet for that node to delete \n");
+    return ;
+  }
+
   EdgeEndPointInfo* ep = (EdgeEndPointInfo*) malloc(sizeof(EdgeEndPointInfo));
   ep->endpointUri = endpointUri;
   ep->config = NULL;
@@ -596,7 +684,8 @@ static void testSubDelete() {
   subReq->subType = Edge_Delete_Sub;
 
   EdgeNodeInfo* nodeInfo = (EdgeNodeInfo*) malloc(sizeof(EdgeNodeInfo));
-  nodeInfo->valueAlias = "Double";
+  nodeInfo->valueAlias = (char*) malloc(strlen(node_arr[option-1]));
+  strcpy(nodeInfo->valueAlias, node_arr[option-1]);
 
   EdgeRequest *request = (EdgeRequest*) malloc(sizeof(EdgeRequest));
   request->nodeInfo = nodeInfo;
@@ -607,7 +696,16 @@ static void testSubDelete() {
   msg->command = CMD_SUB;
   msg->request = request;
 
-  handleSubscription(msg);
+  EdgeResult result = handleSubscription(msg);
+  if (result.code == STATUS_OK) {
+    subscription_done[option-1] = false;
+  }
+
+  free(nodeInfo); nodeInfo = NULL;
+  free(subReq); subReq = NULL;
+  free(request); request = NULL;
+  free(ep); ep = NULL;
+  free (msg); msg = NULL;
 }
 
 static void print_menu() {
@@ -628,7 +726,7 @@ static void print_menu() {
 }
 
 int main() {
-  char command[128];
+  char command[MAX_CHAR_SIZE];
 
   print_menu();
   init();

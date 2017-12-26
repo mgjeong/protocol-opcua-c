@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-EdgeResult *executeRead(UA_Client *client, EdgeMessage *msg);
+EdgeResult executeRead(UA_Client *client, EdgeMessage *msg);
 
 #ifdef __cplusplus
 }

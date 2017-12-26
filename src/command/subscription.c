@@ -28,7 +28,7 @@ static keyValue getSubscriptionId(char *valueAlias) {
   return NULL;
 }
 
-static void removeSubscriptionFromMap(char *valueAlias) {
+static edgeMapNode* removeSubscriptionFromMap(char *valueAlias) {
   edgeMapNode *temp = subscriptionList->head;
   edgeMapNode *prev = NULL;
   while(temp != NULL) {
@@ -38,12 +38,13 @@ static void removeSubscriptionFromMap(char *valueAlias) {
       } else {
         prev->next = temp->next;
       }
-      free (temp); temp = NULL;
-      return ;
+//      free (temp); temp = NULL;
+      return temp;
     }
     prev = temp;
     temp = temp->next;
   }
+  return NULL;
 }
 
 #ifdef TEST_SUBSCRIPTION_LIST
@@ -69,9 +70,13 @@ monitoredItemHandler(UA_UInt32 monId, UA_DataValue *value, void *context) {
     subscriptionInfo* subInfo =  (subscriptionInfo*) getSubscriptionId(valueAlias);
     //printf("subscription id retrieved from map :: %d \n\n", subInfo->subId);
 
+    if (!subInfo)
+      return ;
+
     EdgeResponse* response = (EdgeResponse*) malloc(sizeof(EdgeResponse));
     if (response) {
-      response->nodeInfo = subInfo->msg->request->nodeInfo;
+      response->nodeInfo = (EdgeNodeInfo*) malloc(sizeof(EdgeNodeInfo));
+      memcpy(response->nodeInfo, subInfo->msg->request->nodeInfo, sizeof(EdgeNodeInfo));
       response->requestId = subInfo->msg->request->requestId;
 
       EdgeVersatility *versatility = (EdgeVersatility*) malloc(sizeof(EdgeVersatility));
@@ -110,7 +115,8 @@ monitoredItemHandler(UA_UInt32 monId, UA_DataValue *value, void *context) {
 
 
       EdgeMessage *resultMsg = (EdgeMessage*) malloc(sizeof(EdgeMessage));
-      resultMsg->endpointInfo = subInfo->msg->endpointInfo;
+      resultMsg->endpointInfo = (EdgeEndPointInfo*) malloc(sizeof(EdgeEndPointInfo));
+      memcpy(resultMsg->endpointInfo, subInfo->msg->endpointInfo, sizeof(EdgeEndPointInfo));
       resultMsg->type = REPORT;
       resultMsg->responseLength = 1;
       resultMsg->responses = (EdgeResponse**) malloc(1 * sizeof(EdgeResponse));
@@ -118,7 +124,11 @@ monitoredItemHandler(UA_UInt32 monId, UA_DataValue *value, void *context) {
 
       onResponseMessage(resultMsg);
 
+      free(response->nodeInfo); response->nodeInfo = NULL;
+      free(response->message); response->message = NULL;
       free(response); response = NULL;
+      free (resultMsg->endpointInfo); resultMsg->endpointInfo = NULL;
+      free (resultMsg->responses);resultMsg->responses = NULL;
       free(resultMsg); resultMsg = NULL;
     }
   }
@@ -166,7 +176,7 @@ static void createSub(UA_Client *client, EdgeMessage *msg) {
   UA_NodeId monitorThis = UA_NODEID_STRING(1, msg->request->nodeInfo->valueAlias);
   UA_UInt32 monId = 0;
   UA_Client_Subscriptions_addMonitoredItem(client, subId, monitorThis, UA_ATTRIBUTEID_VALUE,
-                                           &monitoredItemHandler, msgCopy->request->nodeInfo->valueAlias, &monId);
+                                           &monitoredItemHandler, msgCopy->request->nodeInfo->valueAlias, &monId, subReq->samplingInterval);
   if (monId) {
     printf("Monitoring 'the.answer', id %u\n", subId);
   } else {
@@ -177,23 +187,21 @@ static void createSub(UA_Client *client, EdgeMessage *msg) {
 
   if (0 == subscriptionCount) {
     /* initiate thread for manually sending publish request. */
-    pthread_create(&subscription_thread, NULL, &subscription_thread_handler, (void*) client);    
-
-    subscriptionInfo *subInfo = (subscriptionInfo*) malloc(sizeof(subscriptionInfo));
-    subInfo->msg = msgCopy;
-    subInfo->subId = subId;
-    subInfo->monId = monId;
-
-    /* Create subscription list */
-    subscriptionList = createMap();
-    if (subscriptionList)
-      insertMapElement(subscriptionList, (keyValue) msg->request->nodeInfo->valueAlias, (keyValue) subInfo);
-
+    pthread_create(&subscription_thread, NULL, &subscription_thread_handler, (void*) client);
   }
   subscriptionCount++;
 
-  /* The first publish request should return the initial value of the variable */
-  UA_Client_Subscriptions_manuallySendPublishRequest(client);
+  subscriptionInfo *subInfo = (subscriptionInfo*) malloc(sizeof(subscriptionInfo));
+  subInfo->msg = msgCopy;
+  subInfo->subId = subId;
+  subInfo->monId = monId;
+
+  if (!subscriptionList) {
+    /* Create subscription list */
+    subscriptionList = createMap();
+  }
+  if (subscriptionList)
+    insertMapElement(subscriptionList, (keyValue) msg->request->nodeInfo->valueAlias, (keyValue) subInfo);
 }
 
 static void deleteSub(UA_Client *client, EdgeMessage *msg) {
@@ -201,11 +209,23 @@ static void deleteSub(UA_Client *client, EdgeMessage *msg) {
   subscriptionInfo* subInfo = (subscriptionInfo*) getSubscriptionId(msg->request->nodeInfo->valueAlias);
   //printf("subscription id retrieved from map :: %d \n\n", subInfo->subId);
 
+  if (!subInfo) {
+    printf("not subscribed yet\n");
+    return ;
+  }
+
   UA_StatusCode retVal = UA_Client_Subscriptions_remove(client, subInfo->subId);
 
   if (UA_STATUSCODE_GOOD == retVal) {
     printf("subscription deleted successfully\n\n");
-    removeSubscriptionFromMap(msg->request->nodeInfo->valueAlias);
+   edgeMapNode* removed = removeSubscriptionFromMap(msg->request->nodeInfo->valueAlias);
+   if (!removed) {
+     subscriptionInfo* info = (subscriptionInfo*) removed->value;
+     if (info) {
+       free (info->msg); info->msg = NULL;
+       free (info); info = NULL;
+     }
+   }
   } else {
     printf("subscription delete error : 0x%08x\n\n", retVal);
   }
@@ -223,6 +243,11 @@ static void deleteSub(UA_Client *client, EdgeMessage *msg) {
 static void modifySub(UA_Client *client, EdgeMessage *msg) {
   subscriptionInfo* subInfo =  (subscriptionInfo*) getSubscriptionId(msg->request->nodeInfo->valueAlias);
   //printf("subscription id retrieved from map :: %d \n\n", subInfo->subId);
+
+  if (!subInfo) {
+    printf("not subscribed yet\n");
+    return ;
+  }
 
   EdgeSubRequest *subReq = msg->request->subMsg;
 
@@ -312,12 +337,12 @@ static void modifySub(UA_Client *client, EdgeMessage *msg) {
   UA_Client_Subscriptions_manuallySendPublishRequest(client);
 }
 
-EdgeResult* executeSub(UA_Client *client, EdgeMessage *msg) {
+EdgeResult executeSub(UA_Client *client, EdgeMessage *msg) {
   printf("execute subscription\n");
-  EdgeResult* result = (EdgeResult*) malloc(sizeof(EdgeResult));
+  EdgeResult result;
   if (!client) {
     printf("client handle invalid!\n");
-    result->code = STATUS_ERROR;
+    result.code = STATUS_ERROR;
     return result;
   }
 
@@ -334,6 +359,6 @@ EdgeResult* executeSub(UA_Client *client, EdgeMessage *msg) {
     deleteSub(client, msg);
   }
 
-  result->code = STATUS_OK;
+  result.code = STATUS_OK;
   return result;
 }
