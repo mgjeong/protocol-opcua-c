@@ -70,6 +70,11 @@ EdgeResult* callMethod(EdgeMessage *msg) {
   return result;
 }
 
+EdgeResult* handleSubscription(EdgeMessage *msg) {
+  EdgeResult* result = executeSubscriptionInServer(msg);
+  return result;
+}
+
 EdgeResult* createMethodNode(char *namespaceUri, EdgeNodeItem *item, EdgeMethod *method) {
   EdgeResult* result = addMethodNodeInServer(item, method);
   return result;
@@ -176,6 +181,10 @@ void onResponseMessage(EdgeMessage *msg) {
   }
   if (receivedMsgCb && msg->type == BROWSE_RESPONSE) {
     receivedMsgCb->browse_msg_cb(msg);
+  }
+
+  if (receivedMsgCb && msg->type == REPORT) {
+    receivedMsgCb->monitored_msg_cb(msg);
   }
 
 }

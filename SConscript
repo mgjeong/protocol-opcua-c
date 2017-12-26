@@ -78,6 +78,7 @@ src = [
 		buildDir + srcPath + '/command/read.c',
 		buildDir + srcPath + '/command/write.c',
 		buildDir + srcPath + '/command/method.c',
+		buildDir + srcPath + '/command/subscription.c',
 		buildDir + srcPath + '/node/edge_node.c',
 		#buildDir + srcPath + '/queue/message_dispatcher.c',
 		#buildDir + srcPath + '/queue/queue.c',

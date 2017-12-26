@@ -121,42 +121,49 @@ extern "C"
                         EXPECT_EQ((strcmp(temp, TEST_STR1_W) && strcmp(temp, TEST_STR2_W) &&
                                 strcmp(temp, TEST_STR3_W)), 0);
                   }
-                  
-                 /*if(data->responses[idx]->type == UInt16){
-                    int temp = *((int*)data->responses[idx]->message->value)
-                    if(readNodeFlag)
-                        EXPECT_EQ(temp, TEST_UINT16_R);
-                    else
-                        EXPECT_EQ(temp, TEST_UINT16_W);
-                  } else if(data->responses[idx]->type == Int32){
-                    int temp = *((int*)data->responses[idx]->message->value)
-                    if(readNodeFlag)
-                        EXPECT_EQ(temp, TEST_INT32_R);
-                    else
-                        EXPECT_EQ(temp, TEST_INT32_W);
-                  } else if(data->responses[idx]->type == Double){
-                    double temp = *((double*)data->responses[idx]->message->value)
-                    if(readNodeFlag)
-                        EXPECT_EQ(temp, TEST_DOUBLE_R);
-                    else
-                        EXPECT_EQ(temp, TEST_DOUBLE_W);
-                  } else if(data->responses[idx]->type == String) {
-                     char* temp = *((char*)data->responses[idx]->message->value)
-                    if(readNodeFlag)
-                        EXPECT_EQ(strcmp(temp, TEST_STR1_R) && strcmp(temp, TEST_STR2_R) &&
-                                strcmp(temp, TEST_STR3_R), 0);
-                    else
-                        EXPECT_EQ(strcmp(temp, TEST_STR1_W) && strcmp(temp, TEST_STR2_W) &&
-                                strcmp(temp, TEST_STR3_W), 0);
-                  }*/
                 }
             }
         }
     }
    }
 
-    static void monitored_msg_cb (void* data) {
-
+    static void monitored_msg_cb (EdgeMessage* data) {
+      if (data->type == REPORT) {
+        PRINT("[Application response Callback] Monitored Item Response received");
+        int len = data->responseLength;
+        int idx = 0;
+        for (idx = 0; idx < len; idx++) {
+          if (data->responses[idx]->message != NULL) {
+            if(data->responses[idx]->type == Int16)
+              PRINT_ARG("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>> ",
+                        *((int*)data->responses[idx]->message->value));
+            else if(data->responses[idx]->type == UInt16)
+              PRINT_ARG("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>> ",
+                        *((int*)data->responses[idx]->message->value));
+            else if(data->responses[idx]->type == Int32)
+              PRINT_ARG("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>>  ",
+                        *((int*)data->responses[idx]->message->value));
+            else if(data->responses[idx]->type == UInt32)
+              PRINT_ARG("[MonitoredItem DataChange callbackk] Monitored Change Value read from node ===>> ",
+                        *((int*)data->responses[idx]->message->value));
+            else if(data->responses[idx]->type == Int64)
+              PRINT_ARG("[MonitoredItem DataChange callbackk] Monitored Change Value read from node ===>>  ",
+                        *((long*)data->responses[idx]->message->value));
+            else if(data->responses[idx]->type == UInt64)
+              PRINT_ARG("[MonitoredItem DataChange callbackk] Monitored Change Value read from node ===>>  ",
+                        *((long*)data->responses[idx]->message->value));
+            else if(data->responses[idx]->type == Float)
+              PRINT_ARG("[MonitoredItem DataChange callback] Monitored Change Value read from node  ===>>  ",
+                        *((float*)data->responses[idx]->message->value));
+            else if(data->responses[idx]->type == Double)
+              PRINT_ARG("[MonitoredItem DataChange callback] Monitored Change Value read from node  ===>>  ",
+                        *((double*)data->responses[idx]->message->value));
+            else if(data->responses[idx]->type == String)
+              PRINT_ARG("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>>  ",
+                        ((char*)data->responses[idx]->message->value));
+          }
+        }
+      }
     }
 
     static void error_msg_cb (void* data) {
@@ -172,9 +179,6 @@ extern "C"
       if (status == STATUS_SERVER_STARTED) {
         PRINT("\n[Application Callback] Server started");
         startServerFlag = true;
-
-        //testCreateNamespace();
-        //testCreateNodes();
       }
       if (status == STATUS_CLIENT_STARTED) {
         printf("[Application Callback] Client connected\n");
@@ -186,7 +190,6 @@ extern "C"
       if (status == STATUS_STOP_SERVER) {
             PRINT("\n[Application Callback] Server stopped ");
             startServerFlag = false;
-          //exit(0);
         }
       if (status == STATUS_STOP_CLIENT) {
         printf("[Application Callback] Client disconnected \n\n");
@@ -281,6 +284,139 @@ static void deleteMessage(EdgeMessage* msg, EdgeEndPointInfo* ep)
     {
         free(ep);
         ep = NULL;
+    }
+}
+
+static void writeNodes(bool defaultFlag)
+{
+    PRINT("=============== Writting Nodes ==================");
+    
+    EdgeNodeIdentifier type;
+    void *new_value = NULL;
+
+    int id;
+    double d_value = TEST_DOUBLE_R;
+    int i_value = TEST_INT32_R;
+    int id_value = TEST_UINT16_R;
+    if(!defaultFlag)
+    {
+        d_value = TEST_DOUBLE_W;
+        i_value = TEST_INT32_W;
+        id_value = TEST_UINT16_W;
+    }
+    
+    for(id = 0; id < 6; id++)
+    {
+        PRINT_ARG("*****  Writting the node with browse name  ", node_arr[id]);
+
+        EdgeEndPointInfo* epWrite = (EdgeEndPointInfo*) malloc(sizeof(EdgeEndPointInfo));
+        epWrite->endpointUri = endpointUri;
+        epWrite->config = NULL;
+
+        EdgeNodeInfo *nodeInfo = (EdgeNodeInfo*) malloc(sizeof(EdgeNodeInfo));
+        nodeInfo->valueAlias = node_arr[id];
+
+        EdgeRequest *request = (EdgeRequest*) malloc(sizeof(EdgeRequest));
+        request->nodeInfo = nodeInfo;
+        switch(id) { 
+            case 0: 
+                request->type = String;
+                if(defaultFlag)
+                    request->value = (void *) TEST_STR1_R;                    
+                else
+                    request->value = (void *) TEST_STR1_W;                
+                break; 
+            case 1: 
+                request->type = String;
+                if(defaultFlag)
+                    request->value = (void *) TEST_STR2_R;                    
+                else
+                    request->value = (void *) TEST_STR2_W;
+                break; 
+            case 2: 
+                request->type = String;
+                if(defaultFlag)
+                    request->value = (void *) TEST_STR3_R;                   
+                else
+                    request->value = (void *) TEST_STR3_W;
+                break; 
+            case 3: 
+                request->type = Double;
+                request->value = (void *) &d_value;
+                break; 
+            case 4: 
+                request->type = Int32;
+                request->value = (void *) &i_value;
+                break; 
+            case 5: 
+                request->type = UInt16;                
+                request->value = (void *) &id_value;
+                break; 
+        }
+
+        EdgeMessage *msgWrite = (EdgeMessage*) malloc(sizeof(EdgeMessage));
+        msgWrite->endpointInfo = epWrite;
+        msgWrite->command = CMD_READ;
+        msgWrite->request = request;
+
+        writeNode(msgWrite);
+
+        deleteMessage(msgWrite, epWrite);
+
+        if(nodeInfo != NULL)
+        {
+            free(nodeInfo);
+            nodeInfo = NULL;
+        }
+
+        if(request != NULL)
+        {
+            free(request);
+            request = NULL;
+        }
+    }
+}
+
+static void readNodes()
+{
+    PRINT("=============== Reading Nodes ==================");
+
+    int idx;
+    for(idx = 0; idx < 6; idx++)
+    {
+        PRINT_ARG("*****  Reading the node with browse name  ", node_arr[idx]);
+
+        EdgeEndPointInfo* epRead = (EdgeEndPointInfo*) malloc(sizeof(EdgeEndPointInfo));
+        epRead->endpointUri = endpointUri;
+        epRead->config = NULL;
+
+        EdgeNodeInfo *nodeInfo = (EdgeNodeInfo*) malloc(sizeof(EdgeNodeInfo));
+        nodeInfo->valueAlias = node_arr[idx];
+
+        EdgeRequest *request = (EdgeRequest*) malloc(sizeof(EdgeRequest));
+        request->nodeInfo = nodeInfo;
+
+        EdgeMessage *msgRead = (EdgeMessage*) malloc(sizeof(EdgeMessage));
+        msgRead->endpointInfo = epRead;
+        msgRead->command = CMD_READ;
+        msgRead->request = request;
+
+        readNode(msgRead);
+
+        deleteMessage(msgRead, epRead);
+
+        if(nodeInfo != NULL)
+        {
+            free(nodeInfo);
+            nodeInfo = NULL;
+        }
+
+        if(request != NULL)
+        {
+            free(request);
+            request = NULL;
+        }
+        
     }
 }
 
@@ -984,45 +1120,7 @@ TEST_F(OPC_clientTests , ClientRead_P)
     connectClient(ep);
     EXPECT_EQ(startClientFlag, true);
 
-    PRINT("=============== Reading Nodes ==================");
-
-    int idx;
-    for(idx = 0; idx < 6; idx++)
-    {
-        PRINT_ARG("*****  Reading the node with browse name  ", node_arr[idx]);
-
-        EdgeEndPointInfo* epRead = (EdgeEndPointInfo*) malloc(sizeof(EdgeEndPointInfo));
-        epRead->endpointUri = endpointUri;
-        epRead->config = NULL;
-
-        EdgeNodeInfo *nodeInfo = (EdgeNodeInfo*) malloc(sizeof(EdgeNodeInfo));
-        nodeInfo->valueAlias = node_arr[idx];
-
-        EdgeRequest *request = (EdgeRequest*) malloc(sizeof(EdgeRequest));
-        request->nodeInfo = nodeInfo;
-
-        EdgeMessage *msgRead = (EdgeMessage*) malloc(sizeof(EdgeMessage));
-        msgRead->endpointInfo = epRead;
-        msgRead->command = CMD_READ;
-        msgRead->request = request;
-
-        readNode(msgRead);
-
-        deleteMessage(msgRead, epRead);
-
-        if(nodeInfo != NULL)
-        {
-            free(nodeInfo);
-            nodeInfo = NULL;
-        }
-
-        if(request != NULL)
-        {
-            free(request);
-            request = NULL;
-        }
-
-    }
+    readNodes();
 
     EdgeEndPointInfo* ep_t = (EdgeEndPointInfo*) malloc(sizeof(EdgeEndPointInfo));
     ep_t->endpointUri = endpointUri;
@@ -1075,118 +1173,13 @@ TEST_F(OPC_clientTests , ClientWrite_P)
     connectClient(ep);
     EXPECT_EQ(startClientFlag, true);
 
-    PRINT("=============== Writting Nodes ==================");
-    int option;
-    EdgeNodeIdentifier type;
-    void *new_value = NULL;
-
-    int id;
-    double d_value = TEST_DOUBLE_W;
-    int i_value = TEST_INT32_W;
-    int id_value = TEST_UINT16_W;
-    for(id = 0; id < 6; id++)
-    {
-        PRINT_ARG("*****  Writting the node with browse name  ", node_arr[id]);
-
-        EdgeEndPointInfo* epWrite = (EdgeEndPointInfo*) malloc(sizeof(EdgeEndPointInfo));
-        epWrite->endpointUri = endpointUri;
-        epWrite->config = NULL;
-
-        EdgeNodeInfo *nodeInfo = (EdgeNodeInfo*) malloc(sizeof(EdgeNodeInfo));
-        nodeInfo->valueAlias = node_arr[id];
-
-        EdgeRequest *request = (EdgeRequest*) malloc(sizeof(EdgeRequest));
-        request->nodeInfo = nodeInfo;
-        switch(id) { 
-            case 0: 
-                request->type = String;
-                request->value = (void *) TEST_STR1_W;
-                break; 
-            case 1: 
-                request->type = String;
-                request->value = (void *) TEST_STR2_W;
-                break;
-            case 2: 
-                request->type = String;
-                request->value = (void *) TEST_STR3_W;
-                break; 
-            case 3: 
-                request->type = Double;
-                request->value = (void *) &d_value;
-                break; 
-            case 4: 
-                request->type = Int32;
-                request->value = (void *) &i_value;
-                break; 
-            case 5: 
-                request->type = UInt16;                
-                request->value = (void *) &id_value;
-                break; 
-        }
-
-        EdgeMessage *msgWrite = (EdgeMessage*) malloc(sizeof(EdgeMessage));
-        msgWrite->endpointInfo = epWrite;
-        msgWrite->command = CMD_READ;
-        msgWrite->request = request;
-
-        writeNode(msgWrite);
-
-        deleteMessage(msgWrite, epWrite);
-
-        if(nodeInfo != NULL)
-        {
-            free(nodeInfo);
-            nodeInfo = NULL;
-        }
-
-        if(request != NULL)
-        {
-            free(request);
-            request = NULL;
-        }
-        
-    }
+    writeNodes(false);
 
     readNodeFlag = false;
-    PRINT("=============== Reading Nodes ==================");
 
-    int idx;
-    for(idx = 0; idx < 6; idx++)
-    {
-        PRINT_ARG("*****  Reading the node with browse name  ", node_arr[idx]);
+    readNodes();
 
-        EdgeEndPointInfo* epRead = (EdgeEndPointInfo*) malloc(sizeof(EdgeEndPointInfo));
-        epRead->endpointUri = endpointUri;
-        epRead->config = NULL;
-
-        EdgeNodeInfo *nodeInfo = (EdgeNodeInfo*) malloc(sizeof(EdgeNodeInfo));
-        nodeInfo->valueAlias = node_arr[idx];
-
-        EdgeRequest *request = (EdgeRequest*) malloc(sizeof(EdgeRequest));
-        request->nodeInfo = nodeInfo;
-
-        EdgeMessage *msgRead = (EdgeMessage*) malloc(sizeof(EdgeMessage));
-        msgRead->endpointInfo = epRead;
-        msgRead->command = CMD_READ;
-        msgRead->request = request;
-
-        readNode(msgRead);
-
-        deleteMessage(msgRead, epRead);
-
-        if(nodeInfo != NULL)
-        {
-            free(nodeInfo);
-            nodeInfo = NULL;
-        }
-
-        if(request != NULL)
-        {
-            free(request);
-            request = NULL;
-        }
-        
-    }
+     writeNodes(true);
 
      deleteMessage(msg, ep);
 

@@ -16,7 +16,7 @@ typedef struct EdgeReference EdgeReference;
 
 /* Recevied Message callbacks */
 typedef void (*response_msg_cb_t) (EdgeMessage* data);
-typedef void (*monitored_msg_cb_t) (void* data);
+typedef void (*monitored_msg_cb_t) (EdgeMessage* data);
 typedef void (*error_msg_cb_t) (void* data);
 typedef void (*browse_msg_cb_t) (EdgeMessage* data);
 
@@ -80,6 +80,7 @@ __attribute__((visibility("default"))) EdgeResult* readNode(EdgeMessage *msg);
 __attribute__((visibility("default"))) EdgeResult* writeNode(EdgeMessage *msg);
 __attribute__((visibility("default"))) EdgeResult* browseNode(EdgeMessage *msg);
 __attribute__((visibility("default"))) EdgeResult* callMethod(EdgeMessage *msg);
+__attribute__((visibility("default"))) EdgeResult* handleSubscription(EdgeMessage *msg);
 
 
 

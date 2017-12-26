@@ -16,6 +16,7 @@ EdgeResult* readNodesFromServer(EdgeMessage* msg);
 EdgeResult* writeNodesInServer(EdgeMessage* msg);
 EdgeResult* browseNodesInServer(EdgeMessage *msg);
 EdgeResult* callMethodInServer(EdgeMessage *msg);
+EdgeResult* executeSubscriptionInServer(EdgeMessage *msg);
 
 #ifdef __cplusplus
 }

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #include <opcua_manager.h>
 #include <opcua_common.h>
@@ -90,8 +91,35 @@ static void response_msg_cb (EdgeMessage* data) {
   }
 }
 
-static void monitored_msg_cb (void* data) {
-
+static void monitored_msg_cb (EdgeMessage* data) {
+  if (data->type == REPORT) {
+    printf("[Application response Callback] Monitored Item Response received\n");
+    int len = data->responseLength;
+    int idx = 0;
+    for (idx = 0; idx < len; idx++) {
+      if (data->responses[idx]->message != NULL) {
+        if(data->responses[idx]->type == Int16)
+          printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>> [%d]\n", *((int*)data->responses[idx]->message->value));
+        else if(data->responses[idx]->type == UInt16)
+          printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>> [%d]\n", *((int*)data->responses[idx]->message->value));
+        else if(data->responses[idx]->type == Int32)
+          printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>>  [%d]\n", *((int*)data->responses[idx]->message->value));
+        else if(data->responses[idx]->type == UInt32)
+          printf("[MonitoredItem DataChange callbackk] Monitored Change Value read from node ===>>  [%d]\n", *((int*)data->responses[idx]->message->value));
+        else if(data->responses[idx]->type == Int64)
+          printf("[MonitoredItem DataChange callbackk] Monitored Change Value read from node ===>>  [%ld]\n", *((long*)data->responses[idx]->message->value));
+        else if(data->responses[idx]->type == UInt64)
+          printf("[MonitoredItem DataChange callbackk] Monitored Change Value read from node ===>>  [%ld]\n", *((long*)data->responses[idx]->message->value));
+        else if(data->responses[idx]->type == Float)
+          printf("[MonitoredItem DataChange callback] Monitored Change Value read from node  ===>>  [%f]\n", *((float*)data->responses[idx]->message->value));
+        else if(data->responses[idx]->type == Double)
+          printf("[MonitoredItem DataChange callback] Monitored Change Value read from node  ===>>  [%f]\n", *((double*)data->responses[idx]->message->value));
+        else if(data->responses[idx]->type == String)
+          printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>>  [%s]\n", ((char*)data->responses[idx]->message->value));
+      }
+    }
+    printf("\n\n");
+  }
 }
 
 static void error_msg_cb (void* data) {
@@ -493,9 +521,93 @@ static void testMethod() {
   free(nodeInfo); nodeInfo = NULL;
   free(request); request = NULL;
   free (msg); msg = NULL;
+}
 
+static void testSub() {
+  EdgeEndPointInfo* ep = (EdgeEndPointInfo*) malloc(sizeof(EdgeEndPointInfo));
+  ep->endpointUri = endpointUri;
+  ep->config = NULL;
 
+  EdgeSubRequest* subReq = (EdgeSubRequest*) malloc(sizeof(EdgeSubRequest));
+  subReq->subType = Edge_Create_Sub;
+  subReq->samplingInterval = 1000.0;
+  subReq->publishingInterval = 0.0;
+  subReq->maxKeepAliveCount = (1 > (int) (ceil(10000.0 / subReq->publishingInterval))) ? 1 : (int) ceil(10000.0 / subReq->publishingInterval);
+  subReq->lifetimeCount = 10000;  //subReq->maxKeepAliveCount * 6;
+  subReq->maxNotificationsPerPublish = 1;
+  subReq->publishingEnabled = true;
+  subReq->priority = 0;
+  subReq->queueSize = 50;
 
+  EdgeNodeInfo* nodeInfo = (EdgeNodeInfo*) malloc(sizeof(EdgeNodeInfo));
+  nodeInfo->valueAlias = "Double";
+
+  EdgeRequest *request = (EdgeRequest*) malloc(sizeof(EdgeRequest));
+  request->nodeInfo = nodeInfo;
+  request->subMsg = subReq;
+
+  EdgeMessage* msg = (EdgeMessage*) malloc(sizeof(EdgeMessage));
+  msg->endpointInfo = ep;
+  msg->command = CMD_SUB;
+  msg->request = request;
+
+  handleSubscription(msg);
+}
+
+static void testSubModify() {
+  EdgeEndPointInfo* ep = (EdgeEndPointInfo*) malloc(sizeof(EdgeEndPointInfo));
+  ep->endpointUri = endpointUri;
+  ep->config = NULL;
+
+  EdgeSubRequest* subReq = (EdgeSubRequest*) malloc(sizeof(EdgeSubRequest));
+  subReq->subType = Edge_Modify_Sub;
+  subReq->samplingInterval = 3000.0;
+  subReq->publishingInterval = 0.0;
+  subReq->maxKeepAliveCount = (1 > (int) (ceil(10000.0 / subReq->publishingInterval))) ? 1 : (int) ceil(10000.0 / subReq->publishingInterval);
+  printf("keepalive count :: %d\n", subReq->maxKeepAliveCount);
+  subReq->lifetimeCount = 10000;  //subReq->maxKeepAliveCount * 6;
+  printf("lifetimecount :: %d\n", subReq->lifetimeCount);
+  subReq->maxNotificationsPerPublish = 1;
+  subReq->publishingEnabled = true;
+  subReq->priority = 0;
+  subReq->queueSize = 50;
+
+  EdgeNodeInfo* nodeInfo = (EdgeNodeInfo*) malloc(sizeof(EdgeNodeInfo));
+  nodeInfo->valueAlias = "Double";
+
+  EdgeRequest *request = (EdgeRequest*) malloc(sizeof(EdgeRequest));
+  request->nodeInfo = nodeInfo;
+  request->subMsg = subReq;
+
+  EdgeMessage* msg = (EdgeMessage*) malloc(sizeof(EdgeMessage));
+  msg->endpointInfo = ep;
+  msg->command = CMD_SUB;
+  msg->request = request;
+
+  handleSubscription(msg);
+}
+
+static void testSubDelete() {
+  EdgeEndPointInfo* ep = (EdgeEndPointInfo*) malloc(sizeof(EdgeEndPointInfo));
+  ep->endpointUri = endpointUri;
+  ep->config = NULL;
+
+  EdgeSubRequest* subReq = (EdgeSubRequest*) malloc(sizeof(EdgeSubRequest));
+  subReq->subType = Edge_Delete_Sub;
+
+  EdgeNodeInfo* nodeInfo = (EdgeNodeInfo*) malloc(sizeof(EdgeNodeInfo));
+  nodeInfo->valueAlias = "Double";
+
+  EdgeRequest *request = (EdgeRequest*) malloc(sizeof(EdgeRequest));
+  request->nodeInfo = nodeInfo;
+  request->subMsg = subReq;
+
+  EdgeMessage* msg = (EdgeMessage*) malloc(sizeof(EdgeMessage));
+  msg->endpointInfo = ep;
+  msg->command = CMD_SUB;
+  msg->request = request;
+
+  handleSubscription(msg);
 }
 
 static void print_menu() {
@@ -506,6 +618,9 @@ static void print_menu() {
   printf("write : write attribute into nodes\n");
   printf("browse : browse nodes\n");
   printf("method : method call\n");
+  printf("create_sub : create subscription\n");
+  printf("modify_sub : modify subscription\n");
+  printf("delete_sub : delete subscription\n");
   printf("quit : terminate/stop opcua server/client and then quit\n");
   printf("help : print menu\n");
 
@@ -549,6 +664,12 @@ int main() {
       testBrowse();
     } else if(!strcmp(command, "method")) {
       testMethod();
+    } else if(!strcmp(command, "create_sub")) {
+      testSub();
+    } else if(!strcmp(command, "modify_sub")) {
+      testSubModify();
+    } else if(!strcmp(command, "delete_sub")) {
+      testSubDelete();
     } else if(!strcmp(command, "quit")) {
       deinit();
       //stopFlag = true;

@@ -3,6 +3,7 @@
 #include "write.h"
 #include "browse.h"
 #include "method.h"
+#include "subscription.h"
 
 #include <stdio.h>
 #include <open62541.h>
@@ -29,6 +30,11 @@ EdgeResult* browseNodesInServer(EdgeMessage *msg) {
 
 EdgeResult* callMethodInServer(EdgeMessage *msg) {
   EdgeResult* result = executeMethod(m_client, msg);
+  return result;
+}
+
+EdgeResult* executeSubscriptionInServer(EdgeMessage *msg) {
+  EdgeResult* result = executeSub(m_client, msg);
   return result;
 }
 

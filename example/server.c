@@ -30,7 +30,7 @@ static void response_msg_cb (EdgeMessage* data) {
 
 }
 
-static void monitored_msg_cb (void* data) {
+static void monitored_msg_cb (EdgeMessage* data) {
 
 }
 
@@ -76,6 +76,11 @@ static void device_found_cb (EdgeDevice* device) {
 
 /**************************************************************************************************/
 // Method callbacks
+// Method callbacks
+
+static void arg_method(int inpSize, void **input, int outSize, void **output) {
+
+}
 
 static void sqrt_method(int inpSize, void **input, int outSize, void **output) {
   double *inp = (double*) input[0];
@@ -404,7 +409,7 @@ static void testCreateNodes() {
   for (int idx = 0; idx < method->num_outArgs; idx++) {
     method->outArg[idx] = (EdgeArgument*) malloc(sizeof(EdgeArgument));
     method->outArg[idx]->argType = Double;
-    method->inpArg[idx]->valType = SCALAR;
+    method->outArg[idx]->valType = SCALAR;
   }
   createMethodNode(DEFAULT_NAMESPACE_VALUE, methodNodeItem, method);
 
@@ -439,6 +444,65 @@ static void testCreateNodes() {
   }
   createMethodNode(DEFAULT_NAMESPACE_VALUE, methodNodeItem1, method1);
 
+  printf("\n[%d]) Method Node \n", ++index);
+  EdgeNodeItem *methodNodeItem2 = (EdgeNodeItem*) malloc(sizeof(EdgeNodeItem));
+  methodNodeItem2->browseName = "noArgMethod";
+  methodNodeItem2->sourceNodeId = NULL;
+
+  EdgeMethod* method2 = (EdgeMethod*) malloc(sizeof(EdgeMethod));
+  method2->description = "no arg method";
+  method2->methodNodeName = "noArgMethod";
+  method2->method_fn = arg_method;
+
+  method2->num_inpArgs = 0;
+  method2->inpArg = NULL;
+
+  method2->num_outArgs = 0;
+  method2->outArg = NULL;
+
+  createMethodNode(DEFAULT_NAMESPACE_VALUE, methodNodeItem2, method2);
+
+  printf("\n[%d]) Method Node \n", ++index);
+  EdgeNodeItem *methodNodeItem3 = (EdgeNodeItem*) malloc(sizeof(EdgeNodeItem));
+  methodNodeItem3->browseName = "inArgMethod";
+  methodNodeItem3->sourceNodeId = NULL;
+
+  EdgeMethod* method3 = (EdgeMethod*) malloc(sizeof(EdgeMethod));
+  method3->description = "only input arg method";
+  method3->methodNodeName = "inArgMethod";
+  method3->method_fn = arg_method;
+
+  method3->num_inpArgs = 1;
+  method3->inpArg = (EdgeArgument**) malloc(sizeof(EdgeArgument*) * method3->num_inpArgs);
+  method3->inpArg[0] = (EdgeArgument*) malloc(sizeof(EdgeArgument));
+  method3->inpArg[0]->argType = Int32;
+  method3->inpArg[0]->valType = SCALAR;
+
+  method3->num_outArgs = 0;
+  method3->outArg = NULL;
+
+  createMethodNode(DEFAULT_NAMESPACE_VALUE, methodNodeItem3, method3);
+
+  printf("\n[%d]) Method Node \n", ++index);
+  EdgeNodeItem *methodNodeItem4 = (EdgeNodeItem*) malloc(sizeof(EdgeNodeItem));
+  methodNodeItem4->browseName = "outArgMethod";
+  methodNodeItem4->sourceNodeId = NULL;
+
+  EdgeMethod* method4 = (EdgeMethod*) malloc(sizeof(EdgeMethod));
+  method4->description = "only output arg method";
+  method4->methodNodeName = "outArgMethod";
+  method4->method_fn = arg_method;
+
+  method4->num_inpArgs = 0;
+  method4->inpArg = NULL;
+
+  method4->num_outArgs = 1;
+  method4->outArg = (EdgeArgument**) malloc(sizeof(EdgeArgument*) * method4->num_outArgs);
+  method4->outArg[0] = (EdgeArgument*) malloc(sizeof(EdgeArgument));
+  method4->outArg[0]->argType = Double;
+  method4->outArg[0]->valType = SCALAR;
+
+  createMethodNode(DEFAULT_NAMESPACE_VALUE, methodNodeItem4, method4);
 
 
   printf("\n-------------------------------------------------------");
