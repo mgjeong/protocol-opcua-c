@@ -49,6 +49,7 @@ example_env['CPPPATH'] = [incPath,
 
 example_env.AppendUnique(LIBS = ['rt', 'm', 'pthread', 'opcua-adapter'])
 example_env.AppendUnique(LIBPATH=['../build'])
+example_env.AppendUnique(RPATH=['../../build'])
 
 test = ARGUMENTS.get('TEST')
 if ARGUMENTS.get('TEST', False) in [

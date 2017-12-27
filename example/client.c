@@ -645,11 +645,9 @@ int main() {
       printf("\n" COLOR_YELLOW "                  Client get endpoints             " COLOR_RESET);
       printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET "\n\n");
 
-      //printf("[Please input server endpoint uri] : ");
-      //scanf("%s", ipAddress);
-      int len = strlen("opc.tcp://localhost:12686/edge-opc-server");
-      strcpy(ipAddress, "opc.tcp://localhost:12686/edge-opc-server");
-      ipAddress[len] = '\0';
+      printf("[Please input server endpoint uri] : ");
+      scanf("%s", ipAddress);
+      int len = strlen(ipAddress);
       strcpy(endpointUri, ipAddress);
       endpointUri[len] = '\0';
 
