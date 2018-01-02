@@ -28,18 +28,23 @@ void createNamespaceInServer(char* namespaceUri,
     }
   }
 
-EdgeResult* addNodesInServer(EdgeNodeItem *item) {
-  EdgeResult* result = addNodes(m_server, item);
+EdgeResult addNodesInServer(EdgeNodeItem *item) {
+  EdgeResult result = addNodes(m_server, item);
   return result;
 }
 
-EdgeResult* addReferenceInServer(EdgeReference *reference) {
-  EdgeResult* result = addReferences(m_server, reference);
+EdgeResult modifyNodeInServer(char* nodeUri, EdgeVersatility *value) {
+  EdgeResult result = modifyNode(m_server, nodeUri, value);
   return result;
 }
 
-EdgeResult* addMethodNodeInServer(EdgeNodeItem *item, EdgeMethod *method) {
-  EdgeResult* result = addMethodNode(m_server, item, method);
+EdgeResult addReferenceInServer(EdgeReference *reference) {
+  EdgeResult result = addReferences(m_server, reference);
+  return result;
+}
+
+EdgeResult addMethodNodeInServer(EdgeNodeItem *item, EdgeMethod *method) {
+  EdgeResult result = addMethodNode(m_server, item, method);
   return result;
 }
 
@@ -51,14 +56,14 @@ static void* server_loop(void* ptr) {
   return NULL;
 }
 
-EdgeResult* start_server(EdgeEndPointInfo* epInfo) {
+EdgeResult start_server(EdgeEndPointInfo* epInfo) {
     
-    EdgeResult* result = (EdgeResult*) malloc(sizeof(EdgeResult));
-    result->code = STATUS_OK;
+    EdgeResult result;
+    result.code = STATUS_OK;
     
     if(!epInfo)
     {
-        result->code = STATUS_PARAM_INVALID;
+        result.code = STATUS_PARAM_INVALID;
         return result;
     }
 
@@ -91,8 +96,7 @@ EdgeResult* start_server(EdgeEndPointInfo* epInfo) {
     printf("\n [SERVER] Error in starting server \n");
     b_running = UA_FALSE;
 
-    EdgeResult* result = (EdgeResult*) malloc(sizeof(EdgeResult));
-    result->code = STATUS_ERROR;
+    result.code = STATUS_ERROR;
     return result;
   } else {
     printf("\n ========= [SERVER] Server Start successful ============= \n");
@@ -101,8 +105,7 @@ EdgeResult* start_server(EdgeEndPointInfo* epInfo) {
     onStatusCallback(epInfo, STATUS_SERVER_STARTED);
     //return (new EdgeResult::Builder(STATUS_OK))->build();
 
-    EdgeResult* result = (EdgeResult*) malloc(sizeof(EdgeResult));
-    result->code = STATUS_OK;
+    result.code = STATUS_OK;
     return result;
   }
 

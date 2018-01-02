@@ -13,15 +13,16 @@ void createNamespaceInServer(char* namespaceUri,
                      char* rootNodeBrowseName,
                      char* rootNodeDisplayName);
 
-EdgeResult* addNodesInServer(EdgeNodeItem *item);
-EdgeResult* addReferenceInServer(EdgeReference *reference);
-EdgeResult* addMethodNodeInServer(EdgeNodeItem *item, EdgeMethod *method);
+EdgeResult addNodesInServer(EdgeNodeItem *item);
+EdgeResult modifyNodeInServer(char* nodeUri, EdgeVersatility *value);
+EdgeResult addReferenceInServer(EdgeReference *reference);
+EdgeResult addMethodNodeInServer(EdgeNodeItem *item, EdgeMethod *method);
 
-  /* Start the Server */
-  EdgeResult* start_server(EdgeEndPointInfo* epInfo);
+/* Start the Server */
+EdgeResult start_server(EdgeEndPointInfo* epInfo);
 
-  /* Stop the server */
-  void stop_server(EdgeEndPointInfo* epInfo);
+/* Stop the server */
+void stop_server(EdgeEndPointInfo* epInfo);
 
 #ifdef __cplusplus
 }

@@ -71,16 +71,17 @@ __attribute__((visibility("default"))) void disconnectClient(EdgeEndPointInfo *e
 
 __attribute__((visibility("default"))) void registerCallbacks(EdgeConfigure *config);
 //__attribute__((visibility("default"))) EdgeResult* send(EdgeMessage* msg);
-__attribute__((visibility("default"))) EdgeResult* createNamespace(char* name, char* rootNodeId,
+__attribute__((visibility("default"))) EdgeResult createNamespace(char* name, char* rootNodeId,
                                                                    char* rootBrowseName, char* rootDisplayName);
-__attribute__((visibility("default"))) EdgeResult* createNode(char* namespaceUri, EdgeNodeItem* item);
-__attribute__((visibility("default"))) EdgeResult* createMethodNode(char *namespaceUri, EdgeNodeItem *item, EdgeMethod *method);
-__attribute__((visibility("default"))) EdgeResult* addReference(EdgeReference *reference);
-__attribute__((visibility("default"))) EdgeResult* readNode(EdgeMessage *msg);
-__attribute__((visibility("default"))) EdgeResult* writeNode(EdgeMessage *msg);
-__attribute__((visibility("default"))) EdgeResult* browseNode(EdgeMessage *msg);
-__attribute__((visibility("default"))) EdgeResult* callMethod(EdgeMessage *msg);
-__attribute__((visibility("default"))) EdgeResult* handleSubscription(EdgeMessage *msg);
+__attribute__((visibility("default"))) EdgeResult createNode(char* namespaceUri, EdgeNodeItem* item);
+__attribute__((visibility("default"))) EdgeResult modifyVariableNode(char* namespaceUri, char* nodeUri, EdgeVersatility *value);
+__attribute__((visibility("default"))) EdgeResult createMethodNode(char *namespaceUri, EdgeNodeItem *item, EdgeMethod *method);
+__attribute__((visibility("default"))) EdgeResult addReference(EdgeReference *reference);
+__attribute__((visibility("default"))) EdgeResult readNode(EdgeMessage *msg);
+__attribute__((visibility("default"))) EdgeResult writeNode(EdgeMessage *msg);
+__attribute__((visibility("default"))) EdgeResult browseNode(EdgeMessage *msg);
+__attribute__((visibility("default"))) EdgeResult callMethod(EdgeMessage *msg);
+__attribute__((visibility("default"))) EdgeResult handleSubscription(EdgeMessage *msg);
 
 
 
