@@ -53,30 +53,86 @@ static void response_msg_cb (EdgeMessage* data) {
         if (data->responses[idx]->message->isArray) {
           // Handle Output array
           int arrayLen = data->responses[idx]->message->arrayLength;
-
-          if(data->responses[idx]->type == Int16) {
+          if(data->responses[idx]->type == Boolean) {
+            /* Handle Boolean output array */
+            printf("Boolean output array length :: [%d]\n\n", arrayLen);
+            for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++) {
+              printf("%d  ", ((bool*) data->responses[idx]->message->value)[arrayIdx]);
+            }
+          } else if(data->responses[idx]->type == Byte) {
+            /* Handle Byte output array */
+            printf("Byte output array length :: [%d]\n\n", arrayLen);
+            for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++) {
+              printf("%" PRIu8 " ", ((uint8_t*) data->responses[idx]->message->value)[arrayIdx]);
+            }
+          } else if(data->responses[idx]->type == SByte) {
+            /* Handle SByte output array */
+            printf("SByte output array length :: [%d]\n\n", arrayLen);
+            for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++) {
+              printf("%" PRId8 " ", ((int8_t*) data->responses[idx]->message->value)[arrayIdx]);
+            }
+          } else if(data->responses[idx]->type == Int16) {
             /* Handle int16 output array */
+            printf("Int16 output array length :: [%d]\n\n", arrayLen);
+            for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++) {
+              printf("%" PRId16 "  ", ((int16_t*) data->responses[idx]->message->value)[arrayIdx]);
+            }
           } else if(data->responses[idx]->type == UInt16)  {
             /* Handle UInt16 output array */
+            printf("UInt16 output array length :: [%d]\n\n", arrayLen);
+            for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++) {
+              printf("%" PRIu16 "  ", ((uint16_t*) data->responses[idx]->message->value)[arrayIdx]);
+            }
           } else if(data->responses[idx]->type == Int32) {
             /* Handle Int32 output array */
             printf("Int32 output array length :: [%d]\n\n", arrayLen);
             for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++) {
               printf("%d  ", ((int32_t*) data->responses[idx]->message->value)[arrayIdx]);
             }
-            printf("\n");
           } else if(data->responses[idx]->type == UInt32) {
             /* Handle UInt32 output array */
+            printf("UInt32 output array length :: [%d]\n\n", arrayLen);
+            for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++) {
+              printf("%u  ", ((uint*) data->responses[idx]->message->value)[arrayIdx]);
+            }
           } else if(data->responses[idx]->type == Int64) {
             /* Handle Int64 output array */
+            printf("Int64 output array length :: [%d]\n\n", arrayLen);
+            for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++) {
+              printf("%ld  ", ((long int*) data->responses[idx]->message->value)[arrayIdx]);
+            }
           } else if(data->responses[idx]->type == UInt64) {
             /* Handle UInt64 output array */
+            printf("UInt64 output array length :: [%d]\n\n", arrayLen);
+            for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++) {
+              printf("%lu  ", ((ulong*) data->responses[idx]->message->value)[arrayIdx]);
+            }
           } else if(data->responses[idx]->type == Float) {
             /* Handle Float output array */
+            printf("Float output array length :: [%d]\n\n", arrayLen);
+            for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++) {
+              printf("%g  ", ((float*) data->responses[idx]->message->value)[arrayIdx]);
+            }
           } else if(data->responses[idx]->type == Double) {
             /* Handle Double output array */
-          } else if(data->responses[idx]->type == String) {
-            /* Handle String output array */
+            printf("Double output array length :: [%d]\n\n", arrayLen);
+            for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++) {
+              printf("%g  ", ((double*) data->responses[idx]->message->value)[arrayIdx]);
+            }
+          } else if(data->responses[idx]->type == String || data->responses[idx]->type == ByteString
+                    || data->responses[idx]->type == Guid) {
+            /* Handle String/ByteString/Guid output array */
+            printf("String/ByteString/Guid output array length :: [%d]\n\n", arrayLen);
+            char **values = ((char**) data->responses[idx]->message->value);
+            for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++) {
+              printf("%s  ", values[arrayIdx]);
+            }
+          } else if(data->responses[idx]->type == DateTime) {
+            /* Handle DateTime output array */
+            printf("DateTime output array length :: [%d]\n\n", arrayLen);
+            for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++) {
+              printf("%" PRId64 "  ", ((int64_t*) data->responses[idx]->message->value)[arrayIdx]);
+            }
           }
         } else {
           if(data->responses[idx]->type == Boolean)
@@ -90,9 +146,9 @@ static void response_msg_cb (EdgeMessage* data) {
           else if(data->responses[idx]->type == DateTime)
             printf("[Application response Callback] Data read from node ===>> [%" PRId64 "]\n", *((int64_t*)data->responses[idx]->message->value));
           else if(data->responses[idx]->type == Double)
-            printf("[Application response Callback] Data read from node ===>>  [%lf]\n", *((double*)data->responses[idx]->message->value));
+            printf("[Application response Callback] Data read from node ===>>  [%g]\n", *((double*)data->responses[idx]->message->value));
           else if(data->responses[idx]->type == Float)
-            printf("[Application response Callback] Data read from node ===>>  [%f]\n", *((float*)data->responses[idx]->message->value));
+            printf("[Application response Callback] Data read from node ===>>  [%g]\n", *((float*)data->responses[idx]->message->value));
           else if(data->responses[idx]->type == Int16)
             printf("[Application response Callback] Data read from node ===>> [%" PRId16 "]\n", *((int16_t*)data->responses[idx]->message->value));
           else if(data->responses[idx]->type == UInt16)

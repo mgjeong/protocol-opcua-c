@@ -365,6 +365,21 @@ static void testCreateNodes() {
   item->variableData = (void*) (data1);
   createNode(DEFAULT_NAMESPACE_VALUE, item);
 
+  printf("\n[%d]) Variable node with byte array variant ", ++index);
+  UA_Byte* b_arrvalue = (UA_Byte*) malloc(sizeof(UA_Byte) * 5);
+  b_arrvalue[0] = 0x11;
+  b_arrvalue[1] = 0x22;
+  b_arrvalue[2] = 0x33;
+  b_arrvalue[3] = 0x44;
+  b_arrvalue[4] = 0x55;
+  item->arrayLength = 5;
+  item->browseName = "ByteArray";
+  item->nodeType = ARRAY_NODE;
+  item->variableItemName = "Location";
+  item->variableIdentifier = Byte;
+  item->variableData = (void*) b_arrvalue;
+  createNode(DEFAULT_NAMESPACE_VALUE, item);
+
   /******************* Object Node *********************/
   printf("\n-------------------------------------------------------");
   printf("\n[%d]) Object node : \"Object1\"", ++index);
