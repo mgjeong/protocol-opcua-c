@@ -17,7 +17,7 @@ typedef struct EdgeReference EdgeReference;
 /* Recevied Message callbacks */
 typedef void (*response_msg_cb_t) (EdgeMessage* data);
 typedef void (*monitored_msg_cb_t) (EdgeMessage* data);
-typedef void (*error_msg_cb_t) (void* data);
+typedef void (*error_msg_cb_t) (EdgeMessage* data);
 typedef void (*browse_msg_cb_t) (EdgeMessage* data);
 
 /* status callbacks */

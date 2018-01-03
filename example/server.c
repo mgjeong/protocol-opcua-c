@@ -35,8 +35,8 @@ static void monitored_msg_cb (EdgeMessage* data) {
 
 }
 
-static void error_msg_cb (void* data) {
-
+static void error_msg_cb (EdgeMessage* data) {
+  printf("[error_msg_cb] EdgeStatusCode: %d\n", data->result->code);
 }
 
 static void browse_msg_cb (EdgeMessage* data) {
@@ -232,7 +232,7 @@ static void testCreateNodes() {
   lt_textLocale->data = (UA_Byte*) "india";
   UA_String* lt_text = (UA_String*) malloc(sizeof(UA_String));
   lt_text->length = 5;
-  lt_text->data = (UA_Byte*) "korea"; 
+  lt_text->data = (UA_Byte*) "korea";
   UA_LocalizedText* lt_value = (UA_LocalizedText*) malloc(sizeof(UA_LocalizedText));
   lt_value->locale= *lt_textLocale;
   lt_value->text= *lt_text;
@@ -292,7 +292,7 @@ static void testCreateNodes() {
   item->variableData = (void*) &value;
   createNode(DEFAULT_NAMESPACE_VALUE, item);
 
-  
+
   printf("\n[%d]) Variable node with UInt32 variant ", ++index);
   value = 4456;
   item->userAccessLevel = WRITE;

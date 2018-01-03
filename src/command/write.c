@@ -15,11 +15,26 @@ static void write(UA_Client *client, EdgeMessage *msg) {
   } else {
     UA_Variant_setScalarCopy(myVariant, msg->request->value, &UA_TYPES[type]);
   }
-  
+
   UA_StatusCode retVal = UA_Client_writeValueAttribute(client, UA_NODEID_STRING(1, msg->request->nodeInfo->valueAlias), myVariant);
   if  (retVal != UA_STATUSCODE_GOOD) {
     // send error callback;
     printf("Error in read node :: 0x%08x\n", retVal);
+
+    EdgeMessage *resultMsg = (EdgeMessage*) malloc(sizeof(EdgeMessage));
+    resultMsg->endpointInfo = (EdgeEndPointInfo*) malloc(sizeof(EdgeEndPointInfo));
+    memcpy(resultMsg->endpointInfo, msg->endpointInfo, sizeof(EdgeEndPointInfo));
+    resultMsg->type = ERROR;
+    resultMsg->responseLength = 0;
+
+    EdgeResult *res = (EdgeResult *) malloc(sizeof(EdgeResult));
+    res->code = STATUS_ERROR;
+    resultMsg->result = res;
+
+    onResponseMessage(resultMsg);
+    UA_Variant_delete(myVariant);
+    free(resultMsg);
+    free(res);
     return ;
   }
 

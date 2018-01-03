@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <inttypes.h>
 
 #include <opcua_manager.h>
 #include <opcua_common.h>
@@ -78,24 +79,34 @@ static void response_msg_cb (EdgeMessage* data) {
             /* Handle String output array */
           }
         } else {
-          if(data->responses[idx]->type == Int16)
+          if(data->responses[idx]->type == Boolean)
             printf("[Application response Callback] Data read from node ===>> [%d]\n", *((int*)data->responses[idx]->message->value));
-          else if(data->responses[idx]->type == UInt16)
-            printf("[Application response Callback] Data read from node ===>> [%d]\n", *((int*)data->responses[idx]->message->value));
-          else if(data->responses[idx]->type == Int32)
-            printf("[Application response Callback] Data read from node ===>>  [%d]\n", *((int*)data->responses[idx]->message->value));
-          else if(data->responses[idx]->type == UInt32)
-            printf("[Application response Callback] Data read from node ===>>  [%d]\n", *((int*)data->responses[idx]->message->value));
-          else if(data->responses[idx]->type == Int64)
-            printf("[Application response Callback] Data read from node ===>>  [%ld]\n", *((long*)data->responses[idx]->message->value));
-          else if(data->responses[idx]->type == UInt64)
-            printf("[Application response Callback] Data read from node ===>>  [%ld]\n", *((long*)data->responses[idx]->message->value));
+          else if(data->responses[idx]->type == Byte)
+            printf("[Application response Callback] Data read from node ===>> [%" PRIu8 "]\n", *((uint8_t*)data->responses[idx]->message->value));
+          else if(data->responses[idx]->type == SByte)
+            printf("[Application response Callback] Data read from node ===>> [%" PRId8 "]\n", *((int8_t*)data->responses[idx]->message->value));
+          else if(data->responses[idx]->type == ByteString)
+            printf("[Application response Callback] Data read from node ===>> [%s]\n", (char*)data->responses[idx]->message->value);
+          else if(data->responses[idx]->type == DateTime)
+            printf("[Application response Callback] Data read from node ===>> [%" PRId64 "]\n", *((int64_t*)data->responses[idx]->message->value));
+          else if(data->responses[idx]->type == Double)
+            printf("[Application response Callback] Data read from node ===>>  [%lf]\n", *((double*)data->responses[idx]->message->value));
           else if(data->responses[idx]->type == Float)
             printf("[Application response Callback] Data read from node ===>>  [%f]\n", *((float*)data->responses[idx]->message->value));
-          else if(data->responses[idx]->type == Double)
-            printf("[Application response Callback] Data read from node ===>>  [%f]\n", *((double*)data->responses[idx]->message->value));
+          else if(data->responses[idx]->type == Int16)
+            printf("[Application response Callback] Data read from node ===>> [%" PRId16 "]\n", *((int16_t*)data->responses[idx]->message->value));
+          else if(data->responses[idx]->type == UInt16)
+            printf("[Application response Callback] Data read from node ===>> [%" PRIu16 "]\n", *((uint16_t*)data->responses[idx]->message->value));
+          else if(data->responses[idx]->type == Int32)
+            printf("[Application response Callback] Data read from node ===>>  [%" PRId32 "]\n", *((int32_t*)data->responses[idx]->message->value));
+          else if(data->responses[idx]->type == UInt32)
+            printf("[Application response Callback] Data read from node ===>>  [%" PRIu32 "]\n", *((uint32_t*)data->responses[idx]->message->value));
+          else if(data->responses[idx]->type == Int64)
+            printf("[Application response Callback] Data read from node ===>>  [%" PRId64 "]\n", *((int64_t*)data->responses[idx]->message->value));
+          else if(data->responses[idx]->type == UInt64)
+            printf("[Application response Callback] Data read from node ===>>  [%" PRIu64 "]\n", *((uint64_t*)data->responses[idx]->message->value));
           else if(data->responses[idx]->type == String)
-            printf("[Application response Callback] Data read from node ===>>  [%s]\n", ((char*)data->responses[idx]->message->value));
+            printf("[Application response Callback] Data read from node ===>>  [%s]\n", (char*)data->responses[idx]->message->value);
         }
       }
     }
@@ -134,8 +145,8 @@ static void monitored_msg_cb (EdgeMessage* data) {
   }
 }
 
-static void error_msg_cb (void* data) {
-
+static void error_msg_cb (EdgeMessage* data) {
+  printf("[error_msg_cb] EdgeStatusCode: %d\n", data->result->code);
 }
 
 static void browse_msg_cb (EdgeMessage* data) {
@@ -387,17 +398,21 @@ static void testBrowse() {
 }
 
 static void testRead() {
-  int option = getNodeOptions("Read");
-  if (option == -1)
-    return ;
+  // Get the list of browse names and display them to user.
+  testBrowse();
 
-  printf("\n\n" COLOR_YELLOW  "**********************  Reading the node with browse name \"%s\" **********************" COLOR_RESET "\n\n", node_arr[option-1]);
+  // Get the browse name of the node to be read from the user.
+  char browseName[MAX_CHAR_SIZE];
+  printf("Enter the browse name of the node to read:");
+  scanf("%s", browseName);
+
+  printf("\n\n" COLOR_YELLOW  "**********************  Reading the node with browse name \"%s\" **********************" COLOR_RESET "\n\n", browseName);
   EdgeEndPointInfo* ep = (EdgeEndPointInfo*) malloc(sizeof(EdgeEndPointInfo));
   ep->endpointUri = endpointUri;
   ep->config = NULL;
 
   EdgeNodeInfo *nodeInfo = (EdgeNodeInfo*) malloc(sizeof(EdgeNodeInfo));
-  nodeInfo->valueAlias = node_arr[option-1];
+  nodeInfo->valueAlias = browseName;
 
   EdgeRequest *request = (EdgeRequest*) malloc(sizeof(EdgeRequest));
   request->nodeInfo = nodeInfo;

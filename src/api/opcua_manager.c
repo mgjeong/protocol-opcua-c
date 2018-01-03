@@ -177,19 +177,26 @@ void disconnectClient(EdgeEndPointInfo *epInfo) {
 void onResponseMessage(EdgeMessage *msg) {
   if (NULL == receivedMsgCb) {
     printf("receiver callback not registered\n\n");
-    return ;
-  }
-  if (receivedMsgCb && msg->type == GENERAL_RESPONSE) {
-    receivedMsgCb->resp_msg_cb(msg);
-  }
-  if (receivedMsgCb && msg->type == BROWSE_RESPONSE) {
-    receivedMsgCb->browse_msg_cb(msg);
+    return;
   }
 
-  if (receivedMsgCb && msg->type == REPORT) {
-    receivedMsgCb->monitored_msg_cb(msg);
+  switch(msg->type)
+  {
+    case GENERAL_RESPONSE:
+      receivedMsgCb->resp_msg_cb(msg);
+      break;
+    case BROWSE_RESPONSE:
+      receivedMsgCb->browse_msg_cb(msg);
+      break;
+    case REPORT:
+      receivedMsgCb->monitored_msg_cb(msg);
+      break;
+    case ERROR:
+      receivedMsgCb->error_msg_cb(msg);
+      break;
+    default:
+      break;
   }
-
 }
 
 void onDiscoveryCallback(EdgeDevice *device) {

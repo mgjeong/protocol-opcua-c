@@ -11,7 +11,22 @@ static void read(UA_Client *client, EdgeMessage *msg) {
   if  (retVal != UA_STATUSCODE_GOOD) {
     // send error callback;
     printf("Error in read node :: 0x%08x\n", retVal);
-    return ;
+
+    EdgeMessage *resultMsg = (EdgeMessage*) malloc(sizeof(EdgeMessage));
+    resultMsg->endpointInfo = (EdgeEndPointInfo*) malloc(sizeof(EdgeEndPointInfo));
+    memcpy(resultMsg->endpointInfo, msg->endpointInfo, sizeof(EdgeEndPointInfo));
+    resultMsg->type = ERROR;
+    resultMsg->responseLength = 0;
+
+    EdgeResult *res = (EdgeResult *) malloc(sizeof(EdgeResult));
+    res->code = STATUS_ERROR;
+    resultMsg->result = res;
+
+    onResponseMessage(resultMsg);
+    UA_Variant_delete(val);
+    free(resultMsg);
+    free(res);
+    return;
   }
 
   printf("[READ] SUCCESS response received from server\n");
@@ -46,8 +61,20 @@ static void read(UA_Client *client, EdgeMessage *msg) {
       response->type = Double;
     } else if(val->type == &UA_TYPES[UA_TYPES_STRING]) {
       UA_String str = *((UA_String*) val->data);
-      versatility->value = (void*) str.data;
+      if((int)str.length)
+        versatility->value = (void*) str.data;
+      else
+        versatility->value = NULL;
       response->type = String;
+    } else if(val->type == &UA_TYPES[UA_TYPES_BYTESTRING]) {
+      UA_ByteString byteStr = *((UA_ByteString*) val->data);
+      if((int)byteStr.length)
+        versatility->value = (void*) byteStr.data;
+      else
+        versatility->value = NULL;
+      response->type = ByteString;
+    } else if(val->type == &UA_TYPES[UA_TYPES_SBYTE]) {
+      response->type = SByte;
     } else if(val->type == &UA_TYPES[UA_TYPES_BYTE]) {
       response->type = Byte;
     } else if(val->type == &UA_TYPES[UA_TYPES_DATETIME]) {
