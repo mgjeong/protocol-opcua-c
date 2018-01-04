@@ -10,7 +10,7 @@ static void read(UA_Client *client, EdgeMessage *msg) {
 
   printf("[READ] Node to read :: %s\n", msg->request->nodeInfo->valueAlias);
   UA_Variant *val = UA_Variant_new();
-  UA_StatusCode retVal = UA_Client_readValueAttribute(client, UA_NODEID_STRING(2, msg->request->nodeInfo->valueAlias), val);
+  UA_StatusCode retVal = UA_Client_readValueAttribute(client, UA_NODEID_STRING(1, msg->request->nodeInfo->valueAlias), val);
   if  (retVal != UA_STATUSCODE_GOOD) {
     // send error callback;
     printf("Error in read node :: 0x%08x(%s)\n", retVal, UA_StatusCode_name(retVal));
@@ -141,8 +141,8 @@ static void read(UA_Client *client, EdgeMessage *msg) {
       response->type = Byte;
     } else if(val->type == &UA_TYPES[UA_TYPES_DATETIME]) {
       response->type = DateTime;
-      UA_DateTime *str = ((UA_DateTime*) val->data);
-      printf("%s\n", (char*) (UA_DateTime_toString(str[0])).data);
+      //UA_DateTime *str = ((UA_DateTime*) val->data);
+      //printf("%s\n", (char*) (UA_DateTime_toString(str[0])).data);
     }
     response->message = versatility;
 
