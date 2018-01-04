@@ -227,15 +227,9 @@ static void testCreateNodes() {
   createNode(DEFAULT_NAMESPACE_VALUE, item);
 
   printf("\n[%d]) Variable node with localized text variant ", ++index);
-  UA_String* lt_textLocale = (UA_String*) malloc(sizeof(UA_String));
-  lt_textLocale->length = 5;
-  lt_textLocale->data = (UA_Byte*) "india";
-  UA_String* lt_text = (UA_String*) malloc(sizeof(UA_String));
-  lt_text->length = 5;
-  lt_text->data = (UA_Byte*) "korea";
   UA_LocalizedText* lt_value = (UA_LocalizedText*) malloc(sizeof(UA_LocalizedText));
-  lt_value->locale= *lt_textLocale;
-  lt_value->text= *lt_text;
+  lt_value->locale= UA_STRING_ALLOC("COUNTRY");
+  lt_value->text= UA_STRING_ALLOC("INDIA");
   item->browseName = "LocalizedText";
   item->variableItemName = "Location";
   item->variableIdentifier = LocalizedText;
@@ -291,8 +285,7 @@ static void testCreateNodes() {
   item->variableIdentifier = Int64;
   item->variableData = (void*) &value;
   createNode(DEFAULT_NAMESPACE_VALUE, item);
-
-
+  
   printf("\n[%d]) Variable node with UInt32 variant ", ++index);
   value = 4456;
   item->accessLevel= WRITE;
@@ -333,6 +326,26 @@ static void testCreateNodes() {
 
   /******************* Array *********************/
   printf("\n-------------------------------------------------------");
+  printf("\n[%d]) Array node with ByteString values ", ++index);  
+  UA_ByteString** dataArray = (UA_ByteString**) malloc(sizeof(UA_ByteString*) * 5);
+  dataArray[0] = (UA_ByteString*) malloc(sizeof(UA_ByteString));
+  *dataArray[0] = UA_BYTESTRING_ALLOC("abcde");
+  dataArray[1] = (UA_ByteString*) malloc(sizeof(UA_ByteString));
+  *dataArray[1] = UA_BYTESTRING_ALLOC("fghij");
+  dataArray[2] = (UA_ByteString*) malloc(sizeof(UA_ByteString));
+  *dataArray[2] = UA_BYTESTRING_ALLOC("klmno");
+  dataArray[3] = (UA_ByteString*) malloc(sizeof(UA_ByteString));
+  *dataArray[3] = UA_BYTESTRING_ALLOC("pqrst");
+  dataArray[4] = (UA_ByteString*) malloc(sizeof(UA_ByteString));
+  *dataArray[4] = UA_BYTESTRING_ALLOC("uvwxyz");
+  item->browseName = "ByteStringArray";
+  item->nodeType = ARRAY_NODE;
+  item->variableItemName = "ByteStringArray";
+  item->variableIdentifier = ByteString;
+  item->arrayLength = 5;
+  item->variableData = (void*) dataArray;
+  createNode(DEFAULT_NAMESPACE_VALUE, item);
+  
   printf("\n[%d]) Array node with double values ", ++index);
   double* data = (double*) malloc(sizeof(double) * 5);
   data[0] = 10.2;
@@ -415,6 +428,28 @@ static void testCreateNodes() {
   item->sourceNodeId->nodeId = "ObjectType1";    // no source node
   createNode(DEFAULT_NAMESPACE_VALUE, item);
 
+  printf("\n[%d]) Object Type node : \"ObjectType3\" with source Node \"ObjectType2\"", ++index);
+  item->nodeType = OBJECT_TYPE_NODE;
+  item->browseName = "ObjectType3";
+  item->sourceNodeId = (EdgeNodeId*) malloc (sizeof(EdgeNodeId));
+  item->sourceNodeId->nodeId = "ObjectType1";    // no source node
+  createNode(DEFAULT_NAMESPACE_VALUE, item);
+
+  printf("\n[%d]) Object Type node : \"ObjectType4\" with source Node \"ObjectType3\"", ++index);
+  item->nodeType = OBJECT_TYPE_NODE;
+  item->browseName = "ObjectType4";
+  item->sourceNodeId = (EdgeNodeId*) malloc (sizeof(EdgeNodeId));
+  item->sourceNodeId->nodeId = "ObjectType1";    // no source node
+  createNode(DEFAULT_NAMESPACE_VALUE, item);
+
+  printf("\n[%d]) Object Type node : \"ObjectType5\" with source Node \"ObjectType3\"", ++index);
+  item->nodeType = OBJECT_TYPE_NODE;
+  item->browseName = "ObjectType5";
+  item->sourceNodeId = (EdgeNodeId*) malloc (sizeof(EdgeNodeId));
+  item->sourceNodeId->nodeId = "ObjectType1";    // no source node
+  createNode(DEFAULT_NAMESPACE_VALUE, item);
+
+
   /******************* Variable Type Node *********************/
   printf("\n-------------------------------------------------------");
   printf("\n[%d]) Variable Type Node", ++index);
@@ -471,14 +506,43 @@ static void testCreateNodes() {
   reference->targetPath = "ObjectType2";
   addReference(reference);
 
+  reference->forward=  true;
+  reference->sourceNamespace = DEFAULT_NAMESPACE_VALUE;
+  reference->sourcePath = "ObjectType1";
+  reference->targetNamespace = DEFAULT_NAMESPACE_VALUE;
+  reference->targetPath = "ObjectType3";
+  addReference(reference);
+
+  reference->forward=  true;
+  reference->sourceNamespace = DEFAULT_NAMESPACE_VALUE;
+  reference->sourcePath = "ObjectType1";
+  reference->targetNamespace = DEFAULT_NAMESPACE_VALUE;
+  reference->targetPath = "ObjectType4";
+  addReference(reference);
+
+  reference->forward=  true;
+  reference->sourceNamespace = DEFAULT_NAMESPACE_VALUE;
+  reference->sourcePath = "ObjectType1";
+  reference->targetNamespace = DEFAULT_NAMESPACE_VALUE;
+  reference->targetPath = "ObjectType5";
+  addReference(reference);
+
+  reference->forward=  true;
+  reference->sourceNamespace = DEFAULT_NAMESPACE_VALUE;
+  reference->sourcePath = "ObjectType5";
+  reference->targetNamespace = DEFAULT_NAMESPACE_VALUE;
+  reference->targetPath = "ObjectType1";
+  addReference(reference);
+
   printf("\n[%d]) Reference Node", ++index);
   reference->forward=  true;
   reference->sourceNamespace = DEFAULT_NAMESPACE_VALUE;
   reference->sourcePath = "ViewNode1";
   reference->targetNamespace = DEFAULT_NAMESPACE_VALUE;
-  reference->targetPath = "ObjectType2";
+  reference->targetPath = "ObjectType1";
   addReference(reference);
 
+  
   /******************* Reference Type Node *********************/
   printf("\n-------------------------------------------------------");
   printf("\n[%d]) Reference Type Node", ++index);
