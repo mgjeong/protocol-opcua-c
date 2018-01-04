@@ -35,8 +35,8 @@ static void monitored_msg_cb (EdgeMessage* data) {
 
 }
 
-static void error_msg_cb (void* data) {
-
+static void error_msg_cb (EdgeMessage* data) {
+  printf("[error_msg_cb] EdgeStatusCode: %d\n", data->result->code);
 }
 
 static void browse_msg_cb (EdgeMessage* data) {
@@ -232,7 +232,7 @@ static void testCreateNodes() {
   lt_textLocale->data = (UA_Byte*) "india";
   UA_String* lt_text = (UA_String*) malloc(sizeof(UA_String));
   lt_text->length = 5;
-  lt_text->data = (UA_Byte*) "korea"; 
+  lt_text->data = (UA_Byte*) "korea";
   UA_LocalizedText* lt_value = (UA_LocalizedText*) malloc(sizeof(UA_LocalizedText));
   lt_value->locale= *lt_textLocale;
   lt_value->text= *lt_text;
@@ -292,7 +292,7 @@ static void testCreateNodes() {
   item->variableData = (void*) &value;
   createNode(DEFAULT_NAMESPACE_VALUE, item);
 
-  
+
   printf("\n[%d]) Variable node with UInt32 variant ", ++index);
   value = 4456;
   item->accessLevel= WRITE;
@@ -366,6 +366,21 @@ static void testCreateNodes() {
   item->variableIdentifier = String;
   item->arrayLength = 5;
   item->variableData = (void*) (data1);
+  createNode(DEFAULT_NAMESPACE_VALUE, item);
+
+  printf("\n[%d]) Variable node with byte array variant ", ++index);
+  UA_Byte* b_arrvalue = (UA_Byte*) malloc(sizeof(UA_Byte) * 5);
+  b_arrvalue[0] = 0x11;
+  b_arrvalue[1] = 0x22;
+  b_arrvalue[2] = 0x33;
+  b_arrvalue[3] = 0x44;
+  b_arrvalue[4] = 0x55;
+  item->arrayLength = 5;
+  item->browseName = "ByteArray";
+  item->nodeType = ARRAY_NODE;
+  item->variableItemName = "Location";
+  item->variableIdentifier = Byte;
+  item->variableData = (void*) b_arrvalue;
   createNode(DEFAULT_NAMESPACE_VALUE, item);
 
   /******************* Object Node *********************/

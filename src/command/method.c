@@ -19,15 +19,15 @@ EdgeResult executeMethod(UA_Client *client, EdgeMessage *msg) {
 
   for (idx =0; idx < params->num_inpArgs; idx++) {
     UA_Variant_init(&input[idx]);
-    if (params->inpArg[idx]->valType == SCALAR) {      
+    if (params->inpArg[idx]->valType == SCALAR) {
       int type = (int)params->inpArg[idx]->argType - 1;
       if (type == UA_TYPES_STRING) {
         UA_String val = UA_STRING_ALLOC((char*) params->inpArg[idx]->scalarValue);
         UA_Variant_setScalarCopy(&input[idx], &val, &UA_TYPES[type]);
-      } else {        
+      } else {
         UA_Variant_setScalarCopy(&input[idx], params->inpArg[idx]->scalarValue, &UA_TYPES[type]);
       }
-    } else if (params->inpArg[idx]->valType == ARRAY_1D) {      
+    } else if (params->inpArg[idx]->valType == ARRAY_1D) {
       int type = (int)params->inpArg[idx]->argType - 1;
       if (type == UA_TYPES_STRING) {
         char **data = (char**) params->inpArg[idx]->arrayData;
@@ -157,6 +157,20 @@ EdgeResult executeMethod(UA_Client *client, EdgeMessage *msg) {
   } else {
     printf("method call failed 0x%08x\n", retVal);
     result.code = STATUS_ERROR;
+
+    EdgeMessage *resultMsg = (EdgeMessage*) malloc(sizeof(EdgeMessage));
+    resultMsg->endpointInfo = (EdgeEndPointInfo*) malloc(sizeof(EdgeEndPointInfo));
+    memcpy(resultMsg->endpointInfo, msg->endpointInfo, sizeof(EdgeEndPointInfo));
+    resultMsg->type = ERROR;
+    resultMsg->responseLength = 0;
+
+    EdgeResult *res = (EdgeResult *) malloc(sizeof(EdgeResult));
+    res->code = STATUS_ERROR;
+    resultMsg->result = res;
+
+    onResponseMessage(resultMsg);
+    free(resultMsg);
+    free(res);
   }
 
   return result;

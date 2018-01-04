@@ -31,8 +31,8 @@ static void monitored_msg_cb (void* data) {
 
 }
 
-static void error_msg_cb (void* data) {
-
+static void error_msg_cb (EdgeMessage* data) {
+  printf("[error_msg_cb] EdgeStatusCode: %d\n", data->result->code);
 }
 
 static void browse_msg_cb (EdgeMessage* data) {
@@ -271,7 +271,7 @@ static void testCreateNodes() {
   item->sourceNodeId = (EdgeNodeId*) malloc (sizeof(EdgeNodeId));
   item->sourceNodeId->nodeId = NULL;    // no source node
   createNode(DEFAULT_NAMESPACE_VALUE, item);
-  
+
   item->nodeType = OBJECT_NODE;
   item->browseName = "Object2";
   item->sourceNodeId = (EdgeNodeId*) malloc (sizeof(EdgeNodeId));
@@ -350,7 +350,7 @@ static void testCreateNodes() {
   item->sourceNodeId = (EdgeNodeId*) malloc (sizeof(EdgeNodeId));
   item->sourceNodeId->nodeId = NULL;    // no source node
   createNode(DEFAULT_NAMESPACE_VALUE, item);
-  
+
   item->nodeType = REFERENCE_TYPE_NODE;
   item->browseName = "ReferenceTypeNode2";
   item->sourceNodeId = (EdgeNodeId*) malloc (sizeof(EdgeNodeId));
@@ -413,7 +413,7 @@ static void testCreateNodes() {
     method1->outArg[idx]->arrayLength = 5;
   }
   createMethodNode(DEFAULT_NAMESPACE_VALUE, methodNodeItem1, method1);
-  
+
 }
 
 static void deinit() {

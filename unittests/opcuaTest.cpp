@@ -47,7 +47,7 @@ static char node_arr[6][10] = {
   "UInt16"
 };
 
-extern "C" 
+extern "C"
 {
     static void response_msg_cb (EdgeMessage* data) {
         if (data->type == GENERAL_RESPONSE) {
@@ -95,7 +95,7 @@ extern "C"
                   } else if(data->responses[idx]->type == Int32) {
                     PRINT_ARG("[Application response Callback] Data read from node ===>>  ",
                             *((int*)data->responses[idx]->message->value));
-                    
+
                     int temp = *((int*)data->responses[idx]->message->value);
                     if(readNodeFlag)
                         EXPECT_EQ(temp, TEST_INT32_R);
@@ -115,7 +115,7 @@ extern "C"
                             ((char*)data->responses[idx]->message->value));
                     char* temp = ((char*)data->responses[idx]->message->value);
                     if(readNodeFlag)
-                        EXPECT_EQ((strcmp(temp, TEST_STR1_R) && strcmp(temp, TEST_STR2_R) && 
+                        EXPECT_EQ((strcmp(temp, TEST_STR1_R) && strcmp(temp, TEST_STR2_R) &&
                             strcmp(temp, TEST_STR3_R)), 0);
                     else
                         EXPECT_EQ((strcmp(temp, TEST_STR1_W) && strcmp(temp, TEST_STR2_W) &&
@@ -166,8 +166,8 @@ extern "C"
       }
     }
 
-    static void error_msg_cb (void* data) {
-
+    static void error_msg_cb (EdgeMessage* data) {
+      printf("[error_msg_cb] EdgeStatusCode: %d\n", data->result->code);
     }
 
     static void browse_msg_cb (EdgeMessage* data) {
@@ -229,14 +229,14 @@ static void configureCallbacks()
 
     config->statusCallback = (StatusCallback*) malloc(sizeof(StatusCallback));
     EXPECT_EQ(NULL == config->statusCallback, false);
-    
+
     config->statusCallback->start_cb = status_start_cb;
     config->statusCallback->stop_cb = status_stop_cb;
     config->statusCallback->network_cb = status_network_cb;
 
     config->discoveryCallback = (DiscoveryCallback*) malloc(sizeof(DiscoveryCallback));
     EXPECT_EQ(NULL == config->discoveryCallback, false);
-    
+
     config->discoveryCallback->endpoint_found_cb = endpoint_found_cb;
     config->discoveryCallback->device_found_cb = device_found_cb;
 
@@ -290,7 +290,7 @@ static void deleteMessage(EdgeMessage* msg, EdgeEndPointInfo* ep)
 static void writeNodes(bool defaultFlag)
 {
     PRINT("=============== Writting Nodes ==================");
-    
+
     EdgeNodeIdentifier type;
     void *new_value = NULL;
 
@@ -304,7 +304,7 @@ static void writeNodes(bool defaultFlag)
         i_value = TEST_INT32_W;
         id_value = TEST_UINT16_W;
     }
-    
+
     for(id = 0; id < 6; id++)
     {
         PRINT_ARG("*****  Writting the node with browse name  ", node_arr[id]);
@@ -318,40 +318,40 @@ static void writeNodes(bool defaultFlag)
 
         EdgeRequest *request = (EdgeRequest*) malloc(sizeof(EdgeRequest));
         request->nodeInfo = nodeInfo;
-        switch(id) { 
-            case 0: 
+        switch(id) {
+            case 0:
                 request->type = String;
                 if(defaultFlag)
-                    request->value = (void *) TEST_STR1_R;                    
+                    request->value = (void *) TEST_STR1_R;
                 else
-                    request->value = (void *) TEST_STR1_W;                
-                break; 
-            case 1: 
+                    request->value = (void *) TEST_STR1_W;
+                break;
+            case 1:
                 request->type = String;
                 if(defaultFlag)
-                    request->value = (void *) TEST_STR2_R;                    
+                    request->value = (void *) TEST_STR2_R;
                 else
                     request->value = (void *) TEST_STR2_W;
-                break; 
-            case 2: 
+                break;
+            case 2:
                 request->type = String;
                 if(defaultFlag)
-                    request->value = (void *) TEST_STR3_R;                   
+                    request->value = (void *) TEST_STR3_R;
                 else
                     request->value = (void *) TEST_STR3_W;
-                break; 
-            case 3: 
+                break;
+            case 3:
                 request->type = Double;
                 request->value = (void *) &d_value;
-                break; 
-            case 4: 
+                break;
+            case 4:
                 request->type = Int32;
                 request->value = (void *) &i_value;
-                break; 
-            case 5: 
-                request->type = UInt16;                
+                break;
+            case 5:
+                request->type = UInt16;
                 request->value = (void *) &id_value;
-                break; 
+                break;
         }
 
         EdgeMessage *msgWrite = (EdgeMessage*) malloc(sizeof(EdgeMessage));
@@ -416,7 +416,7 @@ static void readNodes()
             free(request);
             request = NULL;
         }
-        
+
     }
 }
 
@@ -425,12 +425,12 @@ class OPC_serverTests: public ::testing::Test
 protected:
 
     virtual void SetUp()
-    {      
+    {
         strcpy(ipAddress, LOCALHOST);
         snprintf(endpointUri, sizeof(endpointUri), ENDPOINT_URI, ipAddress);
 
         epInfo = (EdgeEndPointInfo*) malloc(sizeof(EdgeEndPointInfo));
-        
+
     }
 
     virtual void TearDown()
@@ -440,7 +440,7 @@ protected:
             free(epInfo);
             epInfo = NULL;
          }
-             
+
     }
 
 };
@@ -457,7 +457,7 @@ protected:
     virtual void TearDown()
     {
         cleanCallbacks();
-        
+
         startClientFlag = false;
     }
 
@@ -473,7 +473,7 @@ TEST_F(OPC_serverTests , SetUPServer_P)
 
     EXPECT_EQ(strcmp(endpointUri, ENDPOINT_URI) == 0, false);
 
-    EXPECT_EQ(strcmp(endpointUri, "opc:tcp://localhost:12686/edge-opc-server") == 0, true);    
+    EXPECT_EQ(strcmp(endpointUri, "opc:tcp://localhost:12686/edge-opc-server") == 0, true);
 }
 
 TEST_F(OPC_serverTests , InitializeServer_P)
@@ -483,7 +483,7 @@ TEST_F(OPC_serverTests , InitializeServer_P)
     int len = strlen(endpointUri);
     epInfo->endpointUri = (char*) malloc(len +1);
     EXPECT_EQ(NULL == epInfo->endpointUri, false);
-    
+
     strncpy(epInfo->endpointUri, endpointUri, len);
     epInfo->endpointUri[len] = '\0';
 
@@ -501,7 +501,7 @@ TEST_F(OPC_serverTests , InitializeServer_N)
     int len = strlen(endpointUri);
     epInfo->endpointUri = (char*) malloc(len +1);
     EXPECT_EQ(NULL == epInfo->endpointUri, false);
-    
+
     //strncpy(epInfo->endpointUri, endpointUri, len);
     //epInfo->endpointUri[len] = '\0';
 
@@ -518,7 +518,7 @@ TEST_F(OPC_serverTests , ConfigureServer_P)
 {
     int len = strlen(endpointUri);
     epInfo->endpointUri = (char*) malloc(len +1);
-    
+
     strncpy(epInfo->endpointUri, endpointUri, len);
     epInfo->endpointUri[len] = '\0';
 
@@ -530,14 +530,14 @@ TEST_F(OPC_serverTests , ConfigureServer_P)
     {
         free(epInfo->endpointUri);
         epInfo->endpointUri = NULL;
-    }    
+    }
 }
 
 TEST_F(OPC_serverTests , StartServer_N)
 {
     int len = strlen(endpointUri);
     epInfo->endpointUri = (char*) malloc(len +1);
-    
+
     strncpy(epInfo->endpointUri, endpointUri, len);
     epInfo->endpointUri[len] = '\0';
 
@@ -545,25 +545,25 @@ TEST_F(OPC_serverTests , StartServer_N)
 
     EdgeEndpointConfig* endpointConfig = (EdgeEndpointConfig*) malloc(sizeof(EdgeEndpointConfig));
     EXPECT_EQ(NULL != endpointConfig, true);
-    
+
     endpointConfig->bindAddress = ipAddress;
     EXPECT_EQ(strcmp(endpointConfig->bindAddress, ipAddress) == 0, true);
-    
+
     endpointConfig->bindPort = 12686;
     EXPECT_EQ(endpointConfig->bindPort, 12686);
-    
+
     endpointConfig->applicationName = (char *)DEFAULT_SERVER_APP_NAME_VALUE;
     EXPECT_EQ(strcmp(endpointConfig->applicationName, DEFAULT_SERVER_APP_NAME_VALUE) == 0, true);
-    
+
     endpointConfig->applicationUri = (char *)DEFAULT_SERVER_URI_VALUE;
     EXPECT_EQ(strcmp(endpointConfig->applicationUri, DEFAULT_SERVER_URI_VALUE) == 0, true);
-    
+
     endpointConfig->productUri = (char *)DEFAULT_PRODUCT_URI_VALUE;
     EXPECT_EQ(strcmp(endpointConfig->productUri, DEFAULT_PRODUCT_URI_VALUE) == 0, true);
-    
+
     endpointConfig->securityPolicyUri = NULL;
     EXPECT_EQ(endpointConfig->securityPolicyUri == NULL, true);
-    
+
     endpointConfig->serverName = (char *)DEFAULT_SERVER_NAME_VALUE;
     EXPECT_EQ(strcmp(endpointConfig->serverName, DEFAULT_SERVER_NAME_VALUE) == 0, true);
 
@@ -576,10 +576,10 @@ TEST_F(OPC_serverTests , StartServer_N)
     EdgeMessage* msg = (EdgeMessage*) malloc(sizeof(EdgeMessage));
     EXPECT_EQ(NULL != msg, true);
     msg->endpointInfo = ep;
-    
+
     msg->command = CMD_START_SERVER;
     EXPECT_EQ(msg->command, CMD_START_SERVER);
-    
+
     msg->type = SEND_REQUEST;
     EXPECT_EQ(msg->type, SEND_REQUEST);
 
@@ -608,18 +608,18 @@ TEST_F(OPC_serverTests , StartServer_P)
 {
     int len = strlen(endpointUri);
     epInfo->endpointUri = (char*) malloc(len +1);
-    
+
     strncpy(epInfo->endpointUri, endpointUri, len);
     epInfo->endpointUri[len] = '\0';
     configureCallbacks();
 
-    EdgeEndpointConfig* endpointConfig = (EdgeEndpointConfig*) malloc(sizeof(EdgeEndpointConfig));    
-    endpointConfig->bindAddress = ipAddress;    
-    endpointConfig->bindPort = 12686;    
-    endpointConfig->applicationName = (char *)DEFAULT_SERVER_APP_NAME_VALUE;    
-    endpointConfig->applicationUri = (char *)DEFAULT_SERVER_URI_VALUE;    
-    endpointConfig->productUri = (char *)DEFAULT_PRODUCT_URI_VALUE;    
-    endpointConfig->securityPolicyUri = NULL;    
+    EdgeEndpointConfig* endpointConfig = (EdgeEndpointConfig*) malloc(sizeof(EdgeEndpointConfig));
+    endpointConfig->bindAddress = ipAddress;
+    endpointConfig->bindPort = 12686;
+    endpointConfig->applicationName = (char *)DEFAULT_SERVER_APP_NAME_VALUE;
+    endpointConfig->applicationUri = (char *)DEFAULT_SERVER_URI_VALUE;
+    endpointConfig->productUri = (char *)DEFAULT_PRODUCT_URI_VALUE;
+    endpointConfig->securityPolicyUri = NULL;
     endpointConfig->serverName = (char *)DEFAULT_SERVER_NAME_VALUE;
     EdgeEndPointInfo* ep = (EdgeEndPointInfo*) malloc(sizeof(EdgeEndPointInfo));
     ep->endpointUri = endpointUri;
@@ -628,7 +628,7 @@ TEST_F(OPC_serverTests , StartServer_P)
     EdgeMessage* msg = (EdgeMessage*) malloc(sizeof(EdgeMessage));
     msg->endpointInfo = ep;
     msg->command = CMD_START_SERVER;
-    
+
     msg->type = SEND_REQUEST;
 
     EXPECT_EQ(startServerFlag, false);
@@ -654,14 +654,14 @@ TEST_F(OPC_serverTests , ServerCreateNamespace_P)
 {
     int len = strlen(endpointUri);
     epInfo->endpointUri = (char*) malloc(len +1);
-    
+
     strncpy(epInfo->endpointUri, endpointUri, len);
     epInfo->endpointUri[len] = '\0';
-    
+
     configureCallbacks();
 
     EdgeEndpointConfig* endpointConfig = (EdgeEndpointConfig*) malloc(sizeof(EdgeEndpointConfig));
-    
+
     endpointConfig->bindAddress = ipAddress;
     endpointConfig->bindPort = 12686;
     endpointConfig->applicationName = (char *)DEFAULT_SERVER_APP_NAME_VALUE;
@@ -707,10 +707,10 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
 {
     int len = strlen(endpointUri);
     epInfo->endpointUri = (char*) malloc(len +1);
-    
+
     strncpy(epInfo->endpointUri, endpointUri, len);
     epInfo->endpointUri[len] = '\0';
-    
+
     configureCallbacks();
 
     EdgeEndpointConfig* endpointConfig = (EdgeEndpointConfig*) malloc(sizeof(EdgeEndpointConfig));
@@ -885,14 +885,14 @@ TEST_F(OPC_serverTests , StartStopServer_P)
 {
     int len = strlen(endpointUri);
     epInfo->endpointUri = (char*) malloc(len +1);
-    
+
     strncpy(epInfo->endpointUri, endpointUri, len);
     epInfo->endpointUri[len] = '\0';
-    
+
     configureCallbacks();
 
     EdgeEndpointConfig* endpointConfig = (EdgeEndpointConfig*) malloc(sizeof(EdgeEndpointConfig));
-    
+
     endpointConfig->bindAddress = ipAddress;
     endpointConfig->bindPort = 12686;
     endpointConfig->applicationName = (char *)DEFAULT_SERVER_APP_NAME_VALUE;
@@ -951,13 +951,13 @@ TEST_F(OPC_serverTests , StartServerNew_P)
 {
     int len = strlen(endpointUri);
     epInfo->endpointUri = (char*) malloc(len +1);
-    
+
     strncpy(epInfo->endpointUri, endpointUri, len);
     epInfo->endpointUri[len] = '\0';
     configureCallbacks();
 
     EdgeEndpointConfig* endpointConfig = (EdgeEndpointConfig*) malloc(sizeof(EdgeEndpointConfig));
-    
+
     endpointConfig->bindAddress = ipAddress;
     endpointConfig->bindPort = 12686;
     endpointConfig->applicationName = (char *)DEFAULT_SERVER_APP_NAME_VALUE;
@@ -995,11 +995,11 @@ TEST_F(OPC_serverTests , StartServerNew_P)
 TEST_F(OPC_clientTests , ConfigureClient_P)
 {
     EXPECT_EQ(NULL == config, false);
-    
+
     EXPECT_EQ(NULL == config->recvCallback, false);
-    
+
     EXPECT_EQ(NULL == config->statusCallback, false);
-    
+
     EXPECT_EQ(NULL == config->discoveryCallback, false);
 }
 
@@ -1064,7 +1064,7 @@ TEST_F(OPC_clientTests , StartClient_P)
 
     PRINT("=============== startClient ==================");
     EXPECT_EQ(startClientFlag, false);
-    
+
     connectClient(ep);
 
     EXPECT_EQ(startClientFlag, true);
@@ -1097,7 +1097,7 @@ TEST_F(OPC_clientTests , ClientRead_P)
 
     EdgeEndpointConfig* endpointConfig = (EdgeEndpointConfig*) malloc(sizeof(EdgeEndpointConfig));
     endpointConfig->bindAddress = ipAddress;
-    
+
     endpointConfig->bindPort = 12686;
     endpointConfig->applicationName = (char *)DEFAULT_SERVER_APP_NAME_VALUE;
     endpointConfig->applicationUri = (char *)DEFAULT_SERVER_APP_URI_VALUE;
@@ -1150,7 +1150,7 @@ TEST_F(OPC_clientTests , ClientWrite_P)
 
     EdgeEndpointConfig* endpointConfig = (EdgeEndpointConfig*) malloc(sizeof(EdgeEndpointConfig));
     endpointConfig->bindAddress = ipAddress;
-    
+
     endpointConfig->bindPort = 12686;
     endpointConfig->applicationName = (char *)DEFAULT_SERVER_APP_NAME_VALUE;
     endpointConfig->applicationUri = (char *)DEFAULT_SERVER_APP_URI_VALUE;
@@ -1194,7 +1194,7 @@ TEST_F(OPC_clientTests , ClientWrite_P)
     disconnectClient(ep_t);
 
     deleteMessage(msg_t, ep_t);
-        
+
 }
 
 int main(int argc, char **argv) {
