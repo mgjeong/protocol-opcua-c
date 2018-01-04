@@ -295,6 +295,7 @@ static void testCreateNodes() {
   
   printf("\n[%d]) Variable node with UInt32 variant ", ++index);
   value = 4456;
+  item->accessLevel= WRITE;
   item->userAccessLevel = WRITE;
   item->browseName = "UInt32";
   item->variableItemName = "Location";
@@ -303,6 +304,7 @@ static void testCreateNodes() {
   createNode(DEFAULT_NAMESPACE_VALUE, item);
 
   item->userAccessLevel = READ;
+  item->accessLevel= READ;
   printf("\n[%d]) Variable node with UInt64 variant ", ++index);
   value = 3270000;
   item->browseName = "UInt64";
@@ -313,6 +315,7 @@ static void testCreateNodes() {
 
   printf("\n[%d]) Variable node with double variant ", ++index);
   item->userAccessLevel = READ_WRITE;
+   item->accessLevel= READ_WRITE;
   double d_val = 50.4;
   item->browseName = "Double";
   item->variableItemName = "Location";

@@ -14,11 +14,45 @@ static int methodNodeCount = 0;
 static void addVariableNode(UA_Server *server, EdgeNodeItem* item) {
   char* name= item->browseName;
   EdgeNodeIdentifier id = item->variableIdentifier;
+  int accessLevel = item->accessLevel;
+  int userAccessLevel = item->userAccessLevel;
 
   UA_VariableAttributes attr = UA_VariableAttributes_default;
   attr.description = UA_LOCALIZEDTEXT("en-US", name);
   attr.displayName= UA_LOCALIZEDTEXT("en-US", name);
-  attr.accessLevel = UA_ACCESSLEVELMASK_READ | UA_ACCESSLEVELMASK_WRITE;
+  
+    if(accessLevel == READ)
+    {
+        printf("accessLevel :: UA_ACCESSLEVELMASK_READ\n");
+        attr.accessLevel = UA_ACCESSLEVELMASK_READ;
+    }
+    else if(accessLevel == WRITE)
+    {
+        printf("accessLevel :: UA_ACCESSLEVELMASK_WRITE\n");
+        attr.accessLevel = UA_ACCESSLEVELMASK_WRITE;
+    }
+    else
+    {
+        printf("accessLevel :: UA_ACCESSLEVELMASK\n");
+        attr.accessLevel = UA_ACCESSLEVELMASK_READ | UA_ACCESSLEVELMASK_WRITE;
+    }
+
+    if(userAccessLevel == READ)
+    {
+        printf("userAccessLevel :: UA_ACCESSLEVELMASK_READ\n");
+        attr.userAccessLevel = UA_ACCESSLEVELMASK_READ;
+    }
+    else if(userAccessLevel == WRITE)
+    {
+        printf("userAccessLevel :: UA_ACCESSLEVELMASK_WRITE\n");
+        attr.userAccessLevel = UA_ACCESSLEVELMASK_WRITE;
+    }
+    else
+    {
+        printf("userAccessLevel :: UA_ACCESSLEVELMASK\n");
+        attr.userAccessLevel = UA_ACCESSLEVELMASK_READ | UA_ACCESSLEVELMASK_WRITE;
+    }
+        
   attr.dataType = UA_TYPES[(int)id - 1].typeId;
 
   int type = (int)id - 1;
