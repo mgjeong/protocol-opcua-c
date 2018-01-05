@@ -31,7 +31,7 @@ static void addVariableNode(UA_Server *server, EdgeNodeItem* item) {
         printf("accessLevel :: UA_ACCESSLEVELMASK_WRITE\n");
         attr.accessLevel = UA_ACCESSLEVELMASK_WRITE;
     }
-    else
+    else if(accessLevel == READ_WRITE)
     {
         printf("accessLevel :: UA_ACCESSLEVELMASK\n");
         attr.accessLevel = UA_ACCESSLEVELMASK_READ | UA_ACCESSLEVELMASK_WRITE;
@@ -47,7 +47,7 @@ static void addVariableNode(UA_Server *server, EdgeNodeItem* item) {
         printf("userAccessLevel :: UA_ACCESSLEVELMASK_WRITE\n");
         attr.userAccessLevel = UA_ACCESSLEVELMASK_WRITE;
     }
-    else
+    else if(userAccessLevel == READ_WRITE)
     {
         printf("userAccessLevel :: UA_ACCESSLEVELMASK\n");
         attr.userAccessLevel = UA_ACCESSLEVELMASK_READ | UA_ACCESSLEVELMASK_WRITE;
@@ -59,8 +59,8 @@ static void addVariableNode(UA_Server *server, EdgeNodeItem* item) {
   if (type == UA_TYPES_STRING) {
     UA_String val = UA_STRING_ALLOC((char*) item->variableData);
     UA_Variant_setScalarCopy(&attr.value, &val, &UA_TYPES[type]);
-UA_String str = *((UA_String*)attr.value.data);
-printf("%s\n\n", (char*)str.data);
+    UA_String str = *((UA_String*)attr.value.data);
+    printf("%s\n\n", (char*)str.data);
   } else {
     UA_Variant_setScalarCopy(&attr.value, item->variableData, &UA_TYPES[type]);
   }
@@ -86,19 +86,55 @@ static void addArrayNode(UA_Server *server, EdgeNodeItem *item) {
   UA_VariableAttributes attr = UA_VariableAttributes_default;
   attr.description = UA_LOCALIZEDTEXT("en-US", name);
   attr.displayName= UA_LOCALIZEDTEXT("en-US", name);
-  attr.accessLevel = UA_ACCESSLEVELMASK_READ | UA_ACCESSLEVELMASK_WRITE;
   attr.dataType = UA_TYPES[(int)id - 1].typeId;
+  int accessLevel = item->accessLevel;
+  int userAccessLevel = item->userAccessLevel;
+
+    if(accessLevel == READ)
+    {
+        attr.accessLevel = UA_ACCESSLEVELMASK_READ;
+    }
+    else if(accessLevel == WRITE)
+    {
+        attr.accessLevel = UA_ACCESSLEVELMASK_WRITE;
+    }
+    else if(accessLevel == READ_WRITE)
+    {
+        attr.accessLevel = UA_ACCESSLEVELMASK_READ | UA_ACCESSLEVELMASK_WRITE;
+    }
+
+    if(userAccessLevel == READ)
+    {
+        attr.userAccessLevel = UA_ACCESSLEVELMASK_READ;
+    }
+    else if(userAccessLevel == WRITE)
+    {
+        attr.userAccessLevel = UA_ACCESSLEVELMASK_WRITE;
+    }
+    else if(userAccessLevel == READ_WRITE)
+    {
+        attr.userAccessLevel = UA_ACCESSLEVELMASK_READ | UA_ACCESSLEVELMASK_WRITE;
+    }
 
   int type = (int)id - 1;
   if (type == UA_TYPES_STRING) {
     int idx = 0;
     char **data1 = (char**) item->variableData;
-//    printf("data :: %s\n", data1[0]);
-//    printf("data :: %s\n", data1[1]);
-
     UA_String *array = (UA_String*) UA_Array_new(item->arrayLength, &UA_TYPES[type]);
     for (idx = 0; idx < item->arrayLength; idx++) {
       array[idx] = UA_STRING_ALLOC(data1[idx]);
+    }
+
+    UA_Variant_setArray(&attr.value, array, item->arrayLength, &UA_TYPES[type]);
+  } 
+  else if (type == UA_TYPES_BYTESTRING) {
+    int idx = 0;
+    UA_ByteString **dataArray = (UA_ByteString**) item->variableData;
+    UA_ByteString *array = (UA_ByteString*) UA_Array_new(item->arrayLength, &UA_TYPES[type]);
+    for (idx = 0; idx < item->arrayLength; idx++)
+    {
+        char* itemData =  (char *)dataArray[idx]->data;
+        array[idx] = UA_BYTESTRING_ALLOC(itemData);
     }
 
     UA_Variant_setArray(&attr.value, array, item->arrayLength, &UA_TYPES[type]);
