@@ -235,9 +235,13 @@ typedef struct EdgeMessage
     /** EdgeRequests.*/
     EdgeRequest **requests;
 
+    /** Number of requests */
+    int requestLength;
+
     /** EdgeResponse.*/
     EdgeResponse **responses;
 
+    /** Response length */
     int responseLength;
 
     /** EdgeResult.*/

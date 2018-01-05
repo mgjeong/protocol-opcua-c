@@ -45,7 +45,7 @@ static void startClient(char* addr, int port, char *securityPolicyUri);
 
 static void response_msg_cb (EdgeMessage* data) {
   if (data->type == GENERAL_RESPONSE) {
-    printf("[Application response Callback] General response received\n");
+    printf("\n[Application response Callback] General response received\n");
     int len = data->responseLength;
     int idx = 0;
     for (idx = 0; idx < len; idx++) {
@@ -134,6 +134,7 @@ static void response_msg_cb (EdgeMessage* data) {
               printf("%" PRId64 "  ", ((int64_t*) data->responses[idx]->message->value)[arrayIdx]);
             }
           }
+          printf("\n\n");
         } else {
           if(data->responses[idx]->type == Boolean)
             printf("[Application response Callback] Data read from node ===>> [%d]\n", *((int*)data->responses[idx]->message->value));
@@ -457,92 +458,308 @@ static void testRead() {
   // Get the list of browse names and display them to user.
   testBrowse();
 
-  // Get the browse name of the node to be read from the user.
-  char browseName[MAX_CHAR_SIZE];
-  printf("Enter the browse name of the node to read:");
-  scanf("%s", browseName);
+  char nodeName[MAX_CHAR_SIZE];  
+   int num_requests = 1;
 
-  printf("\n\n" COLOR_YELLOW  "**********************  Reading the node with browse name \"%s\" **********************" COLOR_RESET "\n\n", browseName);
   EdgeEndPointInfo* ep = (EdgeEndPointInfo*) malloc(sizeof(EdgeEndPointInfo));
   ep->endpointUri = endpointUri;
   ep->config = NULL;
 
-  EdgeNodeInfo *nodeInfo = (EdgeNodeInfo*) malloc(sizeof(EdgeNodeInfo));
-  nodeInfo->valueAlias = browseName;
+  EdgeNodeInfo **nodeInfo= (EdgeNodeInfo**) malloc(sizeof(EdgeNodeInfo*) * num_requests);
+  for (int i = 0; i < num_requests; i++) {
+    printf("\nEnter the node #%d name to read :: ", (i+1));
+    nodeInfo[i]= (EdgeNodeInfo*) malloc(sizeof(EdgeNodeInfo));
+    scanf("%s", nodeName);
+    nodeInfo[i]->valueAlias = (char*) malloc(strlen(nodeName) + 1);
+    strcpy(nodeInfo[i]->valueAlias, nodeName);
+    nodeInfo[i]->valueAlias[strlen(nodeName)] = '\0';
+  }
 
-  EdgeRequest *request = (EdgeRequest*) malloc(sizeof(EdgeRequest));
-  request->nodeInfo = nodeInfo;
+  EdgeRequest **requests = (EdgeRequest**) malloc(sizeof(EdgeRequest*) * num_requests);
+  for (int i = 0; i < num_requests; i++) {
+    requests[i] = (EdgeRequest*) malloc(sizeof(EdgeRequest));
+    requests[i]->nodeInfo = nodeInfo[i];
+  }
 
   EdgeMessage *msg = (EdgeMessage*) malloc(sizeof(EdgeMessage));
   msg->endpointInfo = ep;
   msg->command = CMD_READ;
-  msg->request = request;
+  msg->type = SEND_REQUESTS;
+  msg->requests = requests;
+  msg->requestLength = num_requests;
 
   readNode(msg);
 
+  for (int i = 0; i < num_requests; i++) {
+    free(nodeInfo[i]->valueAlias); nodeInfo[i]->valueAlias = NULL;
+    free (nodeInfo[i]); nodeInfo[i] = NULL;
+  }
   free (nodeInfo); nodeInfo = NULL;
   free(ep); ep = NULL;
-  free(request); request = NULL;
+  for (int i = 0; i < num_requests; i++) {
+    free (requests[i]); requests[i] = NULL;
+  }
+  free(requests); requests = NULL;
   free(msg); msg = NULL;
 }
 
-static void testWrite() {
-  int option = getNodeOptions("Write");
-  if (option == -1)
-    return ;
+static void testReadGroup() {
+  char nodeName[MAX_CHAR_SIZE];  
+  int num_requests;
+  printf("Enter number of nodes to read (less than 10) :: ");
+  scanf("%d", &num_requests);
 
-  char s_value[MAX_CHAR_SIZE];
-  double d_value;
-  unsigned int u_value;
-  int i_value;
-  EdgeNodeIdentifier type;
-  void *new_value = NULL;
-
-  printf("\nEnter the new value :: ");
-  if (option == 1 || option == 2 || option == 3) {
-    scanf("%s", s_value);
-    type = String;
-    new_value = (void*) s_value;
-  }
-  else if (option == 4) {
-    scanf("%lf", &d_value);
-    type = Double;
-    new_value = (void*) &d_value;
-  }
-  else if (option == 5) {
-    scanf("%d", &i_value);
-    type = Int32;
-    new_value = (void*) &i_value;
-  }
-  else if (option == 6) {
-    scanf("%u", &u_value);
-    type = UInt16;
-    new_value = (void*) &u_value;
-  }
-
-  printf("\n\n" COLOR_YELLOW  "********************** Writing the value to the node \"%s\" **********************" COLOR_RESET  "\n\n", node_arr[option-1]);
   EdgeEndPointInfo* ep = (EdgeEndPointInfo*) malloc(sizeof(EdgeEndPointInfo));
   ep->endpointUri = endpointUri;
   ep->config = NULL;
 
-  EdgeNodeInfo *nodeInfo = (EdgeNodeInfo*) malloc(sizeof(EdgeNodeInfo));
-  nodeInfo->valueAlias = node_arr[option-1];
+  EdgeNodeInfo **nodeInfo= (EdgeNodeInfo**) malloc(sizeof(EdgeNodeInfo*) * num_requests);
+  EdgeRequest **requests = (EdgeRequest**) malloc(sizeof(EdgeRequest*) * num_requests);
+  for (int i = 0; i < num_requests; i++) {
+    printf("\nEnter the node #%d  name to read :: ", (i+1));
+    nodeInfo[i]= (EdgeNodeInfo*) malloc(sizeof(EdgeNodeInfo));
+    scanf("%s", nodeName);
+    nodeInfo[i]->valueAlias = (char*) malloc(strlen(nodeName) + 1);
+    strcpy(nodeInfo[i]->valueAlias, nodeName);
+    nodeInfo[i]->valueAlias[strlen(nodeName)] = '\0';
 
-  EdgeRequest *request = (EdgeRequest*) malloc(sizeof(EdgeRequest));
-  request->nodeInfo = nodeInfo;
-  request->type = type;
-  request->value = new_value;
+    requests[i] = (EdgeRequest*) malloc(sizeof(EdgeRequest));
+    requests[i]->nodeInfo = nodeInfo[i];
+  }
+
+  EdgeMessage *msg = (EdgeMessage*) malloc(sizeof(EdgeMessage));
+  msg->endpointInfo = ep;
+  msg->command = CMD_READ;
+  msg->type = SEND_REQUESTS;
+  msg->requests = requests;
+  msg->requestLength = num_requests;
+
+  readNode(msg);
+
+  for (int i = 0; i < num_requests; i++) {
+    free(nodeInfo[i]->valueAlias); nodeInfo[i]->valueAlias = NULL;
+    free (nodeInfo[i]); nodeInfo[i] = NULL;
+  }
+  free (nodeInfo); nodeInfo = NULL;
+  free(ep); ep = NULL;
+  for (int i = 0; i < num_requests; i++) {
+    free (requests[i]); requests[i] = NULL;
+  }
+  free(requests); requests = NULL;
+  free(msg); msg = NULL;
+}
+
+static int getInputType() {
+  int type;
+
+  printf("\n1) Boolean\n");
+  printf("2) SByte\n");
+  printf("3) Byte\n");
+  printf("4) Int16\n");
+  printf("5) UInt16\n");
+  printf("6) Int32\n");
+  printf("7) UInt32\n");
+  printf("8) Int64\n");
+  printf("9) UInt64\n");
+  printf("10) Float\n");
+  printf("11) Double\n");
+  printf("12) String\n\n");
+
+  printf("Enter the type of the data to write (integer option only) :: ");
+  scanf("%d", &type);
+
+  return type;
+}
+
+static void* getNewValuetoWrite(EdgeNodeIdentifier type) {
+  printf("Enter the new value to write :: ");	
+  switch(type) {
+   case Boolean: 
+   {
+   	int *val = (int*) malloc(sizeof(int));
+	scanf("%d", val);
+	return (void*) val;
+   }
+   	break;
+   case SByte:
+   {
+        int8_t* val = (int8_t*) malloc(sizeof(int8_t));
+        scanf("%" SCNd8, val);
+        return (void*) val;
+   }
+   case Byte:
+   {
+        uint8_t* val = (uint8_t*) malloc(sizeof(uint8_t));
+        scanf("%" SCNu8, val);
+        return (void*) val;
+   }
+        break;
+   case Int16:
+   {
+        int16_t* val = (int16_t*) malloc(sizeof(int16_t));
+        scanf("%" SCNd16, val);
+        return (void*) val;
+   }
+   case UInt16:
+   {
+   	uint16_t *val = (uint16_t*) malloc(sizeof(uint16_t));
+	scanf("%" SCNu16, val);
+	return (void*) val;
+   }
+   	break;
+   case Int32:
+   {
+   	int32_t *val = (int32_t*) malloc(sizeof(int32_t));
+	scanf("%" SCNd32, val);
+	return (void*) val;
+   }
+   	break;
+   case UInt32:
+   {
+   	uint32_t *val = (uint32_t*) malloc(sizeof(uint32_t));
+	scanf("%" SCNu32, val);
+	return (void*) val;
+   }
+   	break;
+   case Int64:
+   {
+   	int64_t *val = (int64_t*) malloc(sizeof(int64_t));
+	scanf("%" SCNd64, val);
+	return (void*) val;
+   }
+   	break;
+   case UInt64:
+   {
+   	uint64_t *val = (uint64_t*) malloc(sizeof(uint64_t));
+	scanf("%" SCNu64, val);
+	return (void*) val;
+   }
+   	break;
+   case Float:
+   {
+   	float* val = (float*) malloc(sizeof(float));
+	scanf("%g", val);
+	return (void*) val;
+   }
+   	break;
+   case Double:
+   {
+   	double *val = (double*) malloc(sizeof(double));
+	scanf("%lf", val);
+	return (void*) val;
+   }
+   	break;
+   case String:
+   {
+   	char val[MAX_CHAR_SIZE];
+	scanf("%s", val);
+	char *retStr = (char*) malloc(strlen(val) + 1);
+	strcpy(retStr, val);
+	retStr[strlen(val)] = '\0';
+	return (void*) retStr;
+   }
+   	break;
+   default:
+        break;
+  }
+
+  return NULL;
+}
+
+static void testWrite() {
+  char nodeName[MAX_CHAR_SIZE];  
+  int num_requests = 1;
+
+  EdgeEndPointInfo* ep = (EdgeEndPointInfo*) malloc(sizeof(EdgeEndPointInfo));
+  ep->endpointUri = endpointUri;
+  ep->config = NULL;
+
+  EdgeNodeInfo **nodeInfo= (EdgeNodeInfo**) malloc(sizeof(EdgeNodeInfo*));
+  EdgeRequest **requests = (EdgeRequest**) malloc(sizeof(EdgeRequest*) * num_requests);
+  for (int i = 0; i < num_requests; i++) {
+    printf("\nEnter the node #%d name to write :: ", (i+1));
+    nodeInfo[i]= (EdgeNodeInfo*) malloc(sizeof(EdgeNodeInfo));
+    scanf("%s", nodeName);
+    nodeInfo[i]->valueAlias = (char*) malloc(strlen(nodeName) + 1);
+    strcpy(nodeInfo[i]->valueAlias, nodeName);
+    nodeInfo[i]->valueAlias[strlen(nodeName)] = '\0';
+
+    requests[i] = (EdgeRequest*) malloc(sizeof(EdgeRequest));
+    requests[i]->nodeInfo = nodeInfo[i];
+    requests[i]->type = getInputType();
+    requests[i]->value = getNewValuetoWrite(requests[i]->type);
+	
+  }
 
   EdgeMessage *msg = (EdgeMessage*) malloc(sizeof(EdgeMessage));
   msg->endpointInfo = ep;
   msg->command = CMD_WRITE;
-  msg->request = request;
+  msg->type = SEND_REQUESTS;
+  msg->requests = requests;
+  msg->requestLength = num_requests;
+
+printf("write node \n");
+  writeNode(msg);
+  printf("write node call success \n");
+
+  for (int i = 0; i < num_requests; i++) {
+    free(nodeInfo[i]->valueAlias); nodeInfo[i]->valueAlias = NULL;
+    free (nodeInfo[i]); nodeInfo[i] = NULL;
+  }
+  free (nodeInfo); nodeInfo = NULL;
+  free(ep); ep = NULL;
+  for (int i = 0; i < num_requests; i++) {
+    free (requests[i]); requests[i] = NULL;
+  }
+  free(requests); requests = NULL;
+  free(msg); msg = NULL;
+}
+
+static void testWriteGroup() {
+  char nodeName[MAX_CHAR_SIZE];  
+  int num_requests;
+  printf("Enter number of nodes to write (less than 10) :: ");
+  scanf("%d", &num_requests);
+
+  EdgeEndPointInfo* ep = (EdgeEndPointInfo*) malloc(sizeof(EdgeEndPointInfo));
+  ep->endpointUri = endpointUri;
+  ep->config = NULL;
+
+  EdgeNodeInfo **nodeInfo= (EdgeNodeInfo**) malloc(sizeof(EdgeNodeInfo*) * num_requests);
+  EdgeRequest **requests = (EdgeRequest**) malloc(sizeof(EdgeRequest*) * num_requests);
+  for (int i = 0; i < num_requests; i++) {
+    printf("\nEnter the node #%d name to write :: ", (i+1));
+    nodeInfo[i]= (EdgeNodeInfo*) malloc(sizeof(EdgeNodeInfo));
+    scanf("%s", nodeName);
+    nodeInfo[i]->valueAlias = (char*) malloc(strlen(nodeName) + 1);
+    strcpy(nodeInfo[i]->valueAlias, nodeName);
+    nodeInfo[i]->valueAlias[strlen(nodeName)] = '\0';
+
+    requests[i] = (EdgeRequest*) malloc(sizeof(EdgeRequest));
+    requests[i]->nodeInfo = nodeInfo[i];
+    requests[i]->type = getInputType();
+    requests[i]->value = getNewValuetoWrite(requests[i]->type);	
+  }
+
+  EdgeMessage *msg = (EdgeMessage*) malloc(sizeof(EdgeMessage));
+  msg->endpointInfo = ep;
+  msg->command = CMD_WRITE;
+  msg->type = SEND_REQUESTS;
+  msg->requests = requests;
+  msg->requestLength = num_requests;
 
   writeNode(msg);
 
+  for (int i = 0; i < num_requests; i++) {
+    free(nodeInfo[i]->valueAlias); nodeInfo[i]->valueAlias = NULL;
+    free (nodeInfo[i]); nodeInfo[i] = NULL;
+  }
   free (nodeInfo); nodeInfo = NULL;
   free(ep); ep = NULL;
-  free(request); request = NULL;
+  for (int i = 0; i < num_requests; i++) {
+    free (requests[i]); requests[i] = NULL;
+  }
+  free(requests); requests = NULL;
   free(msg); msg = NULL;
 }
 
@@ -784,7 +1001,9 @@ static void print_menu() {
 
   printf("start : Get endpoints and start opcua client \n");
   printf("read : read attribute for target node\n");
+  printf("read_group : group read attributes from nodes\n");
   printf("write : write attribute into nodes\n");
+  printf("write_group : group write attributes from nodes\n");
   printf("browse : browse nodes\n");
   printf("method : method call\n");
   printf("create_sub : create subscription\n");
@@ -825,8 +1044,12 @@ int main() {
 
     } else if(!strcmp(command, "read")) {
       testRead();
+    } else if(!strcmp(command, "read_group")) {
+      testReadGroup();
     } else if(!strcmp(command, "write")) {
       testWrite();
+    } else if(!strcmp(command, "write_group")) {
+      testWriteGroup();
     } else if(!strcmp(command, "browse")) {
       testBrowse();
     } else if(!strcmp(command, "method")) {
