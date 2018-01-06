@@ -23,24 +23,6 @@ static char endpointUri[MAX_CHAR_SIZE];
 
 static EdgeConfigure *config = NULL;
 
-static char node_arr[NODE_COUNT][MAX_CHAR_SIZE] = {
-  "String1",
-  "String2",
-  "String3",
-  "Double",
-  "Int32",
-  "UInt16"
-};
-
-static bool subscription_done[NODE_COUNT] = {
-  false,
-  false,
-  false,
-  false,
-  false,
-  false
-};
-
 static void startClient(char* addr, int port, char *securityPolicyUri);
 
 static void response_msg_cb (EdgeMessage* data) {
@@ -255,27 +237,6 @@ static void endpoint_found_cb (EdgeDevice* device) {
 
 static void device_found_cb (EdgeDevice* device) {
 
-}
-
-static int getNodeOptions(const char *menu) {
-  printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET);
-  printf("\n" COLOR_YELLOW "                     %s            "COLOR_RESET, menu);
-  printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET "\n\n");
-  int option;
-  printf("\n\n" COLOR_YELLOW  "********************** Available nodes to test the '%s' service **********************" COLOR_RESET "\n", menu);
-  printf("[1] String1\n");
-  printf("[2] String2\n");
-  printf("[3] String3\n");
-  printf("[4] Double\n");
-  printf("[5] Int32\n");
-  printf("[6] UInt16\n");
-  printf("\nEnter any of the above option :: ");
-  scanf("%d", &option);
-  if (option < 1 || option > 6) {
-    printf( "Invalid Option!!! \n\n");
-    return -1;
-  }
-  return option;
 }
 
 static void init() {
@@ -856,14 +817,12 @@ static void testMethod() {
 
 static void testSub() {
 
-  int option = getNodeOptions("Create Subscription");
-  if (option == -1)
-    return ;
+    // Get the list of browse names and display them to user.
+    testBrowse();
+    char nodeName[MAX_CHAR_SIZE];
 
-  if (subscription_done[option-1]) {
-    printf("subscription already created for this node \n");
-    return ;
-  }
+    printf("\nEnter the node name to create Subscribe :: ");
+    scanf("%s", nodeName);
 
   EdgeEndPointInfo* ep = (EdgeEndPointInfo*) malloc(sizeof(EdgeEndPointInfo));
   ep->endpointUri = endpointUri;
@@ -873,7 +832,8 @@ static void testSub() {
   subReq->subType = Edge_Create_Sub;
   subReq->samplingInterval = 1000.0;
   subReq->publishingInterval = 0.0;
-  subReq->maxKeepAliveCount = (1 > (int) (ceil(10000.0 / subReq->publishingInterval))) ? 1 : (int) ceil(10000.0 / subReq->publishingInterval);
+  subReq->maxKeepAliveCount = (1 > (int) (
+    ceil(10000.0 / subReq->publishingInterval))) ? 1 : (int) ceil(10000.0 / subReq->publishingInterval);
   subReq->lifetimeCount = 10000;  //subReq->maxKeepAliveCount * 6;
   subReq->maxNotificationsPerPublish = 1;
   subReq->publishingEnabled = true;
@@ -881,8 +841,8 @@ static void testSub() {
   subReq->queueSize = 50;
 
   EdgeNodeInfo* nodeInfo = (EdgeNodeInfo*) malloc(sizeof(EdgeNodeInfo));
-  nodeInfo->valueAlias = (char*) malloc(strlen(node_arr[option-1]));
-  strcpy(nodeInfo->valueAlias, node_arr[option-1]);
+  nodeInfo->valueAlias = (char*) malloc(strlen(nodeName) + 1);
+  strcpy(nodeInfo->valueAlias, nodeName);
 
   EdgeRequest *request = (EdgeRequest*) malloc(sizeof(EdgeRequest));
   request->nodeInfo = nodeInfo;
@@ -894,8 +854,9 @@ static void testSub() {
   msg->request = request;
 
   EdgeResult result = handleSubscription(msg);
+  printf("CREATE RESULT : %d\n",  result.code);
   if (result.code == STATUS_OK) {
-    subscription_done[option-1] = true;
+    printf("SUBSCRPTION CREATE SUCCESSFULL\n");
   }
 
   free(nodeInfo); nodeInfo = NULL;
@@ -906,14 +867,12 @@ static void testSub() {
 }
 
 static void testSubModify() {
-  int option = getNodeOptions("Modify Subscription");
-  if (option == -1)
-    return ;
 
-  if (!subscription_done[option-1]) {
-    printf("subscription not created yet. First create the subscription and then modify \n");
-    return ;
-  }
+    testBrowse();
+    char nodeName[MAX_CHAR_SIZE];
+
+    printf("\nEnter the node name to modify Subscribe :: ");
+    scanf("%s", nodeName);
 
   EdgeEndPointInfo* ep = (EdgeEndPointInfo*) malloc(sizeof(EdgeEndPointInfo));
   ep->endpointUri = endpointUri;
@@ -933,47 +892,8 @@ static void testSubModify() {
   subReq->queueSize = 50;
 
   EdgeNodeInfo* nodeInfo = (EdgeNodeInfo*) malloc(sizeof(EdgeNodeInfo));
-  nodeInfo->valueAlias = (char*) malloc(strlen(node_arr[option-1]));
-  strcpy(nodeInfo->valueAlias, node_arr[option-1]);
-
-  EdgeRequest *request = (EdgeRequest*) malloc(sizeof(EdgeRequest));
-  request->nodeInfo = nodeInfo;
-  request->subMsg = subReq;
-
-  EdgeMessage* msg = (EdgeMessage*) malloc(sizeof(EdgeMessage));
-  msg->endpointInfo = ep;
-  msg->command = CMD_SUB;
-  msg->request = request;
-
-  handleSubscription(msg);
-
-  free(nodeInfo); nodeInfo = NULL;
-  free(subReq); subReq = NULL;
-  free(request); request = NULL;
-  free(ep); ep = NULL;
-  free (msg); msg = NULL;
-}
-
-static void testSubDelete() {
-  int option = getNodeOptions("Delete Subscription");
-  if (option == -1)
-    return ;
-
-  if (!subscription_done[option-1]) {
-    printf("subscription not created yet for that node to delete \n");
-    return ;
-  }
-
-  EdgeEndPointInfo* ep = (EdgeEndPointInfo*) malloc(sizeof(EdgeEndPointInfo));
-  ep->endpointUri = endpointUri;
-  ep->config = NULL;
-
-  EdgeSubRequest* subReq = (EdgeSubRequest*) malloc(sizeof(EdgeSubRequest));
-  subReq->subType = Edge_Delete_Sub;
-
-  EdgeNodeInfo* nodeInfo = (EdgeNodeInfo*) malloc(sizeof(EdgeNodeInfo));
-  nodeInfo->valueAlias = (char*) malloc(strlen(node_arr[option-1]));
-  strcpy(nodeInfo->valueAlias, node_arr[option-1]);
+  nodeInfo->valueAlias = (char*) malloc(strlen(nodeName) + 1);
+  strcpy(nodeInfo->valueAlias, nodeName);
 
   EdgeRequest *request = (EdgeRequest*) malloc(sizeof(EdgeRequest));
   request->nodeInfo = nodeInfo;
@@ -985,8 +905,50 @@ static void testSubDelete() {
   msg->request = request;
 
   EdgeResult result = handleSubscription(msg);
+  printf("MODIFY RESULT : %d\n",  result.code);
   if (result.code == STATUS_OK) {
-    subscription_done[option-1] = false;
+    printf("SUBSCRPTION MODIFY SUCCESSFULL\n");
+  }
+
+  free(nodeInfo); nodeInfo = NULL;
+  free(subReq); subReq = NULL;
+  free(request); request = NULL;
+  free(ep); ep = NULL;
+  free (msg); msg = NULL;
+}
+
+static void testSubDelete() {
+
+    testBrowse();
+    char nodeName[MAX_CHAR_SIZE];
+
+    printf("\nEnter the node name to delete Subscribe :: ");
+    scanf("%s", nodeName);
+
+  EdgeEndPointInfo* ep = (EdgeEndPointInfo*) malloc(sizeof(EdgeEndPointInfo));
+  ep->endpointUri = endpointUri;
+  ep->config = NULL;
+
+  EdgeSubRequest* subReq = (EdgeSubRequest*) malloc(sizeof(EdgeSubRequest));
+  subReq->subType = Edge_Delete_Sub;
+
+  EdgeNodeInfo* nodeInfo = (EdgeNodeInfo*) malloc(sizeof(EdgeNodeInfo));
+  nodeInfo->valueAlias = (char*) malloc(strlen(nodeName) + 1);
+  strcpy(nodeInfo->valueAlias, nodeName);
+
+  EdgeRequest *request = (EdgeRequest*) malloc(sizeof(EdgeRequest));
+  request->nodeInfo = nodeInfo;
+  request->subMsg = subReq;
+
+  EdgeMessage* msg = (EdgeMessage*) malloc(sizeof(EdgeMessage));
+  msg->endpointInfo = ep;
+  msg->command = CMD_SUB;
+  msg->request = request;
+
+  EdgeResult result = handleSubscription(msg);
+  printf("DELETE RESULT : %d\n",  result.code);
+  if (result.code == STATUS_OK) {
+    printf("SUBSCRPTION DELETED SUCCESSFULL\n");
   }
 
   free(nodeInfo); nodeInfo = NULL;
