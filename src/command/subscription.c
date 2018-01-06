@@ -146,7 +146,7 @@ static void* subscription_thread_handler(void* ptr) {
   return NULL;
 }
 
-static void createSub(UA_Client *client, EdgeMessage *msg) {
+static UA_StatusCode createSub(UA_Client *client, EdgeMessage *msg) {
   EdgeSubRequest *subReq = msg->request->subMsg;
 
   UA_UInt32 subId = 0;
@@ -160,29 +160,27 @@ static void createSub(UA_Client *client, EdgeMessage *msg) {
   };
 
   /* Create a subscription */
-  UA_Client_Subscriptions_new(client, settings, &subId);
-  if(subId) {
-    printf("Create subscription succeeded, id %u\n", subId);
-  } else {
+  UA_StatusCode retSub = UA_Client_Subscriptions_new(client, settings, &subId);
+  if(!subId) {
     // TODO: Handle Error
-    printf("Error in creating subscription\n");
-    return ;
+    printf("Error in creating subscription :: %s\n\n", UA_StatusCode_name(retSub));
+    return retSub;
   }
 
   EdgeMessage *msgCopy = (EdgeMessage*) malloc(sizeof(EdgeMessage));
   memcpy(msgCopy, msg, sizeof *msg);
 
   /* Add a MonitoredItem */
-  UA_NodeId monitorThis = UA_NODEID_STRING(1, msg->request->nodeInfo->valueAlias);
+  UA_NodeId monitorThis = UA_NODEID_STRING(2, msg->request->nodeInfo->valueAlias);
   UA_UInt32 monId = 0;
-  UA_Client_Subscriptions_addMonitoredItem(client, subId, monitorThis, UA_ATTRIBUTEID_VALUE,
+  UA_StatusCode retMon = UA_Client_Subscriptions_addMonitoredItem(client, subId, monitorThis, UA_ATTRIBUTEID_VALUE,
                                            &monitoredItemHandler, msgCopy->request->nodeInfo->valueAlias, &monId, subReq->samplingInterval);
   if (monId) {
     printf("Monitoring 'the.answer', id %u\n", subId);
   } else {
     // TODO: Handle Error
-    printf("Error in adding monitored item to subscription\n");
-    return ;
+    printf("Error in adding monitored item to subscription :: %s\n", UA_StatusCode_name(retMon));
+    return retMon;
   }
 
   if (0 == subscriptionCount) {
@@ -202,16 +200,18 @@ static void createSub(UA_Client *client, EdgeMessage *msg) {
   }
   if (subscriptionList)
     insertMapElement(subscriptionList, (keyValue) msg->request->nodeInfo->valueAlias, (keyValue) subInfo);
+
+  return UA_STATUSCODE_GOOD;
 }
 
-static void deleteSub(UA_Client *client, EdgeMessage *msg) {
+static UA_StatusCode deleteSub(UA_Client *client, EdgeMessage *msg) {
 
   subscriptionInfo* subInfo = (subscriptionInfo*) getSubscriptionId(msg->request->nodeInfo->valueAlias);
   //printf("subscription id retrieved from map :: %d \n\n", subInfo->subId);
 
   if (!subInfo) {
-    printf("not subscribed yet\n");
-    return ;
+    printf("not subscribed yet \n");
+    return UA_STATUSCODE_BADNOSUBSCRIPTION;
   }
 
   UA_StatusCode retVal = UA_Client_Subscriptions_remove(client, subInfo->subId);
@@ -227,7 +227,8 @@ static void deleteSub(UA_Client *client, EdgeMessage *msg) {
      }
    }
   } else {
-    printf("subscription delete error : 0x%08x\n\n", retVal);
+    printf("subscription delete error : %s\n\n", UA_StatusCode_name(retVal));
+    return retVal;
   }
 
   subscriptionCount--;
@@ -238,15 +239,17 @@ static void deleteSub(UA_Client *client, EdgeMessage *msg) {
     subscription_thread_running = false;
     pthread_cancel(subscription_thread);
   }
+
+  return UA_STATUSCODE_GOOD;
 }
 
-static void modifySub(UA_Client *client, EdgeMessage *msg) {
+static UA_StatusCode modifySub(UA_Client *client, EdgeMessage *msg) {
   subscriptionInfo* subInfo =  (subscriptionInfo*) getSubscriptionId(msg->request->nodeInfo->valueAlias);
   //printf("subscription id retrieved from map :: %d \n\n", subInfo->subId);
 
   if (!subInfo) {
     printf("not subscribed yet\n");
-    return ;
+    return UA_STATUSCODE_BADNOSUBSCRIPTION;
   }
 
   EdgeSubRequest *subReq = msg->request->subMsg;
@@ -262,8 +265,8 @@ static void modifySub(UA_Client *client, EdgeMessage *msg) {
 
   UA_ModifySubscriptionResponse response = UA_Client_Service_modifySubscription(client, modifySubscriptionRequest);
   if (response.responseHeader.serviceResult != UA_STATUSCODE_GOOD) {
-    printf ("Error in modify subscription :: 0x%08x\n\n", response.responseHeader.serviceResult);
-    return ;
+    printf ("Error in modify subscription :: %s\n\n", UA_StatusCode_name(response.responseHeader.serviceResult));
+    return response.responseHeader.serviceResult;
   } else {
     printf("modify suhscription success\n\n");
   }
@@ -288,8 +291,9 @@ static void modifySub(UA_Client *client, EdgeMessage *msg) {
   if (UA_STATUSCODE_GOOD == modifyMonitoredItemsResponse.responseHeader.serviceResult) {
     printf("modify monitored item success\n\n");
   } else {
-    printf("modify monitored item failed\n\n");
-    return ;
+    printf("modify monitored item failed :: %s\n\n", UA_StatusCode_name(
+        modifyMonitoredItemsResponse.responseHeader.serviceResult));
+    return modifyMonitoredItemsResponse.responseHeader.serviceResult;
   }
   UA_ModifyMonitoredItemsRequest_deleteMembers(&modifyMonitoredItemsRequest);
   UA_ModifyMonitoredItemsResponse_deleteMembers(&modifyMonitoredItemsResponse);
@@ -308,8 +312,9 @@ static void modifySub(UA_Client *client, EdgeMessage *msg) {
   if (UA_STATUSCODE_GOOD == setMonitoringModeResponse.responseHeader.serviceResult) {
     printf("set monitor mode success\n\n");
   } else {
-    printf("set monitor mode failed\n\n");
-    return ;
+    printf("set monitor mode failed :: %s\n\n", UA_StatusCode_name(
+        setMonitoringModeResponse.responseHeader.serviceResult));
+    return setMonitoringModeResponse.responseHeader.serviceResult;
   }
   UA_SetMonitoringModeRequest_deleteMembers(&setMonitoringModeRequest);
   UA_SetMonitoringModeResponse_deleteMembers(&setMonitoringModeResponse);
@@ -327,14 +332,17 @@ static void modifySub(UA_Client *client, EdgeMessage *msg) {
   if (UA_STATUSCODE_GOOD ==  setPublishingModeResponse.responseHeader.serviceResult) {
     printf("set publish mode success\n\n");
   } else {
-    printf("set publish mode failed\n\n");
-    return ;
+    printf("set publish mode failed :: %s\n\n", UA_StatusCode_name(
+        setPublishingModeResponse.responseHeader.serviceResult));
+    return setPublishingModeResponse.responseHeader.serviceResult;
   }
   UA_SetPublishingModeRequest_deleteMembers(&setPublishingModeRequest);
   UA_SetPublishingModeResponse_deleteMembers(&setPublishingModeResponse);
 
 
   UA_Client_Subscriptions_manuallySendPublishRequest(client);
+
+  return UA_STATUSCODE_GOOD;
 }
 
 EdgeResult executeSub(UA_Client *client, EdgeMessage *msg) {
@@ -346,19 +354,25 @@ EdgeResult executeSub(UA_Client *client, EdgeMessage *msg) {
     return result;
   }
 
+  UA_StatusCode retVal =  UA_STATUSCODE_GOOD;
   EdgeRequest *req = msg->request;
   EdgeSubRequest *subReq = req->subMsg;
   if (subReq->subType == Edge_Create_Sub) {
-    printf("create subscription\n");
-    createSub(client, msg);
+    retVal = createSub(client, msg);
   } else if (subReq->subType == Edge_Modify_Sub) {
-    printf("modify subscription\n");
-    modifySub(client, msg);
+    retVal = modifySub(client, msg);
   } else if (subReq->subType == Edge_Delete_Sub) {
-    printf("delete subscription\n");
-    deleteSub(client, msg);
+    retVal = deleteSub(client, msg);
   }
 
-  result.code = STATUS_OK;
+    if(retVal == UA_STATUSCODE_GOOD)
+    {
+        result.code = STATUS_OK;
+    }
+    else
+    {
+        result.code = STATUS_ERROR;
+    }
+  
   return result;
 }
