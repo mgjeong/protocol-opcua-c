@@ -171,7 +171,7 @@ static UA_StatusCode createSub(UA_Client *client, EdgeMessage *msg) {
   memcpy(msgCopy, msg, sizeof *msg);
 
   /* Add a MonitoredItem */
-  UA_NodeId monitorThis = UA_NODEID_STRING(2, msg->request->nodeInfo->valueAlias);
+  UA_NodeId monitorThis = UA_NODEID_STRING(1, msg->request->nodeInfo->valueAlias);
   UA_UInt32 monId = 0;
   UA_StatusCode retMon = UA_Client_Subscriptions_addMonitoredItem(client, subId, monitorThis, UA_ATTRIBUTEID_VALUE,
                                            &monitoredItemHandler, msgCopy->request->nodeInfo->valueAlias, &monId, subReq->samplingInterval);

@@ -71,6 +71,35 @@ static void write(UA_Client *client, EdgeMessage *msg) {
 
 #endif
 
+static EdgeDiagnosticInfo* checkDiagnosticInfo(int nodesToProcess, UA_DiagnosticInfo* diagnosticInfo,
+                                int diagnosticInfoLength, int returnDiagnostic) {
+
+    EdgeDiagnosticInfo *diagnostics = (EdgeDiagnosticInfo*) malloc(sizeof(EdgeDiagnosticInfo));
+    diagnostics->symbolicId = 0;
+    diagnostics->localizedText = 0;
+    diagnostics->additionalInfo = NULL;
+    diagnostics->innerDiagnosticInfo = NULL;
+    if (0 == returnDiagnostic && 0 == diagnosticInfoLength) {
+        diagnostics->msg = NULL;
+    } else if (diagnosticInfoLength == nodesToProcess){
+        diagnostics->symbolicId = diagnosticInfo[0].symbolicId;
+        diagnostics->localizedText = diagnosticInfo[0].localizedText;
+        diagnostics->locale = diagnosticInfo[0].locale;
+        if (diagnosticInfo[0].hasAdditionalInfo) {
+            char *additional_info = (char*) malloc(diagnosticInfo[0].additionalInfo.length);
+            strcpy(additional_info, (char*)(diagnosticInfo[0].additionalInfo.data));
+            diagnostics->additionalInfo = additional_info;
+        }
+        if (diagnosticInfo[0].hasInnerDiagnosticInfo)
+            diagnostics->innerDiagnosticInfo = diagnosticInfo[0].innerDiagnosticInfo;
+    } else if (0 != returnDiagnostic && 0 == diagnosticInfoLength) {
+        diagnostics->msg = (void*) "no diagnostics were returned even though returnDiagnostic requested" ;
+    } else {
+        diagnostics->msg = (void*) "mismatch entries returned" ;
+    }
+    return diagnostics;
+}
+
 static void writeGroup(UA_Client *client, EdgeMessage *msg) {
 
   int reqLen = msg->requestLength;
@@ -100,6 +129,7 @@ static void writeGroup(UA_Client *client, EdgeMessage *msg) {
   UA_WriteRequest_init(&writeRequest);
   writeRequest.nodesToWrite = wv;
   writeRequest.nodesToWriteSize = reqLen;
+  //writeRequest.requestHeader.returnDiagnostics = 1;
 
   UA_WriteResponse writeResponse = UA_Client_Service_write(client, writeRequest);
   if(writeResponse.responseHeader.serviceResult != UA_STATUSCODE_GOOD) {
@@ -136,6 +166,7 @@ static void writeGroup(UA_Client *client, EdgeMessage *msg) {
   EdgeMessage *resultMsg = (EdgeMessage*) malloc(sizeof(EdgeMessage));
   resultMsg->endpointInfo = (EdgeEndPointInfo*) malloc(sizeof(EdgeEndPointInfo));
   resultMsg->responseLength = 0;
+  resultMsg->command = CMD_WRITE;
   memcpy(resultMsg->endpointInfo, msg->endpointInfo, sizeof(EdgeEndPointInfo));
   resultMsg->type = GENERAL_RESPONSE;
 
@@ -170,6 +201,16 @@ static void writeGroup(UA_Client *client, EdgeMessage *msg) {
       response->requestId = msg->requests[i]->requestId;
       response->message = NULL;
 
+      EdgeDiagnosticInfo * diagnosticInfo = checkDiagnosticInfo(msg->requestLength,
+                                                                writeResponse.diagnosticInfos,
+                                                                writeResponse.diagnosticInfosSize,
+                                                                writeRequest.requestHeader.returnDiagnostics);
+      response->m_diagnosticInfo = diagnosticInfo;
+
+      EdgeVersatility* message = (EdgeVersatility*) malloc(sizeof(EdgeVersatility));
+      message->value = (void*) UA_StatusCode_name(code);
+      response->message = message;
+
       resultMsg->responseLength += 1;
       responses[respIndex] = response;
       respIndex += 1;
@@ -180,6 +221,11 @@ static void writeGroup(UA_Client *client, EdgeMessage *msg) {
   onResponseMessage(resultMsg);
 
   for (int i = 0; i < resultMsg->responseLength; i++) {
+    if (responses[i]->m_diagnosticInfo->additionalInfo) {
+      free(responses[i]->m_diagnosticInfo->additionalInfo); responses[i]->m_diagnosticInfo->additionalInfo = NULL;
+    }
+    free(responses[i]->m_diagnosticInfo); responses[i]->m_diagnosticInfo = NULL;
+    free(responses[i]->message); responses[i]->message = NULL;
     free(responses[i]->nodeInfo); responses[i]->nodeInfo = NULL;
     free(responses[i]); responses[i] = NULL;
   }

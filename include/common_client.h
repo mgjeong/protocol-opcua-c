@@ -52,6 +52,31 @@ typedef struct EdgeVersatility {
 
 } EdgeVersatility;
 
+typedef struct EdgeDiagnosticInfo {
+
+    /** Symbolic Id */
+    int symbolicId;
+
+    /** Namespace Uri */
+    int namespaceUri;
+
+    /** Localized Text */
+    int localizedText;
+
+    /** Locale */
+    int locale;
+
+    /** additional info */
+    char *additionalInfo;
+
+    /** Inner Diagnostics */
+    void *innerDiagnosticInfo;
+
+    /** msg */
+    char *msg;
+
+} EdgeDiagnosticInfo;
+
 typedef struct EdgeResponse
 {
     /** EdgeVersatility.*/
@@ -72,7 +97,7 @@ typedef struct EdgeResponse
     int requestId;
 
     /** EdgeDiagnosticInfo.*/
-    //EdgeDiagnosticInfo *m_diagnosticInfo;
+    EdgeDiagnosticInfo *m_diagnosticInfo;
 } EdgeResponse;
 
 
