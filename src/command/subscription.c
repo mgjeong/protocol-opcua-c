@@ -68,7 +68,6 @@ monitoredItemHandler(UA_UInt32 monId, UA_DataValue *value, void *context) {
 
     char *valueAlias = (char*) context;
     subscriptionInfo* subInfo =  (subscriptionInfo*) getSubscriptionId(valueAlias);
-    //printf("subscription id retrieved from map :: %d \n\n", subInfo->subId);
 
     if (!subInfo)
       return ;
@@ -76,7 +75,9 @@ monitoredItemHandler(UA_UInt32 monId, UA_DataValue *value, void *context) {
     EdgeResponse* response = (EdgeResponse*) malloc(sizeof(EdgeResponse));
     if (response) {
       response->nodeInfo = (EdgeNodeInfo*) malloc(sizeof(EdgeNodeInfo));
-      memcpy(response->nodeInfo, subInfo->msg->request->nodeInfo, sizeof(EdgeNodeInfo));
+      //memcpy(response->nodeInfo, subInfo->msg->request->nodeInfo, sizeof(EdgeNodeInfo));
+      response->nodeInfo->valueAlias = (char*) malloc(strlen(valueAlias) + 1);
+      strcpy(response->nodeInfo->valueAlias, valueAlias);
       response->requestId = subInfo->msg->request->requestId;
 
       EdgeVersatility *versatility = (EdgeVersatility*) malloc(sizeof(EdgeVersatility));
@@ -112,7 +113,6 @@ monitoredItemHandler(UA_UInt32 monId, UA_DataValue *value, void *context) {
         response->type = DateTime;
       }
       response->message = versatility;
-
 
       EdgeMessage *resultMsg = (EdgeMessage*) malloc(sizeof(EdgeMessage));
       resultMsg->endpointInfo = (EdgeEndPointInfo*) malloc(sizeof(EdgeEndPointInfo));

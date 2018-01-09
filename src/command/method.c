@@ -128,6 +128,7 @@ EdgeResult executeMethod(UA_Client *client, EdgeMessage *msg) {
           }
         }
         response[i]->message = versatility;
+        response[i]->m_diagnosticInfo = NULL;
       }
 
       EdgeMessage *resultMsg = (EdgeMessage*) malloc(sizeof(EdgeMessage));
@@ -137,6 +138,7 @@ EdgeResult executeMethod(UA_Client *client, EdgeMessage *msg) {
       resultMsg->responseLength = outputSize;
       resultMsg->responses = (EdgeResponse**) malloc(1 * sizeof(EdgeResponse));
       resultMsg->responses = response;
+      resultMsg->command = CMD_METHOD;
 
       onResponseMessage(resultMsg);
 

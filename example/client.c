@@ -32,7 +32,7 @@ static void response_msg_cb (EdgeMessage* data) {
     int idx = 0;
     for (idx = 0; idx < len; idx++) {
       if (data->responses[idx]->message != NULL) {
-        if (data->command == CMD_READ) {
+        if (data->command == CMD_READ || data->command == CMD_METHOD) {
           if (data->responses[idx]->message->isArray) {
             // Handle Output array
             int arrayLen = data->responses[idx]->message->arrayLength;
@@ -153,9 +153,11 @@ static void response_msg_cb (EdgeMessage* data) {
         }
 
         // Diagnostics information
-        printf("[Application response Callback] Diagnostics information\n");
-        printf("symbolicId :: %d, localizedText : %d, additionalInfo : %s , msg :: %s\n" , data->responses[idx]->m_diagnosticInfo->symbolicId,
+        if (data->responses[idx]->m_diagnosticInfo) {
+          printf("[Application response Callback] Diagnostics information\n");
+          printf("symbolicId :: %d, localizedText : %d, additionalInfo : %s , msg :: %s\n" , data->responses[idx]->m_diagnosticInfo->symbolicId,
                data->responses[idx]->m_diagnosticInfo->localizedText, data->responses[idx]->m_diagnosticInfo->additionalInfo, data->responses[idx]->m_diagnosticInfo->msg);
+        }
       }
 
       printf("\n=========\n");
