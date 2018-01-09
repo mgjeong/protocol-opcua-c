@@ -1,6 +1,6 @@
 /* THIS IS A SINGLE-FILE DISTRIBUTION CONCATENATED FROM THE OPEN62541 SOURCES
  * visit http://open62541.org/ for information about this software
- * Git-Revision: 386a2f4
+ * Git-Revision: 9b00f88
  */
 
 /*
@@ -970,7 +970,7 @@ UA_findDataTypeByBinary(const UA_NodeId *typeId);
 /*********************************** amalgamated original file "/home/travis/build/open62541/open62541/build/src_generated/ua_types_generated_encoding_binary.h" ***********************************/
 
 /* Generated from Opc.Ua.Types.bsd with script /home/travis/build/open62541/open62541/tools/generate_datatypes.py
- * on host travis-job-5fe0ea38-4d78-4be1-96f0-cdf39f315504 by user travis at 2017-12-24 03:27:03 */
+ * on host travis-job-5c525f95-3cc0-4945-a036-383fcaf2b42e by user travis at 2018-01-06 05:46:18 */
 
 
 /* Boolean */
@@ -1523,16 +1523,6 @@ UA_TimestampsToReturn_decodeBinary(const UA_ByteString *src, size_t *offset, UA_
     return UA_decodeBinary(src, offset, dst, &UA_TYPES[UA_TYPES_TIMESTAMPSTORETURN], 0, NULL);
 }
 
-/* MonitoringFilter */
-static UA_INLINE UA_StatusCode
-UA_MonitoringFilter_encodeBinary(const UA_MonitoringFilter *src, UA_Byte **bufPos, const UA_Byte **bufEnd) {
-    return UA_encodeBinary(src, &UA_TYPES[UA_TYPES_MONITORINGFILTER], bufPos, bufEnd, NULL, NULL);
-}
-static UA_INLINE UA_StatusCode
-UA_MonitoringFilter_decodeBinary(const UA_ByteString *src, size_t *offset, UA_MonitoringFilter *dst) {
-    return UA_decodeBinary(src, offset, dst, &UA_TYPES[UA_TYPES_MONITORINGFILTER], 0, NULL);
-}
-
 /* CallRequest */
 static UA_INLINE UA_StatusCode
 UA_CallRequest_encodeBinary(const UA_CallRequest *src, UA_Byte **bufPos, const UA_Byte **bufEnd) {
@@ -1891,6 +1881,16 @@ UA_RegisterNodesRequest_encodeBinary(const UA_RegisterNodesRequest *src, UA_Byte
 static UA_INLINE UA_StatusCode
 UA_RegisterNodesRequest_decodeBinary(const UA_ByteString *src, size_t *offset, UA_RegisterNodesRequest *dst) {
     return UA_decodeBinary(src, offset, dst, &UA_TYPES[UA_TYPES_REGISTERNODESREQUEST], 0, NULL);
+}
+
+/* AggregateConfiguration */
+static UA_INLINE UA_StatusCode
+UA_AggregateConfiguration_encodeBinary(const UA_AggregateConfiguration *src, UA_Byte **bufPos, const UA_Byte **bufEnd) {
+    return UA_encodeBinary(src, &UA_TYPES[UA_TYPES_AGGREGATECONFIGURATION], bufPos, bufEnd, NULL, NULL);
+}
+static UA_INLINE UA_StatusCode
+UA_AggregateConfiguration_decodeBinary(const UA_ByteString *src, size_t *offset, UA_AggregateConfiguration *dst) {
+    return UA_decodeBinary(src, offset, dst, &UA_TYPES[UA_TYPES_AGGREGATECONFIGURATION], 0, NULL);
 }
 
 /* DeleteNodesRequest */
@@ -2753,6 +2753,16 @@ UA_RegisteredServer_decodeBinary(const UA_ByteString *src, size_t *offset, UA_Re
     return UA_decodeBinary(src, offset, dst, &UA_TYPES[UA_TYPES_REGISTEREDSERVER], 0, NULL);
 }
 
+/* AggregateFilter */
+static UA_INLINE UA_StatusCode
+UA_AggregateFilter_encodeBinary(const UA_AggregateFilter *src, UA_Byte **bufPos, const UA_Byte **bufEnd) {
+    return UA_encodeBinary(src, &UA_TYPES[UA_TYPES_AGGREGATEFILTER], bufPos, bufEnd, NULL, NULL);
+}
+static UA_INLINE UA_StatusCode
+UA_AggregateFilter_decodeBinary(const UA_ByteString *src, size_t *offset, UA_AggregateFilter *dst) {
+    return UA_decodeBinary(src, offset, dst, &UA_TYPES[UA_TYPES_AGGREGATEFILTER], 0, NULL);
+}
+
 /* RegisterServerRequest */
 static UA_INLINE UA_StatusCode
 UA_RegisterServerRequest_encodeBinary(const UA_RegisterServerRequest *src, UA_Byte **bufPos, const UA_Byte **bufEnd) {
@@ -2926,7 +2936,7 @@ UA_QueryFirstRequest_decodeBinary(const UA_ByteString *src, size_t *offset, UA_Q
 /*********************************** amalgamated original file "/home/travis/build/open62541/open62541/build/src_generated/ua_transport_generated.h" ***********************************/
 
 /* Generated from Opc.Ua.Types.bsd, Custom.Opc.Ua.Transport.bsd with script /home/travis/build/open62541/open62541/tools/generate_datatypes.py
- * on host travis-job-5fe0ea38-4d78-4be1-96f0-cdf39f315504 by user travis at 2017-12-24 03:27:03 */
+ * on host travis-job-5c525f95-3cc0-4945-a036-383fcaf2b42e by user travis at 2018-01-06 05:46:18 */
 
 
 #ifdef __cplusplus
@@ -3098,7 +3108,7 @@ typedef struct {
 /*********************************** amalgamated original file "/home/travis/build/open62541/open62541/build/src_generated/ua_transport_generated_handling.h" ***********************************/
 
 /* Generated from Opc.Ua.Types.bsd, Custom.Opc.Ua.Transport.bsd with script /home/travis/build/open62541/open62541/tools/generate_datatypes.py
- * on host travis-job-5fe0ea38-4d78-4be1-96f0-cdf39f315504 by user travis at 2017-12-24 03:27:03 */
+ * on host travis-job-5c525f95-3cc0-4945-a036-383fcaf2b42e by user travis at 2018-01-06 05:46:18 */
 
 
 #ifdef __cplusplus
@@ -3430,7 +3440,7 @@ UA_SecureConversationMessageHeader_delete(UA_SecureConversationMessageHeader *p)
 /*********************************** amalgamated original file "/home/travis/build/open62541/open62541/build/src_generated/ua_transport_generated_encoding_binary.h" ***********************************/
 
 /* Generated from Opc.Ua.Types.bsd, Custom.Opc.Ua.Transport.bsd with script /home/travis/build/open62541/open62541/tools/generate_datatypes.py
- * on host travis-job-5fe0ea38-4d78-4be1-96f0-cdf39f315504 by user travis at 2017-12-24 03:27:03 */
+ * on host travis-job-5c525f95-3cc0-4945-a036-383fcaf2b42e by user travis at 2018-01-06 05:46:18 */
 
 
 /* SecureConversationMessageAbortBody */
@@ -5264,10 +5274,13 @@ typedef struct UA_Client_MonitoredItem {
     UA_Double samplingInterval;
     UA_UInt32 queueSize;
     UA_Boolean discardOldest;
-    void(*handler)(UA_UInt32 monId, UA_DataValue *value, void *context);
+
+    UA_Boolean isEventMonitoredItem; /* Otherwise a DataChange MoniitoredItem */
+    union {
+        UA_MonitoredItemHandlingFunction dataChangeHandler;
+        UA_MonitoredEventHandlingFunction eventHandler;
+    } handler;
     void *handlerContext;
-    void(*handlerEvents)(const UA_UInt32 monId, const size_t nEventFields, const UA_Variant *eventFields, void *context);
-    void *handlerEventsContext;
 } UA_Client_MonitoredItem;
 
 typedef struct UA_Client_Subscription {
@@ -5282,6 +5295,8 @@ typedef struct UA_Client_Subscription {
 } UA_Client_Subscription;
 
 void UA_Client_Subscriptions_forceDelete(UA_Client *client, UA_Client_Subscription *sub);
+
+void UA_Client_Subscriptions_clean(UA_Client *client);
 
 #endif
 
@@ -5305,6 +5320,7 @@ typedef enum {
 struct UA_Client {
     /* State */
     UA_ClientState state;
+
     UA_ClientConfig config;
 
     /* Connection */
@@ -8224,7 +8240,7 @@ UA_calcSizeBinary(void *p, const UA_DataType *type) {
 /*********************************** amalgamated original file "/home/travis/build/open62541/open62541/build/src_generated/ua_types_generated.c" ***********************************/
 
 /* Generated from Opc.Ua.Types.bsd with script /home/travis/build/open62541/open62541/tools/generate_datatypes.py
- * on host travis-job-5fe0ea38-4d78-4be1-96f0-cdf39f315504 by user travis at 2017-12-24 03:27:03 */
+ * on host travis-job-5c525f95-3cc0-4945-a036-383fcaf2b42e by user travis at 2018-01-06 05:46:18 */
 
 
 /* Boolean */
@@ -9224,9 +9240,6 @@ static UA_DataTypeMember TimestampsToReturn_members[1] = {
     true, /* .namespaceZero */
     false /* .isArray */
 },};
-
-/* MonitoringFilter */
-#define MonitoringFilter_members NULL
 
 /* CallRequest */
 static UA_DataTypeMember CallRequest_members[2] = {
@@ -10286,6 +10299,44 @@ static UA_DataTypeMember RegisterNodesRequest_members[2] = {
     offsetof(UA_RegisterNodesRequest, nodesToRegisterSize) - offsetof(UA_RegisterNodesRequest, requestHeader) - sizeof(UA_RequestHeader), /* .padding */
     true, /* .namespaceZero */
     true /* .isArray */
+},};
+
+/* AggregateConfiguration */
+static UA_DataTypeMember AggregateConfiguration_members[5] = {
+{
+    UA_TYPENAME("useServerCapabilitiesDefaults") /* .memberName */
+    UA_TYPES_BOOLEAN, /* .memberTypeIndex */
+    0, /* .padding */
+    true, /* .namespaceZero */
+    false /* .isArray */
+},
+{
+    UA_TYPENAME("treatUncertainAsBad") /* .memberName */
+    UA_TYPES_BOOLEAN, /* .memberTypeIndex */
+    offsetof(UA_AggregateConfiguration, treatUncertainAsBad) - offsetof(UA_AggregateConfiguration, useServerCapabilitiesDefaults) - sizeof(UA_Boolean), /* .padding */
+    true, /* .namespaceZero */
+    false /* .isArray */
+},
+{
+    UA_TYPENAME("percentDataBad") /* .memberName */
+    UA_TYPES_BYTE, /* .memberTypeIndex */
+    offsetof(UA_AggregateConfiguration, percentDataBad) - offsetof(UA_AggregateConfiguration, treatUncertainAsBad) - sizeof(UA_Boolean), /* .padding */
+    true, /* .namespaceZero */
+    false /* .isArray */
+},
+{
+    UA_TYPENAME("percentDataGood") /* .memberName */
+    UA_TYPES_BYTE, /* .memberTypeIndex */
+    offsetof(UA_AggregateConfiguration, percentDataGood) - offsetof(UA_AggregateConfiguration, percentDataBad) - sizeof(UA_Byte), /* .padding */
+    true, /* .namespaceZero */
+    false /* .isArray */
+},
+{
+    UA_TYPENAME("useSlopedExtrapolation") /* .memberName */
+    UA_TYPES_BOOLEAN, /* .memberTypeIndex */
+    offsetof(UA_AggregateConfiguration, useSlopedExtrapolation) - offsetof(UA_AggregateConfiguration, percentDataGood) - sizeof(UA_Byte), /* .padding */
+    true, /* .namespaceZero */
+    false /* .isArray */
 },};
 
 /* DeleteNodesRequest */
@@ -12898,6 +12949,37 @@ static UA_DataTypeMember RegisteredServer_members[8] = {
     false /* .isArray */
 },};
 
+/* AggregateFilter */
+static UA_DataTypeMember AggregateFilter_members[4] = {
+{
+    UA_TYPENAME("startTime") /* .memberName */
+    UA_TYPES_DATETIME, /* .memberTypeIndex */
+    0, /* .padding */
+    true, /* .namespaceZero */
+    false /* .isArray */
+},
+{
+    UA_TYPENAME("aggregateType") /* .memberName */
+    UA_TYPES_NODEID, /* .memberTypeIndex */
+    offsetof(UA_AggregateFilter, aggregateType) - offsetof(UA_AggregateFilter, startTime) - sizeof(UA_DateTime), /* .padding */
+    true, /* .namespaceZero */
+    false /* .isArray */
+},
+{
+    UA_TYPENAME("processingInterval") /* .memberName */
+    UA_TYPES_DOUBLE, /* .memberTypeIndex */
+    offsetof(UA_AggregateFilter, processingInterval) - offsetof(UA_AggregateFilter, aggregateType) - sizeof(UA_NodeId), /* .padding */
+    true, /* .namespaceZero */
+    false /* .isArray */
+},
+{
+    UA_TYPENAME("aggregateConfiguration") /* .memberName */
+    UA_TYPES_AGGREGATECONFIGURATION, /* .memberTypeIndex */
+    offsetof(UA_AggregateFilter, aggregateConfiguration) - offsetof(UA_AggregateFilter, processingInterval) - sizeof(UA_Double), /* .padding */
+    true, /* .namespaceZero */
+    false /* .isArray */
+},};
+
 /* RegisterServerRequest */
 static UA_DataTypeMember RegisterServerRequest_members[2] = {
 {
@@ -14210,20 +14292,6 @@ const UA_DataType UA_TYPES[UA_TYPES_COUNT] = {
     TimestampsToReturn_members /* .members */
 },
 
-/* MonitoringFilter */
-{
-    UA_TYPENAME("MonitoringFilter") /* .typeName */
-    {0, UA_NODEIDTYPE_NUMERIC, {719}}, /* .typeId */
-    sizeof(UA_MonitoringFilter), /* .memSize */
-    UA_TYPES_MONITORINGFILTER, /* .typeIndex */
-    0, /* .membersSize */
-    false, /* .builtin */
-    true, /* .pointerFree */
-    true, /* .overlayable */ 
-    721, /* .binaryEncodingId */
-    MonitoringFilter_members /* .members */
-},
-
 /* CallRequest */
 {
     UA_TYPENAME("CallRequest") /* .typeName */
@@ -14726,6 +14794,20 @@ const UA_DataType UA_TYPES[UA_TYPES_COUNT] = {
     false, /* .overlayable */ 
     560, /* .binaryEncodingId */
     RegisterNodesRequest_members /* .members */
+},
+
+/* AggregateConfiguration */
+{
+    UA_TYPENAME("AggregateConfiguration") /* .typeName */
+    {0, UA_NODEIDTYPE_NUMERIC, {948}}, /* .typeId */
+    sizeof(UA_AggregateConfiguration), /* .memSize */
+    UA_TYPES_AGGREGATECONFIGURATION, /* .typeIndex */
+    5, /* .membersSize */
+    false, /* .builtin */
+    true, /* .pointerFree */
+    true && true && true && offsetof(UA_AggregateConfiguration, treatUncertainAsBad) == (offsetof(UA_AggregateConfiguration, useServerCapabilitiesDefaults) + sizeof(UA_Boolean)) && true && offsetof(UA_AggregateConfiguration, percentDataBad) == (offsetof(UA_AggregateConfiguration, treatUncertainAsBad) + sizeof(UA_Boolean)) && true && offsetof(UA_AggregateConfiguration, percentDataGood) == (offsetof(UA_AggregateConfiguration, percentDataBad) + sizeof(UA_Byte)) && true && offsetof(UA_AggregateConfiguration, useSlopedExtrapolation) == (offsetof(UA_AggregateConfiguration, percentDataGood) + sizeof(UA_Byte)), /* .overlayable */ 
+    950, /* .binaryEncodingId */
+    AggregateConfiguration_members /* .members */
 },
 
 /* DeleteNodesRequest */
@@ -15932,6 +16014,20 @@ const UA_DataType UA_TYPES[UA_TYPES_COUNT] = {
     RegisteredServer_members /* .members */
 },
 
+/* AggregateFilter */
+{
+    UA_TYPENAME("AggregateFilter") /* .typeName */
+    {0, UA_NODEIDTYPE_NUMERIC, {728}}, /* .typeId */
+    sizeof(UA_AggregateFilter), /* .memSize */
+    UA_TYPES_AGGREGATEFILTER, /* .typeIndex */
+    4, /* .membersSize */
+    false, /* .builtin */
+    false, /* .pointerFree */
+    false, /* .overlayable */ 
+    730, /* .binaryEncodingId */
+    AggregateFilter_members /* .members */
+},
+
 /* RegisterServerRequest */
 {
     UA_TYPENAME("RegisterServerRequest") /* .typeName */
@@ -16175,7 +16271,7 @@ const UA_DataType UA_TYPES[UA_TYPES_COUNT] = {
 /*********************************** amalgamated original file "/home/travis/build/open62541/open62541/build/src_generated/ua_transport_generated.c" ***********************************/
 
 /* Generated from Opc.Ua.Types.bsd, Custom.Opc.Ua.Transport.bsd with script /home/travis/build/open62541/open62541/tools/generate_datatypes.py
- * on host travis-job-5fe0ea38-4d78-4be1-96f0-cdf39f315504 by user travis at 2017-12-24 03:27:03 */
+ * on host travis-job-5c525f95-3cc0-4945-a036-383fcaf2b42e by user travis at 2018-01-06 05:46:18 */
 
 
 /* SecureConversationMessageAbortBody */
@@ -18375,7 +18471,8 @@ UA_MessageContext_finish(UA_MessageContext *mc) {
 
 void
 UA_MessageContext_abort(UA_MessageContext *mc) {
-    UA_ByteString_deleteMembers(&mc->messageBuffer);
+    UA_Connection *connection = mc->channel->connection;
+    connection->releaseSendBuffer(connection, &mc->messageBuffer);
 }
 
 UA_StatusCode
@@ -29260,12 +29357,13 @@ writeArrayDimensionsAttribute(UA_Server *server, UA_Session *session,
 
     /* Ok, apply */
     UA_UInt32 *oldArrayDimensions = node->arrayDimensions;
+    size_t oldArrayDimensionsSize = node->arrayDimensionsSize;
     retval = UA_Array_copy(arrayDimensions, arrayDimensionsSize,
                            (void**)&node->arrayDimensions,
                            &UA_TYPES[UA_TYPES_UINT32]);
     if(retval != UA_STATUSCODE_GOOD)
         return retval;
-    UA_free(oldArrayDimensions);
+    UA_Array_delete(oldArrayDimensions, oldArrayDimensionsSize, &UA_TYPES[UA_TYPES_UINT32]);
     node->arrayDimensionsSize = arrayDimensionsSize;
     return UA_STATUSCODE_GOOD;
 }
@@ -33561,6 +33659,8 @@ UA_Client_init(UA_Client* client, UA_ClientConfig config) {
     client->channel.securityPolicy = &client->securityPolicy;
     client->channel.securityMode = UA_MESSAGESECURITYMODE_NONE;
     client->config = config;
+    if (client->config.stateCallback)
+        client->config.stateCallback(client, client->state);
 }
 
 UA_Client *
@@ -33596,14 +33696,7 @@ UA_Client_deleteMembers(UA_Client* client) {
 
     /* Delete the subscriptions */
 #ifdef UA_ENABLE_SUBSCRIPTIONS
-    UA_Client_NotificationsAckNumber *n, *tmp;
-    LIST_FOREACH_SAFE(n, &client->pendingNotificationsAcks, listEntry, tmp) {
-        LIST_REMOVE(n, listEntry);
-        UA_free(n);
-    }
-    UA_Client_Subscription *sub, *tmps;
-    LIST_FOREACH_SAFE(sub, &client->subscriptions, listEntry, tmps)
-        UA_Client_Subscriptions_forceDelete(client, sub); /* force local removal */
+    UA_Client_Subscriptions_clean(client);
 #endif
 }
 
@@ -33916,6 +34009,19 @@ UA_Client_runAsync(UA_Client *client, UA_UInt16 timeout) {
 
 #define UA_MINMESSAGESIZE 8192
 
+
+ /********************/
+ /* Set client state */
+ /********************/
+static void
+setClientState(UA_Client *client, UA_ClientState state)
+{
+    if (client->state != state){
+        client->state = state;
+        if (client->config.stateCallback)
+            client->config.stateCallback(client, client->state);
+    }
+}
  /***********************/
  /* Open the Connection */
  /***********************/
@@ -34294,14 +34400,14 @@ UA_Client_connectInternal(UA_Client *client, const char *endpointUrl,
     retval = HelAckHandshake(client);
     if(retval != UA_STATUSCODE_GOOD)
         goto cleanup;
-    client->state = UA_CLIENTSTATE_CONNECTED;
+    setClientState(client, UA_CLIENTSTATE_CONNECTED);
 
     /* Open a SecureChannel. TODO: Select with endpoint  */
     client->channel.connection = &client->connection;
     retval = openSecureChannel(client, false);
     if(retval != UA_STATUSCODE_GOOD)
         goto cleanup;
-    client->state = UA_CLIENTSTATE_SECURECHANNEL;
+    setClientState(client, UA_CLIENTSTATE_SECURECHANNEL);
 
     /* Try to activate an existing Session for this SecureChannel */
     if((!UA_NodeId_equal(&client->authenticationToken, &UA_NODEID_NULL)) && (createNewSession)) {
@@ -34312,7 +34418,7 @@ UA_Client_connectInternal(UA_Client *client, const char *endpointUrl,
         }else{
             if(retval != UA_STATUSCODE_GOOD)
                 goto cleanup;
-            client->state = UA_CLIENTSTATE_SESSION;
+            setClientState(client, UA_CLIENTSTATE_SESSION_RENEWED);
             return retval;
         }
     }else{
@@ -34331,12 +34437,16 @@ UA_Client_connectInternal(UA_Client *client, const char *endpointUrl,
         retval = createSession(client);
         if(retval != UA_STATUSCODE_GOOD)
             goto cleanup;
+#ifdef UA_ENABLE_SUBSCRIPTIONS
+        /* A new session has been created. We need to clean up the subscriptions */
+        UA_Client_Subscriptions_clean(client);
+#endif
         retval = activateSession(client);
+        if(retval != UA_STATUSCODE_GOOD)
+            goto cleanup;
+        setClientState(client, UA_CLIENTSTATE_SESSION);
     }
 
-    if(retval != UA_STATUSCODE_GOOD)
-        goto cleanup;
-    client->state = UA_CLIENTSTATE_SESSION;
     return retval;
 
 cleanup:
@@ -34405,22 +34515,24 @@ sendCloseSecureChannel(UA_Client *client) {
 UA_StatusCode
 UA_Client_disconnect(UA_Client *client) {
     /* Is a session established? */
-    if(client->state == UA_CLIENTSTATE_SESSION){
-        client->state = UA_CLIENTSTATE_SESSION_DISCONNECTED;
+    if(client->state >= UA_CLIENTSTATE_SESSION){
+        client->state = UA_CLIENTSTATE_SECURECHANNEL;
         sendCloseSession(client);
     }
     UA_NodeId_deleteMembers(&client->authenticationToken);
     client->requestHandle = 0;
 
     /* Is a secure channel established? */
-    if(client->state >= UA_CLIENTSTATE_SECURECHANNEL)
+    if(client->state >= UA_CLIENTSTATE_SECURECHANNEL){
+        client->state = UA_CLIENTSTATE_CONNECTED;
         sendCloseSecureChannel(client);
+    }
 
     /* Close the TCP connection */
     if(client->connection.state != UA_CONNECTION_CLOSED)
         client->connection.close(&client->connection);
 
-    client->state = UA_CLIENTSTATE_DISCONNECTED;
+    setClientState(client, UA_CLIENTSTATE_DISCONNECTED);
     return UA_STATUSCODE_GOOD;
 }
 
@@ -34435,7 +34547,7 @@ UA_Client_close(UA_Client *client) {
     if(client->connection.state != UA_CONNECTION_CLOSED)
         client->connection.close(&client->connection);
 
-    client->state = UA_CLIENTSTATE_DISCONNECTED;
+    setClientState(client, UA_CLIENTSTATE_DISCONNECTED);
     return UA_STATUSCODE_GOOD;
 }
 
@@ -35132,159 +35244,177 @@ UA_Client_Subscriptions_forceDelete(UA_Client *client,
     UA_free(sub);
 }
 
-UA_StatusCode
-UA_Client_Subscriptions_addMonitoredEvent(UA_Client *client, const UA_UInt32 subscriptionId,
-                                         const UA_NodeId nodeId, const UA_UInt32 attributeID,
-                                         UA_SimpleAttributeOperand *selectClause,
-                                         const size_t nSelectClauses,
-                                         UA_ContentFilterElement *whereClause,
-                                         const size_t nWhereClauses,
-                                         const UA_MonitoredEventHandlingFunction hf,
-                                         void *hfContext, UA_UInt32 *newMonitoredItemId) {
+static UA_StatusCode
+addMonitoredItems(UA_Client *client, const UA_UInt32 subscriptionId,
+                  UA_MonitoredItemCreateRequest *items, size_t itemsSize,
+                  void **hfs, void **hfContexts, UA_StatusCode *itemResults,
+                  UA_UInt32 *newMonitoredItemIds, UA_Boolean isEventMonitoredItem) {
     UA_Client_Subscription *sub = findSubscription(client, subscriptionId);
     if(!sub)
         return UA_STATUSCODE_BADSUBSCRIPTIONIDINVALID;
 
-    /* Send the request */
     UA_CreateMonitoredItemsRequest request;
     UA_CreateMonitoredItemsRequest_init(&request);
-    request.subscriptionId = subscriptionId;
+    UA_CreateMonitoredItemsResponse response;
+    UA_CreateMonitoredItemsResponse_init(&response);
 
+    /* Create the handlers */
+    UA_StatusCode retval = UA_STATUSCODE_GOOD;
+    UA_Client_MonitoredItem **mis = (UA_Client_MonitoredItem**)
+        UA_alloca(sizeof(void*) * itemsSize);
+    memset(mis, 0, sizeof(void*) * itemsSize);
+    for(size_t i = 0; i < itemsSize; i++) {
+        mis[i] = (UA_Client_MonitoredItem*)UA_malloc(sizeof(UA_Client_MonitoredItem));
+        if(!mis[i]) {
+            retval = UA_STATUSCODE_BADOUTOFMEMORY;
+            goto cleanup;
+        }
+    }
+
+    /* Set the clientHandle */
+    for(size_t i = 0; i < itemsSize; i++)
+        items[i].requestedParameters.clientHandle = ++(client->monitoredItemHandles);
+
+    /* Initialize the request */
+    request.subscriptionId = subscriptionId;
+    request.itemsToCreate = items;
+    request.itemsToCreateSize = itemsSize;
+
+    /* Send the request */
+    response = UA_Client_Service_createMonitoredItems(client, request);
+
+    /* Remove for _deleteMembers */
+    request.itemsToCreate = NULL;
+    request.itemsToCreateSize = 0;
+
+    retval = response.responseHeader.serviceResult;
+    if(retval != UA_STATUSCODE_GOOD)
+        goto cleanup;
+
+    if(response.resultsSize != itemsSize) {
+        retval = UA_STATUSCODE_BADINTERNALERROR;
+        goto cleanup;
+    }
+
+    for(size_t i = 0; i < itemsSize; i++) {
+        UA_MonitoredItemCreateResult *result = &response.results[i];
+        UA_Client_MonitoredItem *newMon = mis[i];
+
+        itemResults[i] = result->statusCode;
+        if(result->statusCode != UA_STATUSCODE_GOOD) {
+            UA_free(newMon);
+            continue;
+        }
+
+        /* Set the internal representation */
+        newMon->monitoringMode = UA_MONITORINGMODE_REPORTING;
+        UA_NodeId_copy(&items[i].itemToMonitor.nodeId, &newMon->monitoredNodeId);
+        newMon->attributeID = items[i].itemToMonitor.attributeId;
+        newMon->clientHandle = items[i].requestedParameters.clientHandle;
+        newMon->samplingInterval = result->revisedSamplingInterval;
+        newMon->queueSize = result->revisedQueueSize;
+        newMon->discardOldest = items[i].requestedParameters.discardOldest;
+        newMon->monitoredItemId = response.results[i].monitoredItemId;
+        newMon->isEventMonitoredItem = isEventMonitoredItem;
+        /* eventHandler is at the same position in the union */
+        newMon->handler.dataChangeHandler = (UA_MonitoredItemHandlingFunction)(uintptr_t)hfs[i];
+        newMon->handlerContext = hfContexts[i];
+
+        LIST_INSERT_HEAD(&sub->monitoredItems, newMon, listEntry);
+        newMonitoredItemIds[i] = newMon->monitoredItemId;
+        UA_LOG_DEBUG(client->config.logger, UA_LOGCATEGORY_CLIENT,
+                     "Created a monitored item with client handle %u",
+                     client->monitoredItemHandles);
+    }
+
+ cleanup:
+    if(retval != UA_STATUSCODE_GOOD) {
+        for(size_t i = 0; i < itemsSize; i++)
+            UA_free(mis[i]);
+    }
+    UA_CreateMonitoredItemsRequest_deleteMembers(&request);
+    UA_CreateMonitoredItemsResponse_deleteMembers(&response);
+    return retval;
+}
+
+
+UA_StatusCode
+UA_Client_Subscriptions_addMonitoredItems(UA_Client *client, const UA_UInt32 subscriptionId,
+                                          UA_MonitoredItemCreateRequest *items, size_t itemsSize, 
+                                          UA_MonitoredItemHandlingFunction *hfs,
+                                          void **hfContexts, UA_StatusCode *itemResults,
+                                          UA_UInt32 *newMonitoredItemIds) {
+    return addMonitoredItems(client, subscriptionId, items, itemsSize, (void**)hfs,
+                             hfContexts, itemResults, newMonitoredItemIds, false);
+}
+
+UA_StatusCode UA_EXPORT
+UA_Client_Subscriptions_addMonitoredItem(UA_Client *client, UA_UInt32 subscriptionId,
+                                         UA_NodeId nodeId, UA_UInt32 attributeID,
+                                         UA_MonitoredItemHandlingFunction hf, void *hfContext,
+                                         UA_UInt32 *newMonitoredItemId, UA_Double samplingInterval) {
     UA_MonitoredItemCreateRequest item;
     UA_MonitoredItemCreateRequest_init(&item);
     item.itemToMonitor.nodeId = nodeId;
     item.itemToMonitor.attributeId = attributeID;
     item.monitoringMode = UA_MONITORINGMODE_REPORTING;
-    item.requestedParameters.clientHandle = ++(client->monitoredItemHandles);
+    item.requestedParameters.samplingInterval = samplingInterval;
+    item.requestedParameters.discardOldest = true;
+    item.requestedParameters.queueSize = 1;
+
+    UA_StatusCode retval_item = UA_STATUSCODE_GOOD;
+    UA_StatusCode retval = addMonitoredItems(client, subscriptionId, &item, 1,
+                                             (void**)(uintptr_t)&hf, &hfContext,
+                                             &retval_item, newMonitoredItemId, false);
+    return retval | retval_item;
+}
+
+
+UA_StatusCode
+UA_Client_Subscriptions_addMonitoredEvents(UA_Client *client, const UA_UInt32 subscriptionId,
+                                           UA_MonitoredItemCreateRequest *items, size_t itemsSize, 
+                                           UA_MonitoredEventHandlingFunction *hfs,
+                                           void **hfContexts, UA_StatusCode *itemResults,
+                                           UA_UInt32 *newMonitoredItemIds) {
+    return addMonitoredItems(client, subscriptionId, items, itemsSize, (void**)hfs,
+                             hfContexts, itemResults, newMonitoredItemIds, true);
+}
+
+UA_StatusCode
+UA_Client_Subscriptions_addMonitoredEvent(UA_Client *client, UA_UInt32 subscriptionId,
+                                          const UA_NodeId nodeId, UA_UInt32 attributeID,
+                                          const UA_SimpleAttributeOperand *selectClauses,
+                                          size_t selectClausesSize,
+                                          const UA_ContentFilterElement *whereClauses,
+                                          size_t whereClausesSize,
+                                          const UA_MonitoredEventHandlingFunction hf,
+                                          void *hfContext, UA_UInt32 *newMonitoredItemId) {
+    UA_MonitoredItemCreateRequest item;
+    UA_MonitoredItemCreateRequest_init(&item);
+    item.itemToMonitor.nodeId = nodeId;
+    item.itemToMonitor.attributeId = attributeID;
+    item.monitoringMode = UA_MONITORINGMODE_REPORTING;
     item.requestedParameters.samplingInterval = 0;
     item.requestedParameters.discardOldest = false;
 
     UA_EventFilter *evFilter = UA_EventFilter_new();
-    if(!evFilter) {
+    if(!evFilter)
         return UA_STATUSCODE_BADOUTOFMEMORY;
-    }
     UA_EventFilter_init(evFilter);
-    evFilter->selectClausesSize = nSelectClauses;
-    evFilter->selectClauses = selectClause;
-    evFilter->whereClause.elementsSize = nWhereClauses;
-    evFilter->whereClause.elements = whereClause;
+    evFilter->selectClausesSize = selectClausesSize;
+    evFilter->selectClauses = (UA_SimpleAttributeOperand*)(uintptr_t)selectClauses;
+    evFilter->whereClause.elementsSize = whereClausesSize;
+    evFilter->whereClause.elements = (UA_ContentFilterElement*)(uintptr_t)whereClauses;
 
     item.requestedParameters.filter.encoding = UA_EXTENSIONOBJECT_DECODED_NODELETE;
     item.requestedParameters.filter.content.decoded.type = &UA_TYPES[UA_TYPES_EVENTFILTER];
     item.requestedParameters.filter.content.decoded.data = evFilter;
-
-    request.itemsToCreate = &item;
-    request.itemsToCreateSize = 1;
-    UA_CreateMonitoredItemsResponse response = UA_Client_Service_createMonitoredItems(client, request);
-
-    // slight misuse of retval here to check if the deletion was successful.
-    UA_StatusCode retval;
-    if(response.resultsSize == 0)
-        retval = response.responseHeader.serviceResult;
-    else
-        retval = response.results[0].statusCode;
-    if(retval != UA_STATUSCODE_GOOD) {
-        UA_CreateMonitoredItemsResponse_deleteMembers(&response);
-        UA_EventFilter_delete(evFilter);
-        return retval;
-    }
-
-    /* Create the handler */
-    UA_Client_MonitoredItem *newMon = (UA_Client_MonitoredItem *)UA_malloc(sizeof(UA_Client_MonitoredItem));
-    if(!newMon) {
-        UA_CreateMonitoredItemsResponse_deleteMembers(&response);
-        UA_EventFilter_delete(evFilter);
-        return UA_STATUSCODE_BADOUTOFMEMORY;
-    }
-
-    newMon->monitoringMode = UA_MONITORINGMODE_REPORTING;
-    UA_NodeId_copy(&nodeId, &newMon->monitoredNodeId);
-    newMon->attributeID = attributeID;
-    newMon->clientHandle = client->monitoredItemHandles;
-    newMon->samplingInterval = 0;
-    newMon->queueSize = 0;
-    newMon->discardOldest = false;
-
-    newMon->handlerEvents = hf;
-    newMon->handlerEventsContext = hfContext;
-    newMon->monitoredItemId = response.results[0].monitoredItemId;
-    LIST_INSERT_HEAD(&sub->monitoredItems, newMon, listEntry);
-    *newMonitoredItemId = newMon->monitoredItemId;
-
-    UA_LOG_DEBUG(client->config.logger, UA_LOGCATEGORY_CLIENT,
-                 "Created a monitored item with client handle %u", client->monitoredItemHandles);
-
-    UA_EventFilter_delete(evFilter);
-    UA_CreateMonitoredItemsResponse_deleteMembers(&response);
-    return UA_STATUSCODE_GOOD;
-}
-
-UA_StatusCode
-UA_Client_Subscriptions_addMonitoredItem(UA_Client *client, UA_UInt32 subscriptionId,
-                                         UA_NodeId nodeId, UA_UInt32 attributeID,
-                                         UA_MonitoredItemHandlingFunction hf,
-                                         void *hfContext, UA_UInt32 *newMonitoredItemId,
-                                         UA_Double samplingInterval) {
-    UA_Client_Subscription *sub = findSubscription(client, subscriptionId);
-    if(!sub)
-        return UA_STATUSCODE_BADSUBSCRIPTIONIDINVALID;
-
-    /* Create the handler */
-    UA_Client_MonitoredItem *newMon = (UA_Client_MonitoredItem*)UA_malloc(sizeof(UA_Client_MonitoredItem));
-    if(!newMon)
-        return UA_STATUSCODE_BADOUTOFMEMORY;
-
-    /* Send the request */
-    UA_CreateMonitoredItemsRequest request;
-    UA_CreateMonitoredItemsRequest_init(&request);
-    request.subscriptionId = subscriptionId;
-    UA_MonitoredItemCreateRequest item;
-    UA_MonitoredItemCreateRequest_init(&item);
-    item.itemToMonitor.nodeId = nodeId;
-    item.itemToMonitor.attributeId = attributeID;
-    item.monitoringMode = UA_MONITORINGMODE_REPORTING;
-    item.requestedParameters.clientHandle = ++(client->monitoredItemHandles);
-    item.requestedParameters.samplingInterval = samplingInterval;
-    item.requestedParameters.discardOldest = true;
-    item.requestedParameters.queueSize = 1;
-    request.itemsToCreate = &item;
-    request.itemsToCreateSize = 1;
-    UA_CreateMonitoredItemsResponse response = UA_Client_Service_createMonitoredItems(client, request);
-
-    // slight misuse of retval here to check if the addition was successful.
-    UA_StatusCode retval = response.responseHeader.serviceResult;
-    if(retval == UA_STATUSCODE_GOOD) {
-        if(response.resultsSize == 1)
-            retval = response.results[0].statusCode;
-        else
-            retval = UA_STATUSCODE_BADUNEXPECTEDERROR;
-    }
-    if(retval != UA_STATUSCODE_GOOD) {
-        UA_free(newMon);
-        UA_CreateMonitoredItemsResponse_deleteMembers(&response);
-        return retval;
-    }
-
-    /* Set the handler */
-    newMon->monitoringMode = UA_MONITORINGMODE_REPORTING;
-    UA_NodeId_copy(&nodeId, &newMon->monitoredNodeId);
-    newMon->attributeID = attributeID;
-    newMon->clientHandle = client->monitoredItemHandles;
-    newMon->samplingInterval = samplingInterval;
-    newMon->queueSize = 1;
-    newMon->discardOldest = true;
-    newMon->handler = hf;
-    newMon->handlerContext = hfContext;
-    newMon->monitoredItemId = response.results[0].monitoredItemId;
-    LIST_INSERT_HEAD(&sub->monitoredItems, newMon, listEntry);
-    *newMonitoredItemId = newMon->monitoredItemId;
-
-    UA_LOG_DEBUG(client->config.logger, UA_LOGCATEGORY_CLIENT,
-                 "Created a monitored item with client handle %u",
-                 client->monitoredItemHandles);
-
-    UA_CreateMonitoredItemsResponse_deleteMembers(&response);
-    return UA_STATUSCODE_GOOD;
+    UA_StatusCode retval_item = UA_STATUSCODE_GOOD;
+    UA_StatusCode retval = addMonitoredItems(client, subscriptionId, &item, 1,
+                                             (void**)(uintptr_t)&hf, &hfContext,
+                                             &retval_item, newMonitoredItemId, true);
+    UA_free(evFilter);
+    return retval | retval_item;
 }
 
 UA_StatusCode
@@ -35365,43 +35495,70 @@ UA_Client_processPublishResponse(UA_Client *client, UA_PublishRequest *request,
         if(msg->notificationData[k].encoding != UA_EXTENSIONOBJECT_DECODED)
             continue;
 
+        /* Handle DataChangeNotification */
         if(msg->notificationData[k].content.decoded.type == &UA_TYPES[UA_TYPES_DATACHANGENOTIFICATION]) {
-            UA_DataChangeNotification *dataChangeNotification = (UA_DataChangeNotification *)msg->notificationData[k].content.decoded.data;
+            UA_DataChangeNotification *dataChangeNotification =
+                (UA_DataChangeNotification *)msg->notificationData[k].content.decoded.data;
             for(size_t j = 0; j < dataChangeNotification->monitoredItemsSize; ++j) {
                 UA_MonitoredItemNotification *mitemNot = &dataChangeNotification->monitoredItems[j];
+
+                /* Find the MonitoredItem */
                 UA_Client_MonitoredItem *mon;
                 LIST_FOREACH(mon, &sub->monitoredItems, listEntry) {
-                    if(mon->clientHandle == mitemNot->clientHandle) {
-                        mon->handler(mon->monitoredItemId, &mitemNot->value, mon->handlerContext);
+                    if(mon->clientHandle == mitemNot->clientHandle)
                         break;
-                    }
                 }
-                if(!mon)
+
+                if(!mon) {
                     UA_LOG_DEBUG(client->config.logger, UA_LOGCATEGORY_CLIENT,
                                  "Could not process a notification with clienthandle %u on subscription %u",
                                  mitemNot->clientHandle, sub->subscriptionID);
+                    continue;
+                }
+
+                if(mon->isEventMonitoredItem) {
+                    UA_LOG_DEBUG(client->config.logger, UA_LOGCATEGORY_CLIENT,
+                                 "MonitoredItem is configured for Events. But received a "
+                                 "DataChangeNotification.");
+                    continue;
+                }
+
+                mon->handler.dataChangeHandler(mon->monitoredItemId, &mitemNot->value, mon->handlerContext);
             }
+            continue;
         }
-        else if(msg->notificationData[k].content.decoded.type == &UA_TYPES[UA_TYPES_EVENTNOTIFICATIONLIST]) {
-            UA_EventNotificationList *eventNotificationList = (UA_EventNotificationList *)msg->notificationData[k].content.decoded.data;
+
+        /* Handle EventNotification */
+        if(msg->notificationData[k].content.decoded.type == &UA_TYPES[UA_TYPES_EVENTNOTIFICATIONLIST]) {
+            UA_EventNotificationList *eventNotificationList =
+                (UA_EventNotificationList *)msg->notificationData[k].content.decoded.data;
             for (size_t j = 0; j < eventNotificationList->eventsSize; ++j) {
                 UA_EventFieldList *eventFieldList = &eventNotificationList->events[j];
+
+                /* Find the MonitoredItem */
                 UA_Client_MonitoredItem *mon;
                 LIST_FOREACH(mon, &sub->monitoredItems, listEntry) {
-                    if(mon->clientHandle == eventFieldList->clientHandle) {
-                        mon->handlerEvents(mon->monitoredItemId, eventFieldList->eventFieldsSize,
-                                           eventFieldList->eventFields, mon->handlerContext);
+                    if(mon->clientHandle == eventFieldList->clientHandle)
                         break;
-                    }
                 }
-                if(!mon)
+
+                if(!mon) {
                     UA_LOG_DEBUG(client->config.logger, UA_LOGCATEGORY_CLIENT,
                                  "Could not process a notification with clienthandle %u on subscription %u",
                                  eventFieldList->clientHandle, sub->subscriptionID);
+                    continue;
+                }
+
+                if(!mon->isEventMonitoredItem) {
+                    UA_LOG_DEBUG(client->config.logger, UA_LOGCATEGORY_CLIENT,
+                                 "MonitoredItem is configured for DataChanges. But received a "
+                                 "EventNotification.");
+                    continue;
+                }
+
+                mon->handler.eventHandler(mon->monitoredItemId, eventFieldList->eventFieldsSize,
+                                          eventFieldList->eventFields, mon->handlerContext);
             }
-        }
-        else {
-            continue; // no other types are supported
         }
     }
 
@@ -35471,6 +35628,19 @@ UA_Client_Subscriptions_manuallySendPublishRequest(UA_Client *client) {
         return UA_STATUSCODE_BADSERVERNOTCONNECTED;
 
     return retval;
+}
+
+void
+UA_Client_Subscriptions_clean(UA_Client *client){
+    UA_Client_NotificationsAckNumber *n, *tmp;
+    LIST_FOREACH_SAFE(n, &client->pendingNotificationsAcks, listEntry, tmp) {
+        LIST_REMOVE(n, listEntry);
+        UA_free(n);
+    }
+
+    UA_Client_Subscription *sub, *tmps;
+    LIST_FOREACH_SAFE(sub, &client->subscriptions, listEntry, tmps)
+        UA_Client_Subscriptions_forceDelete(client, sub); /* force local removal */
 }
 
 #endif /* UA_ENABLE_SUBSCRIPTIONS */
@@ -37587,7 +37757,8 @@ const UA_ClientConfig UA_ClientConfig_default = {
     UA_ClientConnectionTCP, /* .connectionFunc */
 
     0, /* .customDataTypesSize */
-    NULL /*.customDataTypes */
+    NULL, /*.customDataTypes */
+    NULL /*.stateCallback */
 };
 
 /****************************************/

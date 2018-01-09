@@ -1,6 +1,6 @@
 /* THIS IS A SINGLE-FILE DISTRIBUTION CONCATENATED FROM THE OPEN62541 SOURCES
  * visit http://open62541.org/ for information about this software
- * Git-Revision: 386a2f4
+ * Git-Revision: 9b00f88
  */
 
 /*
@@ -36,7 +36,7 @@ extern "C" {
 #define UA_OPEN62541_VER_MINOR 3
 #define UA_OPEN62541_VER_PATCH 0
 #define UA_OPEN62541_VER_LABEL "dev" /* Release candidate label, etc. */
-#define UA_OPEN62541_VER_COMMIT "386a2f4"
+#define UA_OPEN62541_VER_COMMIT "9b00f88"
 
 /**
  * Feature Options
@@ -3155,7 +3155,7 @@ deprecatedDateTimeMultiple(double multiple) {
 /*********************************** amalgamated original file "/home/travis/build/open62541/open62541/build/src_generated/ua_types_generated.h" ***********************************/
 
 /* Generated from Opc.Ua.Types.bsd with script /home/travis/build/open62541/open62541/tools/generate_datatypes.py
- * on host travis-job-5fe0ea38-4d78-4be1-96f0-cdf39f315504 by user travis at 2017-12-24 03:27:03 */
+ * on host travis-job-5c525f95-3cc0-4945-a036-383fcaf2b42e by user travis at 2018-01-06 05:46:18 */
 
 
 #ifdef __cplusplus
@@ -3167,7 +3167,7 @@ extern "C" {
  * Every type is assigned an index in an array containing the type descriptions.
  * These descriptions are used during type handling (copying, deletion,
  * binary encoding, ...). */
-#define UA_TYPES_COUNT 195
+#define UA_TYPES_COUNT 196
 extern UA_EXPORT const UA_DataType UA_TYPES[UA_TYPES_COUNT];
 
 /**
@@ -3724,14 +3724,6 @@ UA_STATIC_ASSERT(sizeof(UA_TimestampsToReturn) == sizeof(UA_Int32), enum_must_be
 #define UA_TYPES_TIMESTAMPSTORETURN 54
 
 /**
- * MonitoringFilter
- * ^^^^^^^^^^^^^^^^
- */
-typedef void * UA_MonitoringFilter;
-
-#define UA_TYPES_MONITORINGFILTER 55
-
-/**
  * CallRequest
  * ^^^^^^^^^^^
  */
@@ -3741,7 +3733,7 @@ typedef struct {
     UA_CallMethodRequest *methodsToCall;
 } UA_CallRequest;
 
-#define UA_TYPES_CALLREQUEST 56
+#define UA_TYPES_CALLREQUEST 55
 
 /**
  * MethodAttributes
@@ -3757,7 +3749,7 @@ typedef struct {
     UA_Boolean userExecutable;
 } UA_MethodAttributes;
 
-#define UA_TYPES_METHODATTRIBUTES 57
+#define UA_TYPES_METHODATTRIBUTES 56
 
 /**
  * DeleteReferencesItem
@@ -3771,7 +3763,7 @@ typedef struct {
     UA_Boolean deleteBidirectional;
 } UA_DeleteReferencesItem;
 
-#define UA_TYPES_DELETEREFERENCESITEM 58
+#define UA_TYPES_DELETEREFERENCESITEM 57
 
 /**
  * WriteValue
@@ -3784,7 +3776,7 @@ typedef struct {
     UA_DataValue value;
 } UA_WriteValue;
 
-#define UA_TYPES_WRITEVALUE 59
+#define UA_TYPES_WRITEVALUE 58
 
 /**
  * NodeAttributesMask
@@ -3830,7 +3822,7 @@ typedef enum {
 } UA_NodeAttributesMask;
 UA_STATIC_ASSERT(sizeof(UA_NodeAttributesMask) == sizeof(UA_Int32), enum_must_be_32bit);
 
-#define UA_TYPES_NODEATTRIBUTESMASK 60
+#define UA_TYPES_NODEATTRIBUTESMASK 59
 
 /**
  * MessageSecurityMode
@@ -3845,7 +3837,7 @@ typedef enum {
 } UA_MessageSecurityMode;
 UA_STATIC_ASSERT(sizeof(UA_MessageSecurityMode) == sizeof(UA_Int32), enum_must_be_32bit);
 
-#define UA_TYPES_MESSAGESECURITYMODE 61
+#define UA_TYPES_MESSAGESECURITYMODE 60
 
 /**
  * MonitoringParameters
@@ -3859,7 +3851,7 @@ typedef struct {
     UA_Boolean discardOldest;
 } UA_MonitoringParameters;
 
-#define UA_TYPES_MONITORINGPARAMETERS 62
+#define UA_TYPES_MONITORINGPARAMETERS 61
 
 /**
  * ReferenceNode
@@ -3871,7 +3863,7 @@ typedef struct {
     UA_ExpandedNodeId targetId;
 } UA_ReferenceNode;
 
-#define UA_TYPES_REFERENCENODE 63
+#define UA_TYPES_REFERENCENODE 62
 
 /**
  * Argument
@@ -3886,7 +3878,7 @@ typedef struct {
     UA_LocalizedText description;
 } UA_Argument;
 
-#define UA_TYPES_ARGUMENT 64
+#define UA_TYPES_ARGUMENT 63
 
 /**
  * UtcTime
@@ -3894,7 +3886,7 @@ typedef struct {
  * A date/time value specified in Universal Coordinated Time (UTC). */
 typedef UA_DateTime UA_UtcTime;
 
-#define UA_TYPES_UTCTIME 65
+#define UA_TYPES_UTCTIME 64
 
 /**
  * ChannelSecurityToken
@@ -3907,7 +3899,7 @@ typedef struct {
     UA_UInt32 revisedLifetime;
 } UA_ChannelSecurityToken;
 
-#define UA_TYPES_CHANNELSECURITYTOKEN 66
+#define UA_TYPES_CHANNELSECURITYTOKEN 65
 
 /**
  * UserIdentityToken
@@ -3917,7 +3909,7 @@ typedef struct {
     UA_String policyId;
 } UA_UserIdentityToken;
 
-#define UA_TYPES_USERIDENTITYTOKEN 67
+#define UA_TYPES_USERIDENTITYTOKEN 66
 
 /**
  * SignatureData
@@ -3928,7 +3920,7 @@ typedef struct {
     UA_ByteString signature;
 } UA_SignatureData;
 
-#define UA_TYPES_SIGNATUREDATA 68
+#define UA_TYPES_SIGNATUREDATA 67
 
 /**
  * ObjectTypeAttributes
@@ -3943,7 +3935,7 @@ typedef struct {
     UA_Boolean isAbstract;
 } UA_ObjectTypeAttributes;
 
-#define UA_TYPES_OBJECTTYPEATTRIBUTES 69
+#define UA_TYPES_OBJECTTYPEATTRIBUTES 68
 
 /**
  * DeadbandType
@@ -3957,7 +3949,7 @@ typedef enum {
 } UA_DeadbandType;
 UA_STATIC_ASSERT(sizeof(UA_DeadbandType) == sizeof(UA_Int32), enum_must_be_32bit);
 
-#define UA_TYPES_DEADBANDTYPE 70
+#define UA_TYPES_DEADBANDTYPE 69
 
 /**
  * SecurityTokenRequestType
@@ -3970,7 +3962,7 @@ typedef enum {
 } UA_SecurityTokenRequestType;
 UA_STATIC_ASSERT(sizeof(UA_SecurityTokenRequestType) == sizeof(UA_Int32), enum_must_be_32bit);
 
-#define UA_TYPES_SECURITYTOKENREQUESTTYPE 71
+#define UA_TYPES_SECURITYTOKENREQUESTTYPE 70
 
 /**
  * NodeAttributes
@@ -3984,7 +3976,7 @@ typedef struct {
     UA_UInt32 userWriteMask;
 } UA_NodeAttributes;
 
-#define UA_TYPES_NODEATTRIBUTES 72
+#define UA_TYPES_NODEATTRIBUTES 71
 
 /**
  * DataChangeTrigger
@@ -3998,7 +3990,7 @@ typedef enum {
 } UA_DataChangeTrigger;
 UA_STATIC_ASSERT(sizeof(UA_DataChangeTrigger) == sizeof(UA_Int32), enum_must_be_32bit);
 
-#define UA_TYPES_DATACHANGETRIGGER 73
+#define UA_TYPES_DATACHANGETRIGGER 72
 
 /**
  * BuildInfo
@@ -4013,7 +4005,7 @@ typedef struct {
     UA_DateTime buildDate;
 } UA_BuildInfo;
 
-#define UA_TYPES_BUILDINFO 74
+#define UA_TYPES_BUILDINFO 73
 
 /**
  * NodeClass
@@ -4033,7 +4025,7 @@ typedef enum {
 } UA_NodeClass;
 UA_STATIC_ASSERT(sizeof(UA_NodeClass) == sizeof(UA_Int32), enum_must_be_32bit);
 
-#define UA_TYPES_NODECLASS 75
+#define UA_TYPES_NODECLASS 74
 
 /**
  * SubscriptionDiagnosticsDataType
@@ -4073,7 +4065,7 @@ typedef struct {
     UA_UInt32 eventQueueOverFlowCount;
 } UA_SubscriptionDiagnosticsDataType;
 
-#define UA_TYPES_SUBSCRIPTIONDIAGNOSTICSDATATYPE 76
+#define UA_TYPES_SUBSCRIPTIONDIAGNOSTICSDATATYPE 75
 
 /**
  * FilterOperand
@@ -4081,7 +4073,7 @@ typedef struct {
  */
 typedef void * UA_FilterOperand;
 
-#define UA_TYPES_FILTEROPERAND 77
+#define UA_TYPES_FILTEROPERAND 76
 
 /**
  * MonitoredItemNotification
@@ -4092,7 +4084,7 @@ typedef struct {
     UA_DataValue value;
 } UA_MonitoredItemNotification;
 
-#define UA_TYPES_MONITOREDITEMNOTIFICATION 78
+#define UA_TYPES_MONITOREDITEMNOTIFICATION 77
 
 /**
  * DeleteNodesItem
@@ -4103,7 +4095,7 @@ typedef struct {
     UA_Boolean deleteTargetReferences;
 } UA_DeleteNodesItem;
 
-#define UA_TYPES_DELETENODESITEM 79
+#define UA_TYPES_DELETENODESITEM 78
 
 /**
  * DeleteSubscriptionsRequest
@@ -4115,7 +4107,7 @@ typedef struct {
     UA_UInt32 *subscriptionIds;
 } UA_DeleteSubscriptionsRequest;
 
-#define UA_TYPES_DELETESUBSCRIPTIONSREQUEST 80
+#define UA_TYPES_DELETESUBSCRIPTIONSREQUEST 79
 
 /**
  * SubscriptionAcknowledgement
@@ -4126,7 +4118,7 @@ typedef struct {
     UA_UInt32 sequenceNumber;
 } UA_SubscriptionAcknowledgement;
 
-#define UA_TYPES_SUBSCRIPTIONACKNOWLEDGEMENT 81
+#define UA_TYPES_SUBSCRIPTIONACKNOWLEDGEMENT 80
 
 /**
  * ReadValueId
@@ -4139,7 +4131,7 @@ typedef struct {
     UA_QualifiedName dataEncoding;
 } UA_ReadValueId;
 
-#define UA_TYPES_READVALUEID 82
+#define UA_TYPES_READVALUEID 81
 
 /**
  * DataTypeAttributes
@@ -4154,7 +4146,7 @@ typedef struct {
     UA_Boolean isAbstract;
 } UA_DataTypeAttributes;
 
-#define UA_TYPES_DATATYPEATTRIBUTES 83
+#define UA_TYPES_DATATYPEATTRIBUTES 82
 
 /**
  * ResponseHeader
@@ -4170,7 +4162,7 @@ typedef struct {
     UA_ExtensionObject additionalHeader;
 } UA_ResponseHeader;
 
-#define UA_TYPES_RESPONSEHEADER 84
+#define UA_TYPES_RESPONSEHEADER 83
 
 /**
  * DeleteMonitoredItemsRequest
@@ -4183,7 +4175,7 @@ typedef struct {
     UA_UInt32 *monitoredItemIds;
 } UA_DeleteMonitoredItemsRequest;
 
-#define UA_TYPES_DELETEMONITOREDITEMSREQUEST 85
+#define UA_TYPES_DELETEMONITOREDITEMSREQUEST 84
 
 /**
  * ViewDescription
@@ -4195,7 +4187,7 @@ typedef struct {
     UA_UInt32 viewVersion;
 } UA_ViewDescription;
 
-#define UA_TYPES_VIEWDESCRIPTION 86
+#define UA_TYPES_VIEWDESCRIPTION 85
 
 /**
  * ServerOnNetwork
@@ -4209,7 +4201,7 @@ typedef struct {
     UA_String *serverCapabilities;
 } UA_ServerOnNetwork;
 
-#define UA_TYPES_SERVERONNETWORK 87
+#define UA_TYPES_SERVERONNETWORK 86
 
 /**
  * DeleteMonitoredItemsResponse
@@ -4223,7 +4215,7 @@ typedef struct {
     UA_DiagnosticInfo *diagnosticInfos;
 } UA_DeleteMonitoredItemsResponse;
 
-#define UA_TYPES_DELETEMONITOREDITEMSRESPONSE 88
+#define UA_TYPES_DELETEMONITOREDITEMSRESPONSE 87
 
 /**
  * FindServersOnNetworkResponse
@@ -4236,7 +4228,7 @@ typedef struct {
     UA_ServerOnNetwork *servers;
 } UA_FindServersOnNetworkResponse;
 
-#define UA_TYPES_FINDSERVERSONNETWORKRESPONSE 89
+#define UA_TYPES_FINDSERVERSONNETWORKRESPONSE 88
 
 /**
  * RelativePath
@@ -4247,7 +4239,7 @@ typedef struct {
     UA_RelativePathElement *elements;
 } UA_RelativePath;
 
-#define UA_TYPES_RELATIVEPATH 90
+#define UA_TYPES_RELATIVEPATH 89
 
 /**
  * RegisterNodesRequest
@@ -4259,7 +4251,21 @@ typedef struct {
     UA_NodeId *nodesToRegister;
 } UA_RegisterNodesRequest;
 
-#define UA_TYPES_REGISTERNODESREQUEST 91
+#define UA_TYPES_REGISTERNODESREQUEST 90
+
+/**
+ * AggregateConfiguration
+ * ^^^^^^^^^^^^^^^^^^^^^^
+ */
+typedef struct {
+    UA_Boolean useServerCapabilitiesDefaults;
+    UA_Boolean treatUncertainAsBad;
+    UA_Byte percentDataBad;
+    UA_Byte percentDataGood;
+    UA_Boolean useSlopedExtrapolation;
+} UA_AggregateConfiguration;
+
+#define UA_TYPES_AGGREGATECONFIGURATION 91
 
 /**
  * DeleteNodesRequest
@@ -5487,6 +5493,19 @@ typedef struct {
 #define UA_TYPES_REGISTEREDSERVER 177
 
 /**
+ * AggregateFilter
+ * ^^^^^^^^^^^^^^^
+ */
+typedef struct {
+    UA_DateTime startTime;
+    UA_NodeId aggregateType;
+    UA_Double processingInterval;
+    UA_AggregateConfiguration aggregateConfiguration;
+} UA_AggregateFilter;
+
+#define UA_TYPES_AGGREGATEFILTER 178
+
+/**
  * RegisterServerRequest
  * ^^^^^^^^^^^^^^^^^^^^^
  * Registers a server with the discovery server. */
@@ -5495,7 +5514,7 @@ typedef struct {
     UA_RegisteredServer server;
 } UA_RegisterServerRequest;
 
-#define UA_TYPES_REGISTERSERVERREQUEST 178
+#define UA_TYPES_REGISTERSERVERREQUEST 179
 
 /**
  * EndpointDescription
@@ -5513,7 +5532,7 @@ typedef struct {
     UA_Byte securityLevel;
 } UA_EndpointDescription;
 
-#define UA_TYPES_ENDPOINTDESCRIPTION 179
+#define UA_TYPES_ENDPOINTDESCRIPTION 180
 
 /**
  * CreateMonitoredItemsRequest
@@ -5527,7 +5546,7 @@ typedef struct {
     UA_MonitoredItemCreateRequest *itemsToCreate;
 } UA_CreateMonitoredItemsRequest;
 
-#define UA_TYPES_CREATEMONITOREDITEMSREQUEST 180
+#define UA_TYPES_CREATEMONITOREDITEMSREQUEST 181
 
 /**
  * ContentFilter
@@ -5538,7 +5557,7 @@ typedef struct {
     UA_ContentFilterElement *elements;
 } UA_ContentFilter;
 
-#define UA_TYPES_CONTENTFILTER 181
+#define UA_TYPES_CONTENTFILTER 182
 
 /**
  * QueryFirstResponse
@@ -5556,7 +5575,7 @@ typedef struct {
     UA_ContentFilterResult filterResult;
 } UA_QueryFirstResponse;
 
-#define UA_TYPES_QUERYFIRSTRESPONSE 182
+#define UA_TYPES_QUERYFIRSTRESPONSE 183
 
 /**
  * AddNodesRequest
@@ -5568,7 +5587,7 @@ typedef struct {
     UA_AddNodesItem *nodesToAdd;
 } UA_AddNodesRequest;
 
-#define UA_TYPES_ADDNODESREQUEST 183
+#define UA_TYPES_ADDNODESREQUEST 184
 
 /**
  * BrowseRequest
@@ -5582,7 +5601,7 @@ typedef struct {
     UA_BrowseDescription *nodesToBrowse;
 } UA_BrowseRequest;
 
-#define UA_TYPES_BROWSEREQUEST 184
+#define UA_TYPES_BROWSEREQUEST 185
 
 /**
  * BrowseResult
@@ -5595,7 +5614,7 @@ typedef struct {
     UA_ReferenceDescription *references;
 } UA_BrowseResult;
 
-#define UA_TYPES_BROWSERESULT 185
+#define UA_TYPES_BROWSERESULT 186
 
 /**
  * RegisterServer2Request
@@ -5608,7 +5627,7 @@ typedef struct {
     UA_ExtensionObject *discoveryConfiguration;
 } UA_RegisterServer2Request;
 
-#define UA_TYPES_REGISTERSERVER2REQUEST 186
+#define UA_TYPES_REGISTERSERVER2REQUEST 187
 
 /**
  * CreateSessionRequest
@@ -5626,7 +5645,7 @@ typedef struct {
     UA_UInt32 maxResponseMessageSize;
 } UA_CreateSessionRequest;
 
-#define UA_TYPES_CREATESESSIONREQUEST 187
+#define UA_TYPES_CREATESESSIONREQUEST 188
 
 /**
  * EventFilter
@@ -5638,7 +5657,7 @@ typedef struct {
     UA_ContentFilter whereClause;
 } UA_EventFilter;
 
-#define UA_TYPES_EVENTFILTER 188
+#define UA_TYPES_EVENTFILTER 189
 
 /**
  * GetEndpointsResponse
@@ -5650,7 +5669,7 @@ typedef struct {
     UA_EndpointDescription *endpoints;
 } UA_GetEndpointsResponse;
 
-#define UA_TYPES_GETENDPOINTSRESPONSE 189
+#define UA_TYPES_GETENDPOINTSRESPONSE 190
 
 /**
  * FindServersResponse
@@ -5662,7 +5681,7 @@ typedef struct {
     UA_ApplicationDescription *servers;
 } UA_FindServersResponse;
 
-#define UA_TYPES_FINDSERVERSRESPONSE 190
+#define UA_TYPES_FINDSERVERSRESPONSE 191
 
 /**
  * BrowseNextResponse
@@ -5676,7 +5695,7 @@ typedef struct {
     UA_DiagnosticInfo *diagnosticInfos;
 } UA_BrowseNextResponse;
 
-#define UA_TYPES_BROWSENEXTRESPONSE 191
+#define UA_TYPES_BROWSENEXTRESPONSE 192
 
 /**
  * BrowseResponse
@@ -5690,7 +5709,7 @@ typedef struct {
     UA_DiagnosticInfo *diagnosticInfos;
 } UA_BrowseResponse;
 
-#define UA_TYPES_BROWSERESPONSE 192
+#define UA_TYPES_BROWSERESPONSE 193
 
 /**
  * CreateSessionResponse
@@ -5711,7 +5730,7 @@ typedef struct {
     UA_UInt32 maxRequestMessageSize;
 } UA_CreateSessionResponse;
 
-#define UA_TYPES_CREATESESSIONRESPONSE 193
+#define UA_TYPES_CREATESESSIONRESPONSE 194
 
 /**
  * QueryFirstRequest
@@ -5727,7 +5746,7 @@ typedef struct {
     UA_UInt32 maxReferencesToReturn;
 } UA_QueryFirstRequest;
 
-#define UA_TYPES_QUERYFIRSTREQUEST 194
+#define UA_TYPES_QUERYFIRSTREQUEST 195
 
 #ifdef __cplusplus
 } // extern "C"
@@ -5737,7 +5756,7 @@ typedef struct {
 /*********************************** amalgamated original file "/home/travis/build/open62541/open62541/build/src_generated/ua_types_generated_handling.h" ***********************************/
 
 /* Generated from Opc.Ua.Types.bsd with script /home/travis/build/open62541/open62541/tools/generate_datatypes.py
- * on host travis-job-5fe0ea38-4d78-4be1-96f0-cdf39f315504 by user travis at 2017-12-24 03:27:03 */
+ * on host travis-job-5c525f95-3cc0-4945-a036-383fcaf2b42e by user travis at 2018-01-06 05:46:18 */
 
 
 #ifdef __cplusplus
@@ -7164,31 +7183,6 @@ UA_TimestampsToReturn_delete(UA_TimestampsToReturn *p) {
     UA_delete(p, &UA_TYPES[UA_TYPES_TIMESTAMPSTORETURN]);
 }
 
-/* MonitoringFilter */
-static UA_INLINE void
-UA_MonitoringFilter_init(UA_MonitoringFilter *p) {
-    memset(p, 0, sizeof(UA_MonitoringFilter));
-}
-
-static UA_INLINE UA_MonitoringFilter *
-UA_MonitoringFilter_new(void) {
-    return (UA_MonitoringFilter*)UA_new(&UA_TYPES[UA_TYPES_MONITORINGFILTER]);
-}
-
-static UA_INLINE UA_StatusCode
-UA_MonitoringFilter_copy(const UA_MonitoringFilter *src, UA_MonitoringFilter *dst) {
-    *dst = *src;
-    return UA_STATUSCODE_GOOD;
-}
-
-static UA_INLINE void
-UA_MonitoringFilter_deleteMembers(UA_MonitoringFilter *p) { }
-
-static UA_INLINE void
-UA_MonitoringFilter_delete(UA_MonitoringFilter *p) {
-    UA_delete(p, &UA_TYPES[UA_TYPES_MONITORINGFILTER]);
-}
-
 /* CallRequest */
 static UA_INLINE void
 UA_CallRequest_init(UA_CallRequest *p) {
@@ -8114,6 +8108,31 @@ UA_RegisterNodesRequest_deleteMembers(UA_RegisterNodesRequest *p) {
 static UA_INLINE void
 UA_RegisterNodesRequest_delete(UA_RegisterNodesRequest *p) {
     UA_delete(p, &UA_TYPES[UA_TYPES_REGISTERNODESREQUEST]);
+}
+
+/* AggregateConfiguration */
+static UA_INLINE void
+UA_AggregateConfiguration_init(UA_AggregateConfiguration *p) {
+    memset(p, 0, sizeof(UA_AggregateConfiguration));
+}
+
+static UA_INLINE UA_AggregateConfiguration *
+UA_AggregateConfiguration_new(void) {
+    return (UA_AggregateConfiguration*)UA_new(&UA_TYPES[UA_TYPES_AGGREGATECONFIGURATION]);
+}
+
+static UA_INLINE UA_StatusCode
+UA_AggregateConfiguration_copy(const UA_AggregateConfiguration *src, UA_AggregateConfiguration *dst) {
+    *dst = *src;
+    return UA_STATUSCODE_GOOD;
+}
+
+static UA_INLINE void
+UA_AggregateConfiguration_deleteMembers(UA_AggregateConfiguration *p) { }
+
+static UA_INLINE void
+UA_AggregateConfiguration_delete(UA_AggregateConfiguration *p) {
+    UA_delete(p, &UA_TYPES[UA_TYPES_AGGREGATECONFIGURATION]);
 }
 
 /* DeleteNodesRequest */
@@ -10339,6 +10358,32 @@ UA_RegisteredServer_deleteMembers(UA_RegisteredServer *p) {
 static UA_INLINE void
 UA_RegisteredServer_delete(UA_RegisteredServer *p) {
     UA_delete(p, &UA_TYPES[UA_TYPES_REGISTEREDSERVER]);
+}
+
+/* AggregateFilter */
+static UA_INLINE void
+UA_AggregateFilter_init(UA_AggregateFilter *p) {
+    memset(p, 0, sizeof(UA_AggregateFilter));
+}
+
+static UA_INLINE UA_AggregateFilter *
+UA_AggregateFilter_new(void) {
+    return (UA_AggregateFilter*)UA_new(&UA_TYPES[UA_TYPES_AGGREGATEFILTER]);
+}
+
+static UA_INLINE UA_StatusCode
+UA_AggregateFilter_copy(const UA_AggregateFilter *src, UA_AggregateFilter *dst) {
+    return UA_copy(src, dst, &UA_TYPES[UA_TYPES_AGGREGATEFILTER]);
+}
+
+static UA_INLINE void
+UA_AggregateFilter_deleteMembers(UA_AggregateFilter *p) {
+    UA_deleteMembers(p, &UA_TYPES[UA_TYPES_AGGREGATEFILTER]);
+}
+
+static UA_INLINE void
+UA_AggregateFilter_delete(UA_AggregateFilter *p) {
+    UA_delete(p, &UA_TYPES[UA_TYPES_AGGREGATEFILTER]);
 }
 
 /* RegisterServerRequest */
@@ -13226,6 +13271,27 @@ extern "C" {
  * `UA_Client_Subscriptions_manuallySendPublishRequest`. See also :ref:`here
  * <client-subscriptions>`.
  *
+ * Client Lifecycle
+ * ---------------- */
+
+typedef enum {
+    UA_CLIENTSTATE_DISCONNECTED,        /* The client is disconnected */
+    UA_CLIENTSTATE_CONNECTED,           /* A TCP connection to the server is open */
+    UA_CLIENTSTATE_SECURECHANNEL,       /* A SecureChannel to the server is open */
+    UA_CLIENTSTATE_SESSION,             /* A session with the server is open */
+    UA_CLIENTSTATE_SESSION_RENEWED      /* A session with the server is open (renewed) */
+} UA_ClientState;
+
+struct UA_Client;
+typedef struct UA_Client UA_Client;
+
+/**
+ * Client Lifecycle callback
+ * ------------------------- */
+
+typedef void (*UA_ClientStateCallback)(UA_Client *client, UA_ClientState clientState);
+
+/**
  * Client Configuration
  * -------------------- */
 
@@ -13240,25 +13306,11 @@ typedef struct UA_ClientConfig {
     /* Custom DataTypes */
     size_t customDataTypesSize;
     const UA_DataType *customDataTypes;
+
+    /* Callback function */
+    UA_ClientStateCallback stateCallback;
 } UA_ClientConfig;
 
-/**
- * Client Lifecycle
- * ---------------- */
-
-typedef enum {
-    UA_CLIENTSTATE_DISCONNECTED,        /* The client is not connected */
-    UA_CLIENTSTATE_CONNECTED,           /* A TCP connection to the server is open */
-    UA_CLIENTSTATE_SECURECHANNEL,       /* A SecureChannel to the server is open */
-    UA_CLIENTSTATE_SESSION,             /* A session with the server is open */
-    UA_CLIENTSTATE_SESSION_DISCONNECTED /* A session with the server is open.
-                                         * But the SecureChannel was lost. Try
-                                         * to establish a new SecureChannel and
-                                         * reattach the existing session. */
-} UA_ClientState;
-
-struct UA_Client;
-typedef struct UA_Client UA_Client;
 
 /* Create a new client */
 UA_Client UA_EXPORT *
@@ -14225,37 +14277,53 @@ UA_Client_Subscriptions_remove(UA_Client *client, UA_UInt32 subscriptionId);
 UA_StatusCode UA_EXPORT
 UA_Client_Subscriptions_manuallySendPublishRequest(UA_Client *client);
 
-typedef void (*UA_MonitoredEventHandlingFunction)(const UA_UInt32 monId,
-                                                  const size_t nEventFields,
-                                                  const UA_Variant *eventFields,
-                                                  void *context);
-
-UA_StatusCode UA_EXPORT
-UA_Client_Subscriptions_addMonitoredEvent(UA_Client *client, const UA_UInt32 subscriptionId,
-                                          const UA_NodeId nodeId, const UA_UInt32 attributeID,
-                                          UA_SimpleAttributeOperand *selectClause,
-                                          const size_t nSelectClauses,
-                                          UA_ContentFilterElement *whereClause,
-                                          const size_t nWhereClauses,
-                                          const UA_MonitoredEventHandlingFunction hf,
-                                          void *hfContext, UA_UInt32 *newMonitoredItemId);
-
-typedef void (*UA_MonitoredItemHandlingFunction)(UA_UInt32 monId,
-                                                 UA_DataValue *value,
+/* Addition of monitored DataChanges */
+/* TODO for v0.4: Rename method to _DataChange. */
+typedef void (*UA_MonitoredItemHandlingFunction)(UA_UInt32 monId, UA_DataValue *value,
                                                  void *context);
 
 UA_StatusCode UA_EXPORT
-UA_Client_Subscriptions_addMonitoredItem(UA_Client *client,
-                                         UA_UInt32 subscriptionId,
+UA_Client_Subscriptions_addMonitoredItems(UA_Client *client, const UA_UInt32 subscriptionId,
+                                          UA_MonitoredItemCreateRequest *items, size_t itemsSize,
+                                          UA_MonitoredItemHandlingFunction *hfs,
+                                          void **hfContexts, UA_StatusCode *itemResults,
+                                          UA_UInt32 *newMonitoredItemIds);
+
+UA_StatusCode UA_EXPORT
+UA_Client_Subscriptions_addMonitoredItem(UA_Client *client, UA_UInt32 subscriptionId,
                                          UA_NodeId nodeId, UA_UInt32 attributeID,
                                          UA_MonitoredItemHandlingFunction hf,
                                          void *hfContext,
                                          UA_UInt32 *newMonitoredItemId,
                                          UA_Double samplingInterval);
 
+/* Monitored Events have different payloads from DataChanges. So they use a
+ * different callback method signature. */
+typedef void (*UA_MonitoredEventHandlingFunction)(const UA_UInt32 monId,
+                                                  const size_t nEventFields,
+                                                  const UA_Variant *eventFields,
+                                                  void *context);
+
 UA_StatusCode UA_EXPORT
-UA_Client_Subscriptions_removeMonitoredItem(UA_Client *client,
-                                            UA_UInt32 subscriptionId,
+UA_Client_Subscriptions_addMonitoredEvents(UA_Client *client, const UA_UInt32 subscriptionId,
+                                           UA_MonitoredItemCreateRequest *items, size_t itemsSize,
+                                           UA_MonitoredEventHandlingFunction *hfs,
+                                           void **hfContexts, UA_StatusCode *itemResults,
+                                           UA_UInt32 *newMonitoredItemIds);
+
+/* TODO for 0.4: attribute is fix for events. */
+UA_StatusCode UA_EXPORT
+UA_Client_Subscriptions_addMonitoredEvent(UA_Client *client, UA_UInt32 subscriptionId,
+                                          const UA_NodeId nodeId, UA_UInt32 attributeID,
+                                          const UA_SimpleAttributeOperand *selectClauses,
+                                          size_t selectClausesSize,
+                                          const UA_ContentFilterElement *whereClauses,
+                                          size_t whereClausesSize,
+                                          const UA_MonitoredEventHandlingFunction hf,
+                                          void *hfContext, UA_UInt32 *newMonitoredItemId);
+
+UA_StatusCode UA_EXPORT
+UA_Client_Subscriptions_removeMonitoredItem(UA_Client *client, UA_UInt32 subscriptionId,
                                             UA_UInt32 monitoredItemId);
 
 #endif
