@@ -28,7 +28,7 @@ outDir = 'out'
 srcPath = '../src/'
 incPath = '../include/'
 
-example_env.Execute('rm -rf ' + outDir)
+#example_env.Execute('rm -rf ' + outDir)
 example_env.Execute('mkdir -p ' + outDir)
 
 

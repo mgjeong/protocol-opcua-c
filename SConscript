@@ -49,8 +49,8 @@ else:
     print "TEST IS DISABLED"
     env.AppendUnique(CCFLAGS=['-fvisibility=hidden'])
 
-delBuildDir = 'rm -rf ' + buildDir
-env.do__(delBuildDir)
+#delBuildDir = 'rm -rf ' + buildDir
+#env.do__(delBuildDir)
 
 createBuildDir = 'mkdir -p ' + buildDir
 env.do__(createBuildDir )

@@ -175,6 +175,8 @@ static void monitored_msg_cb (EdgeMessage* data) {
       if (data->responses[idx]->message != NULL) {
         if(data->responses[idx]->type == Int16)
           printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>> [%d]\n", *((int*)data->responses[idx]->message->value));
+        else if(data->responses[idx]->type == Byte)
+          printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>> [%d]\n", *((uint8_t*)data->responses[idx]->message->value));
         else if(data->responses[idx]->type == UInt16)
           printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>> [%d]\n", *((int*)data->responses[idx]->message->value));
         else if(data->responses[idx]->type == Int32)
@@ -895,7 +897,8 @@ static void testSubModify() {
   subReq->subType = Edge_Modify_Sub;
   subReq->samplingInterval = 3000.0;
   subReq->publishingInterval = 0.0;
-  subReq->maxKeepAliveCount = (1 > (int) (ceil(10000.0 / subReq->publishingInterval))) ? 1 : (int) ceil(10000.0 / subReq->publishingInterval);
+  subReq->maxKeepAliveCount = (1 > (int) (ceil(10000.0 / subReq->publishingInterval))) ? 1 : (int) ceil(
+    10000.0 / subReq->publishingInterval);
   printf("keepalive count :: %d\n", subReq->maxKeepAliveCount);
   subReq->lifetimeCount = 10000;  //subReq->maxKeepAliveCount * 6;
   printf("lifetimecount :: %d\n", subReq->lifetimeCount);
