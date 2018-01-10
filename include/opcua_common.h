@@ -73,6 +73,19 @@ typedef struct EdgeBrowseResult
 
 } EdgeBrowseResult;
 
+typedef enum
+{
+    DIRECTION_FORWARD,
+    DIRECTION_INVERSE,
+    DIRECTION_BOTH
+} EdgeBrowseDirection;
+
+typedef struct EdgeBrowseParameter
+{
+    EdgeBrowseDirection direction;
+    int maxReferencesPerNode;
+} EdgeBrowseParameter;
+
 typedef struct EdgeEndpointConfig
 {
     /** requestTimeout.*/
@@ -248,12 +261,13 @@ typedef struct EdgeMessage
     EdgeResult *result;
 
     /** EdgeBrowseParameter.*/
-    //      EdgeBrowseParameter *m_browseMsg;
+    EdgeBrowseParameter *browseParam;
 
     /** EdgeBrowseResult.*/
-    EdgeBrowseResult **browseResult;
+    EdgeBrowseResult *browseResult;
 
-    int browseResponseLength;
+    /** Total number of browse result objects **/
+    int browseResultLength;
 
 } EdgeMessage;
 

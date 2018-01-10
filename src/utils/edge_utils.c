@@ -22,6 +22,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 edgeMap* createMap()
 {
@@ -36,9 +37,9 @@ void insertMapElement(edgeMap *map, keyValue key, keyValue value)
     node->key = key;
     node->value = value;
     node->next = NULL;
-        
+
     edgeMapNode *temp = map->head;
-    
+
     if(temp == NULL)
     {
         map->head = node;
@@ -83,7 +84,438 @@ void deleteMap(edgeMap *map)
     map->head = NULL;
 }
 
-// USAGE 
+char *cloneString(const char *str)
+{
+    if(!str)
+    {
+        return NULL;
+    }
+    int len = strlen(str);
+    if(len < 1)
+    {
+        return NULL;
+    }
+    char *clone = (char *)calloc(len+1,  sizeof(char));
+    if(!clone)
+    {
+        return NULL;
+    }
+    strncpy(clone, str, len);
+    return clone;
+}
+
+void freeEdgeEndpointConfig(EdgeEndpointConfig *config)
+{
+    free(config->applicationName);
+    free(config->applicationUri);
+    free(config->productUri);
+    free(config->securityPolicyUri);
+    free(config->serverName);
+    free(config->bindAddress);
+    free(config);
+}
+
+EdgeEndpointConfig *cloneEdgeEndpointConfig(EdgeEndpointConfig *config)
+{
+    if(!config)
+    {
+        return NULL;
+    }
+
+    EdgeEndpointConfig *clone = (EdgeEndpointConfig *)calloc(1, sizeof(EdgeEndpointConfig));
+    if(!clone)
+    {
+        return NULL;
+    }
+
+    clone->requestTimeout = config->requestTimeout;
+    clone->bindPort = config->bindPort;
+    if(config->applicationName)
+    {
+        clone->applicationName = cloneString(config->applicationName);
+        if(!clone->applicationName)
+        {
+            freeEdgeEndpointConfig(clone);
+            return NULL;
+        }
+    }
+
+    if(config->applicationUri)
+    {
+        clone->applicationUri = cloneString(config->applicationUri);
+        if(!clone->applicationUri)
+        {
+            freeEdgeEndpointConfig(clone);
+            return NULL;
+        }
+    }
+
+    if(config->productUri)
+    {
+        clone->productUri = cloneString(config->productUri);
+        if(!clone->productUri)
+        {
+            freeEdgeEndpointConfig(clone);
+            return NULL;
+        }
+    }
+
+    if(config->securityPolicyUri)
+    {
+        clone->securityPolicyUri = cloneString(config->securityPolicyUri);
+        if(!clone->securityPolicyUri)
+        {
+            freeEdgeEndpointConfig(clone);
+            return NULL;
+        }
+    }
+
+    if(config->serverName)
+    {
+        clone->serverName = cloneString(config->serverName);
+        if(!clone->serverName)
+        {
+            freeEdgeEndpointConfig(clone);
+            return NULL;
+        }
+    }
+
+    if(config->bindAddress)
+    {
+        clone->bindAddress = cloneString(config->bindAddress);
+        if(!clone->bindAddress)
+        {
+            freeEdgeEndpointConfig(clone);
+            return NULL;
+        }
+    }
+
+    return clone;
+}
+
+void freeEdgeEndpointInfo(EdgeEndPointInfo *endpointInfo)
+{
+    if(!endpointInfo)
+    {
+        return;
+    }
+    free(endpointInfo->endpointUri);
+    free(endpointInfo->config);
+    free(endpointInfo);
+}
+
+EdgeEndPointInfo *cloneEdgeEndpointInfo(EdgeEndPointInfo *endpointInfo)
+{
+    if(!endpointInfo)
+    {
+        return NULL;
+    }
+
+    EdgeEndPointInfo *clone = (EdgeEndPointInfo *)calloc(1, sizeof(EdgeEndPointInfo));
+    if(!clone)
+    {
+        return NULL;
+    }
+
+    if(endpointInfo->endpointUri)
+    {
+        clone->endpointUri = cloneString(endpointInfo->endpointUri);
+        if(!clone->endpointUri)
+        {
+            freeEdgeEndpointInfo(clone);
+            return NULL;
+        }
+    }
+
+    if(endpointInfo->config)
+    {
+        clone->config = cloneEdgeEndpointConfig(endpointInfo->config);
+        if(!clone->config)
+        {
+            freeEdgeEndpointInfo(clone);
+            return NULL;
+        }
+    }
+
+    return clone;
+}
+
+void freeEdgeBrowseResult(EdgeBrowseResult *browseResult, int browseResultLength)
+{
+    if(!browseResult)
+    {
+        return;
+    }
+    for(int i = 0; i < browseResultLength; ++i)
+    {
+        free(browseResult[i].browseName);
+    }
+    free(browseResult);
+}
+
+void freeEdgeNodeId(EdgeNodeId *nodeId)
+{
+    if(!nodeId)
+    {
+        return;
+    }
+    free(nodeId->nodeUri);
+    free(nodeId->nodeId);
+    free(nodeId);
+}
+
+void freeEdgeNodeInfo(EdgeNodeInfo *nodeInfo)
+{
+    if(!nodeInfo)
+    {
+        return;
+    }
+
+    free(nodeInfo->methodName);
+    freeEdgeNodeId(nodeInfo->nodeId);
+    free(nodeInfo->valueAlias);
+}
+
+void freeEdgeArgument(EdgeArgument *arg)
+{
+    if(!arg)
+    {
+        return;
+    }
+
+    free(arg->scalarValue);
+    free(arg->arrayData);
+    free(arg);
+}
+
+void freeEdgeMethodRequestParams(EdgeMethodRequestParams *methodParams)
+{
+    if(!methodParams)
+    {
+        return;
+    }
+
+    for(int i = 0; i < methodParams->num_inpArgs; ++i)
+    {
+        freeEdgeArgument(methodParams->inpArg[i]);
+    }
+    free(methodParams->inpArg);
+
+    for(int i = 0; i < methodParams->num_outArgs; ++i)
+    {
+        freeEdgeArgument(methodParams->outArg[i]);
+    }
+    free(methodParams->outArg);
+
+    free(methodParams);
+}
+
+void freeEdgeRequest(EdgeRequest *req)
+{
+    if(!req)
+    {
+        return;
+    }
+
+    free(req->value);
+    free(req->subMsg);
+    freeEdgeMethodRequestParams(req->methodParams);
+    freeEdgeNodeInfo(req->nodeInfo);
+}
+
+void freeEdgeRequests(EdgeRequest **requests, int requestLength)
+{
+    if(!requests)
+    {
+        return;
+    }
+
+    for(int i = 0; i < requestLength; ++i)
+    {
+        freeEdgeRequest(requests[i]);
+    }
+    free(requests);
+}
+
+void freeEdgeVersatility(EdgeVersatility *versatileValue)
+{
+    if(!versatileValue)
+    {
+        return;
+    }
+
+    free(versatileValue->value);
+    free(versatileValue);
+}
+
+void freeEdgeResponse(EdgeResponse *response)
+{
+    if(!response)
+    {
+        return;
+    }
+
+    freeEdgeVersatility(response->message);
+    free(response->value);
+    freeEdgeNodeInfo(response->nodeInfo);
+    free(response->result);
+    free(response);
+}
+
+void freeEdgeResponses(EdgeResponse **responses, int responseLength)
+{
+    if(!responses)
+    {
+        return;
+    }
+
+    for(int i = 0; i < responseLength; ++i)
+    {
+        freeEdgeResponse(responses[i]);
+    }
+    free(responses);
+}
+
+void freeEdgeMessage(EdgeMessage *msg)
+{
+    if(!msg)
+    {
+        return;
+    }
+
+    freeEdgeEndpointInfo(msg->endpointInfo);
+    freeEdgeRequest(msg->request);
+    freeEdgeRequests(msg->requests, msg->requestLength);
+    freeEdgeResponses(msg->responses, msg->responseLength);
+    free(msg->result);
+    free(msg->browseParam);
+    freeEdgeBrowseResult(msg->browseResult, msg->browseResultLength);
+}
+
+EdgeResult *createEdgeResult(EdgeStatusCode code)
+{
+    EdgeResult *result = (EdgeResult *)calloc(1, sizeof(EdgeResult));
+    if(!result)
+    {
+        return NULL;
+    }
+    result->code = code;
+    return result;
+}
+
+bool isNodeClassValid(UA_NodeClass nodeClass)
+{
+    bool valid = true;
+    switch(nodeClass)
+    {
+        case UA_NODECLASS_UNSPECIFIED:
+        case UA_NODECLASS_OBJECT:
+        case UA_NODECLASS_VARIABLE:
+        case UA_NODECLASS_METHOD:
+        case UA_NODECLASS_OBJECTTYPE:
+        case UA_NODECLASS_VARIABLETYPE:
+        case UA_NODECLASS_REFERENCETYPE:
+        case UA_NODECLASS_DATATYPE:
+        case UA_NODECLASS_VIEW:
+            valid = true;
+            break;
+        default:
+            valid = false;
+            break;
+    }
+    return valid;
+}
+
+EdgeNodeId *cloneEdgeNodeId(EdgeNodeId *nodeId)
+{
+    if(!nodeId)
+    {
+        return NULL;
+    }
+
+    EdgeNodeId *clone = (EdgeNodeId *) calloc(1, sizeof(EdgeNodeId));
+    if(!clone)
+    {
+        return NULL;
+    }
+
+    clone->nameSpace = nodeId->nameSpace;
+    if(nodeId->nodeUri)
+    {
+        clone->nodeUri = cloneString(nodeId->nodeUri);
+        if(!clone->nodeUri)
+        {
+            free(clone);
+            return NULL;
+        }
+    }
+    clone->nodeIdentifier = nodeId->nodeIdentifier;
+    clone->type = nodeId->type;
+    if(nodeId->nodeId)
+    {
+        clone->nodeId = cloneString(nodeId->nodeId);
+        if(!clone->nodeId)
+        {
+            free(clone->nodeUri);
+            free(clone);
+            return NULL;
+        }
+    }
+    clone->integerNodeId = nodeId->integerNodeId;
+
+    return clone;
+}
+
+EdgeNodeInfo *cloneEdgeNodeInfo(EdgeNodeInfo *nodeInfo)
+{
+    if(!nodeInfo)
+    {
+        return NULL;
+    }
+
+    EdgeNodeInfo *clone = (EdgeNodeInfo *)calloc(1, sizeof(EdgeNodeInfo));
+    if(!clone)
+    {
+        return NULL;
+    }
+
+    if(nodeInfo->methodName)
+    {
+        clone->methodName = cloneString(nodeInfo->methodName);
+        if(!clone->methodName)
+        {
+            free(clone);
+            return NULL;
+        }
+    }
+
+    if(nodeInfo->nodeId)
+    {
+        clone->nodeId = cloneEdgeNodeId(nodeInfo->nodeId);
+        if(!clone->nodeId)
+        {
+            free(clone->methodName);
+            free(clone);
+            return NULL;
+        }
+    }
+
+    if(nodeInfo->valueAlias)
+    {
+        clone->valueAlias = cloneString(nodeInfo->valueAlias);
+        if(!clone->valueAlias)
+        {
+            freeEdgeNodeId(clone->nodeId);
+            free(clone->methodName);
+            free(clone);
+            return NULL;
+        }
+    }
+
+    return clone;
+}
+
+// USAGE
 
 /*
     edgeMap* X = createMap();

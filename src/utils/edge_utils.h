@@ -8,6 +8,9 @@
 #ifndef EDGE_UTILS_H_
 #define EDGE_UTILS_H_
 
+#include "open62541.h"
+#include "opcua_common.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -53,8 +56,8 @@ void insertMapElement(edgeMap *map, keyValue key, keyValue value);
 /**
  * Get element value from the edge util map
  *
- * @param map 
- * @param key 
+ * @param map
+ * @param key
  * @return keyValue
  */
 keyValue getMapElement(edgeMap *map, keyValue key);
@@ -62,10 +65,50 @@ keyValue getMapElement(edgeMap *map, keyValue key);
 /**
  * Delete and free memory of the edge util map
  *
- * @param map 
+ * @param map
  * @return keyValue
  */
 void deleteMap(edgeMap *map);
+
+char *cloneString(const char *str);
+
+void freeEdgeEndpointConfig(EdgeEndpointConfig *config);
+
+void freeEdgeEndpointInfo(EdgeEndPointInfo *endpointInfo);
+
+void freeEdgeBrowseResult(EdgeBrowseResult *browseResult, int browseResultLength);
+
+void freeEdgeNodeId(EdgeNodeId *nodeId);
+
+void freeEdgeNodeInfo(EdgeNodeInfo *nodeInfo);
+
+void freeEdgeArgument(EdgeArgument *arg);
+
+void freeEdgeMethodRequestParams(EdgeMethodRequestParams *methodParams);
+
+void freeEdgeRequest(EdgeRequest *req);
+
+void freeEdgeRequests(EdgeRequest **requests, int requestLength);
+
+void freeEdgeVersatility(EdgeVersatility *versatileValue);
+
+void freeEdgeResponse(EdgeResponse *response);
+
+void freeEdgeResponses(EdgeResponse **responses, int responseLength);
+
+void freeEdgeMessage(EdgeMessage *msg);
+
+EdgeEndpointConfig *cloneEdgeEndpointConfig(EdgeEndpointConfig *config);
+
+EdgeEndPointInfo *cloneEdgeEndpointInfo(EdgeEndPointInfo *endpointInfo);
+
+EdgeResult *createEdgeResult(EdgeStatusCode code);
+
+bool isNodeClassValid(UA_NodeClass nodeClass);
+
+EdgeNodeId *cloneEdgeNodeId(EdgeNodeId *nodeId);
+
+EdgeNodeInfo *cloneEdgeNodeInfo(EdgeNodeInfo *nodeInfo);
 
 #ifdef __cplusplus
 }
