@@ -5,7 +5,7 @@
 #include <stdio.h>
 
 #define DEBUG 0
-#ifdef DEBUG
+#if DEBUG
 #define LOG(param) printf("[Browse] %s\n", param)
 #else
 #define LOG(param)
@@ -84,7 +84,11 @@ static BrowseMapListNode *createBrowseMapListNode(UA_NodeId nodeId, UA_String *b
     {
         return NULL;
     }
-    node->nodeId = nodeId;
+    if(UA_STATUSCODE_GOOD != UA_NodeId_copy(&nodeId, &node->nodeId))
+    {
+        free(node);
+        return NULL;
+    }
     node->browseName = convertUAStringToString(browseName);
     node->next = NULL;
     return node;
@@ -125,42 +129,6 @@ static bool hasNode(int index, UA_NodeId nodeId)
     }
 
     return false;
-}
-
-static bool getBrowseNamesFromMap(EdgeBrowseResult **list, int *listCount, int bucketId)
-{
-    if(map == NULL || mapSize <= 0)
-    {
-        *list = NULL;
-        *listCount = 0;
-        return true;
-    }
-
-    if(bucketId >= mapSize)
-    {
-        return false;
-    }
-
-    BrowseMapListNode *ptr = map[bucketId].listHead;
-    int listSize = map[bucketId].listSize;
-    EdgeBrowseResult *localList = (EdgeBrowseResult *)calloc(listSize, sizeof(EdgeBrowseResult *));
-    if(!localList)
-    {
-        return false;
-    }
-
-    int i = 0;
-    while(ptr)
-    {
-        localList[i].browseName = cloneString(ptr->browseName);
-        ptr = ptr->next;
-        i++;
-    }
-
-    *listCount = listSize;
-    *list = localList;
-
-    return true;
 }
 
 static const int BROWSE_DESCRIPTION_NODECLASS_MASK =
@@ -388,7 +356,13 @@ bool checkDisplayName(UA_String displayName, EdgeNodeInfo *ep)
 bool checkNodeId(UA_ExpandedNodeId nodeId, EdgeNodeInfo *ep)
 {
     bool retVal = true;
-    if(nodeId.serverIndex != 0)
+    if(UA_NodeId_isNull(&nodeId.nodeId))
+    {
+        LOG("Error: " NODEID_NULL);
+        invokeErrorCb(ep, STATUS_ERROR, NODEID_NULL);
+        retVal = false;
+    }
+    else if(nodeId.serverIndex != 0)
     {
         LOG("Error: " NODEID_SERVERINDEX);
         invokeErrorCb(ep, STATUS_ERROR, NODEID_SERVERINDEX);
@@ -407,6 +381,52 @@ bool checkReferenceTypeId(UA_NodeId nodeId, EdgeNodeInfo *ep)
         retVal = false;
     }
     return retVal;
+}
+
+static void invokeResponseCb(EdgeMessage *msg, int msgId, EdgeBrowseResult *browseResult, int size)
+{
+    EdgeMessage *resultMsg = (EdgeMessage*) calloc(1, sizeof(EdgeMessage));
+    if(!resultMsg)
+    {
+        LOG("Memory allocation failed.");
+        return;
+    }
+
+    resultMsg->type = BROWSE_RESPONSE;
+    resultMsg->browseResult = browseResult;
+    resultMsg->browseResultLength = size;
+
+    resultMsg->endpointInfo = cloneEdgeEndpointInfo(msg->endpointInfo);
+    if(!resultMsg->endpointInfo)
+    {
+        LOG("Failed to clone the EdgeEndpointInfo.");
+        freeEdgeMessage(resultMsg);
+        return;
+    }
+
+    EdgeResponse *response = (EdgeResponse *) calloc(1, sizeof(EdgeResponse));
+    if(!response)
+    {
+        LOG("Memory allocation failed.");
+        freeEdgeMessage(resultMsg);
+        return;
+    }
+    response->nodeInfo = cloneEdgeNodeInfo(getEndpoint(msg, msgId));
+    response->requestId = msgId; // Response for msgId'th request.
+    EdgeResponse **responses = (EdgeResponse **) calloc(1, sizeof(EdgeResponse *));
+    if(!responses)
+    {
+        LOG("Memory allocation failed.");
+        freeEdgeResponse(response);
+        freeEdgeMessage(resultMsg);
+        return;
+    }
+    responses[0] = response;
+    resultMsg->responses = responses;
+    resultMsg->responseLength = 1;
+
+    onResponseMessage(resultMsg);
+    freeEdgeMessage(resultMsg);
 }
 
 void printNodeId(UA_NodeId n1)
@@ -493,9 +513,9 @@ EdgeStatusCode browse(UA_Client *client, EdgeMessage *msg, UA_NodeId *nodeIdList
             else
             {
                 const char *statusStr = UA_StatusCode_name(status);
-                printf("Error result: %s\n", statusStr);
                 invokeErrorCb(ep, STATUS_ERROR, statusStr);
             }
+            continue;
         }
 
         checkContinuationPoint(bResp.results[i].continuationPoint, ep);
@@ -520,6 +540,7 @@ EdgeStatusCode browse(UA_Client *client, EdgeMessage *msg, UA_NodeId *nodeIdList
         int nextNodeListCount = 0;
         for (size_t j = 0; j < bResp.results[i].referencesSize; ++j)
         {
+            bool isError = false;
             UA_ReferenceDescription *ref = &(bResp.results[i].references[j]);
             if((direction == DIRECTION_FORWARD && ref->isForward == false)
                 || (direction == DIRECTION_INVERSE && ref->isForward == true))
@@ -527,26 +548,58 @@ EdgeStatusCode browse(UA_Client *client, EdgeMessage *msg, UA_NodeId *nodeIdList
                 LOG("Error: " STATUS_VIEW_DIRECTION_NOT_MATCH_VALUE);
                 invokeErrorCb(ep, STATUS_VIEW_DIRECTION_NOT_MATCH,
                     STATUS_VIEW_DIRECTION_NOT_MATCH_VALUE);
+                isError = true;
             }
 
-            checkBrowseName(ref->browseName.name, ep);
-            checkNodeClass(ref->nodeClass, ep);
-            checkDisplayName(ref->displayName.text, ep);
-            checkNodeId(ref->nodeId, ep);
-            checkReferenceTypeId(ref->referenceTypeId, ep);
+            if(!checkBrowseName(ref->browseName.name, ep))
+                isError = true;
+            if(!checkNodeClass(ref->nodeClass, ep))
+                isError = true;
+            if(!checkDisplayName(ref->displayName.text, ep))
+                isError = true;
+            if(!checkNodeId(ref->nodeId, ep))
+                isError = true;
+            if(!checkReferenceTypeId(ref->referenceTypeId, ep))
+                isError = true;
 
-            if (!hasNode(msgId, ref->nodeId.nodeId))
+            if(!isError)
             {
-#if DEBUG
-                printf("Adding entry to Map\n");
-                printNodeId(ref->nodeId.nodeId);
-#endif
-                if(!addToMap(msgId, ref->nodeId.nodeId, &ref->browseName.name))
+                int size = 1;
+                EdgeBrowseResult *browseResult = (EdgeBrowseResult *)calloc(size, sizeof(EdgeBrowseResult *));
+                if(!browseResult)
                 {
+                    LOG("Memory allocation failed.");
+                    statusCode = STATUS_INTERNAL_ERROR;
                     goto EXIT;
                 }
-                nextNodeIdList[nextNodeListCount++] = ref->nodeId.nodeId;
-                nextMsgIdList[nextMsgListCount++] = msgId;
+                browseResult->browseName = convertUAStringToString(&ref->browseName.name);
+                if(!browseResult->browseName)
+                {
+                    LOG("Memory allocation failed.");
+                    statusCode = STATUS_INTERNAL_ERROR;
+                    free(browseResult);
+                    goto EXIT;
+                }
+                invokeResponseCb(msg, msgId, browseResult, size);
+#if DEBUG
+                printNodeId(ref->nodeId.nodeId);
+#endif
+                if (!hasNode(msgId, ref->nodeId.nodeId))
+                {
+                    LOG("Adding this NodeId in Map.");
+                    if(!addToMap(msgId, ref->nodeId.nodeId, &ref->browseName.name))
+                    {
+                        LOG("Adding node to map failed.");
+                        statusCode = STATUS_INTERNAL_ERROR;
+                        goto EXIT;
+                    }
+                    nextNodeIdList[nextNodeListCount++] = ref->nodeId.nodeId;
+                    nextMsgIdList[nextMsgListCount++] = msgId;
+                }
+                else
+                {
+                    LOG("Already added this NodeId in Map.");
+                }
             }
         }
         if(nextNodeListCount > 0)
@@ -654,65 +707,6 @@ EdgeResult executeBrowse(UA_Client *client, EdgeMessage *msg)
         LOG("Browse failed.");
         result.code = STATUS_ERROR;
         goto EXIT;
-    }
-
-    for(int i = 0; i < nodesToBrowseSize; ++i)
-    {
-        EdgeBrowseResult *browseResult = NULL;
-        EdgeMessage *resultMsg = NULL;
-        int browseResultSize = 0;
-        if(!getBrowseNamesFromMap(&browseResult, &browseResultSize, i))
-        {
-            continue;
-        }
-
-        resultMsg = (EdgeMessage*) calloc(1, sizeof(EdgeMessage));
-        if(!resultMsg)
-        {
-            LOG("Memory allocation failed.");
-            result.code = STATUS_INTERNAL_ERROR;
-            freeEdgeBrowseResult(browseResult, browseResultSize);
-            goto EXIT;
-        }
-
-        resultMsg->type = BROWSE_RESPONSE;
-        resultMsg->browseResult = browseResult;
-        resultMsg->browseResultLength = browseResultSize;
-
-        resultMsg->endpointInfo = cloneEdgeEndpointInfo(msg->endpointInfo);
-        if(!resultMsg->endpointInfo)
-        {
-            LOG("Failed to clone the EdgeEndpointInfo.");
-            result.code = STATUS_INTERNAL_ERROR;
-            freeEdgeMessage(resultMsg);
-            goto EXIT;
-        }
-
-        EdgeResponse *response = (EdgeResponse *) calloc(1, sizeof(EdgeResponse));
-        if(!response)
-        {
-            LOG("Memory allocation failed.");
-            result.code = STATUS_INTERNAL_ERROR;
-            freeEdgeMessage(resultMsg);
-            goto EXIT;
-        }
-        response->nodeInfo = cloneEdgeNodeInfo(getEndpoint(msg, i));
-        response->requestId = i; // Response for i'th request.
-        EdgeResponse **responses = (EdgeResponse **) calloc(1, sizeof(EdgeResponse *));
-        if(!responses)
-        {
-            LOG("Memory allocation failed.");
-            result.code = STATUS_INTERNAL_ERROR;
-            freeEdgeResponse(response);
-            freeEdgeMessage(resultMsg);
-            goto EXIT;
-        }
-        responses[0] = response;
-        resultMsg->responses = responses;
-        resultMsg->responseLength = 1;
-
-        onResponseMessage(resultMsg);
-        freeEdgeMessage(resultMsg);
     }
 
     result.code = STATUS_OK;

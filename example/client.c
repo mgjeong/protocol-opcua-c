@@ -23,6 +23,8 @@ static char endpointUri[MAX_CHAR_SIZE];
 
 static EdgeConfigure *config = NULL;
 
+#define TEST_WITH_REFERENCE_SERVER 1
+
 static void startClient(char* addr, int port, char *securityPolicyUri);
 
 static void response_msg_cb (EdgeMessage* data) {
@@ -241,6 +243,7 @@ static void error_msg_cb (EdgeMessage* data) {
   printf("================================================\n");
 }
 
+#if 0
 static void browse_msg_cb (EdgeMessage* data) {
   if (data->type == BROWSE_RESPONSE) {
       EdgeBrowseResult *browseResult = data->browseResult;
@@ -252,6 +255,21 @@ static void browse_msg_cb (EdgeMessage* data) {
         printf("[%d] %s\n", idx+1, browseResult[idx].browseName);
       }
       printf("================================================\n");
+    }
+}
+#endif
+static void browse_msg_cb (EdgeMessage* data) {
+  if (data->type == BROWSE_RESPONSE) {
+      EdgeBrowseResult *browseResult = data->browseResult;
+      int idx = 0;
+      printf("\n[Application browse response callback] [Request(%d)]\n",
+        data->responses[0]->requestId);
+      printf("BrowseName(s): ");
+      for (idx = 0; idx < data->browseResultLength; idx++) {
+        if(idx != 0) printf(", ");
+        printf("%s", browseResult[idx].browseName);
+      }
+      printf("\n");
     }
 }
 
@@ -417,12 +435,24 @@ static void testBrowse() {
   msg->endpointInfo = ep;
   msg->command = CMD_BROWSE;
 
-  EdgeNodeInfo *nodeInfo = (EdgeNodeInfo*) calloc(1, sizeof(EdgeNodeInfo));
-  nodeInfo->nodeId = (EdgeNodeId*) calloc(1, sizeof(EdgeNodeId));
-  nodeInfo->nodeId->type = INTEGER;
-  nodeInfo->nodeId->integerNodeId = RootFolder;
-  nodeInfo->nodeId->nameSpace = SYSTEM_NAMESPACE_INDEX;
+#if TEST_WITH_REFERENCE_SERVER
+    EdgeNodeInfo *nodeInfo = (EdgeNodeInfo*) calloc(1, sizeof(EdgeNodeInfo));
+    nodeInfo->nodeId = (EdgeNodeId*) calloc(1, sizeof(EdgeNodeId));
+    nodeInfo->nodeId->type = STRING;
+    nodeInfo->nodeId->nodeId = "DataAccess_DataItem_Int16";
+    nodeInfo->nodeId->nameSpace = 2;
 
+    printf("\n\n" COLOR_YELLOW "********** Browse Int16 node in namespace 2 **********" COLOR_RESET "\n");
+
+#else
+    EdgeNodeInfo *nodeInfo = (EdgeNodeInfo*) calloc(1, sizeof(EdgeNodeInfo));
+    nodeInfo->nodeId = (EdgeNodeId*) calloc(1, sizeof(EdgeNodeId));
+    nodeInfo->nodeId->type = INTEGER;
+    nodeInfo->nodeId->integerNodeId = RootFolder;
+    nodeInfo->nodeId->nameSpace = SYSTEM_NAMESPACE_INDEX;
+
+    printf("\n\n" COLOR_YELLOW "********** Browse RootFolder node in system namespace **********" COLOR_RESET "\n");
+#endif
   EdgeRequest *request = (EdgeRequest*) calloc(1, sizeof(EdgeRequest));
   request->nodeInfo = nodeInfo;
 
@@ -432,7 +462,6 @@ static void testBrowse() {
   msg->browseParam->direction = DIRECTION_FORWARD;
   msg->browseParam->maxReferencesPerNode = 0;
 
-  printf("\n\n" COLOR_YELLOW "********** Browse Nodes in RootFolder in system namespace **********" COLOR_RESET "\n");
   browseNode(msg);
 
   free(request);
@@ -455,6 +484,29 @@ static void testBrowses() {
   msg->endpointInfo = ep;
   msg->command = CMD_BROWSE;
 
+#if TEST_WITH_REFERENCE_SERVER
+  int requestLength = 2;
+  EdgeRequest **requests = (EdgeRequest**) calloc(requestLength, sizeof(EdgeRequest *));
+
+  EdgeNodeInfo *nodeInfo1 = (EdgeNodeInfo*) calloc(1, sizeof(EdgeNodeInfo));
+  nodeInfo1->nodeId = (EdgeNodeId*) calloc(1, sizeof(EdgeNodeId));
+  nodeInfo1->nodeId->type = STRING;
+  nodeInfo1->nodeId->nodeId = "DataAccess_DataItem_Int16";
+  nodeInfo1->nodeId->nameSpace = 2;
+
+  EdgeNodeInfo *nodeInfo2 = (EdgeNodeInfo*) calloc(1, sizeof(EdgeNodeInfo));
+  nodeInfo2->nodeId = (EdgeNodeId*) calloc(1, sizeof(EdgeNodeId));
+  nodeInfo2->nodeId->type = STRING;
+  nodeInfo2->nodeId->nodeId = "DataAccess_AnalogType_SByte";
+  nodeInfo2->nodeId->nameSpace = 2;
+
+  requests[0] = (EdgeRequest*) calloc(1, sizeof(EdgeRequest));
+  requests[0]->nodeInfo = nodeInfo1;
+  requests[1] = (EdgeRequest*) calloc(1, sizeof(EdgeRequest));
+  requests[1]->nodeInfo = nodeInfo2;
+
+  printf("\n\n" COLOR_YELLOW "********** Browse Int16 & SByte nodes in namespace 2 **********" COLOR_RESET "\n");
+#else
   int requestLength = 3;
   EdgeRequest **requests = (EdgeRequest**) calloc(requestLength, sizeof(EdgeRequest *));
 
@@ -483,19 +535,24 @@ static void testBrowses() {
   requests[2] = (EdgeRequest*) calloc(1, sizeof(EdgeRequest));
   requests[2]->nodeInfo = nodeInfo3;
 
+  printf("\n\n" COLOR_YELLOW "********** Browse RootFolder, ObjectsFolder nodes in system namespace and Object1 in namespace 1 **********" COLOR_RESET "\n");
+#endif
+
   msg->requests = requests;
   msg->requestLength = requestLength;
   msg->browseParam = (EdgeBrowseParameter *)calloc(1, sizeof(EdgeBrowseParameter));
   msg->browseParam->direction = DIRECTION_FORWARD;
   msg->browseParam->maxReferencesPerNode = 0;
 
-  printf("\n\n" COLOR_YELLOW "********** Browse RootFolder, ObjectsFolder & Object1 **********" COLOR_RESET "\n");
   browseNode(msg);
 
   free(nodeInfo1->nodeId); free(nodeInfo1);
   free(nodeInfo2->nodeId); free(nodeInfo2);
+  free(requests[0]); free(requests[1]);
+#if !TEST_WITH_REFERENCE_SERVER
   free(nodeInfo3->nodeId); free(nodeInfo3);
-  free(requests[0]); free(requests[1]); free(requests[2]);
+  free(requests[2]);
+#endif
   free(requests);
   free(ep); ep = NULL;
   free(msg); msg = NULL;

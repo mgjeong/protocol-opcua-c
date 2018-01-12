@@ -213,6 +213,8 @@ typedef enum
 
 #define NODECLASS_INVALID          "NodeClass has invalid value"
 
+#define NODEID_NULL          "NodeId is null"
+
 #define NODEID_SERVERINDEX          "NodeId's server index is not zero"
 
 #define REFERENCETYPEID_NULL          "ReferenceTypeId is null"
