@@ -270,6 +270,30 @@ static void testCreateNodes() {
   item->variableData = (void*) &value;
   createNode(DEFAULT_NAMESPACE_VALUE, item);
 
+  printf("\n[%d]) Variable node with UInt32 variant ", ++index);
+  value = 444;
+  item->browseName = "UInt32";
+  item->variableItemName = "Location";
+  item->variableIdentifier = UInt32;
+  item->variableData = (void*) &value;
+  createNode(DEFAULT_NAMESPACE_VALUE, item);
+
+  printf("\n[%d]) Variable node with UInt64 variant ", ++index);
+  value = 3445516;
+  item->browseName = "UInt64";
+  item->variableItemName = "Location";
+  item->variableIdentifier = UInt64;
+  item->variableData = (void*) &value;
+  createNode(DEFAULT_NAMESPACE_VALUE, item);
+
+  printf("\n[%d]) Variable node with Int16 variant ", ++index);
+  value = 4;
+  item->browseName = "Int16";
+  item->variableItemName = "Location";
+  item->variableIdentifier = Int16;
+  item->variableData = (void*) &value;
+  createNode(DEFAULT_NAMESPACE_VALUE, item);
+
   printf("\n[%d]) Variable node with Int32 variant ", ++index);
   value = 40;
   item->browseName = "Int32";
@@ -290,7 +314,7 @@ static void testCreateNodes() {
   uint32_t int32_val= 4456;
   item->accessLevel= WRITE;
   item->userAccessLevel = WRITE;
-  item->browseName = "UInt32";
+  item->browseName = "UInt32writeonly";
   item->variableItemName = "Location";
   item->variableIdentifier = UInt32;
   item->variableData = (void*) &int32_val;
@@ -300,7 +324,7 @@ static void testCreateNodes() {
   item->accessLevel= READ;
   printf("\n[%d]) Variable node with UInt64 variant ", ++index);
   int64_t int64_val= 3270000;
-  item->browseName = "UInt64";
+  item->browseName = "UInt64readonly";
   item->variableItemName = "Location";
   item->variableIdentifier = UInt64;
   item->variableData = (void*) &int64_val;
@@ -534,12 +558,20 @@ static void testCreateNodes() {
   reference->targetPath = "ObjectType1";
   addReference(reference);
 
-  printf("\n[%d]) Reference Node", ++index);
+  printf("\n[%d]) Reference Node1", ++index);
   reference->forward=  true;
   reference->sourceNamespace = DEFAULT_NAMESPACE_VALUE;
   reference->sourcePath = "ViewNode1";
   reference->targetNamespace = DEFAULT_NAMESPACE_VALUE;
   reference->targetPath = "ObjectType1";
+  addReference(reference);
+
+  printf("\n[%d]) Reference Node2", ++index);
+  reference->forward=  true;
+  reference->sourceNamespace = DEFAULT_NAMESPACE_VALUE;
+  reference->sourcePath = "ObjectType1";
+  reference->targetNamespace = DEFAULT_NAMESPACE_VALUE;
+  reference->targetPath = "ViewNode1";
   addReference(reference);
 
   
