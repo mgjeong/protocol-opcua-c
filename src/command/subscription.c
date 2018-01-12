@@ -339,7 +339,7 @@ static UA_StatusCode modifySub(UA_Client *client, EdgeMessage *msg) {
 
     for(size_t index = 0; index < modifyMonitoredItemsResponse.resultsSize; index++)
     {
-        printf("Result [%d] modify monitoreditem :: %s\n\n", index+1, UA_StatusCode_name(
+        printf("Result [%d] modify monitoreditem :: %s\n\n", (int) index+1, UA_StatusCode_name(
                     modifyMonitoredItemsResponse.results[index].statusCode));
         
         if(modifyMonitoredItemsResponse.results[index].statusCode!= UA_STATUSCODE_GOOD)
@@ -413,7 +413,7 @@ static UA_StatusCode modifySub(UA_Client *client, EdgeMessage *msg) {
         if(setPublishingModeResponse.results[index] != UA_STATUSCODE_GOOD)
             publishFail = true;
 
-        printf("Result [%d] set publish mode :: %s\n\n", index+1, UA_StatusCode_name(
+        printf("Result [%d] set publish mode :: %s\n\n", (int) index+1, UA_StatusCode_name(
                 setPublishingModeResponse.results[index]));
     }
 
