@@ -466,6 +466,7 @@ static void testBrowse() {
 
   browseNode(msg);
 
+  free(msg->browseParam);
   free(request);
   free(nodeInfo->nodeId);
   free(nodeInfo);
@@ -548,6 +549,7 @@ static void testBrowses() {
 
   browseNode(msg);
 
+  free(msg->browseParam);
   free(nodeInfo1->nodeId); free(nodeInfo1);
   free(nodeInfo2->nodeId); free(nodeInfo2);
   free(requests[0]); free(requests[1]);

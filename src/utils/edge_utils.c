@@ -106,6 +106,11 @@ char *cloneString(const char *str)
 
 void freeEdgeEndpointConfig(EdgeEndpointConfig *config)
 {
+    if(!config)
+    {
+        return;
+    }
+
     free(config->applicationName);
     free(config->applicationUri);
     free(config->productUri);
@@ -200,7 +205,7 @@ void freeEdgeEndpointInfo(EdgeEndPointInfo *endpointInfo)
         return;
     }
     free(endpointInfo->endpointUri);
-    free(endpointInfo->config);
+    freeEdgeEndpointConfig(endpointInfo->config);
     free(endpointInfo);
 }
 
@@ -274,6 +279,7 @@ void freeEdgeNodeInfo(EdgeNodeInfo *nodeInfo)
     free(nodeInfo->methodName);
     freeEdgeNodeId(nodeInfo->nodeId);
     free(nodeInfo->valueAlias);
+    free(nodeInfo);
 }
 
 void freeEdgeArgument(EdgeArgument *arg)
@@ -321,6 +327,7 @@ void freeEdgeRequest(EdgeRequest *req)
     free(req->subMsg);
     freeEdgeMethodRequestParams(req->methodParams);
     freeEdgeNodeInfo(req->nodeInfo);
+    free(req);
 }
 
 void freeEdgeRequests(EdgeRequest **requests, int requestLength)
@@ -348,6 +355,19 @@ void freeEdgeVersatility(EdgeVersatility *versatileValue)
     free(versatileValue);
 }
 
+void freeEdgeDiagnosticInfo(EdgeDiagnosticInfo *info)
+{
+    if(!info)
+    {
+        return;
+    }
+
+    free(info->additionalInfo);
+    free(info->innerDiagnosticInfo);
+    free(info->msg);
+    free(info);
+}
+
 void freeEdgeResponse(EdgeResponse *response)
 {
     if(!response)
@@ -359,6 +379,7 @@ void freeEdgeResponse(EdgeResponse *response)
     free(response->value);
     freeEdgeNodeInfo(response->nodeInfo);
     free(response->result);
+    freeEdgeDiagnosticInfo(response->m_diagnosticInfo);
     free(response);
 }
 
@@ -390,6 +411,7 @@ void freeEdgeMessage(EdgeMessage *msg)
     free(msg->result);
     free(msg->browseParam);
     freeEdgeBrowseResult(msg->browseResult, msg->browseResultLength);
+    free(msg);
 }
 
 EdgeResult *createEdgeResult(EdgeStatusCode code)
