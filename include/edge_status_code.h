@@ -54,7 +54,7 @@ typedef enum
     STATUS_WRITE_EMPTY_RESULT = 51,
     STATUS_WRITE_TOO_MANY_RESPONSE = 52,
 
-    STATUS_VIEW_NOIDID_UNKNOWN_ALL_RESULTS = 60,
+    STATUS_VIEW_NODEID_UNKNOWN_ALL_RESULTS = 60,
     STATUS_VIEW_CONTINUATION_DATA_EMPTY = 61,
     STATUS_VIEW_REFERENCE_DATA_INVALID = 62,
     STATUS_VIEW_RESULT_STATUS_CODE_BAD = 63,
@@ -88,7 +88,7 @@ typedef enum
     STATUS_MONITOR_SAMPLING_INVERVAL_INVALID = 151,
     STATUS_MONITOR_QUEUE_SIZE_INVALID = 152,
 
-    STATUS_NOT_SUPPROT = 300,
+    STATUS_NOT_SUPPORT = 300,
 
 } EdgeStatusCode;
 
@@ -134,7 +134,7 @@ typedef enum
 
 #define STATUS_WRITE_TOO_MANY_RESPONSE_VALUE         "result is more than requests"
 
-#define STATUS_VIEW_NOIDID_UNKNOWN_ALL_RESULTS_VALUE         "all of results has Bad_NodeIdUnknown error"
+#define STATUS_VIEW_NODEID_UNKNOWN_ALL_RESULTS_VALUE         "all of results has Bad_NodeIdUnknown error"
 
 #define STATUS_VIEW_CONTINUATION_DATA_EMPTY_VALUE         "continuation is availale. but there is no data_VALUEempty)"
 
@@ -197,6 +197,26 @@ typedef enum
 
 #define STATUS_MONITOR_QUEUE_SIZE_INVALID_VALUE           "queue size is invalid"
 
-#define STATUS_NOT_SUPPROT_VALUE          "this function is not suppored"
+#define STATUS_NOT_SUPPORT_VALUE          "this function is not supported"
+
+#define CONTINUATIONPOINT_EMPTY          "ContinuationPoint is empty"
+
+#define CONTINUATIONPOINT_LONG          "ContinuationPoint is very long"
+
+#define BROWSENAME_EMPTY          "BrowseName is empty"
+
+#define BROWSENAME_LONG          "BrowseName is very long"
+
+#define DISPLAYNAME_EMPTY          "DisplayName is empty"
+
+#define DISPLAYNAME_LONG          "DisplayName is very long"
+
+#define NODECLASS_INVALID          "NodeClass has invalid value"
+
+#define NODEID_NULL          "NodeId is null"
+
+#define NODEID_SERVERINDEX          "NodeId's server index is not zero"
+
+#define REFERENCETYPEID_NULL          "ReferenceTypeId is null"
 
 #endif /* EDGE_STATUS_CODE_H_ */

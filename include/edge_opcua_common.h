@@ -32,7 +32,7 @@
 #define SYSTEM_NAMESPACE_INDEX (0)
 #define DEFAULT_NAMESPACE_INDEX (2)
 #define DEFAULT_REQUEST_ID (10000)
-#define MAX_BROWSERREQUEST_SIZE (10)
+#define MAX_BROWSEREQUEST_SIZE (10)
 
 #define WELL_KNOWN_DISCOVERY_VALUE                        "/server/discovery"
 #define WELL_KNOWN_DISCOVERY_DESC                        "Well-known discovery uri"
