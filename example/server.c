@@ -348,6 +348,50 @@ static void testCreateNodes() {
   item->variableData = (void*) &flag;
   createNode(DEFAULT_NAMESPACE_VALUE, item);
 
+  printf("\n[%d]) Variable node with dateTime variant ", ++index);
+  UA_DateTime time = UA_DateTime_now();
+  item->browseName = "DateTime";
+  item->variableItemName = "DateTime";
+  item->variableIdentifier = DateTime;
+  item->variableData = (void*) &time;
+  createNode(DEFAULT_NAMESPACE_VALUE, item);
+  
+  printf("\n[%d]) Variable node with SByte variant ", ++index);
+  UA_SByte sbyte = 2;
+  item->browseName = "SByte";
+  item->variableItemName = "SByte";
+  item->variableIdentifier = SByte;
+  item->variableData = (void*) &sbyte;
+  createNode(DEFAULT_NAMESPACE_VALUE, item);
+
+  printf("\n[%d]) Variable node with GUID variant ", ++index);
+  UA_Guid guid = {1, 0, 1, {0,0,0,0,1,1,1,1}};
+  item->browseName = "Guid";
+  item->variableItemName = "Guid";
+  item->variableIdentifier = Guid;
+  item->variableData = (void*) &guid;
+  createNode(DEFAULT_NAMESPACE_VALUE, item);
+
+  printf("\n[%d]) Variable node with qualified name variant ", ++index);
+  UA_QualifiedName* qn_value = (UA_QualifiedName*) malloc(sizeof(UA_QualifiedName));
+  UA_String str = UA_STRING_ALLOC("qualifiedName");
+  qn_value->namespaceIndex= 2;
+  qn_value->name = str;
+  item->browseName = "QualifiedName";
+  item->variableItemName = "QualifiedName";
+  item->variableIdentifier = QualifiedName;
+  item->variableData = (void*) qn_value;
+  createNode(DEFAULT_NAMESPACE_VALUE, item);
+
+  printf("\n[%d]) Variable node with NODEID variant ", ++index);
+  UA_NodeId node = UA_NODEID_NUMERIC(DEFAULT_NAMESPACE_INDEX, RootFolder);
+  item->browseName = "NodeId";
+  item->variableItemName = "NodeId";
+  item->variableIdentifier = NodeId;
+  item->variableData = (void*) &node;
+  createNode(DEFAULT_NAMESPACE_VALUE, item);
+
+
   /******************* Array *********************/
   printf("\n-------------------------------------------------------");
   printf("\n[%d]) Array node with ByteString values ", ++index);  
@@ -370,6 +414,68 @@ static void testCreateNodes() {
   item->variableData = (void*) dataArray;
   createNode(DEFAULT_NAMESPACE_VALUE, item);
   
+  printf("\n[%d]) Array node with Boolean values ", ++index);
+  bool *arr = (bool*) malloc(sizeof(bool) * 5);
+  arr[0] = true;
+  arr[1] = false;
+  arr[2] = true;
+  arr[3] = false;
+  arr[4] = true;
+  item->browseName = "BoolArray";
+  item->nodeType = ARRAY_NODE;
+  item->variableItemName = "BoolArray";
+  item->variableIdentifier = Boolean;
+  item->arrayLength = 5;
+  item->variableData = (void*) arr;
+  createNode(DEFAULT_NAMESPACE_VALUE, item);
+  
+  printf("\n[%d]) Array node with SByte values ", ++index);
+  UA_SByte *sbData = (UA_SByte*) malloc(sizeof(UA_SByte) * 5);
+  sbData[0] = -128;
+  sbData[1] = 112;
+  sbData[2] = 120;
+  sbData[3] = 122;
+  sbData[4] = 127;
+  item->browseName = "SByteArray";
+  item->nodeType = ARRAY_NODE;
+  item->variableItemName = "SByteArray";
+  item->variableIdentifier = SByte;
+  item->arrayLength = 5;
+  item->variableData = (void*) sbData;
+  createNode(DEFAULT_NAMESPACE_VALUE, item);
+
+  printf("\n[%d]) Array node with Int32 values ", ++index);
+  int *intData = (int*) malloc(sizeof(int) * 7);
+  intData[0] = 11;
+  intData[1] = 22;
+  intData[2] = 33;
+  intData[3] = 44;
+  intData[4] = 55;
+  intData[5] = 66;
+  intData[6] = 77;
+  item->browseName = "int32Array";
+  item->nodeType = ARRAY_NODE;
+  item->variableItemName = "int32Array";
+  item->variableIdentifier = Int32;
+  item->arrayLength = 7;
+  item->variableData = (void*) intData;
+  createNode(DEFAULT_NAMESPACE_VALUE, item);
+
+  printf("\n[%d]) Array node with Int64 values ", ++index);
+  int *int64Data = (int*) malloc(sizeof(int) * 5);
+  int64Data[0] = 11111;
+  int64Data[1] = 22222;
+  int64Data[2] = 33333;
+  int64Data[3] = 44444;
+  int64Data[4] = 55555;
+  item->browseName = "int64Array";
+  item->nodeType = ARRAY_NODE;
+  item->variableItemName = "int64Array";
+  item->variableIdentifier = Int64;
+  item->arrayLength = 5;
+  item->variableData = (void*) int64Data;
+  createNode(DEFAULT_NAMESPACE_VALUE, item);
+  
   printf("\n[%d]) Array node with double values ", ++index);
   double* data = (double*) malloc(sizeof(double) * 5);
   data[0] = 10.2;
@@ -377,9 +483,9 @@ static void testCreateNodes() {
   data[2] = 30.2;
   data[3] = 40.2;
   data[4] = 50.2;
-  item->browseName = "IntArray";
+  item->browseName = "DoubleArray";
   item->nodeType = ARRAY_NODE;
-  item->variableItemName = "IntArray";
+  item->variableItemName = "DoubleArray";
   item->variableIdentifier = Double;
   item->arrayLength = 5;
   item->variableData = (void*) data;
