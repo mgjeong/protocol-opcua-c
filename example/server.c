@@ -591,6 +591,8 @@ static void testCreateNodes() {
   item->sourceNodeId->nodeId = "ReferenceTypeNode1";
   createNode(DEFAULT_NAMESPACE_VALUE, item);
 
+  free(item); item = NULL;
+
   /******************* Method Node *********************/
   printf("\n-------------------------------------------------------\n");
   printf("\n[%d]) Method Node \n", ++index);

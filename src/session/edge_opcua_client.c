@@ -61,6 +61,7 @@ bool connect_client(char* endpoint) {
   EdgeEndPointInfo* ep = (EdgeEndPointInfo*) malloc(sizeof(EdgeEndPointInfo));
   ep->endpointUri = endpoint;
   onStatusCallback(ep, STATUS_CLIENT_STARTED);
+  free(ep); ep = NULL;
 
   return true;
 }
@@ -119,12 +120,24 @@ void* getClientEndpoints(char *endpointUri) {
     retVal = UA_Client_getEndpoints(client, endpointUri, &endpointArraySize, &endpointArray);
     if (retVal != UA_STATUSCODE_GOOD) {
       printf("\n [CLIENT] Unable to get endpoints \n");
+
+      if (device) {
+          if (device->address) {
+              free (device->address);
+              device->address = NULL;
+          }
+          if (device->serverName) {
+              free (device->serverName);
+              device->serverName = NULL;
+          }
+          free (device); device = NULL;
+      }
+
       UA_Array_delete(endpointArray, endpointArraySize, &UA_TYPES[UA_TYPES_ENDPOINTDESCRIPTION]);
       UA_Client_delete(client);
       client = NULL;
       return NULL;
     }
-
 
     device->num_endpoints = endpointArraySize;
     device->endpointsInfo = (EdgeEndPointInfo**) malloc(sizeof(EdgeEndPointInfo*) * endpointArraySize);
@@ -147,6 +160,38 @@ void* getClientEndpoints(char *endpointUri) {
       device->endpointsInfo[i]->config = config;
     }
     onDiscoveryCallback(device);
+
+    // free device
+    if (device) {
+        for (size_t i = 0; i < endpointArraySize; i++) {
+            if (device->endpointsInfo[i]->endpointUri) {
+                free(device->endpointsInfo[i]->endpointUri);
+                device->endpointsInfo[i]->endpointUri = NULL;
+            }
+            if (device->endpointsInfo[i]->config) {
+                if (device->endpointsInfo[i]->config->securityPolicyUri) {
+                    free (device->endpointsInfo[i]->config->securityPolicyUri);
+                    device->endpointsInfo[i]->config->securityPolicyUri = NULL;
+                }
+                free(device->endpointsInfo[i]->config);
+                device->endpointsInfo[i]->config = NULL;
+            }
+            free(device->endpointsInfo[i]); device->endpointsInfo[i] = NULL;
+        }
+        if (device->endpointsInfo) {
+            free (device->endpointsInfo);
+            device->endpointsInfo = NULL;
+        }
+        if (device->address) {
+            free (device->address);
+            device->address = NULL;
+        }
+        if (device->serverName) {
+            free (device->serverName);
+            device->serverName = NULL;
+        }
+        free (device); device = NULL;
+    }
 
     UA_Array_delete(endpointArray, endpointArraySize, &UA_TYPES[UA_TYPES_ENDPOINTDESCRIPTION]);
     UA_Client_delete(client);

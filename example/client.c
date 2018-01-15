@@ -23,7 +23,7 @@ static char endpointUri[MAX_CHAR_SIZE];
 
 static EdgeConfigure *config = NULL;
 
-#define TEST_WITH_REFERENCE_SERVER 1
+#define TEST_WITH_REFERENCE_SERVER 0
 
 static void startClient(char* addr, int port, char *securityPolicyUri);
 
@@ -794,7 +794,6 @@ static void testWrite() {
     requests[i]->nodeInfo = nodeInfo[i];
     requests[i]->type = getInputType();
     requests[i]->value = getNewValuetoWrite(requests[i]->type);
-
   }
 
   EdgeMessage *msg = (EdgeMessage*) malloc(sizeof(EdgeMessage));
@@ -815,6 +814,7 @@ printf("write node \n");
   free (nodeInfo); nodeInfo = NULL;
   free(ep); ep = NULL;
   for (int i = 0; i < num_requests; i++) {
+    free (requests[i]->value); requests[i]->value = NULL;
     free (requests[i]); requests[i] = NULL;
   }
   free(requests); requests = NULL;
@@ -863,6 +863,7 @@ static void testWriteGroup() {
   free (nodeInfo); nodeInfo = NULL;
   free(ep); ep = NULL;
   for (int i = 0; i < num_requests; i++) {
+    free (requests[i]->value); requests[i]->value = NULL;
     free (requests[i]); requests[i] = NULL;
   }
   free(requests); requests = NULL;
@@ -1004,6 +1005,7 @@ static void testSub() {
     printf("SUBSCRPTION CREATE SUCCESSFULL\n");
   }
 
+  free(nodeInfo->valueAlias); nodeInfo->valueAlias = NULL;
   free(nodeInfo); nodeInfo = NULL;
   free(subReq); subReq = NULL;
   free(request); request = NULL;
@@ -1055,6 +1057,7 @@ static void testSubModify() {
     printf("SUBSCRPTION MODIFY SUCCESSFULL\n");
   }
 
+  free(nodeInfo->valueAlias); nodeInfo->valueAlias = NULL;
   free(nodeInfo); nodeInfo = NULL;
   free(subReq); subReq = NULL;
   free(request); request = NULL;
@@ -1094,6 +1097,7 @@ static void testRePublish() {
     printf("REPUBLISH SUCCESSFULL\n");
   }
 
+  free(nodeInfo->valueAlias); nodeInfo->valueAlias = NULL;
   free(nodeInfo); nodeInfo = NULL;
   free(subReq); subReq = NULL;
   free(request); request = NULL;
@@ -1135,6 +1139,7 @@ static void testSubDelete() {
     printf("SUBSCRPTION DELETED SUCCESSFULL\n");
   }
 
+  free(nodeInfo->valueAlias); nodeInfo->valueAlias = NULL;
   free(nodeInfo); nodeInfo = NULL;
   free(subReq); subReq = NULL;
   free(request); request = NULL;

@@ -24,7 +24,9 @@ EdgeResult executeMethod(UA_Client *client, EdgeMessage *msg) {
       if (type == UA_TYPES_STRING) {
         UA_String val = UA_STRING_ALLOC((char*) params->inpArg[idx]->scalarValue);
         UA_Variant_setScalarCopy(&input[idx], &val, &UA_TYPES[type]);
+        UA_String_deleteMembers(&val);
       } else {
+          printf("\n\n======== scalar copy======== \n\n");
         UA_Variant_setScalarCopy(&input[idx], params->inpArg[idx]->scalarValue, &UA_TYPES[type]);
       }
     } else if (params->inpArg[idx]->valType == ARRAY_1D) {
@@ -36,6 +38,10 @@ EdgeResult executeMethod(UA_Client *client, EdgeMessage *msg) {
           array[idx1] = UA_STRING_ALLOC(data[idx1]);
         }
         UA_Variant_setArrayCopy(&input[idx], array, params->inpArg[idx]->arrayLength, &UA_TYPES[type]);
+        for (int idx1 = 0; idx1 < params->inpArg[idx]->arrayLength; idx1++) {
+          UA_String_deleteMembers(&array[idx1]);
+        }
+        UA_Array_delete(array, params->inpArg[idx]->arrayLength, &UA_TYPES[type]);
       } else {
         UA_Variant_setArrayCopy(&input[idx], params->inpArg[idx]->arrayData, params->inpArg[idx]->arrayLength, &UA_TYPES[type]);
       }
@@ -136,7 +142,7 @@ EdgeResult executeMethod(UA_Client *client, EdgeMessage *msg) {
       memcpy(resultMsg->endpointInfo, msg->endpointInfo, sizeof(EdgeEndPointInfo));
       resultMsg->type = GENERAL_RESPONSE;
       resultMsg->responseLength = outputSize;
-      resultMsg->responses = (EdgeResponse**) malloc(1 * sizeof(EdgeResponse));
+      //resultMsg->responses = (EdgeResponse**) malloc(1 * sizeof(EdgeResponse));
       resultMsg->responses = response;
       resultMsg->command = CMD_METHOD;
 
@@ -144,16 +150,13 @@ EdgeResult executeMethod(UA_Client *client, EdgeMessage *msg) {
 
       for (int i =0 ; i < outputSize; i++) {
         free(response[i]->nodeInfo); response[i]->nodeInfo = NULL;
+        free(response[i]->message); response[i]->message = NULL;
         free(response[i]); response[i] = NULL;
       }
       free(response); response = NULL;
       free(resultMsg->endpointInfo); resultMsg->endpointInfo = NULL;
       free(resultMsg); resultMsg = NULL;
 
-      if (input) {
-        free(input);
-        input = NULL;
-      }
       result.code = STATUS_OK;
     }
   } else {
@@ -171,8 +174,18 @@ EdgeResult executeMethod(UA_Client *client, EdgeMessage *msg) {
     resultMsg->result = res;
 
     onResponseMessage(resultMsg);
-    free(resultMsg);
-    free(res);
+    free(resultMsg->endpointInfo); resultMsg->endpointInfo = NULL;
+    free(resultMsg); resultMsg = NULL;
+    free(res); res = NULL;
+  }
+
+  for (idx =0; idx < params->num_inpArgs; idx++) {
+      UA_Variant_deleteMembers(&input[idx]);
+  }
+
+  if (input) {
+    free(input);
+    input = NULL;
   }
 
   return result;
