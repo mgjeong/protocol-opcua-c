@@ -38,14 +38,14 @@ createBuildDir = 'mkdir -p ' + buildDir
 env.do__(createBuildDir )
 
 
-env['CPPPATH'] = [incPath, '../extlibs', gtestIncDir, '../src/utils']
+env['CPPPATH'] = [incPath, '../extlib', gtestIncDir, '../src/utils']
 print env['CPPPATH']
 
 env.PrependUnique(CCFLAGS=['-g', '-Wwrite-strings'])
 
 env.PrependUnique(LIBS=['opcua-adapter', 'gtest', 'gtest_main', 'm'])
 env.AppendUnique(LIBPATH=[libDir])
-
+env.AppendUnique(RPATH=['../libs'])
 
 env.VariantDir(variant_dir = buildDir, src_dir = '.', duplicate = 0)
 
