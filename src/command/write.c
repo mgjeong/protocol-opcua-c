@@ -119,6 +119,7 @@ static void writeGroup(UA_Client *client, EdgeMessage *msg) {
     if (type == UA_TYPES_STRING) {
       UA_String val = UA_STRING_ALLOC((char*) msg->requests[i]->value);
       UA_Variant_setScalarCopy(&myVariant[i], &val, &UA_TYPES[type]);
+      UA_String_deleteMembers(&val);
     } else {
       UA_Variant_setScalarCopy(&myVariant[i], msg->requests[i]->value, &UA_TYPES[type]);
     }
@@ -133,8 +134,12 @@ static void writeGroup(UA_Client *client, EdgeMessage *msg) {
 
   UA_WriteResponse writeResponse = UA_Client_Service_write(client, writeRequest);
   if(writeResponse.responseHeader.serviceResult != UA_STATUSCODE_GOOD) {
-      printf("Error in write :: 0x%08x(%s)\n", writeResponse.responseHeader.serviceResult,
+    printf("Error in write :: 0x%08x(%s)\n", writeResponse.responseHeader.serviceResult,
             UA_StatusCode_name(writeResponse.responseHeader.serviceResult));
+
+    free(wv);
+    free(myVariant);
+
     UA_WriteRequest_deleteMembers(&writeRequest);
     UA_WriteResponse_deleteMembers(&writeResponse);
     return;
@@ -153,11 +158,14 @@ static void writeGroup(UA_Client *client, EdgeMessage *msg) {
       res->code = STATUS_ERROR;
       resultMsg->result = res;
 
-      onResponseMessage(resultMsg);
-      UA_WriteRequest_deleteMembers(&writeRequest);
-      UA_WriteResponse_deleteMembers(&writeResponse);
+      onResponseMessage(resultMsg);      
       free(resultMsg);
       free(res);
+
+      free(wv);
+      free(myVariant);
+      UA_WriteRequest_deleteMembers(&writeRequest);
+      UA_WriteResponse_deleteMembers(&writeResponse);
       return;
   }
 
@@ -187,33 +195,34 @@ static void writeGroup(UA_Client *client, EdgeMessage *msg) {
       resultMsg->result = res;
 
       onResponseMessage(resultMsg);
-      free(resultMsg);
-      free(res);
+      free (resultMsg->endpointInfo); resultMsg->endpointInfo = NULL;
+      free(res); res = NULL;
+      free(resultMsg); resultMsg = NULL;
 
       if (writeResponse.responseHeader.serviceResult != UA_STATUSCODE_GOOD)
         continue;
-    }
+    } else {
+        EdgeResponse* response = (EdgeResponse*) malloc(sizeof(EdgeResponse));
+        if (response) {
+          response->nodeInfo = (EdgeNodeInfo*) malloc(sizeof(EdgeNodeInfo));
+          memcpy(response->nodeInfo, msg->requests[i]->nodeInfo, sizeof(EdgeNodeInfo));
+          response->requestId = msg->requests[i]->requestId;
+          response->message = NULL;
 
-    EdgeResponse* response = (EdgeResponse*) malloc(sizeof(EdgeResponse));
-    if (response) {
-      response->nodeInfo = (EdgeNodeInfo*) malloc(sizeof(EdgeNodeInfo));
-      memcpy(response->nodeInfo, msg->requests[i]->nodeInfo, sizeof(EdgeNodeInfo));
-      response->requestId = msg->requests[i]->requestId;
-      response->message = NULL;
+          EdgeDiagnosticInfo * diagnosticInfo = checkDiagnosticInfo(msg->requestLength,
+                                                                    writeResponse.diagnosticInfos,
+                                                                    writeResponse.diagnosticInfosSize,
+                                                                    writeRequest.requestHeader.returnDiagnostics);
+          response->m_diagnosticInfo = diagnosticInfo;
 
-      EdgeDiagnosticInfo * diagnosticInfo = checkDiagnosticInfo(msg->requestLength,
-                                                                writeResponse.diagnosticInfos,
-                                                                writeResponse.diagnosticInfosSize,
-                                                                writeRequest.requestHeader.returnDiagnostics);
-      response->m_diagnosticInfo = diagnosticInfo;
+          EdgeVersatility* message = (EdgeVersatility*) malloc(sizeof(EdgeVersatility));
+          message->value = (void*) UA_StatusCode_name(code);
+          response->message = message;
 
-      EdgeVersatility* message = (EdgeVersatility*) malloc(sizeof(EdgeVersatility));
-      message->value = (void*) UA_StatusCode_name(code);
-      response->message = message;
-
-      resultMsg->responseLength += 1;
-      responses[respIndex] = response;
-      respIndex += 1;
+          resultMsg->responseLength += 1;
+          responses[respIndex] = response;
+          respIndex += 1;
+        }
     }
   }
 
@@ -221,10 +230,13 @@ static void writeGroup(UA_Client *client, EdgeMessage *msg) {
   onResponseMessage(resultMsg);
 
   for (int i = 0; i < resultMsg->responseLength; i++) {
-    if (responses[i]->m_diagnosticInfo->additionalInfo) {
-      free(responses[i]->m_diagnosticInfo->additionalInfo); responses[i]->m_diagnosticInfo->additionalInfo = NULL;
+    if (responses[i]->m_diagnosticInfo) {
+        if (responses[i]->m_diagnosticInfo->additionalInfo) {
+          free(responses[i]->m_diagnosticInfo->additionalInfo);
+          responses[i]->m_diagnosticInfo->additionalInfo = NULL;
+        }
+        free(responses[i]->m_diagnosticInfo); responses[i]->m_diagnosticInfo = NULL;
     }
-    free(responses[i]->m_diagnosticInfo); responses[i]->m_diagnosticInfo = NULL;
     free(responses[i]->message); responses[i]->message = NULL;
     free(responses[i]->nodeInfo); responses[i]->nodeInfo = NULL;
     free(responses[i]); responses[i] = NULL;
@@ -232,6 +244,9 @@ static void writeGroup(UA_Client *client, EdgeMessage *msg) {
   free (resultMsg->endpointInfo); resultMsg->endpointInfo = NULL;
   free (resultMsg->responses);resultMsg->responses = NULL;
   free(resultMsg); resultMsg = NULL;
+  free(wv);
+  free(myVariant);
+  UA_WriteRequest_deleteMembers(&writeRequest);
   UA_WriteResponse_deleteMembers(&writeResponse);
 }
 

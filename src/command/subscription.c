@@ -150,11 +150,12 @@ monitoredItemHandler(UA_UInt32 monId, UA_DataValue *value, void *context) {
 
       onResponseMessage(resultMsg);
 
+      free(response->nodeInfo->valueAlias); response->nodeInfo->valueAlias = NULL;
       free(response->nodeInfo); response->nodeInfo = NULL;
       free(response->message); response->message = NULL;
-      free(response); response = NULL;
-      free (resultMsg->endpointInfo); resultMsg->endpointInfo = NULL;
+      free(response); response = NULL;      
       free (resultMsg->responses);resultMsg->responses = NULL;
+      free (resultMsg->endpointInfo); resultMsg->endpointInfo = NULL;
       free(resultMsg); resultMsg = NULL;
     }
   }
@@ -255,12 +256,13 @@ static UA_StatusCode deleteSub(UA_Client *client, EdgeMessage *msg) {
   if (UA_STATUSCODE_GOOD == retVal) {
     printf("subscription deleted successfully\n\n");
    edgeMapNode* removed = removeSubscriptionFromMap(msg->request->nodeInfo->valueAlias);
-   if (!removed) {
+   if (removed != NULL) {
      subscriptionInfo* info = (subscriptionInfo*) removed->value;
      if (info) {
        free (info->msg); info->msg = NULL;
        free (info); info = NULL;
      }
+     free (removed); removed = NULL;
    }
   } else {
     printf("subscription delete error : %s\n\n", UA_StatusCode_name(retVal));
@@ -272,8 +274,9 @@ static UA_StatusCode deleteSub(UA_Client *client, EdgeMessage *msg) {
   if (0 == subscriptionCount) {
     /* destroy the subscription thread */
     /* delete the subscription thread as there are no existing subscriptions request */
+      printf("subscription thread destroy\n");
     subscription_thread_running = false;
-    pthread_cancel(subscription_thread);
+    pthread_join(subscription_thread, NULL);
   }
 
   return UA_STATUSCODE_GOOD;

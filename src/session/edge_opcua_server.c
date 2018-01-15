@@ -76,6 +76,11 @@ EdgeResult start_server(EdgeEndPointInfo* epInfo) {
   UA_String_deleteMembers(&m_serverConfig->applicationDescription.applicationUri);
   UA_LocalizedText_deleteMembers(&m_serverConfig->applicationDescription.applicationName);
   UA_String_deleteMembers(&m_serverConfig->applicationDescription.productUri);
+  UA_String_deleteMembers(&m_serverConfig->buildInfo.productUri);
+  UA_String_deleteMembers(&m_serverConfig->buildInfo.manufacturerName);
+  UA_String_deleteMembers(&m_serverConfig->buildInfo.productName);
+  UA_String_deleteMembers(&m_serverConfig->buildInfo.softwareVersion);
+  UA_String_deleteMembers(&m_serverConfig->buildInfo.buildNumber);
 
   m_serverConfig->applicationDescription.applicationUri = UA_STRING_ALLOC(config->applicationUri);
   m_serverConfig->applicationDescription.applicationName = UA_LOCALIZEDTEXT_ALLOC("en-US", config->applicationName);

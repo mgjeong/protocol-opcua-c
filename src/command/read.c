@@ -367,6 +367,7 @@ static void readGroup(UA_Client *client, EdgeMessage *msg) {
     printf("Error in group read :: 0x%08x(%s)\n", serviceResult, UA_StatusCode_name(serviceResult));
 
     sendErrorResponse(msg, "Error in read");
+    UA_ReadValueId_deleteMembers(rv);
     UA_ReadResponse_deleteMembers(&readResponse);
     return ;
   }
@@ -376,6 +377,7 @@ static void readGroup(UA_Client *client, EdgeMessage *msg) {
           if (readResponse.results[0].hasSourceTimestamp || readResponse.results[0].hasServerTimestamp) {
               printf("BadInvalidTimestamp\n\n");
               sendErrorResponse(msg, "BadInvalidTimestamp");
+              UA_ReadValueId_deleteMembers(rv);
               return ;
           }
       }
@@ -383,6 +385,7 @@ static void readGroup(UA_Client *client, EdgeMessage *msg) {
           if (!readResponse.results[0].hasSourceTimestamp || !readResponse.results[0].hasServerTimestamp) {
               printf("Timestamp missing\n\n");
               sendErrorResponse(msg, "Missing Timestamp");
+              UA_ReadValueId_deleteMembers(rv);
               return ;
           }
       }
@@ -390,6 +393,7 @@ static void readGroup(UA_Client *client, EdgeMessage *msg) {
           if (!readResponse.results[0].hasSourceTimestamp || readResponse.results[0].hasServerTimestamp) {
               printf("source Timestamp missing\n\n");
               sendErrorResponse(msg, "Missing Timestamp");
+              UA_ReadValueId_deleteMembers(rv);
               return ;
           }
       }
@@ -397,6 +401,7 @@ static void readGroup(UA_Client *client, EdgeMessage *msg) {
           if (readResponse.results[0].hasSourceTimestamp || !readResponse.results[0].hasServerTimestamp) {
               printf("server Timestamp missing\n\n");
               sendErrorResponse(msg, "Missing Timestamp");
+              UA_ReadValueId_deleteMembers(rv);
               return ;
           }
       }
@@ -404,11 +409,13 @@ static void readGroup(UA_Client *client, EdgeMessage *msg) {
       if (readRequest.timestampsToReturn != UA_TIMESTAMPSTORETURN_NEITHER && !checkMaxAge(readResponse.results[0].serverTimestamp, UA_DateTime_now(), readRequest.maxAge * 2)) {
           printf("Max age failed\n\n");
           sendErrorResponse(msg, "");
+          UA_ReadValueId_deleteMembers(rv);
           UA_ReadResponse_deleteMembers(&readResponse);
           return ;
       }
 
       if (readRequest.timestampsToReturn != UA_TIMESTAMPSTORETURN_NEITHER && !checkValidation(&(readResponse.results[0]), msg, readRequest.timestampsToReturn, readRequest.maxAge)) {
+          UA_ReadValueId_deleteMembers(rv);
           UA_ReadResponse_deleteMembers(&readResponse);
           return ;
       }
@@ -586,6 +593,8 @@ static void readGroup(UA_Client *client, EdgeMessage *msg) {
   free (resultMsg->endpointInfo); resultMsg->endpointInfo = NULL;
   free (resultMsg->responses);resultMsg->responses = NULL;
   free(resultMsg); resultMsg = NULL;
+
+  free(rv);
   UA_ReadResponse_deleteMembers(&readResponse);
 
   return ;
