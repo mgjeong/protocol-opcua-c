@@ -48,6 +48,7 @@ static void destroyMap()
         {
             next = listPtr->next;
             free(listPtr->browseName);
+            UA_NodeId_deleteMembers(&listPtr->nodeId);
             free(listPtr);
             listPtr = next;
         }
@@ -393,8 +394,6 @@ static void invokeResponseCb(EdgeMessage *msg, int msgId, EdgeBrowseResult *brow
     }
 
     resultMsg->type = BROWSE_RESPONSE;
-    resultMsg->browseResult = browseResult;
-    resultMsg->browseResultLength = size;
 
     resultMsg->endpointInfo = cloneEdgeEndpointInfo(msg->endpointInfo);
     if(!resultMsg->endpointInfo)
@@ -425,7 +424,14 @@ static void invokeResponseCb(EdgeMessage *msg, int msgId, EdgeBrowseResult *brow
     resultMsg->responses = responses;
     resultMsg->responseLength = 1;
 
+    resultMsg->browseResult = browseResult;
+    resultMsg->browseResultLength = size;
+
     onResponseMessage(resultMsg);
+
+    resultMsg->browseResultLength = 0;
+    resultMsg->browseResult = NULL;
+
     freeEdgeMessage(resultMsg);
 }
 
@@ -581,6 +587,9 @@ EdgeStatusCode browse(UA_Client *client, EdgeMessage *msg, UA_NodeId *nodeIdList
                     goto EXIT;
                 }
                 invokeResponseCb(msg, msgId, browseResult, size);
+                free(browseResult->browseName);
+                free(browseResult);
+                browseResult = NULL;
 #if DEBUG
                 printNodeId(ref->nodeId.nodeId);
 #endif
@@ -712,6 +721,10 @@ EdgeResult executeBrowse(UA_Client *client, EdgeMessage *msg)
     result.code = STATUS_OK;
 
 EXIT:
+    for(int i = 0; i < nodesToBrowseSize; ++i)
+    {
+        UA_NodeId_deleteMembers(nodeIdList + i);
+    }
     free(nodeIdList);
     free(msgIdList);
     destroyMap();
