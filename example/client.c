@@ -921,9 +921,47 @@ static void testSubModify() {
   msg->request = request;
 
   EdgeResult result = handleSubscription(msg);
-  printf("MODIFY RESULT : %d\n",  result.code);
   if (result.code == STATUS_OK) {
     printf("SUBSCRPTION MODIFY SUCCESSFULL\n");
+  }
+
+  free(nodeInfo); nodeInfo = NULL;
+  free(subReq); subReq = NULL;
+  free(request); request = NULL;
+  free(ep); ep = NULL;
+  free (msg); msg = NULL;
+}
+
+static void testRePublish() {
+    
+    char nodeName[MAX_CHAR_SIZE];
+    printf("\nEnter the node name to Re publish :: ");
+    scanf("%s", nodeName);
+
+  EdgeEndPointInfo* ep = (EdgeEndPointInfo*) malloc(sizeof(EdgeEndPointInfo));
+  ep->endpointUri = endpointUri;
+  ep->config = NULL;
+
+  EdgeSubRequest* subReq = (EdgeSubRequest*) malloc(sizeof(EdgeSubRequest));
+  subReq->subType = Edge_Republish_Sub;  
+
+  EdgeNodeInfo* nodeInfo = (EdgeNodeInfo*) malloc(sizeof(EdgeNodeInfo));
+  nodeInfo->valueAlias = (char*) malloc(strlen(nodeName) + 1);
+  strcpy(nodeInfo->valueAlias, nodeName);
+
+  EdgeRequest *request = (EdgeRequest*) malloc(sizeof(EdgeRequest));
+  request->nodeInfo = nodeInfo;
+  request->subMsg = subReq;
+
+  EdgeMessage* msg = (EdgeMessage*) malloc(sizeof(EdgeMessage));
+  msg->endpointInfo = ep;
+  msg->command = CMD_SUB;
+  msg->request = request;
+
+  EdgeResult result = handleSubscription(msg);
+  printf("REPUBLISH RESULT : %d\n",  result.code);
+  if (result.code == STATUS_OK) {
+    printf("REPUBLISH SUCCESSFULL\n");
   }
 
   free(nodeInfo); nodeInfo = NULL;
@@ -1043,6 +1081,8 @@ int main() {
       //stopFlag = true;
     } else if(!strcmp(command, "help")) {
       print_menu();
+    } else if(!strcmp(command, "republish")) {
+      testRePublish();
     }
   }
 

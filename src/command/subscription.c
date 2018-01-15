@@ -82,6 +82,13 @@ void sendPublishRequest(UA_Client *client) {
 
 static void
 monitoredItemHandler(UA_UInt32 monId, UA_DataValue *value, void *context) {
+
+    if(value->status != UA_STATUSCODE_GOOD)
+    {
+        printf("ERROR :: Received Value Status Code %s\n", UA_StatusCode_name(value->status));
+        return;
+    }
+
   if( value->hasValue) {
     printf("value is present, monId :: %d\n", monId);
 
@@ -299,6 +306,14 @@ static UA_StatusCode modifySub(UA_Client *client, EdgeMessage *msg) {
   } else {
     printf("modify subscription success\n\n");
   }
+
+    if(response.revisedPublishingInterval != subReq->publishingInterval)
+    {
+        printf("Publishing Interval Changed in the Response ");
+        printf("Requested Interval:: %f Response Interval:: %f \n", subReq->publishingInterval,
+            response.revisedPublishingInterval);
+    }
+  
   UA_ModifySubscriptionRequest_deleteMembers(&modifySubscriptionRequest);
 
   // modifyMonitoredItems
@@ -418,7 +433,11 @@ static UA_StatusCode modifySub(UA_Client *client, EdgeMessage *msg) {
     }
 
     if(publishFail)
-            return UA_STATUSCODE_BADMONITOREDITEMIDINVALID;
+    {
+        printf("ERROR :: Set publish mode failed :: %s\n\n", UA_StatusCode_name(UA_STATUSCODE_BADMONITOREDITEMIDINVALID));
+        return UA_STATUSCODE_BADMONITOREDITEMIDINVALID;
+    }
+            
 
     printf("set publish mode success\n\n");
 
@@ -427,6 +446,48 @@ static UA_StatusCode modifySub(UA_Client *client, EdgeMessage *msg) {
 
 
   UA_Client_Subscriptions_manuallySendPublishRequest(client);
+
+  return UA_STATUSCODE_GOOD;
+}
+
+static UA_StatusCode rePublish(UA_Client *client, EdgeMessage *msg) {
+  subscriptionInfo* subInfo =  (subscriptionInfo*) getSubscriptionInfo(msg->request->nodeInfo->valueAlias);
+  //printf("subscription id retrieved from map :: %d \n\n", subInfo->subId);
+
+  if (!subInfo) {
+    printf("not subscribed yet\n");
+    return UA_STATUSCODE_BADNOSUBSCRIPTION;
+  }
+
+  // re PublishingMode
+  UA_RepublishRequest republishRequest;
+  UA_RepublishRequest_init(&republishRequest);
+  republishRequest.retransmitSequenceNumber = 2;
+  republishRequest.subscriptionId = subInfo->subId;
+
+  UA_RepublishResponse republishResponse;
+  __UA_Client_Service(client, &republishRequest, &UA_TYPES[UA_TYPES_REPUBLISHREQUEST],
+                        &republishResponse, &UA_TYPES[UA_TYPES_REPUBLISHRESPONSE]);
+
+  if (UA_STATUSCODE_GOOD !=  republishResponse.responseHeader.serviceResult)
+  {
+    if(UA_STATUSCODE_BADMESSAGENOTAVAILABLE == republishResponse.responseHeader.serviceResult)
+        printf("No Message in republish response");
+    else
+    {
+        printf("re publish failed :: %s\n\n", UA_StatusCode_name(republishResponse.responseHeader.serviceResult));
+        return republishResponse.responseHeader.serviceResult;
+    }
+  }
+
+    if(republishResponse.notificationMessage.notificationDataSize != 0)
+        printf("Re publish Response Sequence number :: %u \n", 
+                republishResponse.notificationMessage.sequenceNumber);
+    else
+        printf("Re publish Response has NULL notification Message\n");
+    
+  UA_RepublishRequest_deleteMembers(&republishRequest);
+  UA_RepublishResponse_deleteMembers(&republishResponse);
 
   return UA_STATUSCODE_GOOD;
 }
@@ -448,6 +509,8 @@ EdgeResult executeSub(UA_Client *client, EdgeMessage *msg) {
     retVal = modifySub(client, msg);
   } else if (subReq->subType == Edge_Delete_Sub) {
     retVal = deleteSub(client, msg);
+  } else if (subReq->subType == Edge_Republish_Sub) {
+    retVal = rePublish(client, msg);
   }
 
     if(retVal == UA_STATUSCODE_GOOD)
