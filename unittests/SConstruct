@@ -31,8 +31,8 @@ env.do__(copyOpcuaLib)
 exportLibPath='export LD_LIBRARY_PATH=' + libDir
 env.do__(exportLibPath)
 
-delBuildDir = 'rm -rf ' + buildDir
-env.do__(delBuildDir)
+#delBuildDir = 'rm -rf ' + buildDir
+#env.do__(delBuildDir)
 
 createBuildDir = 'mkdir -p ' + buildDir
 env.do__(createBuildDir )
@@ -49,7 +49,7 @@ env.AppendUnique(RPATH=['../libs'])
 
 env.VariantDir(variant_dir = buildDir, src_dir = '.', duplicate = 0)
 
-env.Program(target = [buildDir + 'server'], source = [buildDir + 'serverTest.c'])
+#env.Program(target = [buildDir + 'server'], source = [buildDir + 'serverTest.c'])
 
 env.Program(target = 'test', source = [
 					buildDir + 'opcuaTest.cpp',
