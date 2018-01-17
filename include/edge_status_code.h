@@ -138,7 +138,7 @@ typedef enum
 
 #define STATUS_VIEW_CONTINUATION_DATA_EMPTY_VALUE         "continuation is availale. but there is no data_VALUEempty)"
 
-#define STATUS_VIEW_REFERENCE_DATA_INVALID_VALUE         "reference is not availale"
+#define STATUS_VIEW_REFERENCE_DATA_INVALID_VALUE         "reference data is invalid"
 
 #define STATUS_VIEW_RESULT_STATUS_CODE_BAD_VALUE         "status code of the result has bad code"
 
@@ -154,7 +154,7 @@ typedef enum
 
 #define STATUS_VIEW_BROWSERESULT_EMPTY_VALUE         "browse result is empty"
 
-#define STATUS_VIEW_BROWSEREQUEST_SIZEOVER_VALUE         "browser request's size is over maximum size"
+#define STATUS_VIEW_BROWSEREQUEST_SIZEOVER_VALUE         "browse request's size is over maximum size"
 
 
 #define STATUS_SUB_PUB_INTERVAL_DIFFERENCE_VALUE         "check the revised value and if it is different to the requested"
@@ -218,5 +218,7 @@ typedef enum
 #define NODEID_SERVERINDEX          "NodeId's server index is not zero"
 
 #define REFERENCETYPEID_NULL          "ReferenceTypeId is null"
+
+#define TYPEDEFINITIONNODEID_NULL          "TypeDefinition NodeID of the TargetNode is null"
 
 #endif /* EDGE_STATUS_CODE_H_ */

@@ -25,6 +25,169 @@ static EdgeConfigure *config = NULL;
 
 #define TEST_WITH_REFERENCE_SERVER 0
 
+typedef struct BrowseNextData
+{
+    EdgeBrowseParameter browseParam;
+    int count;
+    int last_used;
+    EdgeContinuationPoint *cp; // Continuation point List. Size of list = last_used.
+    EdgeNodeId **srcNodeId; // Id of source node of every continuation point. Size of list = last_used.
+} BrowseNextData;
+
+BrowseNextData *browseNextData = NULL;
+
+#define MAX_CP_LIST_COUNT 1000
+
+int maxReferencesPerNode = 0;
+
+// TODO: Remove this function later when sdk expose it.
+char *cloneString(const char *str)
+{
+    if(!str)
+    {
+        return NULL;
+    }
+    int len = strlen(str);
+    if(len < 1)
+    {
+        return NULL;
+    }
+    char *clone = (char *)calloc(len+1,  sizeof(char));
+    if(!clone)
+    {
+        return NULL;
+    }
+    strncpy(clone, str, len);
+    return clone;
+}
+
+// TODO: Remove this function later when sdk expose it.
+EdgeNodeId *cloneEdgeNodeId(EdgeNodeId *nodeId)
+{
+    if(!nodeId)
+    {
+        return NULL;
+    }
+
+    EdgeNodeId *clone = (EdgeNodeId *) calloc(1, sizeof(EdgeNodeId));
+    if(!clone)
+    {
+        return NULL;
+    }
+
+    clone->nameSpace = nodeId->nameSpace;
+    if(nodeId->nodeUri)
+    {
+        clone->nodeUri = cloneString(nodeId->nodeUri);
+        if(!clone->nodeUri)
+        {
+            free(clone);
+            return NULL;
+        }
+    }
+    clone->nodeIdentifier = nodeId->nodeIdentifier;
+    clone->type = nodeId->type;
+    if(nodeId->nodeId)
+    {
+        clone->nodeId = cloneString(nodeId->nodeId);
+        if(!clone->nodeId)
+        {
+            free(clone->nodeUri);
+            free(clone);
+            return NULL;
+        }
+    }
+    clone->integerNodeId = nodeId->integerNodeId;
+
+    return clone;
+}
+
+// TODO: Remove this function later when sdk expose it.
+void freeEdgeNodeId(EdgeNodeId *nodeId)
+{
+    if(!nodeId)
+    {
+        return;
+    }
+    free(nodeId->nodeUri);
+    free(nodeId->nodeId);
+    free(nodeId);
+}
+
+bool addBrowseNextData(BrowseNextData *data, EdgeContinuationPoint *cp, EdgeNodeId *nodeId)
+{
+    if(data->last_used >= data->count)
+    {
+        printf("BrowseNextData limit(%d) reached. Cannot add this data.\n", data->count);
+        return false;
+    }
+
+    int index = ++data->last_used;
+    data->cp[index].length = cp->length;
+    data->cp[index].continuationPoint = (unsigned char *)malloc(cp->length * sizeof(unsigned char));
+    for(int i=0;i<cp->length;i++)
+    {
+        data->cp[index].continuationPoint[i] = cp->continuationPoint[i];
+    }
+
+    data->srcNodeId[index] = cloneEdgeNodeId(nodeId);
+    return true;
+}
+
+void destroyBrowseNextDataElements(BrowseNextData *data)
+{
+    if(!data)
+        return;
+
+    for(int i=0;i<=data->last_used;++i)
+    {
+        free(data->cp[i].continuationPoint);
+        freeEdgeNodeId(data->srcNodeId[i]);
+    }
+}
+
+void destroyBrowseNextData(BrowseNextData *data)
+{
+    if(!data)
+        return;
+
+    destroyBrowseNextDataElements(data);
+    free(data->cp);
+    free(data->srcNodeId);
+    free(data);
+    data = NULL;
+}
+
+void initBrowseNextData(EdgeBrowseParameter browseParam)
+{
+    destroyBrowseNextData(browseNextData);
+    browseNextData = (BrowseNextData *)calloc(1, sizeof(BrowseNextData));
+    browseNextData->browseParam = browseParam;
+    browseNextData->count = MAX_CP_LIST_COUNT;
+    browseNextData->last_used = -1;
+    browseNextData->cp = (EdgeContinuationPoint *)calloc(browseNextData->count, sizeof(EdgeContinuationPoint));
+    browseNextData->srcNodeId = (EdgeNodeId **)calloc(browseNextData->count, sizeof(EdgeNodeId *));
+}
+
+BrowseNextData *cloneBrowseNextData(BrowseNextData *data)
+{
+    if(!data)
+        return NULL;
+
+    BrowseNextData *clone = (BrowseNextData *)calloc(1, sizeof(BrowseNextData));
+    clone->browseParam = browseNextData->browseParam;
+    clone->count = browseNextData->count;
+    clone->last_used = -1;
+    clone->cp = (EdgeContinuationPoint *)calloc(clone->count, sizeof(EdgeContinuationPoint));
+    clone->srcNodeId = (EdgeNodeId **)calloc(clone->count, sizeof(EdgeNodeId *));
+    for(int i=0;i<=browseNextData->last_used;++i)
+    {
+        addBrowseNextData(clone, &browseNextData->cp[i], browseNextData->srcNodeId[i]);
+    }
+
+    return clone;
+}
+
 static void startClient(char* addr, int port, char *securityPolicyUri);
 
 static void response_msg_cb (EdgeMessage* data) {
@@ -260,18 +423,54 @@ static void browse_msg_cb (EdgeMessage* data) {
     }
 }
 #endif
-static void browse_msg_cb (EdgeMessage* data) {
-  if (data->type == BROWSE_RESPONSE) {
-      EdgeBrowseResult *browseResult = data->browseResult;
-      int idx = 0;
-      printf("\n[Application browse response callback] [Request(%d)]\n",
+static void browse_msg_cb (EdgeMessage* data)
+{
+    printf("\n[Application browse response callback] [Request(%d)]\n",
         data->responses[0]->requestId);
-      printf("BrowseName(s): ");
-      for (idx = 0; idx < data->browseResultLength; idx++) {
-        if(idx != 0) printf(", ");
-        printf("%s", browseResult[idx].browseName);
-      }
-      printf("\n");
+
+    if(data->browseResult)
+    {
+        EdgeBrowseResult *browseResult = data->browseResult;
+        EdgeNodeId *nodeId = data->responses[0]->nodeInfo->nodeId;
+        printf("Source Node ID: ");
+        (nodeId->type == INTEGER) ? printf("%d\n", nodeId->integerNodeId) : printf("%s\n", nodeId->nodeId);
+
+        if(data->browseResultLength > 0)
+        {
+            printf("BrowseName(s): ");
+            for (int idx = 0; idx < data->browseResultLength; idx++)
+            {
+                if(idx != 0) printf(", ");
+                printf("%s", browseResult[idx].browseName);
+            }
+            printf("\n\n");
+        }
+    }
+    else
+    {
+        if(data->cpList && data->cpList->count > 0)
+        {
+            printf("Total number of continuation points: %d\n", data->cpList->count);
+            for(int i = 0; i < data->cpList->count; ++i)
+            {
+                EdgeNodeId *nodeId = data->responses[i]->nodeInfo->nodeId;
+                printf("Node ID of Continuation point[%d] { ", i+1);
+                (nodeId->type == INTEGER) ? printf("%d\n", nodeId->integerNodeId) : printf("%s\n", nodeId->nodeId);
+
+                int length = data->cpList->cp[i]->length;
+                unsigned char *cp = data->cpList->cp[i]->continuationPoint;
+                printf("Length: %d\n", length);
+                for(int j = 0; j < length; ++j)
+                {
+                    printf("%02X", cp[j]);
+                }
+                printf("\n");
+
+                if(!addBrowseNextData(browseNextData, data->cpList->cp[i], nodeId))
+                    break;
+            }
+            printf("\n\n");
+        }
     }
 }
 
@@ -423,6 +622,74 @@ static void deinit() {
   }
 }
 
+static void testBrowseNext() {
+  printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET);
+  printf("\n" COLOR_YELLOW "                       Browse Next            "COLOR_RESET);
+  printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET "\n\n");
+
+  if(!browseNextData || browseNextData->last_used < 0)
+  {
+    printf("Invalid data for browse next service.\n");
+    return;
+  }
+
+  BrowseNextData *clone = cloneBrowseNextData(browseNextData);
+  if(!clone)
+  {
+    printf("Failed to clone the BrowseNextData.\n");
+    return;
+  }
+
+  initBrowseNextData(browseNextData->browseParam);
+  printf("Total number of continuation points: %d.\n", clone->last_used+1);
+
+  EdgeEndPointInfo* ep = (EdgeEndPointInfo*) calloc(1, sizeof(EdgeEndPointInfo));
+  ep->endpointUri = endpointUri;
+  ep->config = NULL;
+
+  EdgeMessage *msg = (EdgeMessage*) calloc(1, sizeof(EdgeMessage));
+  msg->type = SEND_REQUESTS; // There can be one or more continuation points.
+  msg->endpointInfo = ep;
+  msg->command = CMD_BROWSE; // Using the same existing command for browse next operation as well.
+
+  int requestLength = clone->last_used+1;
+  EdgeRequest **requests = (EdgeRequest**) calloc(requestLength, sizeof(EdgeRequest *));
+
+  for(int i=0;i<requestLength;i++)
+  {
+      EdgeNodeInfo *nodeInfo = (EdgeNodeInfo*) calloc(1, sizeof(EdgeNodeInfo));
+      nodeInfo->nodeId = clone->srcNodeId[i];
+      requests[i] = (EdgeRequest*) calloc(1, sizeof(EdgeRequest));
+      requests[i]->nodeInfo = nodeInfo;
+  }
+
+  msg->requests = requests;
+  msg->requestLength = requestLength;
+  msg->browseParam = &clone->browseParam;
+
+  msg->cpList = (EdgeContinuationPointList *)calloc(1, sizeof(EdgeContinuationPointList));
+  msg->cpList->count = requestLength;
+  msg->cpList->cp = (EdgeContinuationPoint **)calloc(requestLength, sizeof(EdgeContinuationPoint *));
+  for(int i=0;i<requestLength;i++)
+  {
+    msg->cpList->cp[i] = &clone->cp[i];
+  }
+
+  browseNext(msg);
+
+  for(int i=0;i<requestLength;i++)
+  {
+    free(requests[i]->nodeInfo);
+    free(requests[i]);
+  }
+  free(requests);
+  free(msg->cpList->cp);
+  free(msg->cpList);
+  free(ep);
+  free(msg);
+  destroyBrowseNextData(clone);
+}
+
 static void testBrowse() {
   printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET);
   printf("\n" COLOR_YELLOW "                       Browse Node            "COLOR_RESET);
@@ -462,7 +729,9 @@ static void testBrowse() {
   msg->requestLength = 0;
   msg->browseParam = (EdgeBrowseParameter *)calloc(1, sizeof(EdgeBrowseParameter));
   msg->browseParam->direction = DIRECTION_FORWARD;
-  msg->browseParam->maxReferencesPerNode = 0;
+  msg->browseParam->maxReferencesPerNode = maxReferencesPerNode;
+
+  initBrowseNextData(*msg->browseParam);
 
   browseNode(msg);
 
@@ -545,7 +814,9 @@ static void testBrowses() {
   msg->requestLength = requestLength;
   msg->browseParam = (EdgeBrowseParameter *)calloc(1, sizeof(EdgeBrowseParameter));
   msg->browseParam->direction = DIRECTION_FORWARD;
-  msg->browseParam->maxReferencesPerNode = 0;
+  msg->browseParam->maxReferencesPerNode = maxReferencesPerNode;
+
+  initBrowseNextData(*msg->browseParam);
 
   browseNode(msg);
 
@@ -1068,7 +1339,7 @@ static void testSubModify() {
 }
 
 static void testRePublish() {
-    
+
     char nodeName[MAX_CHAR_SIZE];
     printf("\nEnter the node name to Re publish :: ");
     scanf("%s", nodeName);
@@ -1078,7 +1349,7 @@ static void testRePublish() {
   ep->config = NULL;
 
   EdgeSubRequest* subReq = (EdgeSubRequest*) malloc(sizeof(EdgeSubRequest));
-  subReq->subType = Edge_Republish_Sub;  
+  subReq->subType = Edge_Republish_Sub;
 
   EdgeNodeInfo* nodeInfo = (EdgeNodeInfo*) malloc(sizeof(EdgeNodeInfo));
   nodeInfo->valueAlias = (char*) malloc(strlen(nodeName) + 1);
@@ -1159,10 +1430,12 @@ static void print_menu() {
   printf("write_group : group write attributes from nodes\n");
   printf("browse : browse nodes\n");
   printf("browse_m : browse multiple nodes\n");
+  printf("browse_next : browse next nodes\n");
   printf("method : method call\n");
   printf("create_sub : create subscription\n");
   printf("modify_sub : modify subscription\n");
   printf("delete_sub : delete subscription\n");
+  printf("set_max_ref : Set maximum references per node\n");
   printf("quit : terminate/stop opcua server/client and then quit\n");
   printf("help : print menu\n");
 
@@ -1206,6 +1479,8 @@ int main() {
       testBrowse();
     } else if(!strcmp(command, "browse_m")) {
       testBrowses();
+    } else if(!strcmp(command, "browse_next")) {
+      testBrowseNext();
     } else if(!strcmp(command, "method")) {
       testMethod();
     } else if(!strcmp(command, "create_sub")) {
@@ -1221,8 +1496,12 @@ int main() {
       print_menu();
     } else if(!strcmp(command, "republish")) {
       testRePublish();
+    } else if(!strcmp(command, "set_max_ref")) {
+      printf("Enter a value for maximum references allowed per node:");
+      scanf("%d", &maxReferencesPerNode);
     }
   }
 
+  destroyBrowseNextData(browseNextData);
   return 0;
 }

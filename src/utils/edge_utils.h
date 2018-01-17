@@ -98,6 +98,10 @@ void freeEdgeResponses(EdgeResponse **responses, int responseLength);
 
 void freeEdgeMessage(EdgeMessage *msg);
 
+void freeEdgeContinuationPoint(EdgeContinuationPoint *cp);
+
+void freeEdgeContinuationPointList(EdgeContinuationPointList *cpList);
+
 EdgeEndpointConfig *cloneEdgeEndpointConfig(EdgeEndpointConfig *config);
 
 EdgeEndPointInfo *cloneEdgeEndpointInfo(EdgeEndPointInfo *endpointInfo);

@@ -37,7 +37,7 @@ typedef enum
     STRING = 1,
     INTEGER = 2,
     UUID = 3,
-    OP = 4
+    BYTESTRING = 4
 } EdgeNodeTypeCommon;
 
 //  typedef enum
