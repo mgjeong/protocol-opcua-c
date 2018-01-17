@@ -138,9 +138,10 @@ static void writeGroup(UA_Client *client, EdgeMessage *msg) {
             UA_StatusCode_name(writeResponse.responseHeader.serviceResult));
 
     free(wv);
-    free(myVariant);
+    for (int i = 0; i < reqLen; i++)
+      UA_Variant_deleteMembers(&myVariant[i]);
+    free(myVariant); myVariant = NULL;
 
-    UA_WriteRequest_deleteMembers(&writeRequest);
     UA_WriteResponse_deleteMembers(&writeResponse);
     return;
   }
@@ -163,8 +164,9 @@ static void writeGroup(UA_Client *client, EdgeMessage *msg) {
       free(res);
 
       free(wv);
-      free(myVariant);
-      UA_WriteRequest_deleteMembers(&writeRequest);
+      for (int i = 0; i < reqLen; i++)
+        UA_Variant_deleteMembers(&myVariant[i]);
+      free(myVariant); myVariant = NULL;
       UA_WriteResponse_deleteMembers(&writeResponse);
       return;
   }
@@ -245,8 +247,9 @@ static void writeGroup(UA_Client *client, EdgeMessage *msg) {
   free (resultMsg->responses);resultMsg->responses = NULL;
   free(resultMsg); resultMsg = NULL;
   free(wv);
-  free(myVariant);
-  UA_WriteRequest_deleteMembers(&writeRequest);
+  for (int i = 0; i < reqLen; i++)
+      UA_Variant_deleteMembers(&myVariant[i]);
+  free(myVariant); myVariant = NULL;
   UA_WriteResponse_deleteMembers(&writeResponse);
 }
 
