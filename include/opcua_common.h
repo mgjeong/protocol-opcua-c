@@ -159,7 +159,7 @@ typedef struct EdgeNodeId
     EdgeNodeTypeCommon type;
 
     /** NodeId.*/
-    char* nodeId;
+    char *nodeId;
 
     int integerNodeId;
 
@@ -181,17 +181,17 @@ typedef struct EdgeNodeInfo
 
 typedef struct EdgeMethodRequestParams
 {
-  /** number of input arguments */
-  int num_inpArgs;
+    /** number of input arguments */
+    int num_inpArgs;
 
-  /** Input arguments */
-  EdgeArgument** inpArg;
+    /** Input arguments */
+    EdgeArgument **inpArg;
 
-  /** number of output arguments */
-  int num_outArgs;
+    /** number of output arguments */
+    int num_outArgs;
 
-  /** Input arguments */
-  EdgeArgument** outArg;
+    /** Input arguments */
+    EdgeArgument **outArg;
 
 } EdgeMethodRequestParams;
 

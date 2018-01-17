@@ -5,131 +5,155 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-static ReceivedMessageCallback* receivedMsgCb;
-static StatusCallback* statusCb;
+static ReceivedMessageCallback *receivedMsgCb;
+static StatusCallback *statusCb;
 static DiscoveryCallback *discoveryCb;
 
 static bool b_serverInitialized = false;
 static bool b_clientInitialized = false;
 
-static void registerRecvCallback(ReceivedMessageCallback* callback) {
-  receivedMsgCb = callback;
+static void registerRecvCallback(ReceivedMessageCallback *callback)
+{
+    receivedMsgCb = callback;
 }
 
-static void registerStatusCallback(StatusCallback* callback) {
-  statusCb = callback;
+static void registerStatusCallback(StatusCallback *callback)
+{
+    statusCb = callback;
 }
 
-static void registerDiscoveryCallback(DiscoveryCallback* callback) {
-  discoveryCb = callback;
+static void registerDiscoveryCallback(DiscoveryCallback *callback)
+{
+    discoveryCb = callback;
 }
 
-void registerCallbacks(EdgeConfigure *config) {
-  registerRecvCallback(config->recvCallback);
-  registerStatusCallback(config->statusCallback);
-  registerDiscoveryCallback(config->discoveryCallback);
+void registerCallbacks(EdgeConfigure *config)
+{
+    registerRecvCallback(config->recvCallback);
+    registerStatusCallback(config->statusCallback);
+    registerDiscoveryCallback(config->discoveryCallback);
 }
 
 
-EdgeResult createNamespace(char* name, char* rootNodeId,
-                                                                   char* rootBrowseName, char* rootDisplayName) {
-  createNamespaceInServer(name, rootNodeId, rootBrowseName, rootDisplayName);
-  EdgeResult result;
-  result.code = STATUS_OK;
-  return result;
+EdgeResult createNamespace(char *name, char *rootNodeId,
+                           char *rootBrowseName, char *rootDisplayName)
+{
+    createNamespaceInServer(name, rootNodeId, rootBrowseName, rootDisplayName);
+    EdgeResult result;
+    result.code = STATUS_OK;
+    return result;
 }
 
-EdgeResult createNode(char* namespaceUri, EdgeNodeItem* item) {
-  // add Nodes in server
-  EdgeResult result = addNodesInServer(item);
-  return result;
+EdgeResult createNode(char *namespaceUri, EdgeNodeItem *item)
+{
+    // add Nodes in server
+    EdgeResult result = addNodesInServer(item);
+    return result;
 }
 
-EdgeResult modifyVariableNode(char* namespaceUri, char* nodeUri, EdgeVersatility *value) {
-  // modify variable nodes
-  EdgeResult result = modifyNodeInServer(nodeUri, value);
-  return result;
+EdgeResult modifyVariableNode(char *namespaceUri, char *nodeUri, EdgeVersatility *value)
+{
+    // modify variable nodes
+    EdgeResult result = modifyNodeInServer(nodeUri, value);
+    return result;
 }
 
-EdgeResult addReference(EdgeReference *reference) {
-  EdgeResult result = addReferenceInServer(reference);
-  return result;
+EdgeResult addReference(EdgeReference *reference)
+{
+    EdgeResult result = addReferenceInServer(reference);
+    return result;
 }
 
-EdgeResult readNode(EdgeMessage *msg) {
-  EdgeResult result = readNodesFromServer(msg);
-  return result;
+EdgeResult readNode(EdgeMessage *msg)
+{
+    EdgeResult result = readNodesFromServer(msg);
+    return result;
 }
 
-EdgeResult writeNode(EdgeMessage *msg) {
-  EdgeResult result = writeNodesInServer(msg);
-  return result;
+EdgeResult writeNode(EdgeMessage *msg)
+{
+    EdgeResult result = writeNodesInServer(msg);
+    return result;
 }
 
-EdgeResult browseNode(EdgeMessage *msg) {
-  EdgeResult result = browseNodesInServer(msg);
-  return result;
+EdgeResult browseNode(EdgeMessage *msg)
+{
+    EdgeResult result = browseNodesInServer(msg);
+    return result;
 }
 
-EdgeResult browseNext(EdgeMessage *msg) {
-  EdgeResult result = browseNextInServer(msg);
-  return result;
+EdgeResult browseNext(EdgeMessage *msg)
+{
+    EdgeResult result = browseNextInServer(msg);
+    return result;
 }
 
-EdgeResult callMethod(EdgeMessage *msg) {
-  EdgeResult result = callMethodInServer(msg);
-  return result;
+EdgeResult callMethod(EdgeMessage *msg)
+{
+    EdgeResult result = callMethodInServer(msg);
+    return result;
 }
 
-EdgeResult handleSubscription(EdgeMessage *msg) {
-  EdgeResult result = executeSubscriptionInServer(msg);
-  return result;
+EdgeResult handleSubscription(EdgeMessage *msg)
+{
+    EdgeResult result = executeSubscriptionInServer(msg);
+    return result;
 }
 
-EdgeResult createMethodNode(char *namespaceUri, EdgeNodeItem *item, EdgeMethod *method) {
-  EdgeResult result = addMethodNodeInServer(item, method);
-  return result;
+EdgeResult createMethodNode(char *namespaceUri, EdgeNodeItem *item, EdgeMethod *method)
+{
+    EdgeResult result = addMethodNodeInServer(item, method);
+    return result;
 }
 
-void createServer(EdgeEndPointInfo *epInfo) {
-  printf ("\n[Received command] :: Server start \n");
-  if (b_serverInitialized) {
-    printf( "Server already initialised");
-    return ;
-  }
-  EdgeResult result = start_server(epInfo);
-  if (result.code == STATUS_OK) {
-    b_serverInitialized = true;
-  }
+void createServer(EdgeEndPointInfo *epInfo)
+{
+    printf ("\n[Received command] :: Server start \n");
+    if (b_serverInitialized)
+    {
+        printf( "Server already initialised");
+        return ;
+    }
+    EdgeResult result = start_server(epInfo);
+    if (result.code == STATUS_OK)
+    {
+        b_serverInitialized = true;
+    }
 }
 
-void closeServer(EdgeEndPointInfo *epInfo) {
-  if (b_serverInitialized) {
-    stop_server(epInfo);
-    b_serverInitialized = false;
-  }
+void closeServer(EdgeEndPointInfo *epInfo)
+{
+    if (b_serverInitialized)
+    {
+        stop_server(epInfo);
+        b_serverInitialized = false;
+    }
 }
 
-void getEndpointInfo(EdgeEndPointInfo* epInfo) {
-  printf("\n[Received command] :: Get endpoint info for [%s] \n\n", epInfo->endpointUri);
-  getClientEndpoints(epInfo->endpointUri);
+void getEndpointInfo(EdgeEndPointInfo *epInfo)
+{
+    printf("\n[Received command] :: Get endpoint info for [%s] \n\n", epInfo->endpointUri);
+    getClientEndpoints(epInfo->endpointUri);
 }
 
-void connectClient(EdgeEndPointInfo *epInfo) {
-  printf ("\n[Received command] :: Client connect \n");
-  if (b_clientInitialized) {
-    printf( "Client already initialised");
-    return ;
-  }
-  bool result = connect_client(epInfo->endpointUri);
-  if (!result)
-    return ;
+void connectClient(EdgeEndPointInfo *epInfo)
+{
+    printf ("\n[Received command] :: Client connect \n");
+    if (b_clientInitialized)
+    {
+        printf( "Client already initialised");
+        return ;
+    }
+    bool result = connect_client(epInfo->endpointUri);
+    if (!result)
+        return ;
 }
 
-void disconnectClient(EdgeEndPointInfo *epInfo) {
-  printf("\n[Received command] :: Client disconnect \n");
-  disconnect_client(epInfo);
-  b_clientInitialized = false;
+void disconnectClient(EdgeEndPointInfo *epInfo)
+{
+    printf("\n[Received command] :: Client disconnect \n");
+    disconnect_client(epInfo);
+    b_clientInitialized = false;
 }
 
 
@@ -179,49 +203,60 @@ void disconnectClient(EdgeEndPointInfo *epInfo) {
 //  }
 //}
 
-void onResponseMessage(EdgeMessage *msg) {
-  if (NULL == receivedMsgCb) {
-    printf("receiver callback not registered\n\n");
-    return;
-  }
+void onResponseMessage(EdgeMessage *msg)
+{
+    if (NULL == receivedMsgCb)
+    {
+        printf("receiver callback not registered\n\n");
+        return;
+    }
 
-  switch(msg->type)
-  {
-    case GENERAL_RESPONSE:
-      receivedMsgCb->resp_msg_cb(msg);
-      break;
-    case BROWSE_RESPONSE:
-      receivedMsgCb->browse_msg_cb(msg);
-      break;
-    case REPORT:
-      receivedMsgCb->monitored_msg_cb(msg);
-      break;
-    case ERROR:
-      receivedMsgCb->error_msg_cb(msg);
-      break;
-    default:
-      break;
-  }
+    switch (msg->type)
+    {
+        case GENERAL_RESPONSE:
+            receivedMsgCb->resp_msg_cb(msg);
+            break;
+        case BROWSE_RESPONSE:
+            receivedMsgCb->browse_msg_cb(msg);
+            break;
+        case REPORT:
+            receivedMsgCb->monitored_msg_cb(msg);
+            break;
+        case ERROR:
+            receivedMsgCb->error_msg_cb(msg);
+            break;
+        default:
+            break;
+    }
 }
 
-void onDiscoveryCallback(EdgeDevice *device) {
-  if (NULL == discoveryCb) {
-    // discovery callback not registered by application.
-    return ;
-  }
-  discoveryCb->endpoint_found_cb(device);
+void onDiscoveryCallback(EdgeDevice *device)
+{
+    if (NULL == discoveryCb)
+    {
+        // discovery callback not registered by application.
+        return ;
+    }
+    discoveryCb->endpoint_found_cb(device);
 }
 
-void onStatusCallback(EdgeEndPointInfo* epInfo, EdgeStatusCode status) {
-  if (NULL == statusCb) {
-    // status callback not registered by application.
-    return ;
-  }
-  if (STATUS_SERVER_STARTED == status || STATUS_CLIENT_STARTED == status) {
-    statusCb->start_cb(epInfo, status);
-  } else if (STATUS_STOP_SERVER == status || STATUS_STOP_CLIENT== status) {
-    statusCb->stop_cb(epInfo, status);
-  } else if (STATUS_CONNECTED == status || STATUS_DISCONNECTED == status) {
-    statusCb->network_cb(epInfo, status);
-  }
+void onStatusCallback(EdgeEndPointInfo *epInfo, EdgeStatusCode status)
+{
+    if (NULL == statusCb)
+    {
+        // status callback not registered by application.
+        return ;
+    }
+    if (STATUS_SERVER_STARTED == status || STATUS_CLIENT_STARTED == status)
+    {
+        statusCb->start_cb(epInfo, status);
+    }
+    else if (STATUS_STOP_SERVER == status || STATUS_STOP_CLIENT == status)
+    {
+        statusCb->stop_cb(epInfo, status);
+    }
+    else if (STATUS_CONNECTED == status || STATUS_DISCONNECTED == status)
+    {
+        statusCb->network_cb(epInfo, status);
+    }
 }

@@ -19,20 +19,20 @@ typedef void *keyValue;
 
 typedef struct edgeMapNode
 {
-  /** Map Key.*/
-  keyValue key;
+    /** Map Key.*/
+    keyValue key;
 
-  /** map key-value pair.*/
-  keyValue value;
+    /** map key-value pair.*/
+    keyValue value;
 
-  /** Next node in list.*/
-  struct edgeMapNode *next;
+    /** Next node in list.*/
+    struct edgeMapNode *next;
 } edgeMapNode;
 
 typedef struct edgeMap
 {
-   /** Map Head.*/
-  edgeMapNode* head;
+    /** Map Head.*/
+    edgeMapNode *head;
 } edgeMap;
 
 
@@ -41,7 +41,7 @@ typedef struct edgeMap
  *
  * @return edgeMap
  */
-edgeMap* createMap();
+edgeMap *createMap();
 
 /**
  * Insert key-value pair into the edge util map

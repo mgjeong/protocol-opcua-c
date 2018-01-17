@@ -17,35 +17,35 @@
  * limitations under the License.
  *
  ******************************************************************/
- 
+
 #include <gtest/gtest.h>
 #include <iostream>
 
 extern "C" {
-    #include "opcua_manager.h"
-    #include "opcua_common.h"
-    #include "edge_identifier.h"
-    #include "edge_utils.h"
+#include "opcua_manager.h"
+#include "opcua_common.h"
+#include "edge_identifier.h"
+#include "edge_utils.h"
 }
 
 #define PRINT(str) std::cout<<str<<std::endl
 
-edgeMap* sampleMap;
+edgeMap *sampleMap;
 
 class OPC_utilMap: public ::testing::Test
 {
-protected:
+    protected:
 
-    virtual void SetUp()
-    {      
-        PRINT("MAP TESTS");
-        sampleMap = NULL;
-    }
+        virtual void SetUp()
+        {
+            PRINT("MAP TESTS");
+            sampleMap = NULL;
+        }
 
-    virtual void TearDown()
-    {
-             
-    }
+        virtual void TearDown()
+        {
+
+        }
 
 };
 
@@ -64,8 +64,8 @@ TEST_F(OPC_utilMap , createMap_P)
 
 TEST_F(OPC_utilMap , insertMapElement_P)
 {
-    sampleMap= createMap();
-       
+    sampleMap = createMap();
+
     insertMapElement(sampleMap, (keyValue) "key1", (keyValue) "value1");
     EXPECT_EQ(sampleMap->head == NULL, false);
     insertMapElement(sampleMap, (keyValue) "key2", (keyValue) "value2");
@@ -84,8 +84,8 @@ TEST_F(OPC_utilMap , insertMapElement_P)
 
 TEST_F(OPC_utilMap , insertMapElement_N)
 {
-    sampleMap= createMap();
-    
+    sampleMap = createMap();
+
     EXPECT_NE((char *)getMapElement(sampleMap, (keyValue) "key1"), "value1");
     EXPECT_EQ(getMapElement(sampleMap, (keyValue) "key1") == NULL, true);
 
@@ -94,7 +94,7 @@ TEST_F(OPC_utilMap , insertMapElement_N)
     insertMapElement(sampleMap, (keyValue) "key2", (keyValue) "value2");
     insertMapElement(sampleMap, (keyValue) "key6", (keyValue) "value6");
     insertMapElement(sampleMap, (keyValue) "key3", (keyValue) "value3");
-    
+
     EXPECT_NE((char *)getMapElement(sampleMap, (keyValue) "key4"), "value4");
     EXPECT_NE((char *)getMapElement(sampleMap, (keyValue) "key1"), "value2");
     EXPECT_NE((char *)getMapElement(sampleMap, (keyValue) "key2"), "value3");
@@ -112,7 +112,7 @@ TEST_F(OPC_utilMap , insertMapElement_N)
 
 TEST_F(OPC_utilMap , deleteMap_P)
 {
-    sampleMap= createMap();
+    sampleMap = createMap();
 
     EXPECT_EQ(sampleMap == NULL, false);
 
