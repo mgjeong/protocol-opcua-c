@@ -120,6 +120,33 @@ void freeEdgeEndpointConfig(EdgeEndpointConfig *config)
     free(config);
 }
 
+void freeEdgeContinuationPoint(EdgeContinuationPoint *cp)
+{
+    if(!cp)
+    {
+        return;
+    }
+
+    free(cp->continuationPoint);
+    free(cp);
+}
+
+void freeEdgeContinuationPointList(EdgeContinuationPointList *cpList)
+{
+    if(!cpList)
+    {
+        return;
+    }
+
+    for(int i = 0; i < cpList->count; ++i)
+    {
+        freeEdgeContinuationPoint(cpList->cp[i]);
+    }
+
+    free(cpList->cp);
+    free(cpList);
+}
+
 EdgeEndpointConfig *cloneEdgeEndpointConfig(EdgeEndpointConfig *config)
 {
     if(!config)
@@ -411,6 +438,7 @@ void freeEdgeMessage(EdgeMessage *msg)
     free(msg->result);
     free(msg->browseParam);
     freeEdgeBrowseResult(msg->browseResult, msg->browseResultLength);
+    freeEdgeContinuationPointList(msg->cpList);
     free(msg);
 }
 

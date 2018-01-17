@@ -231,6 +231,24 @@ typedef struct EdgeResult
     EdgeStatusCode code;
 } EdgeResult;
 
+typedef struct EdgeContinuationPoint
+{
+    /** Length of continuation point **/
+    int length;
+
+    /** Continuation point **/
+    unsigned char *continuationPoint;
+} EdgeContinuationPoint;
+
+typedef struct EdgeContinuationPointList
+{
+    /** Total number of continuation points **/
+    int count;
+
+    /** List of continuation points **/
+    EdgeContinuationPoint **cp;
+} EdgeContinuationPointList;
+
 typedef struct EdgeMessage
 {
     /** EdgeMessageType.*/
@@ -268,6 +286,9 @@ typedef struct EdgeMessage
 
     /** Total number of browse result objects **/
     int browseResultLength;
+
+    /** List of continuation point **/
+    EdgeContinuationPointList *cpList;
 
 } EdgeMessage;
 

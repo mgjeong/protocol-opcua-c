@@ -24,7 +24,12 @@ EdgeResult writeNodesInServer(EdgeMessage* msg) {
 }
 
 EdgeResult browseNodesInServer(EdgeMessage *msg) {
-  EdgeResult result = executeBrowse(m_client, msg);
+  EdgeResult result = executeBrowse(m_client, msg, false);
+  return result;
+}
+
+EdgeResult browseNextInServer(EdgeMessage *msg) {
+  EdgeResult result = executeBrowse(m_client, msg, true);
   return result;
 }
 

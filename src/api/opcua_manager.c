@@ -71,6 +71,11 @@ EdgeResult browseNode(EdgeMessage *msg) {
   return result;
 }
 
+EdgeResult browseNext(EdgeMessage *msg) {
+  EdgeResult result = browseNextInServer(msg);
+  return result;
+}
+
 EdgeResult callMethod(EdgeMessage *msg) {
   EdgeResult result = callMethodInServer(msg);
   return result;
