@@ -103,60 +103,63 @@ typedef struct EdgeReference
     bool forward;
 } EdgeReference;
 
-typedef enum EdgeArgumentType {
-  IN_OUT_ARGUMENTS = 1,
-  IN_ARGUMENT = 2,
-  OUT_ARGUMENT = 3,
-  VOID_ARGUMENT = 4
+typedef enum EdgeArgumentType
+{
+    IN_OUT_ARGUMENTS = 1,
+    IN_ARGUMENT = 2,
+    OUT_ARGUMENT = 3,
+    VOID_ARGUMENT = 4
 } EdgeArgumentType;
 
-typedef enum EdgeArgValType {
-  SCALAR = 0,
-  ARRAY_1D = 1,
-  ARRAY_2D = 2
+typedef enum EdgeArgValType
+{
+    SCALAR = 0,
+    ARRAY_1D = 1,
+    ARRAY_2D = 2
 } EdgeArgValType;
 
 typedef struct EdgeArgument
 {
-  /** Argument data type */
-  EdgeNodeIdentifier argType;
+    /** Argument data type */
+    EdgeNodeIdentifier argType;
 
-  /** Argument value type */
-  EdgeArgValType valType;
+    /** Argument value type */
+    EdgeArgValType valType;
 
-  /** Argument scalar data */
-  void *scalarValue;
+    /** Argument scalar data */
+    void *scalarValue;
 
-  /* Number of elements if array */
-  int arrayLength;
+    /* Number of elements if array */
+    int arrayLength;
 
-  /** Argument array data */
-  void *arrayData;
+    /** Argument array data */
+    void *arrayData;
 } EdgeArgument;
 
 typedef void (*method_func) (int inpSize, void **input, int outSize, void **output);
 
-typedef struct EdgeMethod {
-  /** Method name to browse for */
-  char* methodNodeName;
+typedef struct EdgeMethod
+{
+    /** Method name to browse for */
+    char *methodNodeName;
 
-  /** Method description */
-  char *description;
+    /** Method description */
+    char *description;
 
-  /** number of input arguments */
-  int num_inpArgs;
+    /** number of input arguments */
+    int num_inpArgs;
 
-  /** Input arguments */
-  EdgeArgument** inpArg;
+    /** Input arguments */
+    EdgeArgument **inpArg;
 
-  /** number of output arguments */
-  int num_outArgs;
+    /** number of output arguments */
+    int num_outArgs;
 
-  /** Input arguments */
-  EdgeArgument** outArg;
+    /** Input arguments */
+    EdgeArgument **outArg;
 
-  /** Method */
-  method_func method_fn;
+    /** Method */
+    method_func method_fn;
 } EdgeMethod;
 
 #ifdef __cplusplus

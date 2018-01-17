@@ -17,4 +17,4 @@ void sendPublishRequest(UA_Client *client);
 
 
 
-#endif	// EDGE_SUBSCRIPTION_H
+#endif  // EDGE_SUBSCRIPTION_H

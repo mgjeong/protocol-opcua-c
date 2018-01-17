@@ -40,19 +40,21 @@ extern "C"
 typedef struct EdgeNodeInfo EdgeNodeInfo;
 typedef struct EdgeResult EdgeResult;
 
-typedef struct EdgeVersatility {
-  /** data*/
-  void* value;
+typedef struct EdgeVersatility
+{
+    /** data*/
+    void *value;
 
-  /** Array/Scalar type */
-  bool isArray;
+    /** Array/Scalar type */
+    bool isArray;
 
-  /** Array Size */
-  int arrayLength;
+    /** Array Size */
+    int arrayLength;
 
 } EdgeVersatility;
 
-typedef struct EdgeDiagnosticInfo {
+typedef struct EdgeDiagnosticInfo
+{
 
     /** Symbolic Id */
     int symbolicId;
@@ -80,7 +82,7 @@ typedef struct EdgeDiagnosticInfo {
 typedef struct EdgeResponse
 {
     /** EdgeVersatility.*/
-    EdgeVersatility* message;
+    EdgeVersatility *message;
 
     void *value;
 
@@ -103,32 +105,32 @@ typedef struct EdgeResponse
 
 typedef struct EdgeSubRequest
 {
-  /** EdgeNodeIdentifier */
-  EdgeNodeIdentifier subType;
+    /** EdgeNodeIdentifier */
+    EdgeNodeIdentifier subType;
 
-  /** sampling interval */
-  double samplingInterval;
+    /** sampling interval */
+    double samplingInterval;
 
-  /** Publishing Interval */
-  double publishingInterval;
+    /** Publishing Interval */
+    double publishingInterval;
 
-  /** Lifetime count */
-  int lifetimeCount;
+    /** Lifetime count */
+    int lifetimeCount;
 
-  /** max keepalive count */
-  int maxKeepAliveCount;
+    /** max keepalive count */
+    int maxKeepAliveCount;
 
-  /** Max Notifications per Publish */
-  int maxNotificationsPerPublish;
+    /** Max Notifications per Publish */
+    int maxNotificationsPerPublish;
 
-  /** Publishing enabled ? */
-  bool publishingEnabled;
+    /** Publishing enabled ? */
+    bool publishingEnabled;
 
-  /** Priority */
-  int priority;
+    /** Priority */
+    int priority;
 
-  /** Queue Size */
-  int queueSize;
+    /** Queue Size */
+    int queueSize;
 } EdgeSubRequest;
 
 #ifdef __cplusplus
