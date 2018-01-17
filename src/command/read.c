@@ -203,7 +203,9 @@ static void sendErrorResponse(EdgeMessage *msg, char *err_desc) {
     resultMsg->result = res;
 
     onResponseMessage(resultMsg);
-    free(res);
+    free(res); res = NULL;
+    free(message); message = NULL;
+    free(resultMsg->endpointInfo); resultMsg->endpointInfo = NULL;
     free(resultMsg);
 }
 
