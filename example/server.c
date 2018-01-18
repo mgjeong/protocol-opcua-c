@@ -57,6 +57,9 @@ static void status_start_cb (EdgeEndPointInfo *epInfo, EdgeStatusCode status)
         printf("[Application Callback] Server started\n");
         startFlag = true;
 
+        free(epInfo->config);epInfo->config = NULL;
+        free(epInfo);epInfo = NULL;
+
         testCreateNamespace();
         testCreateNodes();
     }
@@ -67,13 +70,16 @@ static void status_stop_cb (EdgeEndPointInfo *epInfo, EdgeStatusCode status)
     if (status == STATUS_STOP_SERVER)
     {
         printf("[Application Callback] Server stopped \n");
-        exit(0);
     }
+
+    free(epInfo->config);epInfo->config = NULL;
+    free(epInfo);epInfo = NULL;
 }
 
 static void status_network_cb (EdgeEndPointInfo *epInfo, EdgeStatusCode status)
 {
-
+    free(epInfo->config);epInfo->config = NULL;
+    free(epInfo);epInfo = NULL;
 }
 
 /* discovery callback */
@@ -154,35 +160,33 @@ static void startServer()
     endpointConfig->securityPolicyUri = NULL;
     endpointConfig->serverName = DEFAULT_SERVER_NAME_VALUE;
     //endpointConfig->requestTimeout = 60000;
+    
+    epInfo->config = endpointConfig;
 
-    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
-    ep->endpointUri = endpointUri;
-    ep->config = endpointConfig;
-
-    EdgeMessage *msg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
+    // Commented - For future message queue handling
+    /*EdgeMessage *msg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
     msg->endpointInfo = ep;
     msg->command = CMD_START_SERVER;
-    msg->type = SEND_REQUEST;
+    msg->type = SEND_REQUEST;*/
 
     printf("start server\n\n");
     //send(msg);
-    createServer(ep);
+    createServer(epInfo);
 }
 
 static void stopServer()
 {
+    free(epInfo->config);
+    epInfo->config = NULL;
 
-    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
-    ep->endpointUri = endpointUri;
-    ep->config = NULL;
-
-    EdgeMessage *msg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
+    // Commented - For future message queue handling
+    /*EdgeMessage *msg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
     msg->endpointInfo = ep;
     msg->command = CMD_STOP_SERVER;
-    msg->type = SEND_REQUEST;
+    msg->type = SEND_REQUEST;*/
 
     //send(msg);
-    closeServer(ep);
+    closeServer(epInfo);
 }
 
 static void testCreateNamespace()
@@ -836,8 +840,8 @@ static void testCreateNodes()
     }
     createMethodNode(DEFAULT_NAMESPACE_VALUE, methodNodeItem1, method1);
     //FREE logic
-//FREE(method1->inpArg[0]);
-//FREE(method1->inpArg[1]);
+    //FREE(method1->inpArg[0]);
+    //FREE(method1->inpArg[1]);
     for (int idx = 0; idx < method1->num_outArgs; idx++)
     {
         //free(method1->outArg[idx]);method1->outArg[idx] = NULL;
@@ -1006,9 +1010,6 @@ static void deinit()
 {
     if (startFlag)
     {
-        stopServer();
-        startFlag = false;
-
         if (config)
         {
             if (config->recvCallback)
@@ -1028,6 +1029,9 @@ static void deinit()
             }
             free (config); config = NULL;
         }
+
+         stopServer();
+        startFlag = false;
     }
 }
 
@@ -1072,10 +1076,8 @@ int main()
             snprintf(endpointUri, sizeof(endpointUri), "opc:tcp://%s:12686/edge-opc-server", ipAddress);
 
             epInfo = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
-            int len = strlen(endpointUri);
-            epInfo->endpointUri = (char *) malloc(len + 1);
-            strncpy(epInfo->endpointUri, endpointUri, len);
-            epInfo->endpointUri[len] = '\0';
+            epInfo->endpointUri = endpointUri;
+            epInfo->config = NULL;
 
             init();
             startServer();
