@@ -511,25 +511,25 @@ static void browse_msg_cb (EdgeMessage *data)
 #endif
 static void browse_msg_cb (EdgeMessage *data)
 {
-    printf("\n[Application browse response callback] [Request(%d)]\n",
-           data->responses[0]->requestId);
+    //printf("\n[Application browse response callback] [Request(%d)]\n",
+    //       data->responses[0]->requestId);
 
     if (data->browseResult)
     {
         EdgeBrowseResult *browseResult = data->browseResult;
-        EdgeNodeId *nodeId = data->responses[0]->nodeInfo->nodeId;
-        printf("Source Node ID: ");
-        (nodeId->type == INTEGER) ? printf("%d\n", nodeId->integerNodeId) : printf("%s\n", nodeId->nodeId);
+        //EdgeNodeId *nodeId = data->responses[0]->nodeInfo->nodeId;
+        //printf("Source Node ID: ");
+        //(nodeId->type == INTEGER) ? printf("%d\n", nodeId->integerNodeId) : printf("%s\n", nodeId->nodeId);
 
         if (data->browseResultLength > 0)
         {
-            printf("BrowseName(s): ");
+            //printf("BrowseName(s): ");
             for (int idx = 0; idx < data->browseResultLength; idx++)
             {
                 if (idx != 0) printf(", ");
-                printf("%s", browseResult[idx].browseName);
+                printf("%s\n", browseResult[idx].browseName);
             }
-            printf("\n\n");
+            //printf("\n\n");
         }
     }
     else
@@ -1385,14 +1385,15 @@ static void testSub()
     // Get the list of browse names and display them to user.
     testBrowse();
     char nodeName[MAX_CHAR_SIZE];
-
-    printf("\nEnter the node name to create Subscribe :: ");
-    scanf("%s", nodeName);
+    int num_requests;
+    printf("Enter number of nodes to Subscribe (less than 10) :: ");
+    scanf("%d", &num_requests);
 
     EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
     ep->endpointUri = endpointUri;
     ep->config = NULL;
 
+    EdgeRequest **requests = (EdgeRequest **) malloc(sizeof(EdgeRequest *) * num_requests);
     EdgeSubRequest *subReq = (EdgeSubRequest *) malloc(sizeof(EdgeSubRequest));
     subReq->subType = Edge_Create_Sub;
     subReq->samplingInterval = 1000.0;
@@ -1405,18 +1406,26 @@ static void testSub()
     subReq->priority = 0;
     subReq->queueSize = 50;
 
-    EdgeNodeInfo *nodeInfo = (EdgeNodeInfo *) malloc(sizeof(EdgeNodeInfo));
-    nodeInfo->valueAlias = (char *) malloc(strlen(nodeName) + 1);
-    strcpy(nodeInfo->valueAlias, nodeName);
 
-    EdgeRequest *request = (EdgeRequest *) malloc(sizeof(EdgeRequest));
-    request->nodeInfo = nodeInfo;
-    request->subMsg = subReq;
+    for (int i = 0; i < num_requests; i++)
+    {
+        EdgeNodeInfo *nodeInfo = (EdgeNodeInfo *) malloc(sizeof(EdgeNodeInfo));
+        printf("\nEnter the node #%d  name to subscribe :: ", (i + 1));
+        scanf("%s", nodeName);
+        nodeInfo->valueAlias = (char *) malloc(strlen(nodeName) + 1);
+        strcpy(nodeInfo->valueAlias, nodeName);
+        nodeInfo->valueAlias[strlen(nodeName)] = '\0';
+        requests[i] = (EdgeRequest *) malloc(sizeof(EdgeRequest));
+        requests[i]->nodeInfo = nodeInfo;
+        requests[i]->subMsg = subReq;
+    }
 
     EdgeMessage *msg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
     msg->endpointInfo = ep;
     msg->command = CMD_SUB;
-    msg->request = request;
+    msg->type = SEND_REQUESTS;
+    msg->requests = requests;
+    msg->requestLength = num_requests;
 
     EdgeResult result = handleSubscription(msg);
     printf("CREATE RESULT : %d\n",  result.code);
@@ -1425,10 +1434,16 @@ static void testSub()
         printf("SUBSCRPTION CREATE SUCCESSFULL\n");
     }
 
-    free(nodeInfo->valueAlias); nodeInfo->valueAlias = NULL;
-    free(nodeInfo); nodeInfo = NULL;
     free(subReq); subReq = NULL;
-    free(request); request = NULL;
+
+    for (int i = 0; i < num_requests; i++)
+    {
+        free(requests[i]->nodeInfo->valueAlias); requests[i]->nodeInfo->valueAlias = NULL;
+        free(requests[i]->nodeInfo); requests[i]->nodeInfo = NULL;
+        free(requests[i]); requests[i] = NULL;
+    }
+
+    free(requests); requests = NULL;
     free(ep); ep = NULL;
     free (msg); msg = NULL;
 }
@@ -1533,7 +1548,7 @@ static void testRePublish()
 static void testSubDelete()
 {
 
-    testBrowse();
+    //testBrowse();
     char nodeName[MAX_CHAR_SIZE];
 
     printf("\nEnter the node name to delete Subscribe :: ");
