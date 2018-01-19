@@ -1,9 +1,14 @@
 #include "subscription.h"
 #include "edge_utils.h"
+#include "edge_logger.h"
 
 #include <stdio.h>
 #include <pthread.h>
 #include <unistd.h>
+
+#define TAG "subscription"
+
+#define EDGE_UA_SUBSCRIPTION_ITEM_SIZE 20
 
 typedef struct subscriptionInfo
 {
@@ -99,13 +104,13 @@ monitoredItemHandler(UA_UInt32 monId, UA_DataValue *value, void *context)
 
     if (value->status != UA_STATUSCODE_GOOD)
     {
-        printf("ERROR :: Received Value Status Code %s\n", UA_StatusCode_name(value->status));
+        EDGE_LOG_V(TAG, "ERROR :: Received Value Status Code %s\n", UA_StatusCode_name(value->status));
         return;
     }
 
     if ( value->hasValue)
     {
-        printf("value is present, monId :: %d\n", monId);
+        EDGE_LOG_V(TAG, "value is present, monId :: %d\n", monId);
 
         char *valueAlias = (char *) context;
         subscriptionInfo *subInfo =  (subscriptionInfo *) getSubscriptionInfo(valueAlias);
@@ -122,8 +127,8 @@ monitoredItemHandler(UA_UInt32 monId, UA_DataValue *value, void *context)
             //memcpy(response->nodeInfo, subInfo->msg->request->nodeInfo, sizeof(EdgeNodeInfo));
             response->nodeInfo->valueAlias = (char *) malloc(strlen(valueAlias) + 1);
             strcpy(response->nodeInfo->valueAlias, valueAlias);
-            if (subInfo->msg->requests != NULL)
-                printf("msg->requests VALID here\n");
+            if (subInfo->msg != NULL && subInfo->msg->requests != NULL)
+                EDGE_LOG(TAG, "msg->requests VALID here\n");
 
             //response->requestId = subInfo->msg->request->requestId;
 
@@ -185,12 +190,8 @@ monitoredItemHandler(UA_UInt32 monId, UA_DataValue *value, void *context)
 
             EdgeMessage *resultMsg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
             resultMsg->endpointInfo = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
-            if (subInfo->msg != NULL)
-                memcpy(resultMsg->endpointInfo, subInfo->msg->endpointInfo, sizeof(EdgeEndPointInfo));
-            else
-            {
-                printf("Failing here 2\n"); return;
-            }
+            memcpy(resultMsg->endpointInfo, subInfo->msg->endpointInfo, sizeof(EdgeEndPointInfo));
+
             resultMsg->type = REPORT;
             resultMsg->responseLength = 1;
             resultMsg->responses = (EdgeResponse **) malloc(1 * sizeof(EdgeResponse));
@@ -212,7 +213,7 @@ monitoredItemHandler(UA_UInt32 monId, UA_DataValue *value, void *context)
 
 static void *subscription_thread_handler(void *ptr)
 {
-    printf(">>>>>>>>>>>>>>>>>> subscription thread created <<<<<<<<<<<<<<<<<<<< \n");
+    EDGE_LOG(TAG, ">>>>>>>>>>>>>>>>>> subscription thread created <<<<<<<<<<<<<<<<<<<< \n");
     UA_Client *client = (UA_Client *) ptr;
     subscription_thread_running = true;
     while (subscription_thread_running)
@@ -220,7 +221,7 @@ static void *subscription_thread_handler(void *ptr)
         sendPublishRequest(client);
         sleep(1);
     }
-    printf(">>>>>>>>>>>>>>>>>> subscription thread destroyed <<<<<<<<<<<<<<<<<<<< \n");
+    EDGE_LOG(TAG, ">>>>>>>>>>>>>>>>>> subscription thread destroyed <<<<<<<<<<<<<<<<<<<< \n");
     return NULL;
 }
 
@@ -254,14 +255,14 @@ static UA_StatusCode createSub(UA_Client *client, EdgeMessage *msg)
     if (!subId)
     {
         // TODO: Handle Error
-        printf("Error in creating subscription :: %s\n\n", UA_StatusCode_name(retSub));
+        EDGE_LOG_V(TAG, "Error in creating subscription :: %s\n\n", UA_StatusCode_name(retSub));
         return retSub;
     }
-    printf("Subscription ID received is %u\n", subId);
+    EDGE_LOG_V(TAG, "Subscription ID received is %u\n", subId);
 
     if (!validSubscriptionId(subId))
     {
-        printf("ERROR :: Subscription ID received is already in use, Please unsubcribe and try again %s\n",
+        EDGE_LOG_V(TAG, "ERROR :: Subscription ID received is already in use, Please unsubcribe and try again %s\n",
                UA_StatusCode_name(UA_STATUSCODE_BADSUBSCRIPTIONIDINVALID));
         return UA_STATUSCODE_BADSUBSCRIPTIONIDINVALID;
     }
@@ -282,8 +283,8 @@ static UA_StatusCode createSub(UA_Client *client, EdgeMessage *msg)
     {
         monId[i] = 0;
         hfs[i] = &monitoredItemHandler;
-        hfContexts[i] = (char *)malloc(20);
-        strcpy(hfContexts[i], msgCopy->requests[i]->nodeInfo->valueAlias);
+        hfContexts[i] = (char *)malloc(EDGE_UA_SUBSCRIPTION_ITEM_SIZE);
+        strncpy(hfContexts[i], msgCopy->requests[i]->nodeInfo->valueAlias, EDGE_UA_SUBSCRIPTION_ITEM_SIZE);
         hfContexts[strlen(msgCopy->requests[i]->nodeInfo->valueAlias)] = '\0';
         UA_MonitoredItemCreateRequest_init(&items[i]);
         items[i].itemToMonitor.nodeId = UA_NODEID_STRING(1, msgCopy->requests[i]->nodeInfo->valueAlias);
@@ -297,17 +298,17 @@ static UA_StatusCode createSub(UA_Client *client, EdgeMessage *msg)
 
     UA_StatusCode retMon =   UA_Client_Subscriptions_addMonitoredItems(client, subId, items, itemSize,
                              hfs, (void **)hfContexts, itemResults, monId);
-
+    (void)retMon;
     for (int i = 0; i < itemSize; i++)
     {
         if (monId[i])
         {
-            printf("Monitoring for item : %d  is %u\n", i, monId[i]);
+            EDGE_LOG_V(TAG, "Monitoring for item : %d  is %u\n", i, monId[i]);
         }
         else
         {
             // TODO: Handle Error
-            printf("ERROR : INVALID Monitoring ID Recevived for item :: #%d,  Error : %d\n", i, retMon);
+            EDGE_LOG_V(TAG, "ERROR : INVALID Monitoring ID Recevived for item :: #%d,  Error : %d\n", i, retMon);
             return UA_STATUSCODE_BADMONITOREDITEMIDINVALID;
         }
     }
@@ -332,7 +333,9 @@ static UA_StatusCode createSub(UA_Client *client, EdgeMessage *msg)
             subInfo->msg = msgCopy;
             subInfo->subId = subId;
             subInfo->monId = monId[i];
-            printf("Inserting MAP ELEMENT \nvalueAlias :: %s \n",
+
+            EDGE_LOG_V(TAG, "Inserting MAP ELEMENT /nvalueAlias :: %s \n",
+
                    msgCopy->requests[i]->nodeInfo->valueAlias);
             insertMapElement(subscriptionList, (keyValue) hfContexts[i],
                              (keyValue) subInfo);
@@ -357,14 +360,14 @@ static UA_StatusCode deleteSub(UA_Client *client, EdgeMessage *msg)
 
     if (!subInfo)
     {
-        printf("not subscribed yet \n");
+        EDGE_LOG(TAG, "not subscribed yet \n");
         return UA_STATUSCODE_BADNOSUBSCRIPTION;
     }
 
-    printf("Deleting following Subscription \n");
-    printf("Node name :: %s\n", (char *)msg->request->nodeInfo->valueAlias);
-    printf("SUB ID :: %d\n", subInfo->subId);
-    printf("MON ID :: %d\n", subInfo->monId);
+    EDGE_LOG(TAG, "Deleting following Subscription \n");
+    EDGE_LOG_V(TAG, "Node name :: %s\n", (char *)msg->request->nodeInfo->valueAlias);
+    EDGE_LOG_V(TAG, "SUB ID :: %d\n", subInfo->subId);
+    EDGE_LOG_V(TAG, "MON ID :: %d\n", subInfo->monId);
 
     UA_StatusCode ret = UA_Client_Subscriptions_removeMonitoredItem(client,
         subInfo->subId, subInfo->monId);
@@ -372,12 +375,12 @@ static UA_StatusCode deleteSub(UA_Client *client, EdgeMessage *msg)
     
     if (UA_STATUSCODE_GOOD != ret)
     {
-        printf("Error in removing monitored item : MON ID %d \n", subInfo->monId);
+        EDGE_LOG_V(TAG, "Error in removing monitored item : MON ID %d \n", subInfo->monId);
         return ret;
     }
     else 
     {
-        printf("Monitoring deleted successfully\n\n");
+        EDGE_LOG(TAG, "Monitoring deleted successfully\n\n");
         edgeMapNode *removed = removeSubscriptionFromMap(msg->request->nodeInfo->valueAlias);
         if (removed != NULL)
         {
@@ -393,11 +396,11 @@ static UA_StatusCode deleteSub(UA_Client *client, EdgeMessage *msg)
 
     if(validSubscriptionId(subInfo->subId))
     {
-        printf("Removing the subscription  SID %d \n", subInfo->subId);
+        EDGE_LOG_V(TAG, "Removing the subscription  SID %d \n", subInfo->subId);
         UA_StatusCode retVal = UA_Client_Subscriptions_remove(client, subInfo->subId);
         if (UA_STATUSCODE_GOOD != retVal)
         {
-            printf("Error in removing subscription  SID %d \n", subInfo->subId);
+            EDGE_LOG_V(TAG, "Error in removing subscription  SID %d \n", subInfo->subId);
             return retVal;
         }
         
@@ -407,14 +410,14 @@ static UA_StatusCode deleteSub(UA_Client *client, EdgeMessage *msg)
         {
             /* destroy the subscription thread */
             /* delete the subscription thread as there are no existing subscriptions request */
-            printf("subscription thread destroy\n");
+            EDGE_LOG(TAG, "subscription thread destroy\n");
             subscription_thread_running = false;
             pthread_join(subscription_thread, NULL);
         }
     }
     else
     {
-         printf("Not removing the subscription  SID %d \nOther monitored items present\n", subInfo->subId);
+         EDGE_LOG_V(TAG, "Not removing the subscription  SID %d \nOther monitored items present\n", subInfo->subId);
     }
     
     return UA_STATUSCODE_GOOD;
@@ -424,11 +427,11 @@ static UA_StatusCode modifySub(UA_Client *client, EdgeMessage *msg)
 {
     subscriptionInfo *subInfo =  (subscriptionInfo *) getSubscriptionInfo(
                                      msg->request->nodeInfo->valueAlias);
-    //printf("subscription id retrieved from map :: %d \n\n", subInfo->subId);
+    //EDGE_LOG(TAG, "subscription id retrieved from map :: %d \n\n", subInfo->subId);
 
     if (!subInfo)
     {
-        printf("not subscribed yet\n");
+        EDGE_LOG(TAG, "not subscribed yet\n");
         return UA_STATUSCODE_BADNOSUBSCRIPTION;
     }
 
@@ -447,19 +450,19 @@ static UA_StatusCode modifySub(UA_Client *client, EdgeMessage *msg)
             modifySubscriptionRequest);
     if (response.responseHeader.serviceResult != UA_STATUSCODE_GOOD)
     {
-        printf ("Error in modify subscription :: %s\n\n",
+    	EDGE_LOG_V(TAG, "Error in modify subscription :: %s\n\n",
                 UA_StatusCode_name(response.responseHeader.serviceResult));
         return response.responseHeader.serviceResult;
     }
     else
     {
-        printf("modify subscription success\n\n");
+        EDGE_LOG(TAG, "modify subscription success\n\n");
     }
 
     if (response.revisedPublishingInterval != subReq->publishingInterval)
     {
-        printf("Publishing Interval Changed in the Response ");
-        printf("Requested Interval:: %f Response Interval:: %f \n", subReq->publishingInterval,
+        EDGE_LOG(TAG, "Publishing Interval Changed in the Response ");
+        EDGE_LOG_V(TAG, "Requested Interval:: %f Response Interval:: %f \n", subReq->publishingInterval,
                response.revisedPublishingInterval);
     }
 
@@ -482,9 +485,9 @@ static UA_StatusCode modifySub(UA_Client *client, EdgeMessage *msg)
         if (subInfo != NULL)
             monId = subInfo->monId;
         else
-            printf("Subinfo is NULL \n");
+            EDGE_LOG(TAG, "Subinfo is NULL \n");
 
-        printf("Mon ID for request ::  %u\n", monId);
+        EDGE_LOG_V(TAG, "Mon ID for request ::  %u\n", monId);
     }
 
     modifyMonitoredItemsRequest.itemsToModify[0].monitoredItemId = monId;   //monId;
@@ -507,33 +510,33 @@ static UA_StatusCode modifySub(UA_Client *client, EdgeMessage *msg)
 
         for (size_t index = 0; index < modifyMonitoredItemsResponse.resultsSize; index++)
         {
-            printf("Result [%d] modify monitoreditem :: %s\n\n", (int) index + 1, UA_StatusCode_name(
+            EDGE_LOG_V(TAG, "Result [%d] modify monitoreditem :: %s\n\n", (int) index + 1, UA_StatusCode_name(
                        modifyMonitoredItemsResponse.results[index].statusCode));
 
             if (modifyMonitoredItemsResponse.results[index].statusCode != UA_STATUSCODE_GOOD)
                 return modifyMonitoredItemsResponse.results[index].statusCode;
         }
-        printf("modify monitored item success\n\n");
+        EDGE_LOG(TAG, "modify monitored item success\n\n");
 
         if (result.revisedQueueSize != subReq->queueSize)
         {
-            printf("WARNING : Revised Queue Size in Response MISMATCH\n\n");
-            printf("Result Queue Size : %u\n", result.revisedQueueSize);
-            printf("Queue Size : %u\n", subReq->queueSize);
+            EDGE_LOG(TAG, "WARNING : Revised Queue Size in Response MISMATCH\n\n");
+            EDGE_LOG_V(TAG, "Result Queue Size : %u\n", result.revisedQueueSize);
+            EDGE_LOG_V(TAG, "Queue Size : %u\n", subReq->queueSize);
         }
 
 
         if (result.revisedSamplingInterval != subReq->samplingInterval)
         {
-            printf("WARNING : Revised Sampling Interval in Response MISMATCH\n\n");
-            printf(" Result Sampling Interval %f\n", result.revisedSamplingInterval);
-            printf(" Sampling Interval %f\n", subReq->samplingInterval);
+            EDGE_LOG(TAG, "WARNING : Revised Sampling Interval in Response MISMATCH\n\n");
+            EDGE_LOG_V(TAG, " Result Sampling Interval %f\n", result.revisedSamplingInterval);
+            EDGE_LOG_V(TAG, " Sampling Interval %f\n", subReq->samplingInterval);
         }
 
     }
     else
     {
-        printf("modify monitored item failed :: %s\n\n", UA_StatusCode_name(
+        EDGE_LOG_V(TAG, "modify monitored item failed :: %s\n\n", UA_StatusCode_name(
                    modifyMonitoredItemsResponse.responseHeader.serviceResult));
         return modifyMonitoredItemsResponse.responseHeader.serviceResult;
     }
@@ -553,11 +556,11 @@ static UA_StatusCode modifySub(UA_Client *client, EdgeMessage *msg)
                         &setMonitoringModeResponse, &UA_TYPES[UA_TYPES_SETMONITORINGMODERESPONSE]);
     if (UA_STATUSCODE_GOOD == setMonitoringModeResponse.responseHeader.serviceResult)
     {
-        printf("set monitor mode success\n\n");
+        EDGE_LOG(TAG, "set monitor mode success\n\n");
     }
     else
     {
-        printf("set monitor mode failed :: %s\n\n", UA_StatusCode_name(
+        EDGE_LOG_V(TAG, "set monitor mode failed :: %s\n\n", UA_StatusCode_name(
                    setMonitoringModeResponse.responseHeader.serviceResult));
         return setMonitoringModeResponse.responseHeader.serviceResult;
     }
@@ -576,7 +579,7 @@ static UA_StatusCode modifySub(UA_Client *client, EdgeMessage *msg)
                         &setPublishingModeResponse, &UA_TYPES[UA_TYPES_SETPUBLISHINGMODERESPONSE]);
     if (UA_STATUSCODE_GOOD !=  setPublishingModeResponse.responseHeader.serviceResult)
     {
-        printf("set publish mode failed :: %s\n\n", UA_StatusCode_name(
+        EDGE_LOG_V(TAG, "set publish mode failed :: %s\n\n", UA_StatusCode_name(
                    setPublishingModeResponse.responseHeader.serviceResult));
         return setPublishingModeResponse.responseHeader.serviceResult;
     }
@@ -587,19 +590,19 @@ static UA_StatusCode modifySub(UA_Client *client, EdgeMessage *msg)
         if (setPublishingModeResponse.results[index] != UA_STATUSCODE_GOOD)
             publishFail = true;
 
-        printf("Result [%d] set publish mode :: %s\n\n", (int) index + 1, UA_StatusCode_name(
+        EDGE_LOG_V(TAG, "Result [%d] set publish mode :: %s\n\n", (int) index + 1, UA_StatusCode_name(
                    setPublishingModeResponse.results[index]));
     }
 
     if (publishFail)
     {
-        printf("ERROR :: Set publish mode failed :: %s\n\n",
+        EDGE_LOG_V(TAG, "ERROR :: Set publish mode failed :: %s\n\n",
                UA_StatusCode_name(UA_STATUSCODE_BADMONITOREDITEMIDINVALID));
         return UA_STATUSCODE_BADMONITOREDITEMIDINVALID;
     }
 
 
-    printf("set publish mode success\n\n");
+    EDGE_LOG(TAG, "set publish mode success\n\n");
 
     UA_SetPublishingModeRequest_deleteMembers(&setPublishingModeRequest);
     UA_SetPublishingModeResponse_deleteMembers(&setPublishingModeResponse);
@@ -614,11 +617,11 @@ static UA_StatusCode rePublish(UA_Client *client, EdgeMessage *msg)
 {
     subscriptionInfo *subInfo =  (subscriptionInfo *) getSubscriptionInfo(
                                      msg->request->nodeInfo->valueAlias);
-    //printf("subscription id retrieved from map :: %d \n\n", subInfo->subId);
+    //EDGE_LOG(TAG, "subscription id retrieved from map :: %d \n\n", subInfo->subId);
 
     if (!subInfo)
     {
-        printf("not subscribed yet\n");
+        EDGE_LOG(TAG, "not subscribed yet\n");
         return UA_STATUSCODE_BADNOSUBSCRIPTION;
     }
 
@@ -635,20 +638,20 @@ static UA_StatusCode rePublish(UA_Client *client, EdgeMessage *msg)
     if (UA_STATUSCODE_GOOD !=  republishResponse.responseHeader.serviceResult)
     {
         if (UA_STATUSCODE_BADMESSAGENOTAVAILABLE == republishResponse.responseHeader.serviceResult)
-            printf("No Message in republish response");
+            EDGE_LOG(TAG, "No Message in republish response");
         else
         {
-            printf("re publish failed :: %s\n\n",
+            EDGE_LOG_V(TAG, "re publish failed :: %s\n\n",
                    UA_StatusCode_name(republishResponse.responseHeader.serviceResult));
             return republishResponse.responseHeader.serviceResult;
         }
     }
 
     if (republishResponse.notificationMessage.notificationDataSize != 0)
-        printf("Re publish Response Sequence number :: %u \n",
+        EDGE_LOG_V(TAG, "Re publish Response Sequence number :: %u \n",
                republishResponse.notificationMessage.sequenceNumber);
     else
-        printf("Re publish Response has NULL notification Message\n");
+        EDGE_LOG_V(TAG, "Re publish Response has NULL notification Message\n");
 
     UA_RepublishRequest_deleteMembers(&republishRequest);
     UA_RepublishResponse_deleteMembers(&republishResponse);
@@ -661,7 +664,7 @@ EdgeResult executeSub(UA_Client *client, EdgeMessage *msg)
     EdgeResult result;
     if (!client)
     {
-        printf("client handle invalid!\n");
+        EDGE_LOG(TAG, "client handle invalid!\n");
         result.code = STATUS_ERROR;
         return result;
     }

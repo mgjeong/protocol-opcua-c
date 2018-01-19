@@ -1,8 +1,10 @@
 #include "edge_node.h"
 #include "edge_utils.h"
+#include "edge_logger.h"
 
 #include <stdio.h>
 
+#define TAG "edge_node"
 #define MAX_ARGS  10
 
 static edgeMap *methodNodeMap = NULL;
@@ -24,33 +26,33 @@ static void addVariableNode(UA_Server *server, EdgeNodeItem *item)
 
     if (accessLevel == READ)
     {
-        printf("accessLevel :: UA_ACCESSLEVELMASK_READ\n");
+        EDGE_LOG(TAG, "accessLevel :: UA_ACCESSLEVELMASK_READ\n");
         attr.accessLevel = UA_ACCESSLEVELMASK_READ;
     }
     else if (accessLevel == WRITE)
     {
-        printf("accessLevel :: UA_ACCESSLEVELMASK_WRITE\n");
+        EDGE_LOG(TAG, "accessLevel :: UA_ACCESSLEVELMASK_WRITE\n");
         attr.accessLevel = UA_ACCESSLEVELMASK_WRITE;
     }
     else if (accessLevel == READ_WRITE)
     {
-        printf("accessLevel :: UA_ACCESSLEVELMASK\n");
+        EDGE_LOG(TAG, "accessLevel :: UA_ACCESSLEVELMASK\n");
         attr.accessLevel = UA_ACCESSLEVELMASK_READ | UA_ACCESSLEVELMASK_WRITE;
     }
 
     if (userAccessLevel == READ)
     {
-        printf("userAccessLevel :: UA_ACCESSLEVELMASK_READ\n");
+        EDGE_LOG(TAG, "userAccessLevel :: UA_ACCESSLEVELMASK_READ\n");
         attr.userAccessLevel = UA_ACCESSLEVELMASK_READ;
     }
     else if (userAccessLevel == WRITE)
     {
-        printf("userAccessLevel :: UA_ACCESSLEVELMASK_WRITE\n");
+        EDGE_LOG(TAG, "userAccessLevel :: UA_ACCESSLEVELMASK_WRITE\n");
         attr.userAccessLevel = UA_ACCESSLEVELMASK_WRITE;
     }
     else if (userAccessLevel == READ_WRITE)
     {
-        printf("userAccessLevel :: UA_ACCESSLEVELMASK\n");
+        EDGE_LOG(TAG, "userAccessLevel :: UA_ACCESSLEVELMASK\n");
         attr.userAccessLevel = UA_ACCESSLEVELMASK_READ | UA_ACCESSLEVELMASK_WRITE;
     }
 
@@ -76,11 +78,11 @@ static void addVariableNode(UA_Server *server, EdgeNodeItem *item)
 
     if (status == UA_STATUSCODE_GOOD)
     {
-        printf("\n+++ addVariableNode success +++\n");
+        EDGE_LOG(TAG, "\n+++ addVariableNode success +++\n");
     }
     else
     {
-        printf("\n+++ addVariableNode failed +++\n");
+        EDGE_LOG(TAG, "\n+++ addVariableNode failed +++\n");
     }
     UA_Variant_deleteMembers(&attr.value);
 }
@@ -170,11 +172,11 @@ static void addArrayNode(UA_Server *server, EdgeNodeItem *item)
 
     if (status == UA_STATUSCODE_GOOD)
     {
-        printf("\n+++ addArrayNode success +++\n");
+        EDGE_LOG(TAG, "\n+++ addArrayNode success +++\n");
     }
     else
     {
-        printf("\n+++ addArrayNode failed +++\n");
+        EDGE_LOG(TAG, "\n+++ addArrayNode failed +++\n");
     }
     UA_Variant_deleteMembers(&attr.value);
 
@@ -206,11 +208,11 @@ static void addObjectNode(UA_Server *server, EdgeNodeItem *item)
                            UA_NODEID_NUMERIC(0, UA_NS0ID_FOLDERTYPE), object_attr, NULL, NULL);
     if (status == UA_STATUSCODE_GOOD)
     {
-        printf("\n+++ addObjectNode success +++\n");
+        EDGE_LOG(TAG, "\n+++ addObjectNode success +++\n");
     }
     else
     {
-        printf("\n+++ addObjectNode failed +++\n");
+        EDGE_LOG(TAG, "\n+++ addObjectNode failed +++\n");
     }
 }
 
@@ -239,11 +241,11 @@ static void addObjectTypeNode(UA_Server *server, EdgeNodeItem *item)
                            object_attr, NULL, NULL);
     if (status == UA_STATUSCODE_GOOD)
     {
-        printf("\n+++ addObjectTypeNode success +++\n");
+        EDGE_LOG(TAG, "\n+++ addObjectTypeNode success +++\n");
     }
     else
     {
-        printf("\n+++ addObjectTypeNode failed +++\n");
+        EDGE_LOG(TAG, "\n+++ addObjectTypeNode failed +++\n");
     }
 }
 
@@ -287,11 +289,11 @@ static void addVariableTypeNode(UA_Server *server, EdgeNodeItem *item)
 
     if (status == UA_STATUSCODE_GOOD)
     {
-        printf("\n+++ addVariableTypeNode success +++\n");
+        EDGE_LOG(TAG, "\n+++ addVariableTypeNode success +++\n");
     }
     else
     {
-        printf("\n+++ addVariableTypeNode failed +++\n");
+        EDGE_LOG(TAG, "\n+++ addVariableTypeNode failed +++\n");
     }
     //UA_Variant_deleteMembers(&attr.value);
 }
@@ -322,11 +324,11 @@ static void addDataTypeNode(UA_Server *server, EdgeNodeItem *item)
 
     if (status == UA_STATUSCODE_GOOD)
     {
-        printf("\n+++ addDataTypeNode success +++\n");
+        EDGE_LOG(TAG, "\n+++ addDataTypeNode success +++\n");
     }
     else
     {
-        printf("\n+++ addDataTypeNode failed +++\n");
+        EDGE_LOG(TAG, "\n+++ addDataTypeNode failed +++\n");
     }
 }
 
@@ -356,11 +358,11 @@ static void addViewNode(UA_Server *server, EdgeNodeItem *item)
 
     if (status == UA_STATUSCODE_GOOD)
     {
-        printf("\n+++ addViewNode success +++\n");
+        EDGE_LOG(TAG, "\n+++ addViewNode success +++\n");
     }
     else
     {
-        printf("\n+++ addViewNode failed +++\n");
+        EDGE_LOG(TAG, "\n+++ addViewNode failed +++\n");
     }
 }
 
@@ -372,7 +374,7 @@ EdgeResult addReferences(UA_Server *server, EdgeReference *reference)
 
     if (!server)
     {
-        printf("Server Handle invalid!! \n");
+        EDGE_LOG(TAG, "Server Handle invalid!! \n");
         result.code = STATUS_ERROR;
         return result;
     }
@@ -382,12 +384,12 @@ EdgeResult addReferences(UA_Server *server, EdgeReference *reference)
                            UA_NODEID_NUMERIC(0, reference->referenceId), expanded_nodeId, reference->forward);
     if (status == UA_STATUSCODE_GOOD)
     {
-        printf("\n+++ addReference success +++\n");
+        EDGE_LOG(TAG, "\n+++ addReference success +++\n");
     }
     else
     {
         result.code = STATUS_ERROR;
-        printf("\n+++ addReference failed +++\n");
+        EDGE_LOG(TAG, "\n+++ addReference failed +++\n");
     }
 
     return result;
@@ -419,11 +421,11 @@ static void addReferenceTypeNode(UA_Server *server, EdgeNodeItem *item)
 
     if (status == UA_STATUSCODE_GOOD)
     {
-        printf("\n+++ addReferenceTypeNode success +++\n");
+        EDGE_LOG(TAG, "\n+++ addReferenceTypeNode success +++\n");
     }
     else
     {
-        printf("\n+++ addReferenceTypeNode failed +++\n");
+        EDGE_LOG(TAG, "\n+++ addReferenceTypeNode failed +++\n");
     }
 }
 
@@ -599,7 +601,7 @@ EdgeResult addMethodNode(UA_Server *server, EdgeNodeItem *item, EdgeMethod *meth
 
     if (!server)
     {
-        printf("Server handle Invalid\n");
+        EDGE_LOG(TAG, "Server handle Invalid\n");
         result.code = STATUS_ERROR;
         return result;
     }
@@ -678,7 +680,7 @@ EdgeResult addMethodNode(UA_Server *server, EdgeNodeItem *item, EdgeMethod *meth
                            NULL, NULL);
     if (status == UA_STATUSCODE_GOOD)
     {
-        printf("\n+++ addMethodNode success +++\n");
+        EDGE_LOG(TAG, "\n+++ addMethodNode success +++\n");
         if (NULL == methodNodeMap)
             methodNodeMap = createMap();
 
@@ -690,7 +692,7 @@ EdgeResult addMethodNode(UA_Server *server, EdgeNodeItem *item, EdgeMethod *meth
     }
     else
     {
-        printf("\n+++ addMethodNode failed +++\n");
+        EDGE_LOG(TAG, "\n+++ addMethodNode failed +++\n");
     }
 
     result.code = STATUS_OK;
@@ -711,7 +713,7 @@ EdgeResult modifyNode(UA_Server *server, char *nodeUri, EdgeVersatility *value)
 
     if (!server)
     {
-        printf("Server handle Invalid\n");
+        EDGE_LOG(TAG, "Server handle Invalid\n");
         result.code = STATUS_ERROR;
         return result;
     }
@@ -722,7 +724,7 @@ EdgeResult modifyNode(UA_Server *server, char *nodeUri, EdgeVersatility *value)
     UA_StatusCode ret = UA_Server_readValue(server, node, readval);
     if (ret != UA_STATUSCODE_GOOD)
     {
-        printf("error in read value during modify node \n");
+        EDGE_LOG(TAG, "error in read value during modify node \n");
         result.code = STATUS_ERROR;
         return result;
     }
@@ -742,7 +744,7 @@ EdgeResult modifyNode(UA_Server *server, char *nodeUri, EdgeVersatility *value)
 
     if (ret != UA_STATUSCODE_GOOD)
     {
-        printf("error in set scalar copy during modify node \n");
+        EDGE_LOG(TAG, "error in set scalar copy during modify node \n");
         result.code = STATUS_ERROR;
         return result;
     }
@@ -750,13 +752,13 @@ EdgeResult modifyNode(UA_Server *server, char *nodeUri, EdgeVersatility *value)
     UA_StatusCode retVal = UA_Server_writeValue(server, node, *myVariant);
     if  (retVal != UA_STATUSCODE_GOOD)
     {
-        printf("Error in modifying node value:: 0x%08x\n", retVal);
+        EDGE_LOG_V(TAG, "Error in modifying node value:: 0x%08x\n", retVal);
         result.code = STATUS_ERROR;
         return result;
     }
     else
     {
-        printf("+++ write successful +++\n\n");
+        EDGE_LOG(TAG, "+++ write successful +++\n\n");
     }
     UA_Variant_delete(myVariant);
 

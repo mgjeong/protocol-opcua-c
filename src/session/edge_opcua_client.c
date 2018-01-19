@@ -4,9 +4,12 @@
 #include "browse.h"
 #include "method.h"
 #include "subscription.h"
+#include "edge_logger.h"
 
 #include <stdio.h>
 #include <open62541.h>
+
+#define TAG "session_client"
 
 static UA_Client *m_client = NULL;
 
@@ -59,17 +62,17 @@ bool connect_client(char *endpoint)
 
     UA_StatusCode retVal;
 
-    printf("endpoint :: %s\n", endpoint);
+    EDGE_LOG_V(TAG, "endpoint :: %s\n", endpoint);
     retVal = UA_Client_connect(m_client, endpoint);
     if (retVal != UA_STATUSCODE_GOOD)
     {
-        printf("\n [CLIENT] Unable to connect 0x%08x!\n", retVal);
+        EDGE_LOG_V(TAG, "\n [CLIENT] Unable to connect 0x%08x!\n", retVal);
         UA_Client_delete(m_client);
         m_client = NULL;
         return false;
     }
 
-    printf("\n [CLIENT] Client connection successful \n");
+    EDGE_LOG(TAG, "\n [CLIENT] Client connection successful \n");
 
     EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
     ep->endpointUri = endpoint;
@@ -103,7 +106,7 @@ void *getClientEndpoints(char *endpointUri)
     UA_StatusCode parse_retval = UA_parseEndpointUrl(&endpointUrlString, &hostName, &port, &path);
     if (parse_retval != UA_STATUSCODE_GOOD)
     {
-        printf("Server URL is invalid. Unable to get endpoints\n");
+        EDGE_LOG(TAG, "Server URL is invalid. Unable to get endpoints\n");
         return NULL;
     }
 
@@ -141,7 +144,7 @@ void *getClientEndpoints(char *endpointUri)
     retVal = UA_Client_getEndpoints(client, endpointUri, &endpointArraySize, &endpointArray);
     if (retVal != UA_STATUSCODE_GOOD)
     {
-        printf("\n [CLIENT] Unable to get endpoints \n");
+        EDGE_LOG(TAG, "\n [CLIENT] Unable to get endpoints \n");
 
         if (device)
         {

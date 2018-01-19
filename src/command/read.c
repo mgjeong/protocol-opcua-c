@@ -1,8 +1,11 @@
 #include "read.h"
 #include "common_client.h"
+#include "edge_logger.h"
 
 #include <stdio.h>
 #include <inttypes.h>
+
+#define TAG "read"
 
 #define GUID_LENGTH 36
 
@@ -10,14 +13,14 @@
 static void read(UA_Client *client, EdgeMessage *msg)
 {
 
-    printf("[READ] Node to read :: %s\n", msg->request->nodeInfo->valueAlias);
+    EDGE_LOG_V(TAG, "[READ] Node to read :: %s\n", msg->request->nodeInfo->valueAlias);
     UA_Variant *val = UA_Variant_new();
     UA_StatusCode retVal = UA_Client_readValueAttribute(client, UA_NODEID_STRING(1,
                            msg->request->nodeInfo->valueAlias), val);
     if  (retVal != UA_STATUSCODE_GOOD)
     {
         // send error callback;
-        printf("Error in read node :: 0x%08x(%s)\n", retVal, UA_StatusCode_name(retVal));
+        EDGE_LOG_V(TAG, "Error in read node :: 0x%08x(%s)\n", retVal, UA_StatusCode_name(retVal));
 
         EdgeMessage *resultMsg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
         resultMsg->endpointInfo = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
@@ -36,7 +39,7 @@ static void read(UA_Client *client, EdgeMessage *msg)
         return;
     }
 
-    printf("[READ] SUCCESS response received from server\n");
+    EDGE_LOG(TAG, "[READ] SUCCESS response received from server\n");
     bool isScalar = UA_Variant_isScalar(val);
     EdgeResponse *response = (EdgeResponse *) malloc(sizeof(EdgeResponse));
     if (response)
@@ -156,7 +159,7 @@ static void read(UA_Client *client, EdgeMessage *msg)
                     sprintf(value, "%s%02x", value, str.data4[j]);
                 value[GUID_LENGTH] = '\0';
                 versatility->value = (void *) value;
-                printf("%s\n", value);
+                EDGE_LOG_V(TAG, "%s\n", value);
             }
             else
             {
@@ -174,7 +177,7 @@ static void read(UA_Client *client, EdgeMessage *msg)
                     for (int j = 2; j < 8; j++)
                         sprintf(values[i], "%s%02x", values[i], str[i].data4[j]);
                     values[GUID_LENGTH] = '\0';
-                    printf("%s\n", values[i]);
+                    EDGE_LOG_V(TAG, "%s\n", values[i]);
                 }
                 versatility->value = (void *) values;
             }
@@ -303,7 +306,7 @@ static bool checkInvalidTime(UA_DateTime serverTime, UA_DateTime sourceTime,
     {
         if ((0 == server_time) || (0 == source_time))
         {
-            printf("Invalid timestamp\n\n");
+            EDGE_LOG(TAG, "Invalid timestamp\n\n");
             ret = false;
         }
 
@@ -329,7 +332,7 @@ static bool checkInvalidTime(UA_DateTime serverTime, UA_DateTime sourceTime,
     {
         if (0 == source_time)
         {
-            printf("invalid source timestamp\n\n");
+            EDGE_LOG(TAG, "invalid source timestamp\n\n");
             return false;
         }
 
@@ -347,7 +350,7 @@ static bool checkInvalidTime(UA_DateTime serverTime, UA_DateTime sourceTime,
     {
         if (0 == server_time)
         {
-            printf("invalid server timestamp\n\n");
+            EDGE_LOG(TAG, "invalid server timestamp\n\n");
             return false;
         }
 
@@ -443,7 +446,7 @@ static void readGroup(UA_Client *client, EdgeMessage *msg)
 
     for (int i = 0; i < reqLen; i++)
     {
-        printf("[READGROUP] Node to read :: %s\n", msg->requests[i]->nodeInfo->valueAlias);
+        EDGE_LOG_V(TAG, "[READGROUP] Node to read :: %s\n", msg->requests[i]->nodeInfo->valueAlias);
         UA_ReadValueId_init(&rv[i]);
         rv[i].attributeId = UA_ATTRIBUTEID_VALUE;
         rv[i].nodeId = UA_NODEID_STRING(1, msg->requests[i]->nodeInfo->valueAlias);
@@ -463,8 +466,8 @@ static void readGroup(UA_Client *client, EdgeMessage *msg)
     if (readResponse.responseHeader.serviceResult != UA_STATUSCODE_GOOD)
     {
         // send error callback;
-        UA_StatusCode serviceResult = readResponse.responseHeader.serviceResult;
-        printf("Error in group read :: 0x%08x(%s)\n", serviceResult, UA_StatusCode_name(serviceResult));
+        EDGE_LOG_V(TAG, "Error in group read :: 0x%08x(%s)\n", readResponse.responseHeader.serviceResult,
+        		UA_StatusCode_name(serviceResult));
 
         sendErrorResponse(msg, "Error in read");
         UA_ReadValueId_deleteMembers(rv);
@@ -478,7 +481,7 @@ static void readGroup(UA_Client *client, EdgeMessage *msg)
         {
             if (readResponse.results[0].hasSourceTimestamp || readResponse.results[0].hasServerTimestamp)
             {
-                printf("BadInvalidTimestamp\n\n");
+                EDGE_LOG(TAG, "BadInvalidTimestamp\n\n");
                 sendErrorResponse(msg, "BadInvalidTimestamp");
                 UA_ReadValueId_deleteMembers(rv);
                 return ;
@@ -488,7 +491,7 @@ static void readGroup(UA_Client *client, EdgeMessage *msg)
         {
             if (!readResponse.results[0].hasSourceTimestamp || !readResponse.results[0].hasServerTimestamp)
             {
-                printf("Timestamp missing\n\n");
+                EDGE_LOG(TAG, "Timestamp missing\n\n");
                 sendErrorResponse(msg, "Missing Timestamp");
                 UA_ReadValueId_deleteMembers(rv);
                 return ;
@@ -498,7 +501,7 @@ static void readGroup(UA_Client *client, EdgeMessage *msg)
         {
             if (!readResponse.results[0].hasSourceTimestamp || readResponse.results[0].hasServerTimestamp)
             {
-                printf("source Timestamp missing\n\n");
+                EDGE_LOG(TAG, "source Timestamp missing\n\n");
                 sendErrorResponse(msg, "Missing Timestamp");
                 UA_ReadValueId_deleteMembers(rv);
                 return ;
@@ -508,7 +511,7 @@ static void readGroup(UA_Client *client, EdgeMessage *msg)
         {
             if (readResponse.results[0].hasSourceTimestamp || !readResponse.results[0].hasServerTimestamp)
             {
-                printf("server Timestamp missing\n\n");
+                EDGE_LOG(TAG, "server Timestamp missing\n\n");
                 sendErrorResponse(msg, "Missing Timestamp");
                 UA_ReadValueId_deleteMembers(rv);
                 return ;
@@ -519,7 +522,7 @@ static void readGroup(UA_Client *client, EdgeMessage *msg)
             && !checkMaxAge(readResponse.results[0].serverTimestamp, UA_DateTime_now(),
                             readRequest.maxAge * 2))
         {
-            printf("Max age failed\n\n");
+            EDGE_LOG(TAG, "Max age failed\n\n");
             sendErrorResponse(msg, "");
             UA_ReadValueId_deleteMembers(rv);
             UA_ReadResponse_deleteMembers(&readResponse);
@@ -670,7 +673,7 @@ static void readGroup(UA_Client *client, EdgeMessage *msg)
                             sprintf(value, "%s%02x", value, str.data4[j]);
                         value[GUID_LENGTH] = '\0';
                         versatility->value = (void *) value;
-                        printf("%s\n", value);
+                        EDGE_LOG_V(TAG, "%s\n", value);
                     }
                     else
                     {
@@ -688,7 +691,7 @@ static void readGroup(UA_Client *client, EdgeMessage *msg)
                             for (int j = 2; j < 8; j++)
                                 sprintf(values[i], "%s%02x", values[i], str[i].data4[j]);
                             values[GUID_LENGTH] = '\0';
-                            printf("%s\n", values[i]);
+                            EDGE_LOG_V(TAG, "%s\n", values[i]);
                         }
                         versatility->value = (void *) values;
                     }
@@ -725,7 +728,7 @@ static void readGroup(UA_Client *client, EdgeMessage *msg)
         else
         {
             // failure read response for this particular node
-            printf("Error in group read response for particular node :: 0x%08x(%s)\n",
+            EDGE_LOG_V(TAG, "Error in group read response for particular node :: 0x%08x(%s)\n",
                    readResponse.results[i].status, UA_StatusCode_name(readResponse.results[i].status));
             sendErrorResponse(msg, "");
         }
@@ -777,7 +780,7 @@ EdgeResult executeRead(UA_Client *client, EdgeMessage *msg)
     EdgeResult result;
     if (!client)
     {
-        printf("Client handle Invalid\n");
+        EDGE_LOG(TAG, "Client handle Invalid\n");
         result.code = STATUS_ERROR;
         return result;
     }
