@@ -42,7 +42,7 @@ static bool readNodeFlag = true;
 static bool browseNodeFlag = false;
 static bool methodCallFlag = false;
 
-static char node_arr[9][11] =
+static char node_arr[10][11] =
 {
     "String1",
     "String2",
@@ -53,6 +53,7 @@ static char node_arr[9][11] =
     "ByteString",
     "Byte",
     "Error"
+    "Guid"
 };
 
 static int method_arr[5] = {105, 205, 305, 405, 505};
@@ -501,12 +502,13 @@ static void deleteMessage(EdgeMessage *msg, EdgeEndPointInfo *ep)
     }
 }
 
-static void subscribeNode()
+static void subscribeAndModifyNodes()
 {
     EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
     ep->endpointUri = endpointUri;
     ep->config = NULL;
 
+    EdgeRequest **requests = (EdgeRequest **) malloc(sizeof(EdgeRequest *) * 2);
     EdgeSubRequest *subReq = (EdgeSubRequest *) malloc(sizeof(EdgeSubRequest));
     subReq->subType = Edge_Create_Sub;
     subReq->samplingInterval = 1000.0;
@@ -519,77 +521,68 @@ static void subscribeNode()
     subReq->priority = 0;
     subReq->queueSize = 50;
 
-    EdgeNodeInfo *nodeInfo = (EdgeNodeInfo *) malloc(sizeof(EdgeNodeInfo));
-    nodeInfo->valueAlias = node_arr[4];
-
-    EdgeRequest *request = (EdgeRequest *) malloc(sizeof(EdgeRequest));
-    request->nodeInfo = nodeInfo;
-    request->subMsg = subReq;
-
-    EdgeMessage *msg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
-    msg->endpointInfo = ep;
-    msg->command = CMD_SUB;
-    msg->request = request;
-
-    EdgeResult result = handleSubscription(msg);
-    EXPECT_EQ(result.code, STATUS_OK);
-    free(subReq); subReq = NULL;
-
-    sleep(3);
-
-    EdgeSubRequest *subReqDel = (EdgeSubRequest *) malloc(sizeof(EdgeSubRequest));
-    subReqDel->subType = Edge_Delete_Sub;
-    request->subMsg = subReqDel;
-
-    result = handleSubscription(msg);
-    //EXPECT_EQ(result.code, STATUS_OK);
-
-    free(nodeInfo); nodeInfo = NULL;
-    free(subReqDel); subReqDel = NULL;
-    free(request); request = NULL;
-
-    deleteMessage(msg, ep);
-}
-
-static void modifyNode()
-{
-    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
-    ep->endpointUri = endpointUri;
-    ep->config = NULL;
-
-    EdgeSubRequest *subReq = (EdgeSubRequest *) malloc(sizeof(EdgeSubRequest));
-    subReq->subType = Edge_Create_Sub;
-    subReq->samplingInterval = 1000.0;
-    subReq->publishingInterval = 0.0;
-    subReq->maxKeepAliveCount = (1 > (int) (
-                                     (10000.0 / subReq->publishingInterval))) ? 1 : (int) (10000.0 / subReq->publishingInterval);
-    subReq->lifetimeCount = 10000;  //subReq->maxKeepAliveCount * 6;
-    subReq->maxNotificationsPerPublish = 1;
-    subReq->publishingEnabled = true;
-    subReq->priority = 0;
-    subReq->queueSize = 50;
-
-    EdgeNodeInfo *nodeInfo = (EdgeNodeInfo *) malloc(sizeof(EdgeNodeInfo));
-    nodeInfo->valueAlias = node_arr[5];
-
-    EdgeRequest *request = (EdgeRequest *) malloc(sizeof(EdgeRequest));
-    request->nodeInfo = nodeInfo;
-    request->subMsg = subReq;
+    EdgeNodeInfo *nodeInfo1 = (EdgeNodeInfo *) malloc(sizeof(EdgeNodeInfo));
+    nodeInfo1->valueAlias = node_arr[1];
+    EdgeNodeInfo *nodeInfo2 = (EdgeNodeInfo *) malloc(sizeof(EdgeNodeInfo));
+    nodeInfo2->valueAlias = node_arr[0];
+    requests[0] = (EdgeRequest *) malloc(sizeof(EdgeRequest));
+    requests[0]->nodeInfo = nodeInfo1;
+    requests[0]->subMsg = subReq;
+    requests[1] = (EdgeRequest *) malloc(sizeof(EdgeRequest));
+    requests[1]->nodeInfo = nodeInfo2;
+    requests[1]->subMsg = subReq;
 
     EdgeMessage *msg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
     msg->endpointInfo = ep;
     msg->command = CMD_SUB;
-    msg->request = request;
+    msg->type = SEND_REQUESTS;
+    msg->requests = requests;
+    msg->requestLength = 2;
 
     EdgeResult result = handleSubscription(msg);
     EXPECT_EQ(result.code, STATUS_OK);
-    free(subReq); subReq = NULL;
 
     sleep(3);
-    free(nodeInfo); nodeInfo = NULL;
+
+    free(requests[0]->nodeInfo); requests[0]->nodeInfo = NULL;
+    free(requests[1]->nodeInfo); requests[1]->nodeInfo = NULL;
+    free(requests[0]); requests[0] = NULL;
+    free(requests[1]); requests[1] = NULL;
+    free(requests); requests = NULL;
     free(subReq); subReq = NULL;
-    free(request); request = NULL;
-    deleteMessage(msg, ep);
+    free(msg); msg = NULL;
+    free(ep); ep = NULL;
+
+
+    //Deleting Subscription - node_arr[0]
+    EdgeEndPointInfo *epDel1 = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    epDel1->endpointUri = endpointUri;
+    epDel1->config = NULL;
+
+    EdgeSubRequest *subReqDel1 = (EdgeSubRequest *) malloc(sizeof(EdgeSubRequest));
+    subReqDel1->subType = Edge_Delete_Sub;
+    
+    EdgeNodeInfo *nodeInfoDel1 = (EdgeNodeInfo *) malloc(sizeof(EdgeNodeInfo));
+    nodeInfoDel1->valueAlias = node_arr[0];
+    
+    EdgeRequest *requestDel1 = (EdgeRequest *) malloc(sizeof(EdgeRequest));
+    requestDel1->nodeInfo = nodeInfoDel1;
+    requestDel1->subMsg = subReqDel1;
+
+    EdgeMessage *msgDel1 = (EdgeMessage *) malloc(sizeof(EdgeMessage));
+    msgDel1->endpointInfo = epDel1;
+    msgDel1->command = CMD_SUB;
+    msgDel1->request = requestDel1;
+
+    result = handleSubscription(msgDel1);
+    EXPECT_EQ(result.code, STATUS_OK);
+
+    free(subReqDel1); subReqDel1 = NULL;
+    free(nodeInfoDel1); nodeInfoDel1 = NULL;
+    free(requestDel1); requestDel1 = NULL;
+    deleteMessage(msgDel1, epDel1);   
+
+    sleep(2);
 
     EdgeEndPointInfo *epModify = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
     epModify->endpointUri = endpointUri;
@@ -610,7 +603,7 @@ static void modifyNode()
     subReqMod->queueSize = 50;
 
     EdgeNodeInfo *nodeInfoMod = (EdgeNodeInfo *) malloc(sizeof(EdgeNodeInfo));
-    nodeInfoMod->valueAlias = node_arr[1];
+    nodeInfoMod->valueAlias = node_arr[3];
 
     EdgeRequest *requestMod = (EdgeRequest *) malloc(sizeof(EdgeRequest));
     requestMod->nodeInfo = nodeInfoMod;
@@ -624,7 +617,7 @@ static void modifyNode()
     result = handleSubscription(msgMod);
     EXPECT_NE(result.code, STATUS_OK);
 
-    nodeInfoMod->valueAlias = node_arr[5];
+    nodeInfoMod->valueAlias = node_arr[1];
     result = handleSubscription(msgMod);
     EXPECT_EQ(result.code, STATUS_OK);
     sleep(2);
@@ -643,7 +636,7 @@ static void modifyNode()
     subReqRepub->subType = Edge_Republish_Sub;
 
     EdgeNodeInfo *nodeInfoRepub = (EdgeNodeInfo *) malloc(sizeof(EdgeNodeInfo));
-    nodeInfoRepub->valueAlias = node_arr[5];
+    nodeInfoRepub->valueAlias = node_arr[1];
 
     EdgeRequest *requestRepub = (EdgeRequest *) malloc(sizeof(EdgeRequest));
     requestRepub->nodeInfo = nodeInfoRepub;
@@ -662,6 +655,40 @@ static void modifyNode()
     free(subReqRepub); subReqRepub = NULL;
     free(requestRepub); requestRepub = NULL;
     deleteMessage(msgRepub, epRepub);
+}
+
+static void deleteSub()
+{
+    //Deleting Subscription - node_arr[1]
+    EdgeEndPointInfo *epDel2 = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    epDel2->endpointUri = endpointUri;
+    epDel2->config = NULL;
+
+    EdgeSubRequest *subReqDel2 = (EdgeSubRequest *) malloc(sizeof(EdgeSubRequest));
+    subReqDel2->subType = Edge_Delete_Sub;
+    
+    EdgeNodeInfo *nodeInfoDel2 = (EdgeNodeInfo *) malloc(sizeof(EdgeNodeInfo));
+    nodeInfoDel2->valueAlias = node_arr[1];
+    
+    EdgeRequest *requestDel2 = (EdgeRequest *) malloc(sizeof(EdgeRequest));
+    requestDel2->nodeInfo = nodeInfoDel2;
+    requestDel2->subMsg = subReqDel2;
+
+    EdgeMessage *msgDel2 = (EdgeMessage *) malloc(sizeof(EdgeMessage));
+    msgDel2->endpointInfo = epDel2;
+    msgDel2->command = CMD_SUB;
+    msgDel2->request = requestDel2;
+
+    EdgeResult result = handleSubscription(msgDel2);
+    EXPECT_EQ(result.code, STATUS_OK);
+
+    free(subReqDel2); subReqDel2 = NULL;
+    free(nodeInfoDel2); nodeInfoDel2 = NULL;
+    free(requestDel2); requestDel2 = NULL;
+    deleteMessage(msgDel2, epDel2);   
+
+    sleep(2);
+    
 }
 
 static void browseNodes()
@@ -840,7 +867,7 @@ static void readNodes()
 
     EdgeNodeInfo **nodeInfo = (EdgeNodeInfo **) malloc(sizeof(EdgeNodeInfo *) * 1);
 
-    for (int idx = 0; idx < 9; idx++)
+    for (int idx = 0; idx < 10; idx++)
     {
         PRINT_ARG("*****  Reading the node with browse name  ", node_arr[idx]);
         nodeInfo[0] = (EdgeNodeInfo *) malloc(sizeof(EdgeNodeInfo));
@@ -1956,49 +1983,9 @@ TEST_F(OPC_clientTests , ClientSubscribe_P)
 
     deleteMessage(msg, ep);
 
-    subscribeNode();
+    subscribeAndModifyNodes();
 
-    EdgeEndPointInfo *ep_t = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
-    ep_t->endpointUri = endpointUri;
-    ep_t->config = NULL;
-
-    EdgeMessage *msg_t = (EdgeMessage *) malloc(sizeof(EdgeMessage));
-    msg_t->endpointInfo = ep_t;
-    msg_t->command = CMD_STOP_CLIENT;
-
-    disconnectClient(ep_t);
-
-    EXPECT_EQ(startClientFlag, false);
-
-    deleteMessage(msg_t, ep_t);
-}
-
-TEST_F(OPC_clientTests , ClientModify_P)
-{
-    EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) malloc(sizeof(EdgeEndpointConfig));
-    endpointConfig->applicationName = (char *)DEFAULT_SERVER_APP_NAME_VALUE;
-    endpointConfig->applicationUri = (char *)DEFAULT_SERVER_APP_URI_VALUE;
-    endpointConfig->productUri = (char *)DEFAULT_PRODUCT_URI_VALUE;
-    endpointConfig->serverName = (char *)DEFAULT_SERVER_NAME_VALUE;
-
-    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
-    ep->endpointUri = endpointUri;
-    ep->config = endpointConfig;
-
-    EdgeMessage *msg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
-    msg->endpointInfo = ep;
-    msg->command = CMD_START_SERVER;
-    msg->type = SEND_REQUEST;
-
-    PRINT("=============== startClient ==================");
-
-    getEndpointInfo(ep);
-
-    EXPECT_EQ(startClientFlag, true);
-
-    deleteMessage(msg, ep);
-
-    modifyNode();
+    //deleteSub();
 
     EdgeEndPointInfo *ep_t = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
     ep_t->endpointUri = endpointUri;
