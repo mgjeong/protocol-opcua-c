@@ -1,17 +1,12 @@
 #include "browse.h"
 #include "edge_utils.h"
 #include "edge_node_type.h"
+#include "edge_logger.h"
 
 #include <stdio.h>
 
-#define DEBUG 0
-#if DEBUG
-#define LOG(param) printf("[Browse] %s\n", param)
-#else
-#define LOG(param)
-#endif
-
 #define GUID_LENGTH 36
+#define TAG "browse"
 
 typedef struct BrowseMapListNode
 {
@@ -291,7 +286,7 @@ static UA_BrowseDescription *getBrowseDescriptions(UA_NodeId *nodeIdList, int co
                                        sizeof(UA_BrowseDescription));
     if (NULL == browseDesc)
     {
-        LOG("Memory allocation failed.");
+        EDGE_LOG(TAG, "Memory allocation failed.");
         return NULL;
     }
 
@@ -384,20 +379,20 @@ bool checkContinuationPoint(UA_BrowseResult browseResult, EdgeNodeId *srcNodeId)
     bool retVal = true;
     /*if(browseResult.continuationPoint.length <= 0)
     {
-        LOG("Error: " CONTINUATIONPOINT_EMPTY);
+        EDGE_LOG(TAG, "Error: " CONTINUATIONPOINT_EMPTY);
         invokeErrorCb(srcNodeId, STATUS_ERROR, CONTINUATIONPOINT_EMPTY);
         retVal = false;
     }
     else*/ if (browseResult.continuationPoint.length >= 1000)
     {
-        LOG("Error: " CONTINUATIONPOINT_LONG);
+        EDGE_LOG(TAG, "Error: " CONTINUATIONPOINT_LONG);
         invokeErrorCb(srcNodeId, STATUS_ERROR, CONTINUATIONPOINT_LONG);
         retVal = false;
     }
     else if (browseResult.continuationPoint.length > 0 &&
              (browseResult.referencesSize <= 0 || !browseResult.references))
     {
-        LOG("Error: " STATUS_VIEW_REFERENCE_DATA_INVALID_VALUE);
+        EDGE_LOG(TAG, "Error: " STATUS_VIEW_REFERENCE_DATA_INVALID_VALUE);
         invokeErrorCb(srcNodeId, STATUS_ERROR, STATUS_VIEW_REFERENCE_DATA_INVALID_VALUE);
         retVal = false;
     }
@@ -409,13 +404,13 @@ bool checkBrowseName(UA_String browseName, EdgeNodeId *srcNodeId)
     bool retVal = true;
     if (browseName.length <= 0 || NULL == browseName.data)
     {
-        LOG("Error: " BROWSENAME_EMPTY);
+        EDGE_LOG(TAG, "Error: " BROWSENAME_EMPTY);
         invokeErrorCb(srcNodeId, STATUS_ERROR, BROWSENAME_EMPTY);
         retVal = false;
     }
     else if (browseName.length >= 1000)
     {
-        LOG("Error: " BROWSENAME_LONG);
+        EDGE_LOG(TAG, "Error: " BROWSENAME_LONG);
         invokeErrorCb(srcNodeId, STATUS_ERROR, BROWSENAME_LONG);
         retVal = false;
     }
@@ -428,13 +423,13 @@ bool checkNodeClass(UA_NodeClass nodeClass, EdgeNodeId *srcNodeId)
     bool retVal = true;
     if (false == isNodeClassValid(nodeClass))
     {
-        LOG("Error: " NODECLASS_INVALID);
+        EDGE_LOG(TAG, "Error: " NODECLASS_INVALID);
         invokeErrorCb(srcNodeId, STATUS_ERROR, NODECLASS_INVALID);
         retVal = false;
     }
     else if ((nodeClass & BROWSE_DESCRIPTION_NODECLASS_MASK) == 0)
     {
-        LOG("Error: " STATUS_VIEW_NOTINCLUDE_NODECLASS_VALUE);
+        EDGE_LOG(TAG, "Error: " STATUS_VIEW_NOTINCLUDE_NODECLASS_VALUE);
         invokeErrorCb(srcNodeId, STATUS_ERROR, STATUS_VIEW_NOTINCLUDE_NODECLASS_VALUE);
         retVal = false;
     }
@@ -446,13 +441,13 @@ bool checkDisplayName(UA_String displayName, EdgeNodeId *srcNodeId)
     bool retVal = true;
     if (displayName.length <= 0 || NULL == displayName.data)
     {
-        LOG("Error: " DISPLAYNAME_EMPTY);
+        EDGE_LOG(TAG, "Error: " DISPLAYNAME_EMPTY);
         invokeErrorCb(srcNodeId, STATUS_ERROR, DISPLAYNAME_EMPTY);
         retVal = false;
     }
     else if (displayName.length >= 1000)
     {
-        LOG("Error: " DISPLAYNAME_LONG);
+        EDGE_LOG(TAG, "Error: " DISPLAYNAME_LONG);
         invokeErrorCb(srcNodeId, STATUS_ERROR, DISPLAYNAME_LONG);
         retVal = false;
     }
@@ -465,13 +460,13 @@ bool checkNodeId(UA_ExpandedNodeId nodeId, EdgeNodeId *srcNodeId)
     bool retVal = true;
     if (UA_NodeId_isNull(&nodeId.nodeId))
     {
-        LOG("Error: " NODEID_NULL);
+        EDGE_LOG(TAG, "Error: " NODEID_NULL);
         invokeErrorCb(srcNodeId, STATUS_ERROR, NODEID_NULL);
         retVal = false;
     }
     else if (nodeId.serverIndex != 0)
     {
-        LOG("Error: " NODEID_SERVERINDEX);
+        EDGE_LOG(TAG, "Error: " NODEID_SERVERINDEX);
         invokeErrorCb(srcNodeId, STATUS_ERROR, NODEID_SERVERINDEX);
         retVal = false;
     }
@@ -483,7 +478,7 @@ bool checkReferenceTypeId(UA_NodeId nodeId, EdgeNodeId *srcNodeId)
     bool retVal = true;
     if (UA_NodeId_isNull(&nodeId))
     {
-        LOG("Error: " REFERENCETYPEID_NULL);
+        EDGE_LOG(TAG, "Error: " REFERENCETYPEID_NULL);
         invokeErrorCb(srcNodeId, STATUS_ERROR, REFERENCETYPEID_NULL);
         retVal = false;
     }
@@ -496,7 +491,7 @@ bool checkTypeDefinition(UA_ReferenceDescription *ref, EdgeNodeId *srcNodeId)
     if ((ref->nodeClass == UA_NODECLASS_OBJECT || ref->nodeClass == UA_NODECLASS_VARIABLE) &&
         UA_NodeId_isNull(&ref->typeDefinition.nodeId))
     {
-        LOG("Error: " TYPEDEFINITIONNODEID_NULL);
+        EDGE_LOG(TAG, "Error: " TYPEDEFINITIONNODEID_NULL);
         invokeErrorCb(srcNodeId, STATUS_ERROR, TYPEDEFINITIONNODEID_NULL);
         retVal = false;
     }
@@ -509,7 +504,7 @@ static void invokeResponseCb(EdgeMessage *msg, int msgId, EdgeNodeId *srcNodeId,
     EdgeMessage *resultMsg = (EdgeMessage *) calloc(1, sizeof(EdgeMessage));
     if (!resultMsg)
     {
-        LOG("Memory allocation failed.");
+        EDGE_LOG(TAG, "Memory allocation failed.");
         return;
     }
 
@@ -518,7 +513,7 @@ static void invokeResponseCb(EdgeMessage *msg, int msgId, EdgeNodeId *srcNodeId,
     resultMsg->endpointInfo = cloneEdgeEndpointInfo(msg->endpointInfo);
     if (!resultMsg->endpointInfo)
     {
-        LOG("Failed to clone the EdgeEndpointInfo.");
+        EDGE_LOG(TAG, "Failed to clone the EdgeEndpointInfo.");
         freeEdgeMessage(resultMsg);
         return;
     }
@@ -526,7 +521,7 @@ static void invokeResponseCb(EdgeMessage *msg, int msgId, EdgeNodeId *srcNodeId,
     EdgeResponse *response = (EdgeResponse *) calloc(1, sizeof(EdgeResponse));
     if (!response)
     {
-        LOG("Memory allocation failed.");
+        EDGE_LOG(TAG, "Memory allocation failed.");
         freeEdgeMessage(resultMsg);
         return;
     }
@@ -534,7 +529,7 @@ static void invokeResponseCb(EdgeMessage *msg, int msgId, EdgeNodeId *srcNodeId,
     response->nodeInfo = (EdgeNodeInfo *)calloc(1, sizeof(EdgeNodeInfo));
     if (!response->nodeInfo)
     {
-        LOG("Memory allocation failed.");
+        EDGE_LOG(TAG, "Memory allocation failed.");
         freeEdgeResponse(response);
         freeEdgeMessage(resultMsg);
         return;
@@ -544,7 +539,7 @@ static void invokeResponseCb(EdgeMessage *msg, int msgId, EdgeNodeId *srcNodeId,
     EdgeResponse **responses = (EdgeResponse **) calloc(1, sizeof(EdgeResponse *));
     if (!responses)
     {
-        LOG("Memory allocation failed.");
+        EDGE_LOG(TAG, "Memory allocation failed.");
         response->nodeInfo->nodeId = NULL;
         freeEdgeResponse(response);
         freeEdgeMessage(resultMsg);
@@ -576,7 +571,7 @@ static void invokeResponseCbForContinuationPoint(EdgeMessage *msg,
     EdgeMessage *resultMsg = (EdgeMessage *) calloc(1, sizeof(EdgeMessage));
     if (!resultMsg)
     {
-        LOG("Memory allocation failed.");
+        EDGE_LOG(TAG, "Memory allocation failed.");
         return;
     }
 
@@ -585,7 +580,7 @@ static void invokeResponseCbForContinuationPoint(EdgeMessage *msg,
     resultMsg->cpList = getContinuationPointList(continuationPoint);
     if (!resultMsg->cpList)
     {
-        LOG("Failed to form the continuation point.");
+        EDGE_LOG(TAG, "Failed to form the continuation point.");
         free(resultMsg);
         return;
     }
@@ -593,7 +588,7 @@ static void invokeResponseCbForContinuationPoint(EdgeMessage *msg,
     resultMsg->endpointInfo = cloneEdgeEndpointInfo(msg->endpointInfo);
     if (!resultMsg->endpointInfo)
     {
-        LOG("Failed to clone the EdgeEndpointInfo.");
+        EDGE_LOG(TAG, "Failed to clone the EdgeEndpointInfo.");
         freeEdgeMessage(resultMsg);
         return;
     }
@@ -601,14 +596,14 @@ static void invokeResponseCbForContinuationPoint(EdgeMessage *msg,
     EdgeResponse *response = (EdgeResponse *) calloc(1, sizeof(EdgeResponse));
     if (!response)
     {
-        LOG("Memory allocation failed.");
+        EDGE_LOG(TAG, "Memory allocation failed.");
         freeEdgeMessage(resultMsg);
         return;
     }
     response->nodeInfo = (EdgeNodeInfo *)calloc(1, sizeof(EdgeNodeInfo));
     if (!response->nodeInfo)
     {
-        LOG("Memory allocation failed.");
+        EDGE_LOG(TAG, "Memory allocation failed.");
         freeEdgeResponse(response);
         freeEdgeMessage(resultMsg);
         return;
@@ -618,7 +613,7 @@ static void invokeResponseCbForContinuationPoint(EdgeMessage *msg,
     EdgeResponse **responses = (EdgeResponse **) calloc(1, sizeof(EdgeResponse *));
     if (!responses)
     {
-        LOG("Memory allocation failed.");
+        EDGE_LOG(TAG, "Memory allocation failed.");
         response->nodeInfo->nodeId = NULL;
         freeEdgeResponse(response);
         freeEdgeMessage(resultMsg);
@@ -668,7 +663,7 @@ EdgeNodeId *getEdgeNodeId(UA_NodeId *node)
             char *value = (char *) malloc(GUID_LENGTH + 1);
             if (!value)
             {
-                LOG("Memory allocation failed.");
+                EDGE_LOG(TAG, "Memory allocation failed.");
                 free(edgeNodeId);
                 edgeNodeId = NULL;
                 break;
@@ -697,16 +692,16 @@ void printNodeId(UA_NodeId n1)
     switch (n1.identifierType)
     {
         case UA_NODEIDTYPE_NUMERIC:
-            printf("Numeric: %d\n", n1.identifier.numeric);
+            EDGE_LOG_V(TAG, "Numeric: %d\n", n1.identifier.numeric);
             break;
         case UA_NODEIDTYPE_STRING:
-            printf("String: %s\n", convertUAStringToString(&n1.identifier.string));
+            EDGE_LOG_V(TAG, "String: %s\n", convertUAStringToString(&n1.identifier.string));
             break;
         case UA_NODEIDTYPE_BYTESTRING:
-            printf("Byte String: %s\n", convertUAStringToString(&n1.identifier.byteString));
+            EDGE_LOG_V(TAG, "Byte String: %s\n", convertUAStringToString(&n1.identifier.byteString));
             break;
         case UA_NODEIDTYPE_GUID:
-            printf("GUID\n");
+            EDGE_LOG(TAG, "GUID\n");
             break;
     }
 }
@@ -728,7 +723,7 @@ EdgeStatusCode browse(UA_Client *client, EdgeMessage *msg, bool browseNext, UA_N
                                       UA_ByteString));
         if (!bReq.continuationPoints)
         {
-            LOG("Memory allocation failed.");
+            EDGE_LOG(TAG, "Memory allocation failed.");
             return STATUS_INTERNAL_ERROR;
         }
 
@@ -748,7 +743,7 @@ EdgeStatusCode browse(UA_Client *client, EdgeMessage *msg, bool browseNext, UA_N
         nodesToBrowse = getBrowseDescriptions(nodeIdList, nodeCount, msg);
         if (!nodesToBrowse)
         {
-            LOG("Failed to create browse descriptions.");
+            EDGE_LOG(TAG, "Failed to create browse descriptions.");
             return STATUS_ERROR;
         }
 
@@ -770,14 +765,15 @@ EdgeStatusCode browse(UA_Client *client, EdgeMessage *msg, bool browseNext, UA_N
         {
             statusCode = STATUS_VIEW_BROWSERESULT_EMPTY;
             versatileVal = STATUS_VIEW_BROWSERESULT_EMPTY_VALUE;
-            LOG("Error: Empty browse response!!!");
+            EDGE_LOG(TAG, "Error: Empty browse response!!!");
         }
         else
         {
             statusCode = STATUS_SERVICE_RESULT_BAD;
             versatileVal = STATUS_SERVICE_RESULT_BAD_VALUE;
             UA_StatusCode serviceResult = resp->responseHeader.serviceResult;
-            printf("Error in browse :: 0x%08x(%s)\n", serviceResult, UA_StatusCode_name(serviceResult));
+            (void)serviceResult;
+            EDGE_LOG_V(TAG, "Error in browse :: 0x%08x(%s)\n", serviceResult, UA_StatusCode_name(serviceResult));
         }
 
         EdgeNodeInfo *nodeInfo = getEndpoint(msg, 0);
@@ -806,7 +802,7 @@ EdgeStatusCode browse(UA_Client *client, EdgeMessage *msg, bool browseNext, UA_N
 
             if (nodeIdUnknownCount == resp->resultsSize)
             {
-                LOG("Error: " STATUS_VIEW_NODEID_UNKNOWN_ALL_RESULTS_VALUE);
+                EDGE_LOG(TAG, "Error: " STATUS_VIEW_NODEID_UNKNOWN_ALL_RESULTS_VALUE);
                 invokeErrorCb(srcNodeId, STATUS_VIEW_NODEID_UNKNOWN_ALL_RESULTS,
                               STATUS_VIEW_NODEID_UNKNOWN_ALL_RESULTS_VALUE);
             }
@@ -827,7 +823,7 @@ EdgeStatusCode browse(UA_Client *client, EdgeMessage *msg, bool browseNext, UA_N
         // then references should not be empty if statuscode is good.
         if (browseNext && !resp->results[i].referencesSize)
         {
-            LOG("Error: " STATUS_VIEW_REFERENCE_DATA_INVALID_VALUE);
+            EDGE_LOG(TAG, "Error: " STATUS_VIEW_REFERENCE_DATA_INVALID_VALUE);
             invokeErrorCb(srcNodeId, STATUS_ERROR, STATUS_VIEW_REFERENCE_DATA_INVALID_VALUE);
             continue;
         }
@@ -835,7 +831,7 @@ EdgeStatusCode browse(UA_Client *client, EdgeMessage *msg, bool browseNext, UA_N
         nextMsgIdList = (int *)calloc(resp->results[i].referencesSize, sizeof(int));
         if (!nextMsgIdList)
         {
-            LOG("Memory allocation failed.");
+            EDGE_LOG(TAG, "Memory allocation failed.");
             statusCode = STATUS_INTERNAL_ERROR;
             goto EXIT;
         }
@@ -843,7 +839,7 @@ EdgeStatusCode browse(UA_Client *client, EdgeMessage *msg, bool browseNext, UA_N
         nextNodeIdList = (UA_NodeId *)calloc(resp->results[i].referencesSize, sizeof(UA_NodeId));
         if (!nextNodeIdList)
         {
-            LOG("Memory allocation failed.");
+            EDGE_LOG(TAG, "Memory allocation failed.");
             statusCode = STATUS_INTERNAL_ERROR;
             goto EXIT;
         }
@@ -857,7 +853,7 @@ EdgeStatusCode browse(UA_Client *client, EdgeMessage *msg, bool browseNext, UA_N
             if ((direction == DIRECTION_FORWARD && ref->isForward == false)
                 || (direction == DIRECTION_INVERSE && ref->isForward == true))
             {
-                LOG("Error: " STATUS_VIEW_DIRECTION_NOT_MATCH_VALUE);
+                EDGE_LOG(TAG, "Error: " STATUS_VIEW_DIRECTION_NOT_MATCH_VALUE);
                 invokeErrorCb(srcNodeId, STATUS_VIEW_DIRECTION_NOT_MATCH,
                               STATUS_VIEW_DIRECTION_NOT_MATCH_VALUE);
                 isError = true;
@@ -882,14 +878,14 @@ EdgeStatusCode browse(UA_Client *client, EdgeMessage *msg, bool browseNext, UA_N
                 EdgeBrowseResult *browseResult = (EdgeBrowseResult *)calloc(size, sizeof(EdgeBrowseResult *));
                 if (!browseResult)
                 {
-                    LOG("Memory allocation failed.");
+                    EDGE_LOG(TAG, "Memory allocation failed.");
                     statusCode = STATUS_INTERNAL_ERROR;
                     goto EXIT;
                 }
                 browseResult->browseName = convertUAStringToString(&ref->browseName.name);
                 if (!browseResult->browseName)
                 {
-                    LOG("Memory allocation failed.");
+                    EDGE_LOG(TAG, "Memory allocation failed.");
                     statusCode = STATUS_INTERNAL_ERROR;
                     free(browseResult);
                     goto EXIT;
@@ -904,10 +900,10 @@ EdgeStatusCode browse(UA_Client *client, EdgeMessage *msg, bool browseNext, UA_N
 #endif
                 if (!hasNode(map, mapSize, msgId, ref->nodeId.nodeId))
                 {
-                    LOG("Adding this NodeId in Map.");
+                    EDGE_LOG(TAG, "Adding this NodeId in Map.");
                     if (!addToMap(map, mapSize, msgId, ref->nodeId.nodeId, &ref->browseName.name))
                     {
-                        LOG("Adding node to map failed.");
+                        EDGE_LOG(TAG, "Adding node to map failed.");
                         statusCode = STATUS_INTERNAL_ERROR;
                         goto EXIT;
                     }
@@ -916,7 +912,7 @@ EdgeStatusCode browse(UA_Client *client, EdgeMessage *msg, bool browseNext, UA_N
                 }
                 else
                 {
-                    LOG("Already added this NodeId in Map.");
+                    EDGE_LOG(TAG, "Already added this NodeId in Map.");
                 }
             }
         }
@@ -924,7 +920,7 @@ EdgeStatusCode browse(UA_Client *client, EdgeMessage *msg, bool browseNext, UA_N
         // Pass the continuation point for this result to the application.
         if (resp->results[i].continuationPoint.length > 0)
         {
-            LOG("Passing continuation point to application.");
+            EDGE_LOG(TAG, "Passing continuation point to application.");
             invokeResponseCbForContinuationPoint(msg, msgId, srcNodeId, &resp->results[i].continuationPoint);
         }
 
@@ -953,28 +949,28 @@ EdgeResult executeBrowse(UA_Client *client, EdgeMessage *msg, bool browseNext)
     EdgeResult result;
     if (!client)
     {
-        LOG("Invalid client handle parameter.");
+        EDGE_LOG(TAG, "Invalid client handle parameter.");
         result.code = STATUS_PARAM_INVALID;
         return result;
     }
 
     if (!msg)
     {
-        LOG("Invalid edge message parameter.");
+        EDGE_LOG(TAG, "Invalid edge message parameter.");
         result.code = STATUS_PARAM_INVALID;
         return result;
     }
 
     if (browseNext && !msg->cpList && msg->cpList->count < 1)
     {
-        LOG("EdgeContinuationPointList is invalid.");
+        EDGE_LOG(TAG, "EdgeContinuationPointList is invalid.");
         result.code = STATUS_PARAM_INVALID;
         return result;
     }
 
     if (!browseNext && msg->type != SEND_REQUEST && msg->type != SEND_REQUESTS)
     {
-        LOG("Invalid message type.");
+        EDGE_LOG(TAG, "Invalid message type.");
         result.code = STATUS_NOT_SUPPORT;
         return result;
     }
@@ -994,7 +990,7 @@ EdgeResult executeBrowse(UA_Client *client, EdgeMessage *msg, bool browseNext)
     msgIdList = (int *)calloc(nodesToBrowseSize, sizeof(int));
     if (!msgIdList)
     {
-        LOG("Memory allocation failed.");
+        EDGE_LOG(TAG, "Memory allocation failed.");
         result.code = STATUS_INTERNAL_ERROR;
         return result;
     }
@@ -1002,7 +998,7 @@ EdgeResult executeBrowse(UA_Client *client, EdgeMessage *msg, bool browseNext)
     nodeIdList = (UA_NodeId *)calloc(nodesToBrowseSize, sizeof(UA_NodeId));
     if (!nodeIdList)
     {
-        LOG("Memory allocation failed.");
+        EDGE_LOG(TAG, "Memory allocation failed.");
         free(msgIdList);
         result.code = STATUS_INTERNAL_ERROR;
         return result;
@@ -1010,7 +1006,7 @@ EdgeResult executeBrowse(UA_Client *client, EdgeMessage *msg, bool browseNext)
 
     if (msg->type == SEND_REQUEST)
     {
-        LOG("Message Type: " SEND_REQUEST_DESC);
+        EDGE_LOG(TAG, "Message Type: " SEND_REQUEST_DESC);
         UA_NodeId *nodeId;
         nodeIdList[0] = (nodeId = getNodeId(msg->request)) ? *nodeId : UA_NODEID_NULL;
         msgIdList[0] = 0;
@@ -1018,10 +1014,10 @@ EdgeResult executeBrowse(UA_Client *client, EdgeMessage *msg, bool browseNext)
     }
     else
     {
-        LOG("Message Type: " SEND_REQUESTS_DESC);
+        EDGE_LOG(TAG, "Message Type: " SEND_REQUESTS_DESC);
         if (!browseNext && nodesToBrowseSize > MAX_BROWSEREQUEST_SIZE)
         {
-            LOG("Error: " STATUS_VIEW_BROWSEREQUEST_SIZEOVER_VALUE);
+            EDGE_LOG(TAG, "Error: " STATUS_VIEW_BROWSEREQUEST_SIZEOVER_VALUE);
             EdgeNodeInfo *nodeInfo = getEndpoint(msg, 0);
             invokeErrorCb((nodeInfo ? nodeInfo->nodeId : NULL), STATUS_ERROR,
                           STATUS_VIEW_BROWSEREQUEST_SIZEOVER_VALUE);
@@ -1044,7 +1040,7 @@ EdgeResult executeBrowse(UA_Client *client, EdgeMessage *msg, bool browseNext)
     BrowseMap *map = initMap(nodesToBrowseSize);
     if (!map)
     {
-        LOG("Failed to initialize a Map.");
+        EDGE_LOG(TAG, "Failed to initialize a Map.");
         result.code = STATUS_INTERNAL_ERROR;
     }
     else
@@ -1053,7 +1049,7 @@ EdgeResult executeBrowse(UA_Client *client, EdgeMessage *msg, bool browseNext)
                                            msgIdList, nodesToBrowseSize, map, mapSize);
         if (statusCode != STATUS_OK)
         {
-            LOG("Browse failed.");
+            EDGE_LOG(TAG, "Browse failed.");
             result.code = STATUS_ERROR;
         }
         else

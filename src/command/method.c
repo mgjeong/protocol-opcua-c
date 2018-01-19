@@ -1,6 +1,9 @@
 #include "method.h"
+#include "edge_logger.h"
 
 #include <stdio.h>
+
+#define TAG "method"
 
 EdgeResult executeMethod(UA_Client *client, EdgeMessage *msg)
 {
@@ -8,7 +11,7 @@ EdgeResult executeMethod(UA_Client *client, EdgeMessage *msg)
     result.code = STATUS_OK;
     if (!client)
     {
-        printf("Client handle Invalid\n");
+        EDGE_LOG(TAG, "Client handle Invalid\n");
         result.code = STATUS_ERROR;
         return result;
     }
@@ -33,7 +36,7 @@ EdgeResult executeMethod(UA_Client *client, EdgeMessage *msg)
             }
             else
             {
-                printf("\n\n======== scalar copy======== \n\n");
+                EDGE_LOG(TAG, "\n\n======== scalar copy======== \n\n");
                 UA_Variant_setScalarCopy(&input[idx], params->inpArg[idx]->scalarValue, &UA_TYPES[type]);
             }
         }
@@ -70,7 +73,7 @@ EdgeResult executeMethod(UA_Client *client, EdgeMessage *msg)
                                           &output);
     if (retVal == UA_STATUSCODE_GOOD)
     {
-        printf("method call was success\n\n");
+        EDGE_LOG(TAG, "method call was success\n\n");
 
         EdgeResponse **response = (EdgeResponse **) malloc(sizeof(EdgeResponse *) * outputSize);
         if (response)
@@ -227,7 +230,7 @@ EdgeResult executeMethod(UA_Client *client, EdgeMessage *msg)
     }
     else
     {
-        printf("method call failed 0x%08x\n", retVal);
+        EDGE_LOG_V(TAG, "method call failed 0x%08x\n", retVal);
         result.code = STATUS_ERROR;
 
         EdgeMessage *resultMsg = (EdgeMessage *) malloc(sizeof(EdgeMessage));

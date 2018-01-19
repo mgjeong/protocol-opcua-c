@@ -1,9 +1,12 @@
 #include "edge_opcua_server.h"
 #include "edge_node.h"
+#include "edge_logger.h"
 
 #include <stdio.h>
 #include <pthread.h>
 #include <open62541.h>
+
+#define TAG "session_server"
 
 static UA_ServerConfig *m_serverConfig;
 static UA_Server *m_server;
@@ -21,8 +24,9 @@ void createNamespaceInServer(char *namespaceUri,
     if (namespaceType == URI_TYPE || namespaceType == DEFAULT_TYPE)
     {
         int idx = UA_Server_addNamespace(m_server, namespaceUri);
-        printf("\n [SERVER] Namespace Index :: [%d]", idx);
-        printf("\n [SERVER] Namespace created\n");
+        (void) idx;
+        EDGE_LOG_V(TAG, "\n [SERVER] Namespace Index :: [%d]", idx);
+        EDGE_LOG(TAG, "\n [SERVER] Namespace created\n");
 
 //    nameSpace = ((new EdgeNamespace::Builder(m_server, idx, namespaceUri))->setNodeId(rootNodeIdentifier)->
 //        setBrowseName(rootNodeBrowseName)->setDisplayName(rootNodeDisplayName))->build();
@@ -60,7 +64,7 @@ static void *server_loop(void *ptr)
     {
         UA_Server_run_iterate(m_server, true);
     }
-    printf(" [SERVER] server loop exit\n");
+    EDGE_LOG(TAG, " [SERVER] server loop exit\n");
     return NULL;
 }
 
@@ -104,12 +108,12 @@ EdgeResult start_server(EdgeEndPointInfo *epInfo)
     //    UA_ByteString_deleteMembers(&certificate);
     m_server = UA_Server_new(m_serverConfig);
 
-    printf("\n [SERVER] starting server \n");
+    EDGE_LOG(TAG, "\n [SERVER] starting server \n");
     UA_StatusCode retval = UA_Server_run_startup(m_server);
 
     if (retval != UA_STATUSCODE_GOOD)
     {
-        printf("\n [SERVER] Error in starting server \n");
+        EDGE_LOG(TAG, "\n [SERVER] Error in starting server \n");
         b_running = UA_FALSE;
 
         result.code = STATUS_ERROR;
@@ -117,7 +121,7 @@ EdgeResult start_server(EdgeEndPointInfo *epInfo)
     }
     else
     {
-        printf("\n ========= [SERVER] Server Start successful ============= \n");
+        EDGE_LOG(TAG, "\n ========= [SERVER] Server Start successful ============= \n");
         b_running = UA_TRUE;
         pthread_create(&m_serverThread, NULL, &server_loop, NULL);
         onStatusCallback(epInfo, STATUS_SERVER_STARTED);
@@ -136,7 +140,7 @@ void stop_server(EdgeEndPointInfo *epInfo)
 
     UA_Server_delete(m_server);
     UA_ServerConfig_delete(m_serverConfig);
-    printf("\n ========= [SERVER] Server Stopped ============= \n");
+    EDGE_LOG(TAG, "\n ========= [SERVER] Server Stopped ============= \n");
 
     onStatusCallback(epInfo, STATUS_STOP_SERVER);
 }

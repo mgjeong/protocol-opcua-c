@@ -1,14 +1,17 @@
 #include "write.h"
 #include "common_client.h"
+#include "edge_logger.h"
 
 #include <stdio.h>
 #include <inttypes.h>
+
+#define TAG "write"
 
 #if 0
 static void write(UA_Client *client, EdgeMessage *msg)
 {
 
-    printf("[WRITE] Node to write :: %s\n", msg->request->nodeInfo->valueAlias);
+    EDGE_LOG_V(TAG, "[WRITE] Node to write :: %s\n", msg->request->nodeInfo->valueAlias);
     UA_Variant *myVariant = UA_Variant_new();
 
     int type = (int)msg->request->type - 1;
@@ -27,7 +30,7 @@ static void write(UA_Client *client, EdgeMessage *msg)
     if  (retVal != UA_STATUSCODE_GOOD)
     {
         // send error callback;
-        printf("Error in read node :: 0x%08x\n", retVal);
+        EDGE_LOG_V(TAG, "Error in read node :: 0x%08x\n", retVal);
 
         EdgeMessage *resultMsg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
         resultMsg->endpointInfo = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
@@ -46,7 +49,7 @@ static void write(UA_Client *client, EdgeMessage *msg)
         return ;
     }
 
-    printf("[WRITE] SUCCESS response received from server\n");
+    EDGE_LOG(TAG, "[WRITE] SUCCESS response received from server\n");
     EdgeResponse *response = (EdgeResponse *) malloc(sizeof(EdgeResponse));
     if (response)
     {
@@ -126,7 +129,7 @@ static void writeGroup(UA_Client *client, EdgeMessage *msg)
 
     for (int i = 0; i < reqLen; i++)
     {
-        printf("[WRITEGROUP] Node to write :: %s\n", msg->requests[i]->nodeInfo->valueAlias);
+        EDGE_LOG_V(TAG, "[WRITEGROUP] Node to write :: %s\n", msg->requests[i]->nodeInfo->valueAlias);
         int type = (int)msg->requests[i]->type - 1;
         UA_WriteValue_init(&wv[i]);
         UA_Variant_init(&myVariant[i]);
@@ -157,7 +160,7 @@ static void writeGroup(UA_Client *client, EdgeMessage *msg)
     UA_WriteResponse writeResponse = UA_Client_Service_write(client, writeRequest);
     if (writeResponse.responseHeader.serviceResult != UA_STATUSCODE_GOOD)
     {
-        printf("Error in write :: 0x%08x(%s)\n", writeResponse.responseHeader.serviceResult,
+        EDGE_LOG_V(TAG, "Error in write :: 0x%08x(%s)\n", writeResponse.responseHeader.serviceResult,
                UA_StatusCode_name(writeResponse.responseHeader.serviceResult));
 
         free(wv);
@@ -171,7 +174,7 @@ static void writeGroup(UA_Client *client, EdgeMessage *msg)
 
     if (reqLen != writeResponse.resultsSize)
     {
-        printf("Requested(%d) but received(%d) => %s\n", reqLen, (int)writeResponse.resultsSize,
+        EDGE_LOG_V(TAG, "Requested(%d) but received(%d) => %s\n", reqLen, (int)writeResponse.resultsSize,
                (reqLen < writeResponse.resultsSize) ? "Received more results" : "Received less results");
         EdgeMessage *resultMsg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
         resultMsg->endpointInfo = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
@@ -211,7 +214,7 @@ static void writeGroup(UA_Client *client, EdgeMessage *msg)
 
         if (code != UA_STATUSCODE_GOOD)
         {
-            printf("Error in write response for a particular node :: 0x%08x(%s)\n", code,
+            EDGE_LOG_V(TAG, "Error in write response for a particular node :: 0x%08x(%s)\n", code,
                    UA_StatusCode_name(code));
             EdgeMessage *resultMsg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
             resultMsg->endpointInfo = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
@@ -291,7 +294,7 @@ EdgeResult executeWrite(UA_Client *client, EdgeMessage *msg)
     EdgeResult result;
     if (!client)
     {
-        printf("Client handle Invalid\n");
+        EDGE_LOG(TAG, "Client handle Invalid\n");
         result.code = STATUS_ERROR;
         return result;
     }

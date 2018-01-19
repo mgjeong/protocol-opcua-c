@@ -6,8 +6,11 @@ extern "C" {
 #include "opcua_common.h"
 #include "edge_identifier.h"
 #include "edge_utils.h"
+#include "edge_logger.h"
 #include "open62541.h"
 }
+
+#define TAG "TC"
 
 #define LOCALHOST "localhost"
 #define ENDPOINT_URI  "opc:tcp://%s:12686/edge-opc-server"
@@ -601,9 +604,9 @@ static void modifyNode()
     subReqMod->publishingInterval = 0.0;
     subReqMod->maxKeepAliveCount = (1 > (int) ((10000.0 / subReqMod->publishingInterval))) ? 1 : (int) (
                                        10000.0 / subReqMod->publishingInterval);
-    printf("keepalive count :: %d\n", subReqMod->maxKeepAliveCount);
+    EDGE_LOG_V(TAG, "keepalive count :: %d\n", subReqMod->maxKeepAliveCount);
     subReqMod->lifetimeCount = 10000;  //subReq->maxKeepAliveCount * 6;
-    printf("lifetimecount :: %d\n", subReqMod->lifetimeCount);
+    EDGE_LOG_V(TAG, "lifetimecount :: %d\n", subReqMod->lifetimeCount);
     subReqMod->maxNotificationsPerPublish = 1;
     subReqMod->publishingEnabled = true;
     subReqMod->priority = 0;
