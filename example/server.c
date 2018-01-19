@@ -57,9 +57,6 @@ static void status_start_cb (EdgeEndPointInfo *epInfo, EdgeStatusCode status)
         printf("[Application Callback] Server started\n");
         startFlag = true;
 
-        free(epInfo->config);epInfo->config = NULL;
-        free(epInfo);epInfo = NULL;
-
         testCreateNamespace();
         testCreateNodes();
     }
@@ -70,16 +67,13 @@ static void status_stop_cb (EdgeEndPointInfo *epInfo, EdgeStatusCode status)
     if (status == STATUS_STOP_SERVER)
     {
         printf("[Application Callback] Server stopped \n");
+        exit(0);
     }
-
-    free(epInfo->config);epInfo->config = NULL;
-    free(epInfo);epInfo = NULL;
 }
 
 static void status_network_cb (EdgeEndPointInfo *epInfo, EdgeStatusCode status)
 {
-    free(epInfo->config);epInfo->config = NULL;
-    free(epInfo);epInfo = NULL;
+
 }
 
 /* discovery callback */
@@ -794,19 +788,7 @@ static void testCreateNodes()
         method->outArg[idx]->valType = SCALAR;
     }
     createMethodNode(DEFAULT_NAMESPACE_VALUE, methodNodeItem, method);
-    //FREE logic
-    for (int idx = 0; idx < method->num_inpArgs; idx++)
-    {
-        //free(method->inpArg[idx]); method->inpArg[idx] = NULL;
-    }
-    for (int idx = 0; idx < method->num_outArgs; idx++)
-    {
-        //free(method->outArg[idx]);method->outArg[idx] = NULL;
-    }
-    //FREE(method->inpArg);
-    //FREE(method->outArg);
-    //FREE(method);
-    //FREE(methodNodeItem);
+    FREE(methodNodeItem);
 
     printf("\n[%d]) Method Node \n", ++index);
     EdgeNodeItem *methodNodeItem1 = (EdgeNodeItem *) malloc(sizeof(EdgeNodeItem));
@@ -839,17 +821,7 @@ static void testCreateNodes()
         method1->outArg[idx]->arrayLength = 5;
     }
     createMethodNode(DEFAULT_NAMESPACE_VALUE, methodNodeItem1, method1);
-    //FREE logic
-    //FREE(method1->inpArg[0]);
-    //FREE(method1->inpArg[1]);
-    for (int idx = 0; idx < method1->num_outArgs; idx++)
-    {
-        //free(method1->outArg[idx]);method1->outArg[idx] = NULL;
-    }
-    //FREE(method1->inpArg);
-    //FREE(method1->outArg);
-    //FREE(method1);
-    //FREE(methodNodeItem1);
+    FREE(methodNodeItem1);
 
     printf("\n[%d]) Method Node \n", ++index);
     EdgeNodeItem *methodNodeItem2 = (EdgeNodeItem *) malloc(sizeof(EdgeNodeItem));
@@ -868,8 +840,7 @@ static void testCreateNodes()
     method2->outArg = NULL;
 
     createMethodNode(DEFAULT_NAMESPACE_VALUE, methodNodeItem2, method2);
-    //FREE(method2);
-    //FREE(methodNodeItem2);
+    FREE(methodNodeItem2);
 
     printf("\n[%d]) Method Node \n", ++index);
     EdgeNodeItem *methodNodeItem3 = (EdgeNodeItem *) malloc(sizeof(EdgeNodeItem));
@@ -891,11 +862,7 @@ static void testCreateNodes()
     method3->outArg = NULL;
 
     createMethodNode(DEFAULT_NAMESPACE_VALUE, methodNodeItem3, method3);
-    //FREE logic
-    //FREE(method3->inpArg[0]);
-    //FREE(method3->inpArg);
-    //FREE(method3);
-    //FREE(methodNodeItem3);
+    FREE(methodNodeItem3);
 
     printf("\n[%d]) Method Node \n", ++index);
     EdgeNodeItem *methodNodeItem4 = (EdgeNodeItem *) malloc(sizeof(EdgeNodeItem));
@@ -917,11 +884,7 @@ static void testCreateNodes()
     method4->outArg[0]->valType = SCALAR;
 
     createMethodNode(DEFAULT_NAMESPACE_VALUE, methodNodeItem4, method4);
-    //FREE logic
-    //FREE(method4->outArg[0]);
-    //FREE(method4->outArg);
-    //FREE(method4);
-    //FREE(methodNodeItem4);
+    FREE(methodNodeItem4);
 
     printf("\n-------------------------------------------------------");
     printf("\n\n");
@@ -1010,6 +973,9 @@ static void deinit()
 {
     if (startFlag)
     {
+        stopServer();
+        startFlag = false;
+
         if (config)
         {
             if (config->recvCallback)
@@ -1027,11 +993,12 @@ static void deinit()
                 free (config->discoveryCallback);
                 config->discoveryCallback = NULL;
             }
+            
             free (config); config = NULL;
         }
 
-         stopServer();
-        startFlag = false;
+        if(epInfo)
+            FREE(epInfo);
     }
 }
 

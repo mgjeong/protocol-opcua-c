@@ -531,6 +531,8 @@ static UA_StatusCode methodCallback(UA_Server *server,
                 out[idx] = NULL;
             }
         }
+        free(out);
+        out = NULL;
         return UA_STATUSCODE_GOOD;
     }
     else
@@ -695,6 +697,22 @@ EdgeResult addMethodNode(UA_Server *server, EdgeNodeItem *item, EdgeMethod *meth
         EDGE_LOG(TAG, "\n+++ addMethodNode failed +++\n");
     }
 
+    for (idx = 0; idx < num_outArgs; idx++)
+    {
+        if (method->outArg[idx]->valType == ARRAY_1D)
+        {
+            free(outputArguments[idx].arrayDimensions);
+        }
+    }
+    for (idx = 0; idx < num_inpArgs; idx++)
+    {
+        
+        if (method->inpArg[idx]->valType == ARRAY_1D)
+        {
+            free(inputArguments[idx].arrayDimensions);
+        }
+    }
+    
     result.code = STATUS_OK;
     return result;
 }

@@ -467,7 +467,7 @@ static void readGroup(UA_Client *client, EdgeMessage *msg)
     {
         // send error callback;
         EDGE_LOG_V(TAG, "Error in group read :: 0x%08x(%s)\n", readResponse.responseHeader.serviceResult,
-        		UA_StatusCode_name(serviceResult));
+                UA_StatusCode_name(readResponse.responseHeader.serviceResult));
 
         sendErrorResponse(msg, "Error in read");
         UA_ReadValueId_deleteMembers(rv);
