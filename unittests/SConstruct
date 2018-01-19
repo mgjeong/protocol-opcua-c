@@ -41,7 +41,7 @@ env.do__(createBuildDir )
 env['CPPPATH'] = [incPath, '../extlib', gtestIncDir, '../src/utils']
 print env['CPPPATH']
 
-env.PrependUnique(CCFLAGS=['-g', '-Wwrite-strings'])
+env.PrependUnique(CCFLAGS=['-g', '-Wno-write-strings'])
 
 env.PrependUnique(LIBS=['opcua-adapter', 'gtest', 'gtest_main', 'm'])
 env.AppendUnique(LIBPATH=[libDir])
