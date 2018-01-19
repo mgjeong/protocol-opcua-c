@@ -336,7 +336,15 @@ static UA_StatusCode createSub(UA_Client *client, EdgeMessage *msg)
                    msgCopy->requests[i]->nodeInfo->valueAlias);
             insertMapElement(subscriptionList, (keyValue) hfContexts[i],
                              (keyValue) subInfo);
+
+            free(hfContexts[i]); hfContexts[i] = NULL;
         }
+
+        free(monId); monId = NULL;
+        free(hfContexts); hfContexts = NULL;
+        free(hfs); hfs = NULL;
+        free(itemResults); itemResults = NULL;
+        free(items); items = NULL;
     }
 
     return UA_STATUSCODE_GOOD;
