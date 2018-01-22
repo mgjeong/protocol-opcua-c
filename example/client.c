@@ -590,8 +590,8 @@ static void endpoint_found_cb (EdgeDevice *device)
     if (device)
     {
         int num_endpoints = device->num_endpoints;
-        int idx = 0;
-        for (idx = 0; idx < num_endpoints; idx++)
+        printf("\n[Application Callback] Total number of endpoints: %d\n", num_endpoints);
+        for (int idx = 0; idx < num_endpoints; idx++)
         {
             printf("\n[Application Callback] EndpointUri :: %s\n", device->endpointsInfo[idx]->endpointUri);
             printf("[Application Callback] Address :: %s, Port : %d, ServerName :: %s\n", device->address,
@@ -647,7 +647,11 @@ static void testGetEndpoints()
     msg->command = CMD_START_SERVER;
     msg->type = SEND_REQUEST;
 
-    getEndpointInfo(ep);
+    EdgeResult res = getEndpointInfo(ep);
+    if(res.code != STATUS_OK)
+    {
+        printf("getEndpointInfo() failed.\n");
+    }
 
     free(endpointConfig); endpointConfig = NULL;
     free(ep); ep = NULL;

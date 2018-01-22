@@ -68,7 +68,7 @@ __attribute__((visibility("default"))) void createServer(EdgeEndPointInfo *epInf
 __attribute__((visibility("default"))) void closeServer(EdgeEndPointInfo *epInfo);
 
 // Client
-__attribute__((visibility("default"))) void getEndpointInfo(EdgeEndPointInfo *epInfo);
+__attribute__((visibility("default"))) EdgeResult getEndpointInfo(EdgeEndPointInfo *epInfo);
 __attribute__((visibility("default"))) void connectClient(EdgeEndPointInfo *epInfo);
 __attribute__((visibility("default"))) void disconnectClient(EdgeEndPointInfo *epInfo);
 

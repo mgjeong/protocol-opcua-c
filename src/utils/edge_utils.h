@@ -35,6 +35,12 @@ extern "C"
 {
 #endif
 
+    typedef struct List
+    {
+        void *data;
+        struct List *link;
+    } List;
+
     typedef void *keyValue;
 
     typedef struct edgeMapNode
@@ -89,7 +95,15 @@ extern "C"
      */
     void deleteMap(edgeMap *map);
 
+    void addListNode(List **head, void *data);
+
+    void deleteListNode(List **head, void *data);
+
+    void deleteList(List **head);
+
     char *cloneString(const char *str);
+
+    char *convertUAStringToString(UA_String *uaStr);
 
     void freeEdgeEndpointConfig(EdgeEndpointConfig *config);
 
@@ -120,6 +134,8 @@ extern "C"
     void freeEdgeContinuationPoint(EdgeContinuationPoint *cp);
 
     void freeEdgeContinuationPointList(EdgeContinuationPointList *cpList);
+
+    void freeEdgeDevice(EdgeDevice *dev);
 
     EdgeEndpointConfig *cloneEdgeEndpointConfig(EdgeEndpointConfig *config);
 

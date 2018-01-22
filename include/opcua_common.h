@@ -103,6 +103,9 @@ typedef struct EdgeEndpointConfig
     /** securityPolicyUri.*/
     char *securityPolicyUri;
 
+    /** transportProfileUri.*/
+    char *transportProfileUri;
+
     /** serverName.*/
     char *serverName;
 
@@ -111,9 +114,7 @@ typedef struct EdgeEndpointConfig
 
     /** bindPort.*/
     int bindPort;
-
 } EdgeEndpointConfig;
-
 
 typedef struct EdgeEndPointInfo
 {

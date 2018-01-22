@@ -64,26 +64,6 @@ static void destroyMap(BrowseMap *map, int mapSize)
     free(map);
 }
 
-static char *convertUAStringToString(UA_String *uaStr)
-{
-    if (!uaStr || uaStr->length <= 0)
-    {
-        return NULL;
-    }
-
-    char *str = (char *) calloc(uaStr->length + 1, sizeof(char));
-    if (!str)
-    {
-        return NULL;
-    }
-
-    for (int i = 0; i < uaStr->length; ++i)
-    {
-        str[i] = uaStr->data[i];
-    }
-    return str;
-}
-
 static unsigned char *convertUAStringToUnsignedChar(UA_String *uaStr)
 {
     if (!uaStr || uaStr->length <= 0)
