@@ -1388,6 +1388,11 @@ static void testSub()
     int num_requests;
     printf("Enter number of nodes to Subscribe (less than 10) :: ");
     scanf("%d", &num_requests);
+    if(num_requests > 10 || num_requests < 1)
+    {
+        printf("Error :: Invalid input. Try Again\n ");
+        return;
+    }
 
     EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
     ep->endpointUri = endpointUri;

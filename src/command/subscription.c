@@ -42,6 +42,25 @@ static bool validSubscriptionId(UA_UInt32 subId)
     return true;
 }
 
+static bool validateMonitoringId(UA_UInt32 subId, UA_UInt32 monId)
+{
+    if (subscriptionList)
+    {
+        edgeMapNode *temp = subscriptionList->head;
+        while (temp != NULL)
+        {
+            subscriptionInfo *subInfo = (subscriptionInfo *)temp->value;  
+
+            if (subInfo->subId == subId && subInfo->monId == monId)
+                return false;
+
+            temp = temp->next;
+        }
+    }
+
+    return true;
+}
+
 static keyValue getSubscriptionInfo(char *valueAlias)
 {
     edgeMapNode *temp = subscriptionList->head;
@@ -301,15 +320,32 @@ static UA_StatusCode createSub(UA_Client *client, EdgeMessage *msg)
     (void)retMon;
     for (int i = 0; i < itemSize; i++)
     {
+        EDGE_LOG_V(TAG, "Monitoring Details for item : %d\n", i);
         if (monId[i])
         {
-            EDGE_LOG_V(TAG, "Monitoring for item : %d  is %u\n", i, monId[i]);
+            if(!validateMonitoringId(subId, monId[i]))
+            {
+                EDGE_LOG_V(TAG, "Error :: Existing Monitored ID received:: %u\n", monId[i]);
+                EDGE_LOG_V(TAG, "Existing Sub ID %d, Existing Monitored ID :: %u\n", subId, monId[i]);
+                return UA_STATUSCODE_BADMONITOREDITEMIDINVALID;
+            }
+            EDGE_LOG_V(TAG, "\tMonitoring ID :: %u\n", monId[i]);
         }
         else
         {
             // TODO: Handle Error
             EDGE_LOG_V(TAG, "ERROR : INVALID Monitoring ID Recevived for item :: #%d,  Error : %d\n", i, retMon);
             return UA_STATUSCODE_BADMONITOREDITEMIDINVALID;
+        }
+
+        if (itemResults[i] == UA_STATUSCODE_GOOD)
+        {
+            EDGE_LOG_V(TAG,  "\tMonitoring Result ::  %s\n", UA_StatusCode_name(itemResults[i]));
+        }
+        else
+        {
+            EDGE_LOG_V(TAG, "ERROR Result Recevied for this item : %s\n", UA_StatusCode_name(itemResults[i]));
+            return itemResults[i];
         }
     }
 
@@ -334,9 +370,8 @@ static UA_StatusCode createSub(UA_Client *client, EdgeMessage *msg)
             subInfo->subId = subId;
             subInfo->monId = monId[i];
 
-            EDGE_LOG_V(TAG, "Inserting MAP ELEMENT /nvalueAlias :: %s \n",
-
-                   msgCopy->requests[i]->nodeInfo->valueAlias);
+            EDGE_LOG_V(TAG, "Inserting MAP ELEMENT \n\t keyValue :: %s \n",
+                   hfContexts[i]);
             insertMapElement(subscriptionList, (keyValue) hfContexts[i],
                              (keyValue) subInfo);
 
@@ -651,7 +686,7 @@ static UA_StatusCode rePublish(UA_Client *client, EdgeMessage *msg)
         EDGE_LOG_V(TAG, "Re publish Response Sequence number :: %u \n",
                republishResponse.notificationMessage.sequenceNumber);
     else
-        EDGE_LOG_V(TAG, "Re publish Response has NULL notification Message\n");
+        EDGE_LOG(TAG, "Re publish Response has NULL notification Message\n");
 
     UA_RepublishRequest_deleteMembers(&republishRequest);
     UA_RepublishResponse_deleteMembers(&republishResponse);
