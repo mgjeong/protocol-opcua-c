@@ -10,7 +10,6 @@ static StatusCallback *statusCb;
 static DiscoveryCallback *discoveryCb;
 
 static bool b_serverInitialized = false;
-static bool b_clientInitialized = false;
 
 static void registerRecvCallback(ReceivedMessageCallback *callback)
 {
@@ -139,11 +138,6 @@ EdgeResult getEndpointInfo(EdgeEndPointInfo *epInfo)
 void connectClient(EdgeEndPointInfo *epInfo)
 {
     printf ("\n[Received command] :: Client connect \n");
-    if (b_clientInitialized)
-    {
-        printf( "Client already initialised");
-        return ;
-    }
     bool result = connect_client(epInfo->endpointUri);
     if (!result)
         return ;
@@ -153,7 +147,6 @@ void disconnectClient(EdgeEndPointInfo *epInfo)
 {
     printf("\n[Received command] :: Client disconnect \n");
     disconnect_client(epInfo);
-    b_clientInitialized = false;
 }
 
 
