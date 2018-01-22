@@ -1,3 +1,23 @@
+/******************************************************************
+ *
+ * Copyright 2017 Samsung Electronics All Rights Reserved.
+ *
+ *
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ******************************************************************/
+
 #include "method.h"
 #include "edge_logger.h"
 
@@ -27,31 +47,34 @@ EdgeResult executeMethod(UA_Client *client, EdgeMessage *msg)
         UA_Variant_init(&input[idx]);
         if (params->inpArg[idx]->valType == SCALAR)
         {
-            int type = (int)params->inpArg[idx]->argType - 1;
+            int type = (int) params->inpArg[idx]->argType - 1;
             if (type == UA_TYPES_STRING)
             {
-                UA_String val = UA_STRING_ALLOC((char *) params->inpArg[idx]->scalarValue);
+                UA_String val = UA_STRING_ALLOC((char * ) params->inpArg[idx]->scalarValue);
                 UA_Variant_setScalarCopy(&input[idx], &val, &UA_TYPES[type]);
                 UA_String_deleteMembers(&val);
             }
             else
             {
                 EDGE_LOG(TAG, "\n\n======== scalar copy======== \n\n");
-                UA_Variant_setScalarCopy(&input[idx], params->inpArg[idx]->scalarValue, &UA_TYPES[type]);
+                UA_Variant_setScalarCopy(&input[idx], params->inpArg[idx]->scalarValue,
+                        &UA_TYPES[type]);
             }
         }
         else if (params->inpArg[idx]->valType == ARRAY_1D)
         {
-            int type = (int)params->inpArg[idx]->argType - 1;
+            int type = (int) params->inpArg[idx]->argType - 1;
             if (type == UA_TYPES_STRING)
             {
                 char **data = (char **) params->inpArg[idx]->arrayData;
-                UA_String *array = (UA_String *) UA_Array_new(params->inpArg[idx]->arrayLength, &UA_TYPES[type]);
+                UA_String *array = (UA_String *) UA_Array_new(params->inpArg[idx]->arrayLength,
+                        &UA_TYPES[type]);
                 for (int idx1 = 0; idx1 < params->inpArg[idx]->arrayLength; idx1++)
                 {
                     array[idx1] = UA_STRING_ALLOC(data[idx1]);
                 }
-                UA_Variant_setArrayCopy(&input[idx], array, params->inpArg[idx]->arrayLength, &UA_TYPES[type]);
+                UA_Variant_setArrayCopy(&input[idx], array, params->inpArg[idx]->arrayLength,
+                        &UA_TYPES[type]);
                 for (int idx1 = 0; idx1 < params->inpArg[idx]->arrayLength; idx1++)
                 {
                     UA_String_deleteMembers(&array[idx1]);
@@ -61,7 +84,7 @@ EdgeResult executeMethod(UA_Client *client, EdgeMessage *msg)
             else
             {
                 UA_Variant_setArrayCopy(&input[idx], params->inpArg[idx]->arrayData,
-                                        params->inpArg[idx]->arrayLength, &UA_TYPES[type]);
+                        params->inpArg[idx]->arrayLength, &UA_TYPES[type]);
             }
         }
     }
@@ -69,8 +92,8 @@ EdgeResult executeMethod(UA_Client *client, EdgeMessage *msg)
     size_t outputSize;
     UA_Variant *output;
     UA_StatusCode retVal = UA_Client_call(client, UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER),
-                                          UA_NODEID_STRING(1, request->nodeInfo->valueAlias), params->num_inpArgs, input, &outputSize,
-                                          &output);
+            UA_NODEID_STRING(1, request->nodeInfo->valueAlias), params->num_inpArgs, input,
+            &outputSize, &output);
     if (retVal == UA_STATUSCODE_GOOD)
     {
         EDGE_LOG(TAG, "method call was success\n\n");
@@ -78,7 +101,7 @@ EdgeResult executeMethod(UA_Client *client, EdgeMessage *msg)
         EdgeResponse **response = (EdgeResponse **) malloc(sizeof(EdgeResponse *) * outputSize);
         if (response)
         {
-            for (int i = 0 ; i < outputSize; i++)
+            for (int i = 0; i < outputSize; i++)
             {
                 response[i] = (EdgeResponse *) malloc(sizeof(EdgeResponse));
 
@@ -215,15 +238,21 @@ EdgeResult executeMethod(UA_Client *client, EdgeMessage *msg)
 
             onResponseMessage(resultMsg);
 
-            for (int i = 0 ; i < outputSize; i++)
+            for (int i = 0; i < outputSize; i++)
             {
-                free(response[i]->nodeInfo); response[i]->nodeInfo = NULL;
-                free(response[i]->message); response[i]->message = NULL;
-                free(response[i]); response[i] = NULL;
+                free(response[i]->nodeInfo);
+                response[i]->nodeInfo = NULL;
+                free(response[i]->message);
+                response[i]->message = NULL;
+                free(response[i]);
+                response[i] = NULL;
             }
-            free(response); response = NULL;
-            free(resultMsg->endpointInfo); resultMsg->endpointInfo = NULL;
-            free(resultMsg); resultMsg = NULL;
+            free(response);
+            response = NULL;
+            free(resultMsg->endpointInfo);
+            resultMsg->endpointInfo = NULL;
+            free(resultMsg);
+            resultMsg = NULL;
 
             result.code = STATUS_OK;
         }
@@ -244,9 +273,12 @@ EdgeResult executeMethod(UA_Client *client, EdgeMessage *msg)
         resultMsg->result = res;
 
         onResponseMessage(resultMsg);
-        free(resultMsg->endpointInfo); resultMsg->endpointInfo = NULL;
-        free(resultMsg); resultMsg = NULL;
-        free(res); res = NULL;
+        free(resultMsg->endpointInfo);
+        resultMsg->endpointInfo = NULL;
+        free(resultMsg);
+        resultMsg = NULL;
+        free(res);
+        res = NULL;
     }
 
     for (idx = 0; idx < params->num_inpArgs; idx++)

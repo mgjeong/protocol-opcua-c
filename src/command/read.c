@@ -1,3 +1,23 @@
+/******************************************************************
+ *
+ * Copyright 2017 Samsung Electronics All Rights Reserved.
+ *
+ *
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ******************************************************************/
+
 #include "read.h"
 #include "common_client.h"
 #include "edge_logger.h"
@@ -16,8 +36,8 @@ static void read(UA_Client *client, EdgeMessage *msg)
     EDGE_LOG_V(TAG, "[READ] Node to read :: %s\n", msg->request->nodeInfo->valueAlias);
     UA_Variant *val = UA_Variant_new();
     UA_StatusCode retVal = UA_Client_readValueAttribute(client, UA_NODEID_STRING(1,
-                           msg->request->nodeInfo->valueAlias), val);
-    if  (retVal != UA_STATUSCODE_GOOD)
+                    msg->request->nodeInfo->valueAlias), val);
+    if (retVal != UA_STATUSCODE_GOOD)
     {
         // send error callback;
         EDGE_LOG_V(TAG, "Error in read node :: 0x%08x(%s)\n", retVal, UA_StatusCode_name(retVal));
@@ -103,9 +123,9 @@ static void read(UA_Client *client, EdgeMessage *msg)
             {
                 UA_String str = *((UA_String *) val->data);
                 if ((int)str.length)
-                    versatility->value = (void *) str.data;
+                versatility->value = (void *) str.data;
                 else
-                    versatility->value = NULL;
+                versatility->value = NULL;
             }
             else
             {
@@ -127,9 +147,9 @@ static void read(UA_Client *client, EdgeMessage *msg)
             {
                 UA_ByteString byteStr = *((UA_ByteString *) val->data);
                 if ((int)byteStr.length)
-                    versatility->value = (void *) byteStr.data;
+                versatility->value = (void *) byteStr.data;
                 else
-                    versatility->value = NULL;
+                versatility->value = NULL;
             }
             else
             {
@@ -156,7 +176,7 @@ static void read(UA_Client *client, EdgeMessage *msg)
                 sprintf(value, "%s%02x", value, str.data4[1]);
                 sprintf(value, "%s-", value);
                 for (int j = 2; j < 8; j++)
-                    sprintf(value, "%s%02x", value, str.data4[j]);
+                sprintf(value, "%s%02x", value, str.data4[j]);
                 value[GUID_LENGTH] = '\0';
                 versatility->value = (void *) value;
                 EDGE_LOG_V(TAG, "%s\n", value);
@@ -170,12 +190,12 @@ static void read(UA_Client *client, EdgeMessage *msg)
                 {
                     values[i] = (char *) malloc(GUID_LENGTH + 1);
                     snprintf(values[i], (GUID_LENGTH / 2) + 1, "%08x-%04x-%04x", str[i].data1, str[i].data2,
-                             str[i].data3);
+                            str[i].data3);
                     sprintf(values[i], "%s-%02x", values[i], str[i].data4[0]);
                     sprintf(values[i], "%s%02x", values[i], str[i].data4[1]);
                     sprintf(values[i], "%s-", values[i]);
                     for (int j = 2; j < 8; j++)
-                        sprintf(values[i], "%s%02x", values[i], str[i].data4[j]);
+                    sprintf(values[i], "%s%02x", values[i], str[i].data4[j]);
                     values[GUID_LENGTH] = '\0';
                     EDGE_LOG_V(TAG, "%s\n", values[i]);
                 }
@@ -239,8 +259,7 @@ static void read(UA_Client *client, EdgeMessage *msg)
 
 #endif
 
-UA_Int64
-DateTime_toUnixTime(UA_DateTime date)
+UA_Int64 DateTime_toUnixTime(UA_DateTime date)
 {
     return (date - UA_DATETIME_UNIX_EPOCH) / UA_DATETIME_MSEC;
 }
@@ -261,9 +280,12 @@ static void sendErrorResponse(EdgeMessage *msg, char *err_desc)
     resultMsg->result = res;
 
     onResponseMessage(resultMsg);
-    free(res); res = NULL;
-    free(message); message = NULL;
-    free(resultMsg->endpointInfo); resultMsg->endpointInfo = NULL;
+    free(res);
+    res = NULL;
+    free(message);
+    message = NULL;
+    free(resultMsg->endpointInfo);
+    resultMsg->endpointInfo = NULL;
     free(resultMsg);
 }
 
@@ -293,8 +315,8 @@ static bool compareNumber(int64_t number1, int64_t number2)
     return false;
 }
 
-static bool checkInvalidTime(UA_DateTime serverTime, UA_DateTime sourceTime,
-                             int validMilliSec, UA_TimestampsToReturn stamp)
+static bool checkInvalidTime(UA_DateTime serverTime, UA_DateTime sourceTime, int validMilliSec,
+        UA_TimestampsToReturn stamp)
 {
     bool ret = true;
     UA_DateTime now = UA_DateTime_now();
@@ -369,7 +391,7 @@ static bool checkInvalidTime(UA_DateTime serverTime, UA_DateTime sourceTime,
 }
 
 static void *checkValidation(UA_DataValue *value, EdgeMessage *msg, UA_TimestampsToReturn stamp,
-                             double maxAge)
+        double maxAge)
 {
 
     // if (!checkNaN(value))
@@ -401,8 +423,7 @@ static void *checkValidation(UA_DataValue *value, EdgeMessage *msg, UA_Timestamp
 }
 
 static EdgeDiagnosticInfo *checkDiagnosticInfo(int nodesToProcess,
-        UA_DiagnosticInfo *diagnosticInfo,
-        int diagnosticInfoLength, int returnDiagnostic)
+        UA_DiagnosticInfo *diagnosticInfo, int diagnosticInfoLength, int returnDiagnostic)
 {
 
     EdgeDiagnosticInfo *diagnostics = (EdgeDiagnosticInfo *) malloc(sizeof(EdgeDiagnosticInfo));
@@ -422,7 +443,7 @@ static EdgeDiagnosticInfo *checkDiagnosticInfo(int nodesToProcess,
         if (diagnosticInfo[0].hasAdditionalInfo)
         {
             char *additional_info = (char *) malloc(diagnosticInfo[0].additionalInfo.length);
-            strcpy(additional_info, (char *)(diagnosticInfo[0].additionalInfo.data));
+            strcpy(additional_info, (char *) (diagnosticInfo[0].additionalInfo.data));
             diagnostics->additionalInfo = additional_info;
         }
         if (diagnosticInfo[0].hasInnerDiagnosticInfo)
@@ -430,11 +451,12 @@ static EdgeDiagnosticInfo *checkDiagnosticInfo(int nodesToProcess,
     }
     else if (0 != returnDiagnostic && 0 == diagnosticInfoLength)
     {
-        diagnostics->msg = (void *) "no diagnostics were returned even though returnDiagnostic requested" ;
+        diagnostics->msg =
+                (void *) "no diagnostics were returned even though returnDiagnostic requested";
     }
     else
     {
-        diagnostics->msg = (void *) "mismatch entries returned" ;
+        diagnostics->msg = (void *) "mismatch entries returned";
     }
     return diagnostics;
 }
@@ -472,70 +494,74 @@ static void readGroup(UA_Client *client, EdgeMessage *msg)
         sendErrorResponse(msg, "Error in read");
         UA_ReadValueId_deleteMembers(rv);
         UA_ReadResponse_deleteMembers(&readResponse);
-        return ;
+        return;
     }
 
     if (readResponse.results[0].status == UA_STATUSCODE_GOOD)
     {
         if (readRequest.timestampsToReturn == UA_TIMESTAMPSTORETURN_NEITHER)
         {
-            if (readResponse.results[0].hasSourceTimestamp || readResponse.results[0].hasServerTimestamp)
+            if (readResponse.results[0].hasSourceTimestamp
+                    || readResponse.results[0].hasServerTimestamp)
             {
                 EDGE_LOG(TAG, "BadInvalidTimestamp\n\n");
                 sendErrorResponse(msg, "BadInvalidTimestamp");
                 UA_ReadValueId_deleteMembers(rv);
-                return ;
+                return;
             }
         }
         if (readRequest.timestampsToReturn == UA_TIMESTAMPSTORETURN_BOTH)
         {
-            if (!readResponse.results[0].hasSourceTimestamp || !readResponse.results[0].hasServerTimestamp)
+            if (!readResponse.results[0].hasSourceTimestamp
+                    || !readResponse.results[0].hasServerTimestamp)
             {
                 EDGE_LOG(TAG, "Timestamp missing\n\n");
                 sendErrorResponse(msg, "Missing Timestamp");
                 UA_ReadValueId_deleteMembers(rv);
-                return ;
+                return;
             }
         }
         if (readRequest.timestampsToReturn == UA_TIMESTAMPSTORETURN_SOURCE)
         {
-            if (!readResponse.results[0].hasSourceTimestamp || readResponse.results[0].hasServerTimestamp)
+            if (!readResponse.results[0].hasSourceTimestamp
+                    || readResponse.results[0].hasServerTimestamp)
             {
                 EDGE_LOG(TAG, "source Timestamp missing\n\n");
                 sendErrorResponse(msg, "Missing Timestamp");
                 UA_ReadValueId_deleteMembers(rv);
-                return ;
+                return;
             }
         }
         if (readRequest.timestampsToReturn == UA_TIMESTAMPSTORETURN_SERVER)
         {
-            if (readResponse.results[0].hasSourceTimestamp || !readResponse.results[0].hasServerTimestamp)
+            if (readResponse.results[0].hasSourceTimestamp
+                    || !readResponse.results[0].hasServerTimestamp)
             {
                 EDGE_LOG(TAG, "server Timestamp missing\n\n");
                 sendErrorResponse(msg, "Missing Timestamp");
                 UA_ReadValueId_deleteMembers(rv);
-                return ;
+                return;
             }
         }
 
         if (readRequest.timestampsToReturn != UA_TIMESTAMPSTORETURN_NEITHER
-            && !checkMaxAge(readResponse.results[0].serverTimestamp, UA_DateTime_now(),
-                            readRequest.maxAge * 2))
+                && !checkMaxAge(readResponse.results[0].serverTimestamp, UA_DateTime_now(),
+                        readRequest.maxAge * 2))
         {
             EDGE_LOG(TAG, "Max age failed\n\n");
             sendErrorResponse(msg, "");
             UA_ReadValueId_deleteMembers(rv);
             UA_ReadResponse_deleteMembers(&readResponse);
-            return ;
+            return;
         }
 
         if (readRequest.timestampsToReturn != UA_TIMESTAMPSTORETURN_NEITHER
-            && !checkValidation(&(readResponse.results[0]), msg, readRequest.timestampsToReturn,
-                                readRequest.maxAge))
+                && !checkValidation(&(readResponse.results[0]), msg, readRequest.timestampsToReturn,
+                        readRequest.maxAge))
         {
             UA_ReadValueId_deleteMembers(rv);
             UA_ReadResponse_deleteMembers(&readResponse);
-            return ;
+            return;
         }
     }
 
@@ -550,7 +576,7 @@ static void readGroup(UA_Client *client, EdgeMessage *msg)
 
     for (int i = 0; i < reqLen; i++)
     {
-        responses[i]  = NULL;
+        responses[i] = NULL;
         if (readResponse.results[i].status == UA_STATUSCODE_GOOD)
         {
             UA_Variant val = readResponse.results[i].value;
@@ -616,7 +642,7 @@ static void readGroup(UA_Client *client, EdgeMessage *msg)
                     if (isScalar)
                     {
                         UA_String str = *((UA_String *) val.data);
-                        if ((int)str.length)
+                        if ((int) str.length)
                             versatility->value = (void *) str.data;
                         else
                             versatility->value = NULL;
@@ -640,7 +666,7 @@ static void readGroup(UA_Client *client, EdgeMessage *msg)
                     if (isScalar)
                     {
                         UA_ByteString byteStr = *((UA_ByteString *) val.data);
-                        if ((int)byteStr.length)
+                        if ((int) byteStr.length)
                             versatility->value = (void *) byteStr.data;
                         else
                             versatility->value = NULL;
@@ -665,7 +691,8 @@ static void readGroup(UA_Client *client, EdgeMessage *msg)
                     {
                         UA_Guid str = *((UA_Guid *) val.data);
                         char *value = (char *) malloc(GUID_LENGTH + 1);
-                        snprintf(value, (GUID_LENGTH / 2) + 1, "%08x-%04x-%04x", str.data1, str.data2, str.data3);
+                        snprintf(value, (GUID_LENGTH / 2) + 1, "%08x-%04x-%04x", str.data1,
+                                str.data2, str.data3);
                         sprintf(value, "%s-%02x", value, str.data4[0]);
                         sprintf(value, "%s%02x", value, str.data4[1]);
                         sprintf(value, "%s-", value);
@@ -683,8 +710,8 @@ static void readGroup(UA_Client *client, EdgeMessage *msg)
                         for (int i = 0; i < val.arrayLength; i++)
                         {
                             values[i] = (char *) malloc(GUID_LENGTH + 1);
-                            snprintf(values[i], (GUID_LENGTH / 2) + 1, "%08x-%04x-%04x", str[i].data1, str[i].data2,
-                                     str[i].data3);
+                            snprintf(values[i], (GUID_LENGTH / 2) + 1, "%08x-%04x-%04x",
+                                    str[i].data1, str[i].data2, str[i].data3);
                             sprintf(values[i], "%s-%02x", values[i], str[i].data4[0]);
                             sprintf(values[i], "%s%02x", values[i], str[i].data4[1]);
                             sprintf(values[i], "%s-", values[i]);
@@ -714,9 +741,8 @@ static void readGroup(UA_Client *client, EdgeMessage *msg)
                 response->message = versatility;
                 // ctt check
                 EdgeDiagnosticInfo *diagnosticInfo = checkDiagnosticInfo(msg->requestLength,
-                                                     readResponse.diagnosticInfos,
-                                                     readResponse.diagnosticInfosSize,
-                                                     readRequest.requestHeader.returnDiagnostics);
+                        readResponse.diagnosticInfos, readResponse.diagnosticInfosSize,
+                        readRequest.requestHeader.returnDiagnostics);
                 response->m_diagnosticInfo = diagnosticInfo;
 
                 resultMsg->responseLength += 1;
@@ -729,7 +755,7 @@ static void readGroup(UA_Client *client, EdgeMessage *msg)
         {
             // failure read response for this particular node
             EDGE_LOG_V(TAG, "Error in group read response for particular node :: 0x%08x(%s)\n",
-                   readResponse.results[i].status, UA_StatusCode_name(readResponse.results[i].status));
+                    readResponse.results[i].status, UA_StatusCode_name(readResponse.results[i].status));
             sendErrorResponse(msg, "");
         }
     }
@@ -749,7 +775,8 @@ static void readGroup(UA_Client *client, EdgeMessage *msg)
                 {
                     for (int j = 0; j < responses[i]->message->arrayLength; j++)
                     {
-                        free (values[j]); values[j] = NULL;
+                        free(values[j]);
+                        values[j] = NULL;
                     }
                     free(values);
                 }
@@ -760,19 +787,26 @@ static void readGroup(UA_Client *client, EdgeMessage *msg)
             free(responses[i]->m_diagnosticInfo->additionalInfo);
             responses[i]->m_diagnosticInfo->additionalInfo = NULL;
         }
-        free(responses[i]->m_diagnosticInfo); responses[i]->m_diagnosticInfo = NULL;
-        free(responses[i]->nodeInfo); responses[i]->nodeInfo = NULL;
-        free(responses[i]->message); responses[i]->message = NULL;
-        free(responses[i]); responses[i] = NULL;
+        free(responses[i]->m_diagnosticInfo);
+        responses[i]->m_diagnosticInfo = NULL;
+        free(responses[i]->nodeInfo);
+        responses[i]->nodeInfo = NULL;
+        free(responses[i]->message);
+        responses[i]->message = NULL;
+        free(responses[i]);
+        responses[i] = NULL;
     }
-    free (resultMsg->endpointInfo); resultMsg->endpointInfo = NULL;
-    free (resultMsg->responses); resultMsg->responses = NULL;
-    free(resultMsg); resultMsg = NULL;
+    free(resultMsg->endpointInfo);
+    resultMsg->endpointInfo = NULL;
+    free(resultMsg->responses);
+    resultMsg->responses = NULL;
+    free(resultMsg);
+    resultMsg = NULL;
 
     free(rv);
     UA_ReadResponse_deleteMembers(&readResponse);
 
-    return ;
+    return;
 }
 
 EdgeResult executeRead(UA_Client *client, EdgeMessage *msg)

@@ -33,7 +33,7 @@ edgeMap *createMap()
 
 void insertMapElement(edgeMap *map, keyValue key, keyValue value)
 {
-    edgeMapNode *node = (edgeMapNode *)malloc(sizeof(edgeMapNode));
+    edgeMapNode *node = (edgeMapNode *) malloc(sizeof(edgeMapNode));
     node->key = key;
     node->value = value;
     node->next = NULL;
@@ -95,7 +95,7 @@ char *cloneString(const char *str)
     {
         return NULL;
     }
-    char *clone = (char *)calloc(len + 1,  sizeof(char));
+    char *clone = (char *) calloc(len + 1, sizeof(char));
     if (!clone)
     {
         return NULL;
@@ -154,7 +154,7 @@ EdgeEndpointConfig *cloneEdgeEndpointConfig(EdgeEndpointConfig *config)
         return NULL;
     }
 
-    EdgeEndpointConfig *clone = (EdgeEndpointConfig *)calloc(1, sizeof(EdgeEndpointConfig));
+    EdgeEndpointConfig *clone = (EdgeEndpointConfig *) calloc(1, sizeof(EdgeEndpointConfig));
     if (!clone)
     {
         return NULL;
@@ -243,7 +243,7 @@ EdgeEndPointInfo *cloneEdgeEndpointInfo(EdgeEndPointInfo *endpointInfo)
         return NULL;
     }
 
-    EdgeEndPointInfo *clone = (EdgeEndPointInfo *)calloc(1, sizeof(EdgeEndPointInfo));
+    EdgeEndPointInfo *clone = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     if (!clone)
     {
         return NULL;
@@ -444,7 +444,7 @@ void freeEdgeMessage(EdgeMessage *msg)
 
 EdgeResult *createEdgeResult(EdgeStatusCode code)
 {
-    EdgeResult *result = (EdgeResult *)calloc(1, sizeof(EdgeResult));
+    EdgeResult *result = (EdgeResult *) calloc(1, sizeof(EdgeResult));
     if (!result)
     {
         return NULL;
@@ -523,7 +523,7 @@ EdgeNodeInfo *cloneEdgeNodeInfo(EdgeNodeInfo *nodeInfo)
         return NULL;
     }
 
-    EdgeNodeInfo *clone = (EdgeNodeInfo *)calloc(1, sizeof(EdgeNodeInfo));
+    EdgeNodeInfo *clone = (EdgeNodeInfo *) calloc(1, sizeof(EdgeNodeInfo));
     if (!clone)
     {
         return NULL;
@@ -568,13 +568,13 @@ EdgeNodeInfo *cloneEdgeNodeInfo(EdgeNodeInfo *nodeInfo)
 // USAGE
 
 /*
-    edgeMap* X = createMap();
+ edgeMap* X = createMap();
 
-    insert(X, 10, "arya");
-    insert(X, 20, "mango");
-    insert(X, 25, "apple");
+ insert(X, 10, "arya");
+ insert(X, 20, "mango");
+ insert(X, 25, "apple");
 
-    char* ret = (char *)get(X, 25);
+ char* ret = (char *)get(X, 25);
 
-    deleteMap(X);
-*/
+ deleteMap(X);
+ */

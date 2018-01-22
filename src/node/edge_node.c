@@ -1,3 +1,23 @@
+/******************************************************************
+ *
+ * Copyright 2017 Samsung Electronics All Rights Reserved.
+ *
+ *
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ******************************************************************/
+
 #include "edge_node.h"
 #include "edge_utils.h"
 #include "edge_logger.h"
@@ -56,12 +76,12 @@ static void addVariableNode(UA_Server *server, EdgeNodeItem *item)
         attr.userAccessLevel = UA_ACCESSLEVELMASK_READ | UA_ACCESSLEVELMASK_WRITE;
     }
 
-    attr.dataType = UA_TYPES[(int)id - 1].typeId;
+    attr.dataType = UA_TYPES[(int) id - 1].typeId;
 
-    int type = (int)id - 1;
+    int type = (int) id - 1;
     if (type == UA_TYPES_STRING)
     {
-        UA_String val = UA_STRING_ALLOC((char *) item->variableData);
+        UA_String val = UA_STRING_ALLOC((char * ) item->variableData);
         UA_Variant_setScalarCopy(&attr.value, &val, &UA_TYPES[type]);
         UA_String_deleteMembers(&val);
     }
@@ -71,10 +91,8 @@ static void addVariableNode(UA_Server *server, EdgeNodeItem *item)
     }
 
     UA_StatusCode status = UA_Server_addVariableNode(server, UA_NODEID_STRING(1, item->browseName),
-                           UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER),
-                           UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES),
-                           UA_QUALIFIEDNAME(1, name),
-                           UA_NODEID_NUMERIC(0, 63), attr, NULL, NULL);
+            UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER), UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES),
+            UA_QUALIFIEDNAME(1, name), UA_NODEID_NUMERIC(0, 63), attr, NULL, NULL);
 
     if (status == UA_STATUSCODE_GOOD)
     {
@@ -95,7 +113,7 @@ static void addArrayNode(UA_Server *server, EdgeNodeItem *item)
     UA_VariableAttributes attr = UA_VariableAttributes_default;
     attr.description = UA_LOCALIZEDTEXT("en-US", name);
     attr.displayName = UA_LOCALIZEDTEXT("en-US", name);
-    attr.dataType = UA_TYPES[(int)id - 1].typeId;
+    attr.dataType = UA_TYPES[(int) id - 1].typeId;
     int accessLevel = item->accessLevel;
     int userAccessLevel = item->userAccessLevel;
 
@@ -125,7 +143,7 @@ static void addArrayNode(UA_Server *server, EdgeNodeItem *item)
         attr.userAccessLevel = UA_ACCESSLEVELMASK_READ | UA_ACCESSLEVELMASK_WRITE;
     }
 
-    int type = (int)id - 1;
+    int type = (int) id - 1;
     if (type == UA_TYPES_STRING)
     {
         int idx = 0;
@@ -149,7 +167,7 @@ static void addArrayNode(UA_Server *server, EdgeNodeItem *item)
         UA_ByteString *array = (UA_ByteString *) UA_Array_new(item->arrayLength, &UA_TYPES[type]);
         for (idx = 0; idx < item->arrayLength; idx++)
         {
-            char *itemData =  (char *)dataArray[idx]->data;
+            char *itemData = (char *) dataArray[idx]->data;
             array[idx] = UA_BYTESTRING_ALLOC(itemData);
         }
         UA_Variant_setArrayCopy(&attr.value, array, item->arrayLength, &UA_TYPES[type]);
@@ -161,14 +179,13 @@ static void addArrayNode(UA_Server *server, EdgeNodeItem *item)
     }
     else
     {
-        UA_Variant_setArrayCopy(&attr.value, item->variableData, item->arrayLength, &UA_TYPES[type]);
+        UA_Variant_setArrayCopy(&attr.value, item->variableData, item->arrayLength,
+                &UA_TYPES[type]);
     }
 
     UA_StatusCode status = UA_Server_addVariableNode(server, UA_NODEID_STRING(1, item->browseName),
-                           UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER),
-                           UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES),
-                           UA_QUALIFIEDNAME(1, name),
-                           UA_NODEID_NUMERIC(0, 63), attr, NULL, NULL);
+            UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER), UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES),
+            UA_QUALIFIEDNAME(1, name), UA_NODEID_NUMERIC(0, 63), attr, NULL, NULL);
 
     if (status == UA_STATUSCODE_GOOD)
     {
@@ -202,10 +219,8 @@ static void addObjectNode(UA_Server *server, EdgeNodeItem *item)
     }
 
     UA_StatusCode status = UA_Server_addObjectNode(server, UA_NODEID_STRING(1, item->browseName),
-                           sourceNodeId,
-                           UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES),
-                           UA_QUALIFIEDNAME(1, name),
-                           UA_NODEID_NUMERIC(0, UA_NS0ID_FOLDERTYPE), object_attr, NULL, NULL);
+            sourceNodeId, UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES), UA_QUALIFIEDNAME(1, name),
+            UA_NODEID_NUMERIC(0, UA_NS0ID_FOLDERTYPE), object_attr, NULL, NULL);
     if (status == UA_STATUSCODE_GOOD)
     {
         EDGE_LOG(TAG, "\n+++ addObjectNode success +++\n");
@@ -234,11 +249,10 @@ static void addObjectTypeNode(UA_Server *server, EdgeNodeItem *item)
         sourceNodeId = UA_NODEID_STRING(1, nodeId);
     }
 
-    UA_StatusCode status = UA_Server_addObjectTypeNode(server, UA_NODEID_STRING(1, item->browseName),
-                           sourceNodeId,
-                           UA_NODEID_NUMERIC(0, UA_NS0ID_HASSUBTYPE),
-                           UA_QUALIFIEDNAME(1, name),
-                           object_attr, NULL, NULL);
+    UA_StatusCode status = UA_Server_addObjectTypeNode(server,
+            UA_NODEID_STRING(1, item->browseName), sourceNodeId,
+            UA_NODEID_NUMERIC(0, UA_NS0ID_HASSUBTYPE), UA_QUALIFIEDNAME(1, name), object_attr, NULL,
+            NULL);
     if (status == UA_STATUSCODE_GOOD)
     {
         EDGE_LOG(TAG, "\n+++ addObjectTypeNode success +++\n");
@@ -257,9 +271,9 @@ static void addVariableTypeNode(UA_Server *server, EdgeNodeItem *item)
     UA_VariableTypeAttributes attr = UA_VariableTypeAttributes_default;
     attr.description = UA_LOCALIZEDTEXT("en-US", name);
     attr.displayName = UA_LOCALIZEDTEXT("en-US", name);
-    attr.dataType = UA_TYPES[(int)id - 1].typeId;
+    attr.dataType = UA_TYPES[(int) id - 1].typeId;
 
-    int type = (int)id - 1;
+    int type = (int) id - 1;
     if (type == UA_TYPES_STRING)
     {
         int idx = 0;
@@ -281,11 +295,11 @@ static void addVariableTypeNode(UA_Server *server, EdgeNodeItem *item)
         UA_Variant_setArray(&attr.value, item->variableData, item->arrayLength, &UA_TYPES[type]);
     }
 
-    UA_StatusCode status = UA_Server_addVariableTypeNode(server, UA_NODEID_STRING(1, item->browseName),
-                           UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE),
-                           UA_NODEID_NUMERIC(0, UA_NS0ID_HASSUBTYPE),
-                           UA_QUALIFIEDNAME(1, name),
-                           UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE), attr, NULL, NULL);
+    UA_StatusCode status = UA_Server_addVariableTypeNode(server,
+            UA_NODEID_STRING(1, item->browseName),
+            UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE),
+            UA_NODEID_NUMERIC(0, UA_NS0ID_HASSUBTYPE), UA_QUALIFIEDNAME(1, name),
+            UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE), attr, NULL, NULL);
 
     if (status == UA_STATUSCODE_GOOD)
     {
@@ -317,10 +331,8 @@ static void addDataTypeNode(UA_Server *server, EdgeNodeItem *item)
         sourceNodeId = UA_NODEID_STRING(1, nodeId);
     }
     UA_StatusCode status = UA_Server_addDataTypeNode(server, UA_NODEID_STRING(1, item->browseName),
-                           sourceNodeId,
-                           UA_NODEID_NUMERIC(0, UA_NS0ID_HASSUBTYPE),
-                           UA_QUALIFIEDNAME(1, name),
-                           attr, NULL, NULL);
+            sourceNodeId, UA_NODEID_NUMERIC(0, UA_NS0ID_HASSUBTYPE), UA_QUALIFIEDNAME(1, name),
+            attr, NULL, NULL);
 
     if (status == UA_STATUSCODE_GOOD)
     {
@@ -351,10 +363,8 @@ static void addViewNode(UA_Server *server, EdgeNodeItem *item)
         sourceNodeId = UA_NODEID_STRING(1, nodeId);
     }
     UA_StatusCode status = UA_Server_addViewNode(server, UA_NODEID_STRING(1, item->browseName),
-                           sourceNodeId,
-                           UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES),
-                           UA_QUALIFIEDNAME(1, name),
-                           attr, NULL, NULL);
+            sourceNodeId, UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES), UA_QUALIFIEDNAME(1, name), attr,
+            NULL, NULL);
 
     if (status == UA_STATUSCODE_GOOD)
     {
@@ -380,8 +390,9 @@ EdgeResult addReferences(UA_Server *server, EdgeReference *reference)
     }
 
     UA_ExpandedNodeId expanded_nodeId = UA_EXPANDEDNODEID_STRING(1, reference->targetPath);
-    UA_StatusCode status = UA_Server_addReference(server, UA_NODEID_STRING(1, reference->sourcePath),
-                           UA_NODEID_NUMERIC(0, reference->referenceId), expanded_nodeId, reference->forward);
+    UA_StatusCode status = UA_Server_addReference(server,
+            UA_NODEID_STRING(1, reference->sourcePath),
+            UA_NODEID_NUMERIC(0, reference->referenceId), expanded_nodeId, reference->forward);
     if (status == UA_STATUSCODE_GOOD)
     {
         EDGE_LOG(TAG, "\n+++ addReference success +++\n");
@@ -413,11 +424,9 @@ static void addReferenceTypeNode(UA_Server *server, EdgeNodeItem *item)
     {
         sourceNodeId = UA_NODEID_STRING(1, nodeId);
     }
-    UA_StatusCode status = UA_Server_addReferenceTypeNode(server, UA_NODEID_STRING(1, item->browseName),
-                           sourceNodeId,
-                           UA_NODEID_NUMERIC(0, UA_NS0ID_HASSUBTYPE),
-                           UA_QUALIFIEDNAME(1, name),
-                           attr, NULL, NULL);
+    UA_StatusCode status = UA_Server_addReferenceTypeNode(server,
+            UA_NODEID_STRING(1, item->browseName), sourceNodeId,
+            UA_NODEID_NUMERIC(0, UA_NS0ID_HASSUBTYPE), UA_QUALIFIEDNAME(1, name), attr, NULL, NULL);
 
     if (status == UA_STATUSCODE_GOOD)
     {
@@ -441,12 +450,10 @@ static keyValue getMethodMapElement(edgeMap *map, keyValue key)
     return NULL;
 }
 
-static UA_StatusCode methodCallback(UA_Server *server,
-                                    const UA_NodeId *sessionId, void *sessionContext,
-                                    const UA_NodeId *methodId, void *methodContext,
-                                    const UA_NodeId *objectId, void *objectContext,
-                                    size_t inputSize, const UA_Variant *input,
-                                    size_t outputSize, UA_Variant *output)
+static UA_StatusCode methodCallback(UA_Server *server, const UA_NodeId *sessionId,
+        void *sessionContext, const UA_NodeId *methodId, void *methodContext,
+        const UA_NodeId *objectId, void *objectContext, size_t inputSize, const UA_Variant *input,
+        size_t outputSize, UA_Variant *output)
 {
 
     char *key = (char *) methodId->identifier.string.data;
@@ -478,7 +485,7 @@ static UA_StatusCode methodCallback(UA_Server *server,
 
         if (inp)
         {
-            free (inp);
+            free(inp);
             inp = NULL;
         }
 
@@ -492,7 +499,7 @@ static UA_StatusCode methodCallback(UA_Server *server,
                     // Scalar copy
                     if (type == UA_TYPES_STRING)
                     {
-                        UA_String val = UA_STRING_ALLOC((char *) *out);
+                        UA_String val = UA_STRING_ALLOC((char * ) *out);
                         UA_Variant_setScalarCopy(&output[idx], &val, &UA_TYPES[type]);
                         UA_String_deleteMembers(&val);
                     }
@@ -508,13 +515,15 @@ static UA_StatusCode methodCallback(UA_Server *server,
                     if (type == UA_TYPES_STRING)
                     {
                         char **data = (char **) out;
-                        UA_String *array = (UA_String *) UA_Array_new(method->outArg[idx]->arrayLength, &UA_TYPES[type]);
+                        UA_String *array = (UA_String *) UA_Array_new(
+                                method->outArg[idx]->arrayLength, &UA_TYPES[type]);
                         for (int idx1 = 0; idx1 < method->outArg[idx]->arrayLength; idx1++)
                         {
                             array[idx1] = UA_STRING_ALLOC(data[idx1]);
                         }
                         UA_Variant *variant = &output[idx];
-                        UA_Variant_setArrayCopy(variant, array, method->outArg[idx]->arrayLength, &UA_TYPES[type]);
+                        UA_Variant_setArrayCopy(variant, array, method->outArg[idx]->arrayLength,
+                                &UA_TYPES[type]);
                         for (int idx1 = 0; idx1 < method->outArg[idx]->arrayLength; idx1++)
                         {
                             UA_String_deleteMembers(&array[idx1]);
@@ -524,10 +533,11 @@ static UA_StatusCode methodCallback(UA_Server *server,
                     else
                     {
                         UA_Variant *variant = &output[idx];
-                        UA_Variant_setArrayCopy(variant, out[idx], method->outArg[idx]->arrayLength, &UA_TYPES[type]);
+                        UA_Variant_setArrayCopy(variant, out[idx], method->outArg[idx]->arrayLength,
+                                &UA_TYPES[type]);
                     }
                 }
-                free (out[idx]);
+                free(out[idx]);
                 out[idx] = NULL;
             }
         }
@@ -554,7 +564,6 @@ EdgeResult addNodes(UA_Server *server, EdgeNodeItem *item)
         result.code = STATUS_PARAM_INVALID;
         return result;
     }
-
 
     if (item->nodeType == VARIABLE_NODE)
     {
@@ -619,15 +628,15 @@ EdgeResult addMethodNode(UA_Server *server, EdgeNodeItem *item, EdgeMethod *meth
         UA_Argument_init(&inputArguments[idx]);
         inputArguments[idx].description = UA_LOCALIZEDTEXT("en-US", method->description);
         inputArguments[idx].name = UA_STRING(method->description);
-        inputArguments[idx].dataType = UA_TYPES[(int)method->inpArg[idx]->argType - 1].typeId;
+        inputArguments[idx].dataType = UA_TYPES[(int) method->inpArg[idx]->argType - 1].typeId;
 
         if (method->inpArg[idx]->valType == SCALAR)
         {
-            inputArguments[idx].valueRank = -1;    /* Scalar */
+            inputArguments[idx].valueRank = -1; /* Scalar */
         }
         else if (method->inpArg[idx]->valType == ARRAY_1D)
         {
-            inputArguments[idx].valueRank = 1;    /* Array with one dimensions */
+            inputArguments[idx].valueRank = 1; /* Array with one dimensions */
             UA_UInt32 *inputDimensions = (UA_UInt32 *) malloc(sizeof(UA_UInt32));
             inputDimensions[0] = method->inpArg[idx]->arrayLength;
             inputArguments[idx].arrayDimensionsSize = 1;
@@ -642,15 +651,15 @@ EdgeResult addMethodNode(UA_Server *server, EdgeNodeItem *item, EdgeMethod *meth
         UA_Argument_init(&outputArguments[idx]);
         outputArguments[idx].description = UA_LOCALIZEDTEXT("en-US", method->description);
         outputArguments[idx].name = UA_STRING(method->description);
-        outputArguments[idx].dataType = UA_TYPES[(int)method->outArg[idx]->argType - 1].typeId;
+        outputArguments[idx].dataType = UA_TYPES[(int) method->outArg[idx]->argType - 1].typeId;
 
         if (method->outArg[idx]->valType == SCALAR)
         {
-            outputArguments[idx].valueRank = -1;    /* Scalar */
+            outputArguments[idx].valueRank = -1; /* Scalar */
         }
         else if (method->outArg[idx]->valType == ARRAY_1D)
         {
-            outputArguments[idx].valueRank = 1;    /* Array with one dimensions */
+            outputArguments[idx].valueRank = 1; /* Array with one dimensions */
             UA_UInt32 *outputDimensions = (UA_UInt32 *) malloc(sizeof(UA_UInt32));
             outputDimensions[0] = method->outArg[idx]->arrayLength;
             outputArguments[idx].arrayDimensionsSize = 1;
@@ -676,10 +685,9 @@ EdgeResult addMethodNode(UA_Server *server, EdgeNodeItem *item, EdgeMethod *meth
     }
 
     UA_StatusCode status = UA_Server_addMethodNode(server, UA_NODEID_STRING(1, item->browseName),
-                           sourceNodeId, UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT),
-                           UA_QUALIFIEDNAME(1, item->browseName), methodAttr, &methodCallback,
-                           num_inpArgs, inputArguments, num_outArgs, outputArguments,
-                           NULL, NULL);
+            sourceNodeId, UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT),
+            UA_QUALIFIEDNAME(1, item->browseName), methodAttr, &methodCallback, num_inpArgs,
+            inputArguments, num_outArgs, outputArguments, NULL, NULL);
     if (status == UA_STATUSCODE_GOOD)
     {
         EDGE_LOG(TAG, "\n+++ addMethodNode success +++\n");
@@ -706,13 +714,13 @@ EdgeResult addMethodNode(UA_Server *server, EdgeNodeItem *item, EdgeMethod *meth
     }
     for (idx = 0; idx < num_inpArgs; idx++)
     {
-        
+
         if (method->inpArg[idx]->valType == ARRAY_1D)
         {
             free(inputArguments[idx].arrayDimensions);
         }
     }
-    
+
     result.code = STATUS_OK;
     return result;
 }
@@ -751,7 +759,7 @@ EdgeResult modifyNode(UA_Server *server, char *nodeUri, EdgeVersatility *value)
     UA_Variant *myVariant = UA_Variant_new();
     if (type == &UA_TYPES[UA_TYPES_STRING])
     {
-        UA_String val = UA_STRING_ALLOC((char *) value->value);
+        UA_String val = UA_STRING_ALLOC((char * ) value->value);
         ret = UA_Variant_setScalarCopy(myVariant, &val, type);
         UA_String_deleteMembers(&val);
     }
@@ -768,7 +776,7 @@ EdgeResult modifyNode(UA_Server *server, char *nodeUri, EdgeVersatility *value)
     }
 
     UA_StatusCode retVal = UA_Server_writeValue(server, node, *myVariant);
-    if  (retVal != UA_STATUSCODE_GOOD)
+    if (retVal != UA_STATUSCODE_GOOD)
     {
         EDGE_LOG_V(TAG, "Error in modifying node value:: 0x%08x\n", retVal);
         result.code = STATUS_ERROR;

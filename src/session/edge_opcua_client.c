@@ -1,3 +1,23 @@
+/******************************************************************
+ *
+ * Copyright 2017 Samsung Electronics All Rights Reserved.
+ *
+ *
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ******************************************************************/
+
 #include "edge_opcua_client.h"
 #include "read.h"
 #include "write.h"
@@ -77,7 +97,8 @@ bool connect_client(char *endpoint)
     EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
     ep->endpointUri = endpoint;
     onStatusCallback(ep, STATUS_CLIENT_STARTED);
-    free(ep); ep = NULL;
+    free(ep);
+    ep = NULL;
 
     return true;
 }
@@ -101,7 +122,7 @@ void *getClientEndpoints(char *endpointUri)
     EdgeDevice *device = NULL;
     UA_String hostName = UA_STRING_NULL, path = UA_STRING_NULL;
     UA_UInt16 port = 0;
-    UA_String endpointUrlString = UA_STRING((char *)(uintptr_t)endpointUri);
+    UA_String endpointUrlString = UA_STRING((char *) (uintptr_t) endpointUri);
 
     UA_StatusCode parse_retval = UA_parseEndpointUrl(&endpointUrlString, &hostName, &port, &path);
     if (parse_retval != UA_STATUSCODE_GOOD)
@@ -150,15 +171,16 @@ void *getClientEndpoints(char *endpointUri)
         {
             if (device->address)
             {
-                free (device->address);
+                free(device->address);
                 device->address = NULL;
             }
             if (device->serverName)
             {
-                free (device->serverName);
+                free(device->serverName);
                 device->serverName = NULL;
             }
-            free (device); device = NULL;
+            free(device);
+            device = NULL;
         }
 
         UA_Array_delete(endpointArray, endpointArraySize, &UA_TYPES[UA_TYPES_ENDPOINTDESCRIPTION]);
@@ -168,17 +190,18 @@ void *getClientEndpoints(char *endpointUri)
     }
 
     device->num_endpoints = endpointArraySize;
-    device->endpointsInfo = (EdgeEndPointInfo **) malloc(sizeof(EdgeEndPointInfo *) *
-                            endpointArraySize);
+    device->endpointsInfo = (EdgeEndPointInfo **) malloc(
+            sizeof(EdgeEndPointInfo *) * endpointArraySize);
     for (size_t i = 0; i < endpointArraySize; i++)
     {
         device->endpointsInfo[i] = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
 
         if (endpointArray[i].endpointUrl.data)
         {
-            device->endpointsInfo[i]->endpointUri = (char *) malloc(endpointArray[i].endpointUrl.length + 1);
+            device->endpointsInfo[i]->endpointUri = (char *) malloc(
+                    endpointArray[i].endpointUrl.length + 1);
             memcpy(device->endpointsInfo[i]->endpointUri, endpointArray[i].endpointUrl.data,
-                   endpointArray[i].endpointUrl.length);
+                    endpointArray[i].endpointUrl.length);
             device->endpointsInfo[i]->endpointUri[endpointArray[i].endpointUrl.length] = '\0';
         }
 
@@ -187,7 +210,7 @@ void *getClientEndpoints(char *endpointUri)
         {
             char *secPolicy = (char *) malloc(endpointArray[i].securityPolicyUri.length + 1);
             memcpy(secPolicy, endpointArray[i].securityPolicyUri.data,
-                   endpointArray[i].securityPolicyUri.length);
+                    endpointArray[i].securityPolicyUri.length);
             secPolicy[endpointArray[i].securityPolicyUri.length] = '\0';
             config->securityPolicyUri = secPolicy;
         }
@@ -209,30 +232,32 @@ void *getClientEndpoints(char *endpointUri)
             {
                 if (device->endpointsInfo[i]->config->securityPolicyUri)
                 {
-                    free (device->endpointsInfo[i]->config->securityPolicyUri);
+                    free(device->endpointsInfo[i]->config->securityPolicyUri);
                     device->endpointsInfo[i]->config->securityPolicyUri = NULL;
                 }
                 free(device->endpointsInfo[i]->config);
                 device->endpointsInfo[i]->config = NULL;
             }
-            free(device->endpointsInfo[i]); device->endpointsInfo[i] = NULL;
+            free(device->endpointsInfo[i]);
+            device->endpointsInfo[i] = NULL;
         }
         if (device->endpointsInfo)
         {
-            free (device->endpointsInfo);
+            free(device->endpointsInfo);
             device->endpointsInfo = NULL;
         }
         if (device->address)
         {
-            free (device->address);
+            free(device->address);
             device->address = NULL;
         }
         if (device->serverName)
         {
-            free (device->serverName);
+            free(device->serverName);
             device->serverName = NULL;
         }
-        free (device); device = NULL;
+        free(device);
+        device = NULL;
     }
 
     UA_Array_delete(endpointArray, endpointArraySize, &UA_TYPES[UA_TYPES_ENDPOINTDESCRIPTION]);

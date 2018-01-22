@@ -1,3 +1,23 @@
+/******************************************************************
+ *
+ * Copyright 2017 Samsung Electronics All Rights Reserved.
+ *
+ *
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ******************************************************************/
+
 #include "message_dispatcher.h"
 #include "queue.h"
 
@@ -30,7 +50,7 @@ void terminate()
         EdgeMessage *data = dequeue(sendQueue);
         if (data)
         {
-            free (data);
+            free(data);
             data = NULL;
         }
     }
@@ -40,7 +60,7 @@ void terminate()
         EdgeMessage *data = dequeue(recvQueue);
         if (data)
         {
-            free (data);
+            free(data);
             data = NULL;
         }
     }
@@ -60,9 +80,9 @@ static void *sendQ_run(void *ptr)
     {
         if (!isEmpty(sendQueue))
         {
-            data = front(sendQueue);      // retrieve the front element from queue
-            handleMessage(data);      // process the queue message
-            dequeue(sendQueue);                 // remove the element from queue
+            data = front(sendQueue); // retrieve the front element from queue
+            handleMessage(data); // process the queue message
+            dequeue(sendQueue); // remove the element from queue
         }
     }
     return NULL;
@@ -77,9 +97,9 @@ static void *recvQ_run(void *ptr)
     {
         if (!isEmpty(recvQueue))
         {
-            data = front(recvQueue);      // retrieve the front element from queue
-            handleMessage(data);      // process the queue message
-            dequeue(recvQueue);                 // remove the element from queue
+            data = front(recvQueue); // retrieve the front element from queue
+            handleMessage(data); // process the queue message
+            dequeue(recvQueue); // remove the element from queue
         }
     }
     return NULL;
@@ -110,13 +130,11 @@ bool add_to_recvQ(EdgeMessage *msg)
 static void handleMessage(EdgeMessage *data)
 {
 
-    if (SEND_REQUEST == data->type
-        || SEND_REQUESTS == data->type)
+    if (SEND_REQUEST == data->type || SEND_REQUESTS == data->type)
     {
         onSendMessage(data);
     }
-    else if (GENERAL_RESPONSE == data->type
-             || BROWSE_RESPONSE == data->type)
+    else if (GENERAL_RESPONSE == data->type || BROWSE_RESPONSE == data->type)
     {
 //         ProtocolManager* receiver = ProtocolManager::getProtocolManagerInstance();
 //         receiver->onResponseMessage(data);

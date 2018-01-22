@@ -1,3 +1,23 @@
+/******************************************************************
+ *
+ * Copyright 2017 Samsung Electronics All Rights Reserved.
+ *
+ *
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ******************************************************************/
+
 #include "edge_opcua_server.h"
 #include "edge_node.h"
 #include "edge_logger.h"
@@ -16,17 +36,14 @@ static pthread_t m_serverThread;
 
 static int namespaceType = DEFAULT_TYPE;
 
-void createNamespaceInServer(char *namespaceUri,
-                             char *rootNodeIdentifier,
-                             char *rootNodeBrowseName,
-                             char *rootNodeDisplayName)
+void createNamespaceInServer(char *namespaceUri, char *rootNodeIdentifier, char *rootNodeBrowseName,
+        char *rootNodeDisplayName)
 {
     if (namespaceType == URI_TYPE || namespaceType == DEFAULT_TYPE)
     {
         int idx = UA_Server_addNamespace(m_server, namespaceUri);
         (void) idx;
-        EDGE_LOG_V(TAG, "\n [SERVER] Namespace Index :: [%d]", idx);
-        EDGE_LOG(TAG, "\n [SERVER] Namespace created\n");
+        EDGE_LOG_V(TAG, "\n [SERVER] Namespace Index :: [%d]", idx);EDGE_LOG(TAG, "\n [SERVER] Namespace created\n");
 
 //    nameSpace = ((new EdgeNamespace::Builder(m_server, idx, namespaceUri))->setNodeId(rootNodeIdentifier)->
 //        setBrowseName(rootNodeBrowseName)->setDisplayName(rootNodeDisplayName))->build();
@@ -64,6 +81,7 @@ static void *server_loop(void *ptr)
     {
         UA_Server_run_iterate(m_server, true);
     }
+
     EDGE_LOG(TAG, " [SERVER] server loop exit\n");
     return NULL;
 }
