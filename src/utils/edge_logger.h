@@ -32,7 +32,6 @@ extern "C"
 #define DEBUG 0
 #if DEBUG
 #define EDGE_LOG(tag, param) printf("[%s] %s\n", tag, param)
-//#define EDGE_LOG_V(tag, param, ...) printf("[%s] %s\n", tag, param)
 #define EDGE_LOG_V(tag, param, ...) fprintf(stdout, param, __VA_ARGS__)
 #else
 #define EDGE_LOG(tag, param)
