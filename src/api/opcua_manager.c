@@ -130,10 +130,10 @@ void closeServer(EdgeEndPointInfo *epInfo)
     }
 }
 
-void getEndpointInfo(EdgeEndPointInfo *epInfo)
+EdgeResult getEndpointInfo(EdgeEndPointInfo *epInfo)
 {
     printf("\n[Received command] :: Get endpoint info for [%s] \n\n", epInfo->endpointUri);
-    getClientEndpoints(epInfo->endpointUri);
+    return getClientEndpoints(epInfo->endpointUri);
 }
 
 void connectClient(EdgeEndPointInfo *epInfo)

@@ -84,6 +84,83 @@ void deleteMap(edgeMap *map)
     map->head = NULL;
 }
 
+static List *createListNode(void *data)
+{
+    List *node = (List *)calloc(1, sizeof(List));
+    if (!node)
+    {
+        return NULL;
+    }
+
+    node->data = data;
+    return node;
+}
+
+void addListNode(List **head, void *data)
+{
+    if (!head || !data)
+    {
+        return;
+    }
+
+    List *newnode = createListNode(data);
+    if (newnode)
+    {
+        newnode->link = *head;
+        *head = newnode;
+    }
+}
+
+void deleteListNode(List **head, void *data)
+{
+    if (!head || !data)
+    {
+        return;
+    }
+
+    List *ptr = *head, *prev = NULL;
+    while (ptr && ptr->data != data)
+    {
+        prev = ptr;
+        ptr = ptr->link;
+    }
+
+    if (!ptr)
+    {
+        return;
+    }
+
+    if (prev)
+    {
+        prev->link = ptr->link;
+    }
+    else
+    {
+        *head = ptr->link;
+    }
+
+    ptr->link = NULL;
+    free(ptr);
+}
+
+void deleteList(List **head)
+{
+    if (!head)
+    {
+        return;
+    }
+
+    List *next = NULL;
+    List *ptr = *head;
+    while (ptr)
+    {
+        next = ptr->link;
+        free(ptr);
+        ptr = next;
+    }
+    *head = NULL;
+}
+
 char *cloneString(const char *str)
 {
     if (!str)
@@ -91,17 +168,31 @@ char *cloneString(const char *str)
         return NULL;
     }
     int len = strlen(str);
-    if (len < 1)
-    {
-        return NULL;
-    }
-    char *clone = (char *) calloc(len + 1, sizeof(char));
+    char *clone = (char *)malloc(len + 1);
     if (!clone)
     {
         return NULL;
     }
-    strncpy(clone, str, len);
+    memcpy(clone, str, len + 1);
     return clone;
+}
+
+char *convertUAStringToString(UA_String *uaStr)
+{
+    if (!uaStr || uaStr->length <= 0)
+    {
+        return NULL;
+    }
+
+    char *str = (char *)malloc(uaStr->length + 1);
+    if (!str)
+    {
+        return NULL;
+    }
+
+    memcpy(str, uaStr->data, uaStr->length);
+    str[uaStr->length] = '\0';
+    return str;
 }
 
 void freeEdgeEndpointConfig(EdgeEndpointConfig *config)
@@ -115,6 +206,7 @@ void freeEdgeEndpointConfig(EdgeEndpointConfig *config)
     free(config->applicationUri);
     free(config->productUri);
     free(config->securityPolicyUri);
+    free(config->transportProfileUri);
     free(config->serverName);
     free(config->bindAddress);
     free(config);
@@ -147,6 +239,26 @@ void freeEdgeContinuationPointList(EdgeContinuationPointList *cpList)
     free(cpList);
 }
 
+void freeEdgeDevice(EdgeDevice *dev)
+{
+    if(!dev)
+    {
+        return;
+    }
+
+    if (dev->endpointsInfo)
+    {
+        for (int i = 0; i < dev->num_endpoints; ++i)
+        {
+            freeEdgeEndpointInfo(dev->endpointsInfo[i]);
+        }
+    }
+    free(dev->endpointsInfo);
+    free(dev->address);
+    free(dev->serverName);
+    free(dev);
+}
+
 EdgeEndpointConfig *cloneEdgeEndpointConfig(EdgeEndpointConfig *config)
 {
     if (!config)
@@ -154,7 +266,7 @@ EdgeEndpointConfig *cloneEdgeEndpointConfig(EdgeEndpointConfig *config)
         return NULL;
     }
 
-    EdgeEndpointConfig *clone = (EdgeEndpointConfig *) calloc(1, sizeof(EdgeEndpointConfig));
+    EdgeEndpointConfig *clone = (EdgeEndpointConfig *)calloc(1, sizeof(EdgeEndpointConfig));
     if (!clone)
     {
         return NULL;
@@ -202,6 +314,16 @@ EdgeEndpointConfig *cloneEdgeEndpointConfig(EdgeEndpointConfig *config)
         }
     }
 
+    if (config->transportProfileUri)
+    {
+        clone->transportProfileUri = cloneString(config->transportProfileUri);
+        if (!clone->transportProfileUri)
+        {
+            freeEdgeEndpointConfig(clone);
+            return NULL;
+        }
+    }
+
     if (config->serverName)
     {
         clone->serverName = cloneString(config->serverName);
@@ -243,7 +365,7 @@ EdgeEndPointInfo *cloneEdgeEndpointInfo(EdgeEndPointInfo *endpointInfo)
         return NULL;
     }
 
-    EdgeEndPointInfo *clone = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
+    EdgeEndPointInfo *clone = (EdgeEndPointInfo *)calloc(1, sizeof(EdgeEndPointInfo));
     if (!clone)
     {
         return NULL;
@@ -444,7 +566,7 @@ void freeEdgeMessage(EdgeMessage *msg)
 
 EdgeResult *createEdgeResult(EdgeStatusCode code)
 {
-    EdgeResult *result = (EdgeResult *) calloc(1, sizeof(EdgeResult));
+    EdgeResult *result = (EdgeResult *)calloc(1, sizeof(EdgeResult));
     if (!result)
     {
         return NULL;
@@ -523,7 +645,7 @@ EdgeNodeInfo *cloneEdgeNodeInfo(EdgeNodeInfo *nodeInfo)
         return NULL;
     }
 
-    EdgeNodeInfo *clone = (EdgeNodeInfo *) calloc(1, sizeof(EdgeNodeInfo));
+    EdgeNodeInfo *clone = (EdgeNodeInfo *)calloc(1, sizeof(EdgeNodeInfo));
     if (!clone)
     {
         return NULL;
