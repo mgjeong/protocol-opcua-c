@@ -29,6 +29,7 @@
 
 #include <stdio.h>
 #include <open62541.h>
+#include <inttypes.h>
 
 #define TAG "session_client"
 
@@ -114,28 +115,177 @@ void disconnect_client(EdgeEndPointInfo *epInfo)
     onStatusCallback(epInfo, STATUS_STOP_CLIENT);
 }
 
+static void logEndpointDescription(UA_EndpointDescription *ep)
+{
+#if DEBUG
+    if(!ep)
+    {
+        return;
+    }
+
+    char *str = NULL;
+    EDGE_LOG_V(TAG, "%s", "\n\n");
+    EDGE_LOG(TAG, "----------Endpoint Description--------------");
+    EDGE_LOG_V(TAG, "Endpoint URL: %s.\n", (str = convertUAStringToString(&ep->endpointUrl)));
+    free(str);
+    EDGE_LOG_V(TAG, "Endpoint security mode: %d.\n", ep->securityMode);
+    EDGE_LOG_V(TAG, "Endpoint security policy URI: %s.\n", (str = convertUAStringToString(&ep->securityPolicyUri)));
+    free(str);
+    EDGE_LOG_V(TAG, "Endpoint user identity token count: %" PRIu64 ".\n", ep->userIdentityTokensSize);
+    EDGE_LOG_V(TAG, "Endpoint transport profile URI: %s.\n", (str = convertUAStringToString(&ep->transportProfileUri)));
+    free(str);
+    EDGE_LOG_V(TAG, "Endpoint security level: %u.\n", ep->securityLevel);
+    EDGE_LOG_V(TAG, "Endpoint application URI: %s.\n", (str = convertUAStringToString(&ep->server.applicationUri)));
+    free(str);
+    EDGE_LOG_V(TAG, "Endpoint product URI: %s.\n", (str = convertUAStringToString(&ep->server.productUri)));
+    free(str);
+    EDGE_LOG_V(TAG, "Endpoint application name: %s.\n", (str = convertUAStringToString(&ep->server.applicationName.text)));
+    free(str);
+    EDGE_LOG_V(TAG, "Endpoint application type: %d.\n", ep->server.applicationType);
+    EDGE_LOG_V(TAG, "Endpoint gateway server URI: %s.\n", (str = convertUAStringToString(&ep->server.gatewayServerUri)));
+    free(str);
+    EDGE_LOG_V(TAG, "Endpoint discovery profile URI: %s.\n", (str = convertUAStringToString(&ep->server.discoveryProfileUri)));
+    free(str);
+    EDGE_LOG_V(TAG, "Endpoint discovery URL count: %" PRIu64 ".\n", ep->server.discoveryUrlsSize);
+    for(int i = 0; i < ep->server.discoveryUrlsSize; ++i)
+    {
+        EDGE_LOG_V(TAG, "Endpoint discovery URL(%d): %s.\n", i+1, (str = convertUAStringToString(&ep->server.discoveryUrls[i])));
+        free(str);
+    }
+#else
+    (void)ep;
+#endif
+}
+
 static bool parseEndpoints(size_t endpointArraySize, UA_EndpointDescription *endpointArray, size_t *count, List **endpointList)
 {
     EdgeEndPointInfo *epInfo = NULL;
     for (size_t i = 0; i < endpointArraySize; ++i)
     {
+        logEndpointDescription(&endpointArray[i]);
+
+        /*if (UA_APPLICATIONTYPE_CLIENT == endpointArray[i].server.applicationType)
+        {
+            EDGE_LOG(TAG, "Found client type endpoint. Skipping it.");
+            continue;
+        }*/
+
+        if(endpointArray[i].endpointUrl.length <= 0)
+        {
+            EDGE_LOG(TAG, "EndpointURI is empty. Endpoint is invalid.");
+            continue;
+        }
+
+        if (UA_MESSAGESECURITYMODE_INVALID == endpointArray[i].securityMode)
+        {
+            EDGE_LOG(TAG, "Invalid message security mode. Endpoint is invalid.");
+            continue;
+        }
+
+        if(endpointArray[i].securityPolicyUri.length <= 0)
+        {
+            EDGE_LOG(TAG, "Security policy URI is empty. Endpoint is invalid.");
+            continue;
+        }
+
+        char securityPolicyUriPrefix[] = "http://opcfoundation.org/UA/SecurityPolicy#";
+        if(endpointArray[i].securityPolicyUri.length < sizeof(securityPolicyUriPrefix) ||
+            memcmp(endpointArray[i].securityPolicyUri.data, securityPolicyUriPrefix, sizeof(securityPolicyUriPrefix)-1))
+        {
+            EDGE_LOG(TAG, "Malformed security policy URI. Endpoint is invalid");
+            continue;
+        }
+
+        if(endpointArray[i].transportProfileUri.length <= 0)
+        {
+            EDGE_LOG(TAG, "Transport profile URI is empty. Endpoint is invalid.");
+            continue;
+        }
+
+        char transportProfileUriPrefix[] = "http://opcfoundation.org/UA-Profile/Transport/";
+        if(endpointArray[i].transportProfileUri.length < sizeof(transportProfileUriPrefix) ||
+            memcmp(endpointArray[i].transportProfileUri.data, transportProfileUriPrefix, sizeof(transportProfileUriPrefix)-1))
+        {
+            EDGE_LOG(TAG, "Malformed transport profile URI. Endpoint is invalid");
+            continue;
+        }
+
+        if(endpointArray[i].server.applicationUri.length <= 0)
+        {
+            EDGE_LOG(TAG, "Application URI is empty. Endpoint is invalid.");
+            continue;
+        }
+
+        if(endpointArray[i].server.discoveryUrlsSize <= 0)
+        {
+            EDGE_LOG(TAG, "Discovery URL is empty. Endpoint is invalid.");
+            continue;
+        }
+
+        if(UA_APPLICATIONTYPE_CLIENT == endpointArray[i].server.applicationType)
+        {
+            if(endpointArray[i].server.gatewayServerUri.length != 0)
+            {
+                EDGE_LOG(TAG, "Application Type is client but gateway server URI is not empty. Endpoint is invalid");
+                continue;
+            }
+            else if(endpointArray[i].server.discoveryProfileUri.length != 0)
+            {
+                EDGE_LOG(TAG, "Application Type is client but discovery profile URI is not empty. Endpoint is invalid");
+                continue;
+            }
+            else if(endpointArray[i].server.discoveryUrlsSize != 0)
+            {
+                EDGE_LOG(TAG, "Application Type is client but discovery URL is not empty. Endpoint is invalid");
+                continue;
+            }
+        }
+
+        bool valid = true;
+        int tokenCount = endpointArray[i].userIdentityTokensSize;
+        for(int tokenIndex = 0; tokenIndex < tokenCount; ++tokenIndex)
+        {
+            UA_UserTokenPolicy *policy = &endpointArray[i].userIdentityTokens[tokenIndex];
+            if(UA_USERTOKENTYPE_ISSUEDTOKEN == policy->tokenType && policy->issuedTokenType.length <= 0)
+            {
+                EDGE_LOG(TAG, "Token type is 'ISSUEDTOKEN' but token is empty. Endpoint is invalid");
+                valid = false;
+                break;
+            }
+            else if(UA_USERTOKENTYPE_ISSUEDTOKEN != policy->tokenType && policy->issuedTokenType.length > 0)
+            {
+                EDGE_LOG(TAG, "Token type is not 'ISSUEDTOKEN' but token exists.");
+            }
+        }
+
+        if(!valid)
+        {
+            continue;
+        }
+
+        UA_ApplicationDescription desc;
+        UA_ApplicationDescription_init(&desc);
+        if(!memcmp(&desc, &endpointArray[i].server, sizeof(desc)))
+        {
+            EDGE_LOG(TAG, "Application description is empty. Endpoint is invalid.");
+            continue;
+        }
+
+        if(0 == endpointArray[i].securityLevel)
+        {
+            EDGE_LOG(TAG, "Security level is 0. Connection to this endpoint will be insecure.");
+        }
+
+        if (UA_MESSAGESECURITYMODE_NONE == endpointArray[i].securityMode)
+        {
+            EDGE_LOG(TAG, "Security mode is 'NONE'. Connection to this endpoint will be insecure.");
+        }
+
         epInfo = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
         if(!epInfo)
         {
             EDGE_LOG(TAG, "Memory allocation failed.");
             goto ERROR;
-        }
-
-        if (UA_APPLICATIONTYPE_CLIENT == endpointArray[i].server.applicationType)
-        {
-            EDGE_LOG(TAG, "Found client type endpoint. Skipping it.\n");
-            continue;
-        }
-
-        if (UA_MESSAGESECURITYMODE_SIGN != endpointArray[i].securityMode &&
-            UA_MESSAGESECURITYMODE_SIGNANDENCRYPT != endpointArray[i].securityMode)
-        {
-            EDGE_LOG_V(TAG, "Connection with message security mode(%d) will be insecure.\n", endpointArray[i].securityMode);
         }
 
         if (endpointArray[i].endpointUrl.data)
@@ -155,24 +305,20 @@ static bool parseEndpoints(size_t endpointArraySize, UA_EndpointDescription *end
             goto ERROR;
         }
         epInfo->config = config;
-        if (endpointArray[i].securityPolicyUri.length > 0)
+        config->securityPolicyUri = convertUAStringToString(&endpointArray[i].securityPolicyUri);
+        if(!config->securityPolicyUri)
         {
-            config->securityPolicyUri = convertUAStringToString(&endpointArray[i].securityPolicyUri);
-            if(!config->securityPolicyUri)
-            {
-                EDGE_LOG(TAG, "Memory allocation failed.");
-                goto ERROR;
-            }
+            EDGE_LOG(TAG, "Memory allocation failed.");
+            goto ERROR;
         }
-        if (endpointArray[i].transportProfileUri.length > 0)
+
+        config->transportProfileUri = convertUAStringToString(&endpointArray[i].transportProfileUri);
+        if(!config->transportProfileUri)
         {
-            config->transportProfileUri = convertUAStringToString(&endpointArray[i].transportProfileUri);
-            if(!config->transportProfileUri)
-            {
-                EDGE_LOG(TAG, "Memory allocation failed.");
-                goto ERROR;
-            }
+            EDGE_LOG(TAG, "Memory allocation failed.");
+            goto ERROR;
         }
+
         addListNode(endpointList, epInfo);
         ++(*count);
         epInfo = NULL;
