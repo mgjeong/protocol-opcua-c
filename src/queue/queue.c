@@ -12,7 +12,7 @@ bool isFull(Queue *queue)
     return (queue->size == queue->capacity);
 }
 
-Queue *createQueue( int capacity)
+Queue *createQueue(int capacity)
 {
     Queue *queue = (Queue *) malloc(sizeof(Queue));
     queue->capacity = capacity;

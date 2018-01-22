@@ -21,7 +21,8 @@
 #include <gtest/gtest.h>
 #include <iostream>
 
-extern "C" {
+extern "C"
+{
 #include "opcua_manager.h"
 #include "opcua_common.h"
 #include "edge_identifier.h"
@@ -34,34 +35,34 @@ edgeMap *sampleMap;
 
 class OPC_utilMap: public ::testing::Test
 {
-    protected:
+protected:
 
-        virtual void SetUp()
-        {
-            PRINT("MAP TESTS");
-            sampleMap = NULL;
-        }
+    virtual void SetUp()
+    {
+        PRINT("MAP TESTS");
+        sampleMap = NULL;
+    }
 
-        virtual void TearDown()
-        {
+    virtual void TearDown()
+    {
 
-        }
+    }
 
 };
 
 class OPC_util: public ::testing::Test
 {
-    protected:
+protected:
 
-        virtual void SetUp()
-        {
-            PRINT("UTIL TESTS");
-        }
+    virtual void SetUp()
+    {
+        PRINT("UTIL TESTS");
+    }
 
-        virtual void TearDown()
-        {
+    virtual void TearDown()
+    {
 
-        }
+    }
 
 };
 
@@ -88,10 +89,10 @@ TEST_F(OPC_utilMap , insertMapElement_P)
     insertMapElement(sampleMap, (keyValue) "key6", (keyValue) "value6");
     insertMapElement(sampleMap, (keyValue) "key3", (keyValue) "value3");
 
-    EXPECT_EQ((char *)getMapElement(sampleMap, (keyValue) "key1"), "value1");
-    EXPECT_EQ((char *)getMapElement(sampleMap, (keyValue) "key2"), "value2");
-    EXPECT_EQ((char *)getMapElement(sampleMap, (keyValue) "key3"), "value3");
-    EXPECT_EQ((char *)getMapElement(sampleMap, (keyValue) "key6"), "value6");
+    EXPECT_EQ((char * )getMapElement(sampleMap, (keyValue ) "key1"), "value1");
+    EXPECT_EQ((char * )getMapElement(sampleMap, (keyValue ) "key2"), "value2");
+    EXPECT_EQ((char * )getMapElement(sampleMap, (keyValue ) "key3"), "value3");
+    EXPECT_EQ((char * )getMapElement(sampleMap, (keyValue ) "key6"), "value6");
 
     deleteMap(sampleMap);
 
@@ -102,8 +103,8 @@ TEST_F(OPC_utilMap , insertMapElement_N)
 {
     sampleMap = createMap();
 
-    EXPECT_NE((char *)getMapElement(sampleMap, (keyValue) "key1"), "value1");
-    EXPECT_EQ(getMapElement(sampleMap, (keyValue) "key1") == NULL, true);
+    EXPECT_NE((char * )getMapElement(sampleMap, (keyValue ) "key1"), "value1");
+    EXPECT_EQ(getMapElement(sampleMap, (keyValue ) "key1") == NULL, true);
 
     insertMapElement(sampleMap, (keyValue) "key1", (keyValue) "value1");
     EXPECT_EQ(sampleMap->head == NULL, false);
@@ -111,17 +112,17 @@ TEST_F(OPC_utilMap , insertMapElement_N)
     insertMapElement(sampleMap, (keyValue) "key6", (keyValue) "value6");
     insertMapElement(sampleMap, (keyValue) "key3", (keyValue) "value3");
 
-    EXPECT_NE((char *)getMapElement(sampleMap, (keyValue) "key4"), "value4");
-    EXPECT_NE((char *)getMapElement(sampleMap, (keyValue) "key1"), "value2");
-    EXPECT_NE((char *)getMapElement(sampleMap, (keyValue) "key2"), "value3");
-    EXPECT_EQ((char *)getMapElement(sampleMap, (keyValue) "key6"), "value6");
+    EXPECT_NE((char * )getMapElement(sampleMap, (keyValue ) "key4"), "value4");
+    EXPECT_NE((char * )getMapElement(sampleMap, (keyValue ) "key1"), "value2");
+    EXPECT_NE((char * )getMapElement(sampleMap, (keyValue ) "key2"), "value3");
+    EXPECT_EQ((char * )getMapElement(sampleMap, (keyValue ) "key6"), "value6");
 
     deleteMap(sampleMap);
 
-    EXPECT_NE((char *)getMapElement(sampleMap, (keyValue) "key1"), "value1");
-    EXPECT_NE((char *)getMapElement(sampleMap, (keyValue) "key2"), "value2");
-    EXPECT_NE((char *)getMapElement(sampleMap, (keyValue) "key3"), "value3");
-    EXPECT_NE((char *)getMapElement(sampleMap, (keyValue) "key6"), "value6");
+    EXPECT_NE((char * )getMapElement(sampleMap, (keyValue ) "key1"), "value1");
+    EXPECT_NE((char * )getMapElement(sampleMap, (keyValue ) "key2"), "value2");
+    EXPECT_NE((char * )getMapElement(sampleMap, (keyValue ) "key3"), "value3");
+    EXPECT_NE((char * )getMapElement(sampleMap, (keyValue ) "key6"), "value6");
 
     EXPECT_EQ(sampleMap->head == NULL, true);
 }
@@ -143,27 +144,28 @@ TEST_F(OPC_util , cloneString_P)
 
     EXPECT_EQ(retStr == NULL, true);
 
-    retStr= cloneString(WELL_KNOWN_DISCOVERY_VALUE);
+    retStr = cloneString(WELL_KNOWN_DISCOVERY_VALUE);
     EXPECT_NE(retStr == NULL, true);
 
     EXPECT_EQ(strcmp(retStr, WELL_KNOWN_DISCOVERY_VALUE), 0);
 
-    free(retStr); retStr = NULL;
+    free(retStr);
+    retStr = NULL;
     EXPECT_EQ(retStr == NULL, true);
 }
 
 TEST_F(OPC_util , cloneEdgeEndpoint_P)
 {
     EdgeEndPointInfo *retEndpoint = NULL;
-    
+
     EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) malloc(sizeof(EdgeEndpointConfig));
     endpointConfig->bindAddress = "100.100.100.100";
     endpointConfig->bindPort = 12686;
-    endpointConfig->applicationName = (char *)DEFAULT_SERVER_APP_NAME_VALUE;
-    endpointConfig->applicationUri = (char *)DEFAULT_SERVER_URI_VALUE;
-    endpointConfig->productUri = (char *)DEFAULT_PRODUCT_URI_VALUE;
+    endpointConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
+    endpointConfig->applicationUri = (char *) DEFAULT_SERVER_URI_VALUE;
+    endpointConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
     endpointConfig->securityPolicyUri = NULL;
-    endpointConfig->serverName = (char *)DEFAULT_SERVER_NAME_VALUE;
+    endpointConfig->serverName = (char *) DEFAULT_SERVER_NAME_VALUE;
 
     EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
     ep->endpointUri = "opc.tcp://107.108.81.116:12686/edge-opc-server";
@@ -173,12 +175,12 @@ TEST_F(OPC_util , cloneEdgeEndpoint_P)
     EXPECT_EQ(ep != NULL, true);
     EXPECT_EQ(retEndpoint == NULL, true);
 
-    retEndpoint= cloneEdgeEndpointInfo(ep);
+    retEndpoint = cloneEdgeEndpointInfo(ep);
 
     EXPECT_EQ(retEndpoint != NULL, true);
     EXPECT_EQ(strcmp(retEndpoint->endpointUri, ep->endpointUri), 0);
     EXPECT_EQ(strcmp(retEndpoint->config->bindAddress, endpointConfig->bindAddress), 0);
-    EXPECT_EQ(strcmp(retEndpoint->config->bindAddress,  endpointConfig->bindAddress), 0);
+    EXPECT_EQ(strcmp(retEndpoint->config->bindAddress, endpointConfig->bindAddress), 0);
     EXPECT_EQ(strcmp(retEndpoint->config->applicationUri, endpointConfig->applicationUri), 0);
     EXPECT_EQ(strcmp(retEndpoint->config->productUri, endpointConfig->productUri), 0);
     EXPECT_EQ(strcmp(retEndpoint->config->serverName, endpointConfig->serverName), 0);
@@ -186,13 +188,15 @@ TEST_F(OPC_util , cloneEdgeEndpoint_P)
 
     freeEdgeEndpointInfo(retEndpoint);
     retEndpoint = NULL;
-    free(endpointConfig); endpointConfig = NULL;
-    free(ep); ep = NULL;
+    free(endpointConfig);
+    endpointConfig = NULL;
+    free(ep);
+    ep = NULL;
 
     EXPECT_EQ(endpointConfig == NULL, true);
     EXPECT_EQ(ep == NULL, true);
     EXPECT_EQ(retEndpoint == NULL, true);
-    
+
 }
 
 TEST_F(OPC_util , cloneNode_P)
@@ -224,18 +228,19 @@ TEST_F(OPC_util , cloneNode_P)
     EXPECT_EQ(nodeInfo->nodeId->integerNodeId, retNodeInfo->nodeId->integerNodeId);
     EXPECT_EQ(nodeInfo->nodeId->nameSpace, retNodeInfo->nodeId->nameSpace);
 
-    
-    free(nodeInfo->valueAlias);nodeInfo->valueAlias = NULL;
-    free(nodeInfo);nodeInfo = NULL;
+    free(nodeInfo->valueAlias);
+    nodeInfo->valueAlias = NULL;
+    free(nodeInfo);
+    nodeInfo = NULL;
     freeEdgeNodeInfo(retNodeInfo);
     retNodeInfo = NULL;
-    
+
     EXPECT_EQ(nodeInfo == NULL, true);
     EXPECT_EQ(retNodeInfo == NULL, true);
 }
 
 /*
-int main(int argc, char **argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}*/
+ int main(int argc, char **argv) {
+ ::testing::InitGoogleTest(&argc, argv);
+ return RUN_ALL_TESTS();
+ }*/

@@ -5,10 +5,11 @@
 #include "open62541.h"
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-EdgeResult executeRead(UA_Client *client, EdgeMessage *msg);
+    EdgeResult executeRead(UA_Client *client, EdgeMessage *msg);
 
 #ifdef __cplusplus
 }

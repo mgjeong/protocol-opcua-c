@@ -1,4 +1,3 @@
-
 /**
  * @file
  *
@@ -12,107 +11,107 @@
 #include "opcua_common.h"
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-typedef void *keyValue;
+    typedef void *keyValue;
 
-typedef struct edgeMapNode
-{
-    /** Map Key.*/
-    keyValue key;
+    typedef struct edgeMapNode
+    {
+        /** Map Key.*/
+        keyValue key;
 
-    /** map key-value pair.*/
-    keyValue value;
+        /** map key-value pair.*/
+        keyValue value;
 
-    /** Next node in list.*/
-    struct edgeMapNode *next;
-} edgeMapNode;
+        /** Next node in list.*/
+        struct edgeMapNode *next;
+    } edgeMapNode;
 
-typedef struct edgeMap
-{
-    /** Map Head.*/
-    edgeMapNode *head;
-} edgeMap;
+    typedef struct edgeMap
+    {
+        /** Map Head.*/
+        edgeMapNode *head;
+    } edgeMap;
 
+    /**
+     * Insert key-value pair into the edge util map
+     *
+     * @return edgeMap
+     */
+    edgeMap *createMap();
 
-/**
- * Insert key-value pair into the edge util map
- *
- * @return edgeMap
- */
-edgeMap *createMap();
+    /**
+     * Insert key-value pair into the edge util map
+     *
+     * @param map
+     * @param key
+     * @param value
+     * @return
+     */
+    void insertMapElement(edgeMap *map, keyValue key, keyValue value);
 
-/**
- * Insert key-value pair into the edge util map
- *
- * @param map
- * @param key
-  * @param value
- * @return
- */
-void insertMapElement(edgeMap *map, keyValue key, keyValue value);
+    /**
+     * Get element value from the edge util map
+     *
+     * @param map
+     * @param key
+     * @return keyValue
+     */
+    keyValue getMapElement(edgeMap *map, keyValue key);
 
-/**
- * Get element value from the edge util map
- *
- * @param map
- * @param key
- * @return keyValue
- */
-keyValue getMapElement(edgeMap *map, keyValue key);
+    /**
+     * Delete and free memory of the edge util map
+     *
+     * @param map
+     * @return keyValue
+     */
+    void deleteMap(edgeMap *map);
 
-/**
- * Delete and free memory of the edge util map
- *
- * @param map
- * @return keyValue
- */
-void deleteMap(edgeMap *map);
+    char *cloneString(const char *str);
 
-char *cloneString(const char *str);
+    void freeEdgeEndpointConfig(EdgeEndpointConfig *config);
 
-void freeEdgeEndpointConfig(EdgeEndpointConfig *config);
+    void freeEdgeEndpointInfo(EdgeEndPointInfo *endpointInfo);
 
-void freeEdgeEndpointInfo(EdgeEndPointInfo *endpointInfo);
+    void freeEdgeBrowseResult(EdgeBrowseResult *browseResult, int browseResultLength);
 
-void freeEdgeBrowseResult(EdgeBrowseResult *browseResult, int browseResultLength);
+    void freeEdgeNodeId(EdgeNodeId *nodeId);
 
-void freeEdgeNodeId(EdgeNodeId *nodeId);
+    void freeEdgeNodeInfo(EdgeNodeInfo *nodeInfo);
 
-void freeEdgeNodeInfo(EdgeNodeInfo *nodeInfo);
+    void freeEdgeArgument(EdgeArgument *arg);
 
-void freeEdgeArgument(EdgeArgument *arg);
+    void freeEdgeMethodRequestParams(EdgeMethodRequestParams *methodParams);
 
-void freeEdgeMethodRequestParams(EdgeMethodRequestParams *methodParams);
+    void freeEdgeRequest(EdgeRequest *req);
 
-void freeEdgeRequest(EdgeRequest *req);
+    void freeEdgeRequests(EdgeRequest **requests, int requestLength);
 
-void freeEdgeRequests(EdgeRequest **requests, int requestLength);
+    void freeEdgeVersatility(EdgeVersatility *versatileValue);
 
-void freeEdgeVersatility(EdgeVersatility *versatileValue);
+    void freeEdgeResponse(EdgeResponse *response);
 
-void freeEdgeResponse(EdgeResponse *response);
+    void freeEdgeResponses(EdgeResponse **responses, int responseLength);
 
-void freeEdgeResponses(EdgeResponse **responses, int responseLength);
+    void freeEdgeMessage(EdgeMessage *msg);
 
-void freeEdgeMessage(EdgeMessage *msg);
+    void freeEdgeContinuationPoint(EdgeContinuationPoint *cp);
 
-void freeEdgeContinuationPoint(EdgeContinuationPoint *cp);
+    void freeEdgeContinuationPointList(EdgeContinuationPointList *cpList);
 
-void freeEdgeContinuationPointList(EdgeContinuationPointList *cpList);
+    EdgeEndpointConfig *cloneEdgeEndpointConfig(EdgeEndpointConfig *config);
 
-EdgeEndpointConfig *cloneEdgeEndpointConfig(EdgeEndpointConfig *config);
+    EdgeEndPointInfo *cloneEdgeEndpointInfo(EdgeEndPointInfo *endpointInfo);
 
-EdgeEndPointInfo *cloneEdgeEndpointInfo(EdgeEndPointInfo *endpointInfo);
+    EdgeResult *createEdgeResult(EdgeStatusCode code);
 
-EdgeResult *createEdgeResult(EdgeStatusCode code);
+    bool isNodeClassValid(UA_NodeClass nodeClass);
 
-bool isNodeClassValid(UA_NodeClass nodeClass);
+    EdgeNodeId *cloneEdgeNodeId(EdgeNodeId *nodeId);
 
-EdgeNodeId *cloneEdgeNodeId(EdgeNodeId *nodeId);
-
-EdgeNodeInfo *cloneEdgeNodeInfo(EdgeNodeInfo *nodeInfo);
+    EdgeNodeInfo *cloneEdgeNodeInfo(EdgeNodeInfo *nodeInfo);
 
 #ifdef __cplusplus
 }

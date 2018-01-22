@@ -1,5 +1,4 @@
 
-
 #ifndef EDGE_LOGGER_H_
 #define EDGE_LOGGER_H_
 
@@ -7,7 +6,8 @@
 #include "opcua_common.h"
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
 #define DEBUG 0

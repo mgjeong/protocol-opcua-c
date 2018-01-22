@@ -16,17 +16,14 @@ static pthread_t m_serverThread;
 
 static int namespaceType = DEFAULT_TYPE;
 
-void createNamespaceInServer(char *namespaceUri,
-                             char *rootNodeIdentifier,
-                             char *rootNodeBrowseName,
-                             char *rootNodeDisplayName)
+void createNamespaceInServer(char *namespaceUri, char *rootNodeIdentifier, char *rootNodeBrowseName,
+        char *rootNodeDisplayName)
 {
     if (namespaceType == URI_TYPE || namespaceType == DEFAULT_TYPE)
     {
         int idx = UA_Server_addNamespace(m_server, namespaceUri);
         (void) idx;
-        EDGE_LOG_V(TAG, "\n [SERVER] Namespace Index :: [%d]", idx);
-        EDGE_LOG(TAG, "\n [SERVER] Namespace created\n");
+        EDGE_LOG_V(TAG, "\n [SERVER] Namespace Index :: [%d]", idx);EDGE_LOG(TAG, "\n [SERVER] Namespace created\n");
 
 //    nameSpace = ((new EdgeNamespace::Builder(m_server, idx, namespaceUri))->setNodeId(rootNodeIdentifier)->
 //        setBrowseName(rootNodeBrowseName)->setDisplayName(rootNodeDisplayName))->build();
@@ -64,6 +61,7 @@ static void *server_loop(void *ptr)
     {
         UA_Server_run_iterate(m_server, true);
     }
+
     EDGE_LOG(TAG, " [SERVER] server loop exit\n");
     return NULL;
 }

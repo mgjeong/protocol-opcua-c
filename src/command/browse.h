@@ -5,10 +5,11 @@
 #include "open62541.h"
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-EdgeResult executeBrowse(UA_Client *client, EdgeMessage *msg, bool browseNext);
+    EdgeResult executeBrowse(UA_Client *client, EdgeMessage *msg, bool browseNext);
 
 #ifdef __cplusplus
 }

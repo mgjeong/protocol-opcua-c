@@ -1,7 +1,8 @@
 #include <gtest/gtest.h>
 #include <iostream>
 
-extern "C" {
+extern "C"
+{
 #include "opcua_manager.h"
 #include "opcua_common.h"
 #include "edge_identifier.h"
@@ -46,27 +47,18 @@ static bool browseNodeFlag = false;
 static bool methodCallFlag = false;
 
 static char node_arr[10][11] =
-{
-    "String1",
-    "String2",
-    "String3",
-    "Double",
-    "Int32",
-    "UInt16",
-    "ByteString",
-    "Byte",
-    "Error"
-    "Guid"
-};
+{ "String1", "String2", "String3", "Double", "Int32", "UInt16", "ByteString", "Byte", "Error"
+        "Guid" };
 
-static int method_arr[5] = {105, 205, 305, 405, 505};
+static int method_arr[5] =
+{ 105, 205, 305, 405, 505 };
 
 extern "C"
 {
 
     static void startClient(char *addr, int port, char *securityPolicyUri);
 
-    static void response_msg_cb (EdgeMessage *data)
+    static void response_msg_cb(EdgeMessage *data)
     {
         if (data->type == GENERAL_RESPONSE)
         {
@@ -88,7 +80,8 @@ extern "C"
                                 PRINT_ARG("Boolean output array length :: ", arrayLen);
                                 for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                                 {
-                                    PRINT_ARG("  ", ((bool *) data->responses[idx]->message->value)[arrayIdx]);
+                                    PRINT_ARG("  ",
+                                            ((bool * ) data->responses[idx]->message->value)[arrayIdx]);
                                 }
                             }
                             else if (data->responses[idx]->type == Byte)
@@ -97,7 +90,8 @@ extern "C"
                                 PRINT_ARG("Byte output array length ::", arrayLen);
                                 for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                                 {
-                                    PRINT(((int8_t *) data->responses[idx]->message->value)[arrayIdx]);
+                                    PRINT(
+                                            ((int8_t * ) data->responses[idx]->message->value)[arrayIdx]);
                                 }
                             }
                             else if (data->responses[idx]->type == SByte)
@@ -106,7 +100,8 @@ extern "C"
                                 PRINT_ARG("SByte output array length :: ", arrayLen);
                                 for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                                 {
-                                    PRINT(((int8_t *) data->responses[idx]->message->value)[arrayIdx]);
+                                    PRINT(
+                                            ((int8_t * ) data->responses[idx]->message->value)[arrayIdx]);
                                 }
                             }
                             else if (data->responses[idx]->type == Int16)
@@ -115,7 +110,8 @@ extern "C"
                                 PRINT_ARG("Int16 output array length :: ", arrayLen);
                                 for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                                 {
-                                    PRINT(((int16_t *) data->responses[idx]->message->value)[arrayIdx]);
+                                    PRINT(
+                                            ((int16_t * ) data->responses[idx]->message->value)[arrayIdx]);
                                 }
                             }
                             else if (data->responses[idx]->type == UInt16)
@@ -124,7 +120,8 @@ extern "C"
                                 PRINT_ARG("UInt16 output array length ::", arrayLen);
                                 for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                                 {
-                                    PRINT(((int16_t *) data->responses[idx]->message->value)[arrayIdx]);
+                                    PRINT(
+                                            ((int16_t * ) data->responses[idx]->message->value)[arrayIdx]);
                                 }
                             }
                             else if (data->responses[idx]->type == Int32)
@@ -135,9 +132,12 @@ extern "C"
                                     EXPECT_EQ(arrayLen, 5);
                                 for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                                 {
-                                    PRINT(((int32_t *) data->responses[idx]->message->value)[arrayIdx]);
+                                    PRINT(
+                                            ((int32_t * ) data->responses[idx]->message->value)[arrayIdx]);
                                     if (methodCallFlag)
-                                        EXPECT_EQ(((int32_t *) data->responses[idx]->message->value)[arrayIdx], method_arr[arrayIdx]);
+                                        EXPECT_EQ(
+                                                ((int32_t * ) data->responses[idx]->message->value)[arrayIdx],
+                                                method_arr[arrayIdx]);
                                 }
                                 methodCallFlag = false;
                             }
@@ -147,7 +147,8 @@ extern "C"
                                 PRINT_ARG("UInt32 output array length :: ", arrayLen);
                                 for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                                 {
-                                    PRINT(((int32_t *) data->responses[idx]->message->value)[arrayIdx]);
+                                    PRINT(
+                                            ((int32_t * ) data->responses[idx]->message->value)[arrayIdx]);
                                 }
                             }
                             else if (data->responses[idx]->type == Int64)
@@ -156,7 +157,8 @@ extern "C"
                                 PRINT_ARG("Int64 output array length :: ", arrayLen);
                                 for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                                 {
-                                    PRINT(((long int *) data->responses[idx]->message->value)[arrayIdx]);
+                                    PRINT(
+                                            ((long int * ) data->responses[idx]->message->value)[arrayIdx]);
                                 }
                             }
                             else if (data->responses[idx]->type == UInt64)
@@ -165,7 +167,8 @@ extern "C"
                                 PRINT_ARG("UInt64 output array length :: ", arrayLen);
                                 for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                                 {
-                                    PRINT(((long int *) data->responses[idx]->message->value)[arrayIdx]);
+                                    PRINT(
+                                            ((long int * ) data->responses[idx]->message->value)[arrayIdx]);
                                 }
                             }
                             else if (data->responses[idx]->type == Float)
@@ -174,7 +177,8 @@ extern "C"
                                 PRINT_ARG("Float output array length :: ", arrayLen);
                                 for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                                 {
-                                    PRINT(((float *) data->responses[idx]->message->value)[arrayIdx]);
+                                    PRINT(
+                                            ((float * ) data->responses[idx]->message->value)[arrayIdx]);
                                 }
                             }
                             else if (data->responses[idx]->type == Double)
@@ -183,14 +187,17 @@ extern "C"
                                 PRINT_ARG("Double output array length :: ", arrayLen);
                                 for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                                 {
-                                    PRINT(((double *) data->responses[idx]->message->value)[arrayIdx]);
+                                    PRINT(
+                                            ((double * ) data->responses[idx]->message->value)[arrayIdx]);
                                 }
                             }
-                            else if (data->responses[idx]->type == String || data->responses[idx]->type == ByteString
-                                     || data->responses[idx]->type == Guid)
+                            else if (data->responses[idx]->type == String
+                                    || data->responses[idx]->type == ByteString
+                                    || data->responses[idx]->type == Guid)
                             {
                                 /* Handle String/ByteString/Guid output array */
-                                PRINT_ARG("String/ByteString/Guid output array length :: ", arrayLen);
+                                PRINT_ARG("String/ByteString/Guid output array length :: ",
+                                        arrayLen);
                                 char **values = ((char **) data->responses[idx]->message->value);
                                 for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                                 {
@@ -203,32 +210,39 @@ extern "C"
                                 PRINT_ARG("DateTime output array length :: ", arrayLen);
                                 for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                                 {
-                                    PRINT(((int64_t *) data->responses[idx]->message->value)[arrayIdx]);
+                                    PRINT(
+                                            ((int64_t * ) data->responses[idx]->message->value)[arrayIdx]);
                                 }
                             }
                         }
                         else
                         {
                             if (data->responses[idx]->type == Boolean)
-                                PRINT_ARG("[Application response Callback] Data read from node ===>> ",
-                                          *((int *)data->responses[idx]->message->value));
+                                PRINT_ARG(
+                                        "[Application response Callback] Data read from node ===>> ",
+                                        *((int * )data->responses[idx]->message->value));
                             else if (data->responses[idx]->type == Byte)
-                                PRINT_ARG("[Application response Callback] Data read from node ===>> ",
-                                          *((int8_t *)data->responses[idx]->message->value));
+                                PRINT_ARG(
+                                        "[Application response Callback] Data read from node ===>> ",
+                                        *((int8_t * )data->responses[idx]->message->value));
                             else if (data->responses[idx]->type == SByte)
-                                PRINT_ARG("[Application response Callback] Data read from node ===>> ",
-                                          *((int8_t *)data->responses[idx]->message->value));
+                                PRINT_ARG(
+                                        "[Application response Callback] Data read from node ===>> ",
+                                        *((int8_t * )data->responses[idx]->message->value));
                             else if (data->responses[idx]->type == ByteString)
-                                PRINT_ARG("[Application response Callback] Data read from node ===>> ",
-                                          (char *)data->responses[idx]->message->value);
+                                PRINT_ARG(
+                                        "[Application response Callback] Data read from node ===>> ",
+                                        (char * )data->responses[idx]->message->value);
                             else if (data->responses[idx]->type == DateTime)
-                                PRINT_ARG("[Application response Callback] Data read from node ===>> ",
-                                          *((int64_t *)data->responses[idx]->message->value));
+                                PRINT_ARG(
+                                        "[Application response Callback] Data read from node ===>> ",
+                                        *((int64_t * )data->responses[idx]->message->value));
                             else if (data->responses[idx]->type == Double)
                             {
-                                PRINT_ARG("[Application response Callback] Data read from node ===>>  ",
-                                          *((double *)data->responses[idx]->message->value));
-                                double temp = *((double *)data->responses[idx]->message->value);
+                                PRINT_ARG(
+                                        "[Application response Callback] Data read from node ===>>  ",
+                                        *((double * )data->responses[idx]->message->value));
+                                double temp = *((double *) data->responses[idx]->message->value);
                                 if (readNodeFlag)
                                     EXPECT_EQ(temp, TEST_DOUBLE_R);
                                 else if (methodCallFlag)
@@ -240,17 +254,20 @@ extern "C"
                                     EXPECT_EQ(temp, TEST_DOUBLE_W);
                             }
                             else if (data->responses[idx]->type == Float)
-                                PRINT_ARG("[Application response Callback] Data read from node ===>>  ",
-                                          *((float *)data->responses[idx]->message->value));
+                                PRINT_ARG(
+                                        "[Application response Callback] Data read from node ===>>  ",
+                                        *((float * )data->responses[idx]->message->value));
                             else if (data->responses[idx]->type == Int16)
-                                PRINT_ARG("[Application response Callback] Data read from node ===>> ",
-                                          *((int16_t *)data->responses[idx]->message->value));
+                                PRINT_ARG(
+                                        "[Application response Callback] Data read from node ===>> ",
+                                        *((int16_t * )data->responses[idx]->message->value));
                             else if (data->responses[idx]->type == UInt16)
                             {
-                                PRINT_ARG("[Application response Callback] Data read from node ===>> ",
-                                          *((int16_t *)data->responses[idx]->message->value));
+                                PRINT_ARG(
+                                        "[Application response Callback] Data read from node ===>> ",
+                                        *((int16_t * )data->responses[idx]->message->value));
 
-                                int16_t temp = *((int16_t *)data->responses[idx]->message->value);
+                                int16_t temp = *((int16_t *) data->responses[idx]->message->value);
                                 if (readNodeFlag)
                                     EXPECT_EQ(temp, TEST_UINT16_R);
                                 else
@@ -258,44 +275,52 @@ extern "C"
                             }
                             else if (data->responses[idx]->type == Int32)
                             {
-                                PRINT_ARG("[Application response Callback] Data read from node ===>>  ",
-                                          *((int32_t *)data->responses[idx]->message->value));
+                                PRINT_ARG(
+                                        "[Application response Callback] Data read from node ===>>  ",
+                                        *((int32_t * )data->responses[idx]->message->value));
 
-                                int temp = *((int *)data->responses[idx]->message->value);
+                                int temp = *((int *) data->responses[idx]->message->value);
                                 if (readNodeFlag)
                                     EXPECT_EQ(temp, TEST_INT32_R);
                                 else
                                     EXPECT_EQ(temp, TEST_INT32_W);
                             }
                             else if (data->responses[idx]->type == UInt32)
-                                PRINT_ARG("[Application response Callback] Data read from node ===>>  ",
-                                          *((int32_t *)data->responses[idx]->message->value));
+                                PRINT_ARG(
+                                        "[Application response Callback] Data read from node ===>>  ",
+                                        *((int32_t * )data->responses[idx]->message->value));
                             else if (data->responses[idx]->type == Int64)
-                                PRINT_ARG("[Application response Callback] Data read from node ===>>  ",
-                                          *((int64_t *)data->responses[idx]->message->value));
+                                PRINT_ARG(
+                                        "[Application response Callback] Data read from node ===>>  ",
+                                        *((int64_t * )data->responses[idx]->message->value));
                             else if (data->responses[idx]->type == UInt64)
-                                PRINT_ARG("[Application response Callback] Data read from node ===>>  ",
-                                          *((int64_t *)data->responses[idx]->message->value));
+                                PRINT_ARG(
+                                        "[Application response Callback] Data read from node ===>>  ",
+                                        *((int64_t * )data->responses[idx]->message->value));
                             else if (data->responses[idx]->type == String)
                             {
-                                PRINT_ARG("[Application response Callback] Data read from node ===>>  ",
-                                          (char *)data->responses[idx]->message->value);
+                                PRINT_ARG(
+                                        "[Application response Callback] Data read from node ===>>  ",
+                                        (char * )data->responses[idx]->message->value);
 
-                                char *temp = ((char *)data->responses[idx]->message->value);
+                                char *temp = ((char *) data->responses[idx]->message->value);
                                 if (readNodeFlag)
-                                    EXPECT_EQ((strcmp(temp, TEST_STR1_R) && strcmp(temp, TEST_STR2_R) &&
-                                               strcmp(temp, TEST_STR3_R)), 0);
+                                    EXPECT_EQ(
+                                            (strcmp(temp, TEST_STR1_R) && strcmp(temp, TEST_STR2_R) && strcmp(temp, TEST_STR3_R)),
+                                            0);
                                 else
-                                    EXPECT_EQ((strcmp(temp, TEST_STR1_W) && strcmp(temp, TEST_STR2_W) &&
-                                               strcmp(temp, TEST_STR3_W)), 0);
+                                    EXPECT_EQ(
+                                            (strcmp(temp, TEST_STR1_W) && strcmp(temp, TEST_STR2_W) && strcmp(temp, TEST_STR3_W)),
+                                            0);
                             }
                         }
                     }
                     else if (data->command == CMD_WRITE)
                     {
-                        EXPECT_EQ(strcmp("Good", (char *) data->responses[idx]->message->value), 0);
+                        EXPECT_EQ(strcmp("Good", (char * ) data->responses[idx]->message->value),
+                                0);
                         PRINT_ARG("[Application response Callback] Write response :: ",
-                                  (char *) data->responses[idx]->message->value);
+                                (char * ) data->responses[idx]->message->value);
                     }
                 }
                 PRINT("=========");
@@ -303,7 +328,7 @@ extern "C"
         }
     }
 
-    static void monitored_msg_cb (EdgeMessage *data)
+    static void monitored_msg_cb(EdgeMessage *data)
     {
         if (data->type == REPORT)
         {
@@ -315,54 +340,65 @@ extern "C"
                 if (data->responses[idx]->message != NULL)
                 {
                     if (data->responses[idx]->type == Int16)
-                        PRINT_ARG("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>> ",
-                                  *((int *)data->responses[idx]->message->value));
+                        PRINT_ARG(
+                                "[MonitoredItem DataChange callback] Monitored Change Value read from node ===>> ",
+                                *((int * )data->responses[idx]->message->value));
                     else if (data->responses[idx]->type == UInt16)
-                        PRINT_ARG("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>> ",
-                                  *((int *)data->responses[idx]->message->value));
+                        PRINT_ARG(
+                                "[MonitoredItem DataChange callback] Monitored Change Value read from node ===>> ",
+                                *((int * )data->responses[idx]->message->value));
                     else if (data->responses[idx]->type == Int32)
-                        PRINT_ARG("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>>  ",
-                                  *((int *)data->responses[idx]->message->value));
+                        PRINT_ARG(
+                                "[MonitoredItem DataChange callback] Monitored Change Value read from node ===>>  ",
+                                *((int * )data->responses[idx]->message->value));
                     else if (data->responses[idx]->type == UInt32)
-                        PRINT_ARG("[MonitoredItem DataChange callbackk] Monitored Change Value read from node ===>> ",
-                                  *((int *)data->responses[idx]->message->value));
+                        PRINT_ARG(
+                                "[MonitoredItem DataChange callbackk] Monitored Change Value read from node ===>> ",
+                                *((int * )data->responses[idx]->message->value));
                     else if (data->responses[idx]->type == Int64)
-                        PRINT_ARG("[MonitoredItem DataChange callbackk] Monitored Change Value read from node ===>>  ",
-                                  *((long *)data->responses[idx]->message->value));
+                        PRINT_ARG(
+                                "[MonitoredItem DataChange callbackk] Monitored Change Value read from node ===>>  ",
+                                *((long * )data->responses[idx]->message->value));
                     else if (data->responses[idx]->type == UInt64)
-                        PRINT_ARG("[MonitoredItem DataChange callbackk] Monitored Change Value read from node ===>>  ",
-                                  *((long *)data->responses[idx]->message->value));
+                        PRINT_ARG(
+                                "[MonitoredItem DataChange callbackk] Monitored Change Value read from node ===>>  ",
+                                *((long * )data->responses[idx]->message->value));
                     else if (data->responses[idx]->type == Float)
-                        PRINT_ARG("[MonitoredItem DataChange callback] Monitored Change Value read from node  ===>>  ",
-                                  *((float *)data->responses[idx]->message->value));
+                        PRINT_ARG(
+                                "[MonitoredItem DataChange callback] Monitored Change Value read from node  ===>>  ",
+                                *((float * )data->responses[idx]->message->value));
                     else if (data->responses[idx]->type == Double)
-                        PRINT_ARG("[MonitoredItem DataChange callback] Monitored Change Value read from node  ===>>  ",
-                                  *((double *)data->responses[idx]->message->value));
+                        PRINT_ARG(
+                                "[MonitoredItem DataChange callback] Monitored Change Value read from node  ===>>  ",
+                                *((double * )data->responses[idx]->message->value));
                     else if (data->responses[idx]->type == String)
-                        PRINT_ARG("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>>  ",
-                                  ((char *)data->responses[idx]->message->value));
+                        PRINT_ARG(
+                                "[MonitoredItem DataChange callback] Monitored Change Value read from node ===>>  ",
+                                ((char * )data->responses[idx]->message->value));
                 }
             }
         }
     }
 
-    static void error_msg_cb (EdgeMessage *data)
+    static void error_msg_cb(EdgeMessage *data)
     {
         PRINT_ARG("[error_msg_cb] EdgeStatusCode: ", data->result->code);
     }
 
-    static void browse_msg_cb (EdgeMessage *data)
+    static void browse_msg_cb(EdgeMessage *data)
     {
         if (data->type == BROWSE_RESPONSE)
         {
             EdgeBrowseResult *browseResult = data->browseResult;
             int idx = 0;
-            PRINT_ARG("[Application browse response callback] Request ID :: ", data->responses[0]->requestId);
+            PRINT_ARG("[Application browse response callback] Request ID :: ",
+                    data->responses[0]->requestId);
             PRINT("BrowseName(s): ");
             browseNodeFlag = true;
             for (idx = 0; idx < data->browseResultLength; idx++)
             {
-                if (idx != 0) PRINT(", ");
+                if (idx != 0)
+                    PRINT(", ");
                 PRINT(browseResult[idx].browseName);
             }
             PRINT("================================================");
@@ -370,7 +406,7 @@ extern "C"
     }
 
     /* status callbacks */
-    static void status_start_cb (EdgeEndPointInfo *epInfo, EdgeStatusCode status)
+    static void status_start_cb(EdgeEndPointInfo *epInfo, EdgeStatusCode status)
     {
         if (status == STATUS_SERVER_STARTED)
         {
@@ -384,7 +420,7 @@ extern "C"
         }
     }
 
-    static void status_stop_cb (EdgeEndPointInfo *epInfo, EdgeStatusCode status)
+    static void status_stop_cb(EdgeEndPointInfo *epInfo, EdgeStatusCode status)
     {
         if (status == STATUS_STOP_SERVER)
         {
@@ -398,24 +434,25 @@ extern "C"
         }
     }
 
-    static void status_network_cb (EdgeEndPointInfo *epInfo, EdgeStatusCode status)
+    static void status_network_cb(EdgeEndPointInfo *epInfo, EdgeStatusCode status)
     {
 
     }
 
     /* discovery callback */
-    static void endpoint_found_cb (EdgeDevice *device)
+    static void endpoint_found_cb(EdgeDevice *device)
     {
         if (device)
         {
             int num_endpoints = device->num_endpoints;
             int idx = 0;
             for (idx = 0; idx < num_endpoints; idx++)
-                startClient(device->address, device->port, device->endpointsInfo[idx]->config->securityPolicyUri);
+                startClient(device->address, device->port,
+                        device->endpointsInfo[idx]->config->securityPolicyUri);
         }
     }
 
-    static void device_found_cb (EdgeDevice *device)
+    static void device_found_cb(EdgeDevice *device)
     {
 
     }
@@ -516,9 +553,10 @@ static void subscribeAndModifyNodes()
     subReq->subType = Edge_Create_Sub;
     subReq->samplingInterval = 1000.0;
     subReq->publishingInterval = 0.0;
-    subReq->maxKeepAliveCount = (1 > (int) (
-                                     (10000.0 / subReq->publishingInterval))) ? 1 : (int) (10000.0 / subReq->publishingInterval);
-    subReq->lifetimeCount = 10000;  //subReq->maxKeepAliveCount * 6;
+    subReq->maxKeepAliveCount =
+            (1 > (int) ((10000.0 / subReq->publishingInterval))) ?
+                    1 : (int) (10000.0 / subReq->publishingInterval);
+    subReq->lifetimeCount = 10000; //subReq->maxKeepAliveCount * 6;
     subReq->maxNotificationsPerPublish = 1;
     subReq->publishingEnabled = true;
     subReq->priority = 0;
@@ -547,15 +585,22 @@ static void subscribeAndModifyNodes()
 
     sleep(3);
 
-    free(requests[0]->nodeInfo); requests[0]->nodeInfo = NULL;
-    free(requests[1]->nodeInfo); requests[1]->nodeInfo = NULL;
-    free(requests[0]); requests[0] = NULL;
-    free(requests[1]); requests[1] = NULL;
-    free(requests); requests = NULL;
-    free(subReq); subReq = NULL;
-    free(msg); msg = NULL;
-    free(ep); ep = NULL;
-
+    free(requests[0]->nodeInfo);
+    requests[0]->nodeInfo = NULL;
+    free(requests[1]->nodeInfo);
+    requests[1]->nodeInfo = NULL;
+    free(requests[0]);
+    requests[0] = NULL;
+    free(requests[1]);
+    requests[1] = NULL;
+    free(requests);
+    requests = NULL;
+    free(subReq);
+    subReq = NULL;
+    free(msg);
+    msg = NULL;
+    free(ep);
+    ep = NULL;
 
     //Deleting Subscription - node_arr[0]
     EdgeEndPointInfo *epDel1 = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
@@ -564,10 +609,10 @@ static void subscribeAndModifyNodes()
 
     EdgeSubRequest *subReqDel1 = (EdgeSubRequest *) malloc(sizeof(EdgeSubRequest));
     subReqDel1->subType = Edge_Delete_Sub;
-    
+
     EdgeNodeInfo *nodeInfoDel1 = (EdgeNodeInfo *) malloc(sizeof(EdgeNodeInfo));
     nodeInfoDel1->valueAlias = node_arr[0];
-    
+
     EdgeRequest *requestDel1 = (EdgeRequest *) malloc(sizeof(EdgeRequest));
     requestDel1->nodeInfo = nodeInfoDel1;
     requestDel1->subMsg = subReqDel1;
@@ -580,10 +625,13 @@ static void subscribeAndModifyNodes()
     result = handleSubscription(msgDel1);
     EXPECT_EQ(result.code, STATUS_OK);
 
-    free(subReqDel1); subReqDel1 = NULL;
-    free(nodeInfoDel1); nodeInfoDel1 = NULL;
-    free(requestDel1); requestDel1 = NULL;
-    deleteMessage(msgDel1, epDel1);   
+    free(subReqDel1);
+    subReqDel1 = NULL;
+    free(nodeInfoDel1);
+    nodeInfoDel1 = NULL;
+    free(requestDel1);
+    requestDel1 = NULL;
+    deleteMessage(msgDel1, epDel1);
 
     sleep(2);
 
@@ -595,10 +643,11 @@ static void subscribeAndModifyNodes()
     subReqMod->subType = Edge_Modify_Sub;
     subReqMod->samplingInterval = 3000.0;
     subReqMod->publishingInterval = 0.0;
-    subReqMod->maxKeepAliveCount = (1 > (int) ((10000.0 / subReqMod->publishingInterval))) ? 1 : (int) (
-                                       10000.0 / subReqMod->publishingInterval);
+    subReqMod->maxKeepAliveCount =
+            (1 > (int) ((10000.0 / subReqMod->publishingInterval))) ?
+                    1 : (int) (10000.0 / subReqMod->publishingInterval);
     EDGE_LOG_V(TAG, "keepalive count :: %d\n", subReqMod->maxKeepAliveCount);
-    subReqMod->lifetimeCount = 10000;  //subReq->maxKeepAliveCount * 6;
+    subReqMod->lifetimeCount = 10000; //subReq->maxKeepAliveCount * 6;
     EDGE_LOG_V(TAG, "lifetimecount :: %d\n", subReqMod->lifetimeCount);
     subReqMod->maxNotificationsPerPublish = 1;
     subReqMod->publishingEnabled = true;
@@ -625,11 +674,13 @@ static void subscribeAndModifyNodes()
     EXPECT_EQ(result.code, STATUS_OK);
     sleep(2);
 
-    free(nodeInfoMod); nodeInfoMod = NULL;
-    free(subReqMod); subReqMod = NULL;
-    free(requestMod); requestMod = NULL;
+    free(nodeInfoMod);
+    nodeInfoMod = NULL;
+    free(subReqMod);
+    subReqMod = NULL;
+    free(requestMod);
+    requestMod = NULL;
     deleteMessage(msgMod, epModify);
-
 
     EdgeEndPointInfo *epRepub = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
     epRepub->endpointUri = endpointUri;
@@ -654,9 +705,12 @@ static void subscribeAndModifyNodes()
     sleep(2);
     EXPECT_EQ(result.code, STATUS_OK);
 
-    free(nodeInfoRepub); nodeInfoRepub = NULL;
-    free(subReqRepub); subReqRepub = NULL;
-    free(requestRepub); requestRepub = NULL;
+    free(nodeInfoRepub);
+    nodeInfoRepub = NULL;
+    free(subReqRepub);
+    subReqRepub = NULL;
+    free(requestRepub);
+    requestRepub = NULL;
     deleteMessage(msgRepub, epRepub);
 }
 
@@ -669,10 +723,10 @@ static void deleteSub()
 
     EdgeSubRequest *subReqDel2 = (EdgeSubRequest *) malloc(sizeof(EdgeSubRequest));
     subReqDel2->subType = Edge_Delete_Sub;
-    
+
     EdgeNodeInfo *nodeInfoDel2 = (EdgeNodeInfo *) malloc(sizeof(EdgeNodeInfo));
     nodeInfoDel2->valueAlias = node_arr[1];
-    
+
     EdgeRequest *requestDel2 = (EdgeRequest *) malloc(sizeof(EdgeRequest));
     requestDel2->nodeInfo = nodeInfoDel2;
     requestDel2->subMsg = subReqDel2;
@@ -685,13 +739,16 @@ static void deleteSub()
     EdgeResult result = handleSubscription(msgDel2);
     EXPECT_EQ(result.code, STATUS_OK);
 
-    free(subReqDel2); subReqDel2 = NULL;
-    free(nodeInfoDel2); nodeInfoDel2 = NULL;
-    free(requestDel2); requestDel2 = NULL;
-    deleteMessage(msgDel2, epDel2);   
+    free(subReqDel2);
+    subReqDel2 = NULL;
+    free(nodeInfoDel2);
+    nodeInfoDel2 = NULL;
+    free(requestDel2);
+    requestDel2 = NULL;
+    deleteMessage(msgDel2, epDel2);
 
     sleep(2);
-    
+
 }
 
 static void browseNodes()
@@ -716,7 +773,7 @@ static void browseNodes()
 
     msg->request = request;
     msg->requestLength = 0;
-    msg->browseParam = (EdgeBrowseParameter *)calloc(1, sizeof(EdgeBrowseParameter));
+    msg->browseParam = (EdgeBrowseParameter *) calloc(1, sizeof(EdgeBrowseParameter));
     msg->browseParam->direction = DIRECTION_FORWARD;
     msg->browseParam->maxReferencesPerNode = 0;
 
@@ -725,7 +782,8 @@ static void browseNodes()
     EXPECT_EQ(browseNodeFlag, true);
     browseNodeFlag = false;
 
-    free (nodeInfo); nodeInfo = NULL;
+    free(nodeInfo);
+    nodeInfo = NULL;
 
     nodeInfo = (EdgeNodeInfo *) calloc(1, sizeof(EdgeNodeInfo));
     nodeInfo->nodeId = (EdgeNodeId *) calloc(1, sizeof(EdgeNodeId));
@@ -743,7 +801,7 @@ static void browseNodes()
     browseNodeFlag = false;
 
     // ------------------------------------------------- //
-    free (nodeInfo);
+    free(nodeInfo);
     nodeInfo = NULL;
 
     nodeInfo = (EdgeNodeInfo *) calloc(1, sizeof(EdgeNodeInfo));
@@ -762,10 +820,14 @@ static void browseNodes()
     browseNodeFlag = false;
 
     // ------------------------------------------------- //
-    free (nodeInfo); nodeInfo = NULL;
-    free(ep); ep = NULL;
-    free(request); request = NULL;
-    free(msg); msg = NULL;
+    free(nodeInfo);
+    nodeInfo = NULL;
+    free(ep);
+    ep = NULL;
+    free(request);
+    request = NULL;
+    free(msg);
+    msg = NULL;
 }
 
 static void writeNodes(bool defaultFlag)
@@ -852,10 +914,14 @@ static void writeNodes(bool defaultFlag)
 
         writeNode(msgWrite);
 
-        free (nodeInfo[0]); nodeInfo[0] = NULL;
-        free (nodeInfo); nodeInfo = NULL;
-        free (requests[0]); requests[0] = NULL;
-        free(requests); requests = NULL;
+        free(nodeInfo[0]);
+        nodeInfo[0] = NULL;
+        free(nodeInfo);
+        nodeInfo = NULL;
+        free(requests[0]);
+        requests[0] = NULL;
+        free(requests);
+        requests = NULL;
         deleteMessage(msgWrite, epWrite);
     }
 }
@@ -889,19 +955,25 @@ static void readNodes()
 
         readNode(msgRead);
 
-        free (nodeInfo[0]); nodeInfo[0] = NULL;
+        free(nodeInfo[0]);
+        nodeInfo[0] = NULL;
 
-        free (requests[0]); requests[0] = NULL;
+        free(requests[0]);
+        requests[0] = NULL;
 
-        free(requests); requests = NULL;
+        free(requests);
+        requests = NULL;
 
-        free(msgRead); msgRead = NULL;
+        free(msgRead);
+        msgRead = NULL;
 
     }
 
-    free (nodeInfo); nodeInfo = NULL;
+    free(nodeInfo);
+    nodeInfo = NULL;
 
-    free (epRead); epRead = NULL;
+    free(epRead);
+    epRead = NULL;
 
 }
 
@@ -915,10 +987,11 @@ static void callClientMethods()
     EdgeNodeInfo *nodeInfo = (EdgeNodeInfo *) malloc(sizeof(EdgeNodeInfo));
     nodeInfo->valueAlias = "square_root";
 
-    EdgeMethodRequestParams *methodParams = (EdgeMethodRequestParams *) malloc(sizeof(
-            EdgeMethodRequestParams));
+    EdgeMethodRequestParams *methodParams = (EdgeMethodRequestParams *) malloc(
+            sizeof(EdgeMethodRequestParams));
     methodParams->num_inpArgs = 1;
-    methodParams->inpArg = (EdgeArgument **) malloc(sizeof(EdgeArgument *) * methodParams->num_inpArgs);
+    methodParams->inpArg = (EdgeArgument **) malloc(
+            sizeof(EdgeArgument *) * methodParams->num_inpArgs);
     methodParams->inpArg[0] = (EdgeArgument *) malloc(sizeof(EdgeArgument));
     methodParams->inpArg[0]->argType = Double;
     methodParams->inpArg[0]->valType = SCALAR;
@@ -940,13 +1013,18 @@ static void callClientMethods()
 
     for (int i = 0; i < methodParams->num_inpArgs; i++)
     {
-        free (methodParams->inpArg[i]); methodParams->inpArg[i] = NULL;
+        free(methodParams->inpArg[i]);
+        methodParams->inpArg[i] = NULL;
     }
-    free (methodParams->inpArg); methodParams->inpArg = NULL;
-    free (methodParams); methodParams = NULL;
+    free(methodParams->inpArg);
+    methodParams->inpArg = NULL;
+    free(methodParams);
+    methodParams = NULL;
 
-    free(nodeInfo); nodeInfo = NULL;
-    free(request); request = NULL;
+    free(nodeInfo);
+    nodeInfo = NULL;
+    free(request);
+    request = NULL;
     deleteMessage(msg, ep);
 
     ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
@@ -958,11 +1036,13 @@ static void callClientMethods()
 
     methodParams = (EdgeMethodRequestParams *) malloc(sizeof(EdgeMethodRequestParams));
     methodParams->num_inpArgs = 2;
-    methodParams->inpArg = (EdgeArgument **) malloc(sizeof(EdgeArgument *) * methodParams->num_inpArgs);
+    methodParams->inpArg = (EdgeArgument **) malloc(
+            sizeof(EdgeArgument *) * methodParams->num_inpArgs);
     methodParams->inpArg[0] = (EdgeArgument *) malloc(sizeof(EdgeArgument));
     methodParams->inpArg[0]->argType = Int32;
     methodParams->inpArg[0]->valType = ARRAY_1D;
-    int32_t array[5] = {100, 200, 300, 400, 500};
+    int32_t array[5] =
+    { 100, 200, 300, 400, 500 };
     methodParams->inpArg[0]->arrayData = (void *) array;
     methodParams->inpArg[0]->arrayLength = 5;
 
@@ -987,24 +1067,29 @@ static void callClientMethods()
 
     for (int i = 0; i < methodParams->num_inpArgs; i++)
     {
-        free (methodParams->inpArg[i]); methodParams->inpArg[i] = NULL;
+        free(methodParams->inpArg[i]);
+        methodParams->inpArg[i] = NULL;
     }
-    free (methodParams->inpArg); methodParams->inpArg = NULL;
-    free (methodParams); methodParams = NULL;
-    free(nodeInfo); nodeInfo = NULL;
-    free(request); request = NULL;
+    free(methodParams->inpArg);
+    methodParams->inpArg = NULL;
+    free(methodParams);
+    methodParams = NULL;
+    free(nodeInfo);
+    nodeInfo = NULL;
+    free(request);
+    request = NULL;
     deleteMessage(msg, ep);
 
 }
 
 static void startClient(char *addr, int port, char *securityPolicyUri)
 {
-    PRINT( "                       Client connect            ");
-    EdgeEndpointConfig *endpointConfigClient = (EdgeEndpointConfig *) malloc(sizeof(
-                EdgeEndpointConfig));
-    EXPECT_EQ(NULL != endpointConfigClient,  true);
+    PRINT("                       Client connect            ");
+    EdgeEndpointConfig *endpointConfigClient = (EdgeEndpointConfig *) malloc(
+            sizeof(EdgeEndpointConfig));
+    EXPECT_EQ(NULL != endpointConfigClient, true);
     endpointConfigClient->bindAddress = ipAddress;
-    EXPECT_EQ(strcmp(endpointConfigClient->bindAddress, ipAddress) == 0,  true);
+    EXPECT_EQ(strcmp(endpointConfigClient->bindAddress, ipAddress) == 0, true);
     endpointConfigClient->bindPort = port;
     endpointConfigClient->applicationName = DEFAULT_SERVER_APP_NAME_VALUE;
     endpointConfigClient->applicationUri = DEFAULT_SERVER_APP_URI_VALUE;
@@ -1029,14 +1114,15 @@ static void startClient(char *addr, int port, char *securityPolicyUri)
     msg->type = SEND_REQUEST;
     EXPECT_EQ(msg->type, SEND_REQUEST);
 
-    PRINT( "********************** startClient **********************");
+    PRINT("********************** startClient **********************");
     connectClient(ep);
 
     EXPECT_EQ(startClientFlag, true);
 
     deleteMessage(msg, ep);
 
-    free(endpointConfigClient); endpointConfigClient = NULL;
+    free(endpointConfigClient);
+    endpointConfigClient = NULL;
 }
 
 static void stopClient()
@@ -1056,51 +1142,51 @@ static void stopClient()
 
 class OPC_serverTests: public ::testing::Test
 {
-    protected:
+protected:
 
-        virtual void SetUp()
+    virtual void SetUp()
+    {
+        strcpy(ipAddress, LOCALHOST);
+        snprintf(endpointUri, sizeof(endpointUri), ENDPOINT_URI, ipAddress);
+
+        epInfo = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+
+    }
+
+    virtual void TearDown()
+    {
+        if (epInfo != NULL)
         {
-            strcpy(ipAddress, LOCALHOST);
-            snprintf(endpointUri, sizeof(endpointUri), ENDPOINT_URI, ipAddress);
-
-            epInfo = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
-
+            free(epInfo);
+            epInfo = NULL;
         }
 
-        virtual void TearDown()
-        {
-            if (epInfo != NULL)
-            {
-                free(epInfo);
-                epInfo = NULL;
-            }
-
-        }
+    }
 
 };
 
 class OPC_clientTests: public ::testing::Test
 {
-    protected:
+protected:
 
-        virtual void SetUp()
-        {
-            int len = strlen(IPADDRESS);
-            strcpy(ipAddress, IPADDRESS);
-            ipAddress[len] = '\0';
+    virtual void SetUp()
+    {
+        int len = strlen(IPADDRESS);
+        strcpy(ipAddress, IPADDRESS);
+        ipAddress[len] = '\0';
 
-            strcpy(endpointUri, ipAddress);
-            endpointUri[len] = '\0';
+        strcpy(endpointUri, ipAddress);
+        endpointUri[len] = '\0';
 
-            configureCallbacks();
-        }
+        configureCallbacks();
+    }
 
-        virtual void TearDown()
-        {
-            cleanCallbacks();
+    virtual void TearDown()
+    {
+        cleanCallbacks();
 
-            startClientFlag = false;
-        }
+        startClientFlag = false;
+    }
 
 };
 
@@ -1193,19 +1279,19 @@ TEST_F(OPC_serverTests , StartServer_N)
     endpointConfig->bindPort = 12686;
     EXPECT_EQ(endpointConfig->bindPort, 12686);
 
-    endpointConfig->applicationName = (char *)DEFAULT_SERVER_APP_NAME_VALUE;
+    endpointConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
     EXPECT_EQ(strcmp(endpointConfig->applicationName, DEFAULT_SERVER_APP_NAME_VALUE) == 0, true);
 
-    endpointConfig->applicationUri = (char *)DEFAULT_SERVER_URI_VALUE;
+    endpointConfig->applicationUri = (char *) DEFAULT_SERVER_URI_VALUE;
     EXPECT_EQ(strcmp(endpointConfig->applicationUri, DEFAULT_SERVER_URI_VALUE) == 0, true);
 
-    endpointConfig->productUri = (char *)DEFAULT_PRODUCT_URI_VALUE;
+    endpointConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
     EXPECT_EQ(strcmp(endpointConfig->productUri, DEFAULT_PRODUCT_URI_VALUE) == 0, true);
 
     endpointConfig->securityPolicyUri = NULL;
     EXPECT_EQ(endpointConfig->securityPolicyUri == NULL, true);
 
-    endpointConfig->serverName = (char *)DEFAULT_SERVER_NAME_VALUE;
+    endpointConfig->serverName = (char *) DEFAULT_SERVER_NAME_VALUE;
     EXPECT_EQ(strcmp(endpointConfig->serverName, DEFAULT_SERVER_NAME_VALUE) == 0, true);
 
     EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
@@ -1230,7 +1316,7 @@ TEST_F(OPC_serverTests , StartServer_N)
 
     //createServer(ep);
     //::TODO - This case is faling need to put NULL checks
-    createServer(NULL);
+    createServer (NULL);
 
     EXPECT_EQ(startServerFlag, false);
 
@@ -1257,11 +1343,11 @@ TEST_F(OPC_serverTests , StartServer_P)
     EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) malloc(sizeof(EdgeEndpointConfig));
     endpointConfig->bindAddress = ipAddress;
     endpointConfig->bindPort = 12686;
-    endpointConfig->applicationName = (char *)DEFAULT_SERVER_APP_NAME_VALUE;
-    endpointConfig->applicationUri = (char *)DEFAULT_SERVER_URI_VALUE;
-    endpointConfig->productUri = (char *)DEFAULT_PRODUCT_URI_VALUE;
+    endpointConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
+    endpointConfig->applicationUri = (char *) DEFAULT_SERVER_URI_VALUE;
+    endpointConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
     endpointConfig->securityPolicyUri = NULL;
-    endpointConfig->serverName = (char *)DEFAULT_SERVER_NAME_VALUE;
+    endpointConfig->serverName = (char *) DEFAULT_SERVER_NAME_VALUE;
     EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
     ep->endpointUri = endpointUri;
     ep->config = endpointConfig;
@@ -1305,11 +1391,11 @@ TEST_F(OPC_serverTests , ServerCreateNamespace_P)
 
     endpointConfig->bindAddress = ipAddress;
     endpointConfig->bindPort = 12686;
-    endpointConfig->applicationName = (char *)DEFAULT_SERVER_APP_NAME_VALUE;
-    endpointConfig->applicationUri = (char *)DEFAULT_SERVER_URI_VALUE;
-    endpointConfig->productUri = (char *)DEFAULT_PRODUCT_URI_VALUE;
+    endpointConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
+    endpointConfig->applicationUri = (char *) DEFAULT_SERVER_URI_VALUE;
+    endpointConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
     endpointConfig->securityPolicyUri = NULL;
-    endpointConfig->serverName = (char *)DEFAULT_SERVER_NAME_VALUE;
+    endpointConfig->serverName = (char *) DEFAULT_SERVER_NAME_VALUE;
 
     EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
     ep->endpointUri = endpointUri;
@@ -1327,9 +1413,9 @@ TEST_F(OPC_serverTests , ServerCreateNamespace_P)
     EXPECT_EQ(startServerFlag, true);
 
     EdgeResult result = createNamespace(DEFAULT_NAMESPACE_VALUE,
-                                        DEFAULT_ROOT_NODE_INFO_VALUE,
-                                        DEFAULT_ROOT_NODE_INFO_VALUE,
-                                        DEFAULT_ROOT_NODE_INFO_VALUE);
+    DEFAULT_ROOT_NODE_INFO_VALUE,
+    DEFAULT_ROOT_NODE_INFO_VALUE,
+    DEFAULT_ROOT_NODE_INFO_VALUE);
 
     EXPECT_EQ(result.code, STATUS_OK);
 
@@ -1357,11 +1443,11 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) malloc(sizeof(EdgeEndpointConfig));
     endpointConfig->bindAddress = ipAddress;
     endpointConfig->bindPort = 12686;
-    endpointConfig->applicationName = (char *)DEFAULT_SERVER_APP_NAME_VALUE;
-    endpointConfig->applicationUri = (char *)DEFAULT_SERVER_URI_VALUE;
-    endpointConfig->productUri = (char *)DEFAULT_PRODUCT_URI_VALUE;
+    endpointConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
+    endpointConfig->applicationUri = (char *) DEFAULT_SERVER_URI_VALUE;
+    endpointConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
     endpointConfig->securityPolicyUri = NULL;
-    endpointConfig->serverName = (char *)DEFAULT_SERVER_NAME_VALUE;
+    endpointConfig->serverName = (char *) DEFAULT_SERVER_NAME_VALUE;
 
     EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
     ep->endpointUri = endpointUri;
@@ -1416,7 +1502,8 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     message->value = (void *) &value;
     result = modifyVariableNode(DEFAULT_NAMESPACE_VALUE, name, message);
     EXPECT_EQ(result.code, STATUS_OK);
-    free(message); message = NULL;
+    free(message);
+    message = NULL;
 
     //Array Nodes with double values
     double *data = (double *) malloc(sizeof(double) * 2);
@@ -1476,13 +1563,13 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     //OBJECT NODE
     item->nodeType = OBJECT_NODE;
     item->browseName = "Object1";
-    item->sourceNodeId = (EdgeNodeId *) malloc (sizeof(EdgeNodeId));
-    item->sourceNodeId->nodeId = NULL;    // no source node
+    item->sourceNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
+    item->sourceNodeId->nodeId = NULL; // no source node
     result = createNode(DEFAULT_NAMESPACE_VALUE, item);
     EXPECT_EQ(result.code, STATUS_OK);
     item->nodeType = OBJECT_NODE;
     item->browseName = "Object2";
-    item->sourceNodeId = (EdgeNodeId *) malloc (sizeof(EdgeNodeId));
+    item->sourceNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
     item->sourceNodeId->nodeId = "Object1";
     result = createNode(DEFAULT_NAMESPACE_VALUE, item);
     EXPECT_EQ(result.code, STATUS_OK);
@@ -1490,13 +1577,13 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     //OBJECT TYPE NDOE
     item->nodeType = OBJECT_TYPE_NODE;
     item->browseName = "ObjectType1";
-    item->sourceNodeId = (EdgeNodeId *) malloc (sizeof(EdgeNodeId));
-    item->sourceNodeId->nodeId = NULL;    // no source node
+    item->sourceNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
+    item->sourceNodeId->nodeId = NULL; // no source node
     result = createNode(DEFAULT_NAMESPACE_VALUE, item);
     EXPECT_EQ(result.code, STATUS_OK);
     item->nodeType = OBJECT_TYPE_NODE;
     item->browseName = "ObjectType2";
-    item->sourceNodeId = (EdgeNodeId *) malloc (sizeof(EdgeNodeId));
+    item->sourceNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
     item->sourceNodeId->nodeId = "ObjectType1";
     result = createNode(DEFAULT_NAMESPACE_VALUE, item);
     EXPECT_EQ(result.code, STATUS_OK);
@@ -1504,20 +1591,21 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     //DATA TYPE NODE
     item->nodeType = DATA_TYPE_NODE;
     item->browseName = "DataType1";
-    item->sourceNodeId = (EdgeNodeId *) malloc (sizeof(EdgeNodeId));
-    item->sourceNodeId->nodeId = NULL;    // no source node
+    item->sourceNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
+    item->sourceNodeId->nodeId = NULL; // no source node
     result = createNode(DEFAULT_NAMESPACE_VALUE, item);
     EXPECT_EQ(result.code, STATUS_OK);
 
     item->nodeType = DATA_TYPE_NODE;
     item->browseName = "DataType2";
-    item->sourceNodeId = (EdgeNodeId *) malloc (sizeof(EdgeNodeId));
+    item->sourceNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
     item->sourceNodeId->nodeId = "DataType1";
     result = createNode(DEFAULT_NAMESPACE_VALUE, item);
     EXPECT_EQ(result.code, STATUS_OK);
 
     //VARIABLE TYPE NODE
-    double d[2] = { 10.2, 20.2 };
+    double d[2] =
+    { 10.2, 20.2 };
     item->browseName = "DoubleVariableType";
     item->nodeType = VARIABLE_TYPE_NODE;
     item->variableItemName = "DoubleVariableType";
@@ -1530,20 +1618,20 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     //VIEW NODE
     item->nodeType = VIEW_NODE;
     item->browseName = "ViewNode1";
-    item->sourceNodeId = (EdgeNodeId *) malloc (sizeof(EdgeNodeId));
-    item->sourceNodeId->nodeId = NULL;    // no source node
+    item->sourceNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
+    item->sourceNodeId->nodeId = NULL; // no source node
     result = createNode(DEFAULT_NAMESPACE_VALUE, item);
     EXPECT_EQ(result.code, STATUS_OK);
     item->nodeType = VIEW_NODE;
     item->browseName = "ViewNode2";
-    item->sourceNodeId = (EdgeNodeId *) malloc (sizeof(EdgeNodeId));
-    item->sourceNodeId->nodeId = "ViewNode1";    // no source node
+    item->sourceNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
+    item->sourceNodeId->nodeId = "ViewNode1"; // no source node
     result = createNode(DEFAULT_NAMESPACE_VALUE, item);
     EXPECT_EQ(result.code, STATUS_OK);
 
     //REFERENCE NODE
     EdgeReference *reference = (EdgeReference *) malloc(sizeof(EdgeReference));
-    reference->forward =  false;
+    reference->forward = false;
     reference->sourceNamespace = DEFAULT_NAMESPACE_VALUE;
     reference->sourcePath = "ObjectType1";
     reference->targetNamespace = DEFAULT_NAMESPACE_VALUE;
@@ -1551,7 +1639,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     result = addReference(reference);
     EXPECT_EQ(result.code, STATUS_OK);
     addReference(reference);
-    reference->forward =  true;
+    reference->forward = true;
     reference->sourceNamespace = DEFAULT_NAMESPACE_VALUE;
     reference->sourcePath = "ViewNode1";
     reference->targetNamespace = DEFAULT_NAMESPACE_VALUE;
@@ -1562,13 +1650,13 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     //REFERENCE TYPE NODE
     item->nodeType = REFERENCE_TYPE_NODE;
     item->browseName = "ReferenceTypeNode1";
-    item->sourceNodeId = (EdgeNodeId *) malloc (sizeof(EdgeNodeId));
-    item->sourceNodeId->nodeId = NULL;    // no source node
+    item->sourceNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
+    item->sourceNodeId->nodeId = NULL; // no source node
     result = createNode(DEFAULT_NAMESPACE_VALUE, item);
     EXPECT_EQ(result.code, STATUS_OK);
     item->nodeType = REFERENCE_TYPE_NODE;
     item->browseName = "ReferenceTypeNode2";
-    item->sourceNodeId = (EdgeNodeId *) malloc (sizeof(EdgeNodeId));
+    item->sourceNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
     item->sourceNodeId->nodeId = "ReferenceTypeNode1";
     result = createNode(DEFAULT_NAMESPACE_VALUE, item);
     EXPECT_EQ(result.code, STATUS_OK);
@@ -1627,11 +1715,11 @@ TEST_F(OPC_serverTests , StartStopServer_P)
 
     endpointConfig->bindAddress = ipAddress;
     endpointConfig->bindPort = 12686;
-    endpointConfig->applicationName = (char *)DEFAULT_SERVER_APP_NAME_VALUE;
-    endpointConfig->applicationUri = (char *)DEFAULT_SERVER_URI_VALUE;
-    endpointConfig->productUri = (char *)DEFAULT_PRODUCT_URI_VALUE;
+    endpointConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
+    endpointConfig->applicationUri = (char *) DEFAULT_SERVER_URI_VALUE;
+    endpointConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
     endpointConfig->securityPolicyUri = NULL;
-    endpointConfig->serverName = (char *)DEFAULT_SERVER_NAME_VALUE;
+    endpointConfig->serverName = (char *) DEFAULT_SERVER_NAME_VALUE;
 
     EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
     ep->endpointUri = endpointUri;
@@ -1692,11 +1780,11 @@ TEST_F(OPC_serverTests , StartServerNew_P)
 
     endpointConfig->bindAddress = ipAddress;
     endpointConfig->bindPort = 12686;
-    endpointConfig->applicationName = (char *)DEFAULT_SERVER_APP_NAME_VALUE;
-    endpointConfig->applicationUri = (char *)DEFAULT_SERVER_URI_VALUE;
-    endpointConfig->productUri = (char *)DEFAULT_PRODUCT_URI_VALUE;
+    endpointConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
+    endpointConfig->applicationUri = (char *) DEFAULT_SERVER_URI_VALUE;
+    endpointConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
     endpointConfig->securityPolicyUri = NULL;
-    endpointConfig->serverName = (char *)DEFAULT_SERVER_NAME_VALUE;
+    endpointConfig->serverName = (char *) DEFAULT_SERVER_NAME_VALUE;
 
     EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
     ep->endpointUri = endpointUri;
@@ -1747,15 +1835,15 @@ TEST_F(OPC_clientTests , InitializeClient_P)
 TEST_F(OPC_clientTests , StartClient_P)
 {
     EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) malloc(sizeof(EdgeEndpointConfig));
-    EXPECT_EQ(NULL != endpointConfig,  true);
-    endpointConfig->applicationName = (char *)DEFAULT_SERVER_APP_NAME_VALUE;
-    EXPECT_EQ(strcmp(endpointConfig->applicationName, DEFAULT_SERVER_APP_NAME_VALUE) == 0,  true);
-    endpointConfig->applicationUri = (char *)DEFAULT_SERVER_APP_URI_VALUE;
-    EXPECT_EQ(strcmp(endpointConfig->applicationUri, DEFAULT_SERVER_APP_URI_VALUE) == 0,  true);
-    endpointConfig->productUri = (char *)DEFAULT_PRODUCT_URI_VALUE;
-    EXPECT_EQ(strcmp(endpointConfig->productUri, DEFAULT_PRODUCT_URI_VALUE) == 0,  true);
-    endpointConfig->serverName = (char *)DEFAULT_SERVER_NAME_VALUE;
-    EXPECT_EQ(strcmp(endpointConfig->serverName, DEFAULT_SERVER_NAME_VALUE) == 0,  true);
+    EXPECT_EQ(NULL != endpointConfig, true);
+    endpointConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
+    EXPECT_EQ(strcmp(endpointConfig->applicationName, DEFAULT_SERVER_APP_NAME_VALUE) == 0, true);
+    endpointConfig->applicationUri = (char *) DEFAULT_SERVER_APP_URI_VALUE;
+    EXPECT_EQ(strcmp(endpointConfig->applicationUri, DEFAULT_SERVER_APP_URI_VALUE) == 0, true);
+    endpointConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
+    EXPECT_EQ(strcmp(endpointConfig->productUri, DEFAULT_PRODUCT_URI_VALUE) == 0, true);
+    endpointConfig->serverName = (char *) DEFAULT_SERVER_NAME_VALUE;
+    EXPECT_EQ(strcmp(endpointConfig->serverName, DEFAULT_SERVER_NAME_VALUE) == 0, true);
 
     EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
     EXPECT_EQ(NULL != ep, true);
@@ -1789,10 +1877,10 @@ TEST_F(OPC_clientTests , StartClient_P)
 TEST_F(OPC_clientTests , ClientBrowse_P)
 {
     EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) malloc(sizeof(EdgeEndpointConfig));
-    endpointConfig->applicationName = (char *)DEFAULT_SERVER_APP_NAME_VALUE;
-    endpointConfig->applicationUri = (char *)DEFAULT_SERVER_APP_URI_VALUE;
-    endpointConfig->productUri = (char *)DEFAULT_PRODUCT_URI_VALUE;
-    endpointConfig->serverName = (char *)DEFAULT_SERVER_NAME_VALUE;
+    endpointConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
+    endpointConfig->applicationUri = (char *) DEFAULT_SERVER_APP_URI_VALUE;
+    endpointConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
+    endpointConfig->serverName = (char *) DEFAULT_SERVER_NAME_VALUE;
 
     EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
     ep->endpointUri = endpointUri;
@@ -1832,10 +1920,10 @@ TEST_F(OPC_clientTests , ClientBrowse_P)
 TEST_F(OPC_clientTests , ClientRead_P)
 {
     EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) malloc(sizeof(EdgeEndpointConfig));
-    endpointConfig->applicationName = (char *)DEFAULT_SERVER_APP_NAME_VALUE;
-    endpointConfig->applicationUri = (char *)DEFAULT_SERVER_APP_URI_VALUE;
-    endpointConfig->productUri = (char *)DEFAULT_PRODUCT_URI_VALUE;
-    endpointConfig->serverName = (char *)DEFAULT_SERVER_NAME_VALUE;
+    endpointConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
+    endpointConfig->applicationUri = (char *) DEFAULT_SERVER_APP_URI_VALUE;
+    endpointConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
+    endpointConfig->serverName = (char *) DEFAULT_SERVER_NAME_VALUE;
 
     EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
     ep->endpointUri = endpointUri;
@@ -1874,10 +1962,10 @@ TEST_F(OPC_clientTests , ClientRead_P)
 TEST_F(OPC_clientTests , ClientWrite_P)
 {
     EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) malloc(sizeof(EdgeEndpointConfig));
-    endpointConfig->applicationName = (char *)DEFAULT_SERVER_APP_NAME_VALUE;
-    endpointConfig->applicationUri = (char *)DEFAULT_SERVER_APP_URI_VALUE;
-    endpointConfig->productUri = (char *)DEFAULT_PRODUCT_URI_VALUE;
-    endpointConfig->serverName = (char *)DEFAULT_SERVER_NAME_VALUE;
+    endpointConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
+    endpointConfig->applicationUri = (char *) DEFAULT_SERVER_APP_URI_VALUE;
+    endpointConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
+    endpointConfig->serverName = (char *) DEFAULT_SERVER_NAME_VALUE;
 
     EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
     ep->endpointUri = endpointUri;
@@ -1922,10 +2010,10 @@ TEST_F(OPC_clientTests , ClientWrite_P)
 TEST_F(OPC_clientTests , ClientMethodCall_P)
 {
     EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) malloc(sizeof(EdgeEndpointConfig));
-    endpointConfig->applicationName = (char *)DEFAULT_SERVER_APP_NAME_VALUE;
-    endpointConfig->applicationUri = (char *)DEFAULT_SERVER_APP_URI_VALUE;
-    endpointConfig->productUri = (char *)DEFAULT_PRODUCT_URI_VALUE;
-    endpointConfig->serverName = (char *)DEFAULT_SERVER_NAME_VALUE;
+    endpointConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
+    endpointConfig->applicationUri = (char *) DEFAULT_SERVER_APP_URI_VALUE;
+    endpointConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
+    endpointConfig->serverName = (char *) DEFAULT_SERVER_NAME_VALUE;
 
     EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
     ep->endpointUri = endpointUri;
@@ -1964,10 +2052,10 @@ TEST_F(OPC_clientTests , ClientMethodCall_P)
 TEST_F(OPC_clientTests , ClientSubscribe_P)
 {
     EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) malloc(sizeof(EdgeEndpointConfig));
-    endpointConfig->applicationName = (char *)DEFAULT_SERVER_APP_NAME_VALUE;
-    endpointConfig->applicationUri = (char *)DEFAULT_SERVER_APP_URI_VALUE;
-    endpointConfig->productUri = (char *)DEFAULT_PRODUCT_URI_VALUE;
-    endpointConfig->serverName = (char *)DEFAULT_SERVER_NAME_VALUE;
+    endpointConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
+    endpointConfig->applicationUri = (char *) DEFAULT_SERVER_APP_URI_VALUE;
+    endpointConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
+    endpointConfig->serverName = (char *) DEFAULT_SERVER_NAME_VALUE;
 
     EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
     ep->endpointUri = endpointUri;
