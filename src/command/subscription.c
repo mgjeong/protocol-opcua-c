@@ -33,7 +33,7 @@
 typedef struct subscriptionInfo
 {
     EdgeMessage *msg;
-    int subId;
+    UA_UInt32 subId;
     UA_UInt32 monId;
 } subscriptionInfo;
 
@@ -164,10 +164,10 @@ static void monitoredItemHandler(UA_UInt32 monId, UA_DataValue *value, void *con
             //memcpy(response->nodeInfo, subInfo->msg->request->nodeInfo, sizeof(EdgeNodeInfo));
             response->nodeInfo->valueAlias = (char *) malloc(strlen(valueAlias) + 1);
             strcpy(response->nodeInfo->valueAlias, valueAlias);
-            if (subInfo->msg != NULL && subInfo->msg->requests != NULL)
-                EDGE_LOG(TAG, "msg->requests VALID here\n");
 
-            //response->requestId = subInfo->msg->request->requestId;
+            // TODO: Handle requestId when implemented
+            //if (subInfo->msg != NULL && subInfo->msg->requests != NULL)
+                //response->requestId = subInfo->msg->request->requestId;
 
             EdgeVersatility *versatility = (EdgeVersatility *) malloc(sizeof(EdgeVersatility));
             versatility->arrayLength = 0;
@@ -353,9 +353,9 @@ static UA_StatusCode createSub(UA_Client *client, EdgeMessage *msg)
             if (!validateMonitoringId(subId, monId[i]))
             {
                 EDGE_LOG_V(TAG, "Error :: Existing Monitored ID received:: %u\n", monId[i]);
-
-                EDGE_LOG_V(TAG, "Existing Sub ID %d, Existing Monitored ID :: %u\n", subId, monId[i]);
-                return UA_STATUSCODE_BADMONITOREDITEMIDINVALID;
+                EDGE_LOG_V(TAG, "Existing Node Details : Sub ID %d, Monitored ID :: %u\n"
+                    "Error :: %s Not added to subscription list\n\n ", subId, monId[i], hfContexts[i]);
+                continue;
             }
 
             EDGE_LOG_V(TAG, "\tMonitoring ID :: %u\n", monId[i]);
@@ -376,6 +376,24 @@ static UA_StatusCode createSub(UA_Client *client, EdgeMessage *msg)
             EDGE_LOG_V(TAG, "ERROR Result Recevied for this item : %s\n", UA_StatusCode_name(itemResults[i]));
             return itemResults[i];
         }
+
+        if (!subscriptionList)
+        {
+            /* Create subscription list */
+            subscriptionList = createMap();
+        }
+        if (subscriptionList)
+        {   
+            subscriptionInfo *subInfo = (subscriptionInfo *) malloc(sizeof(subscriptionInfo));
+            subInfo->msg = msgCopy;
+            subInfo->subId = subId;
+            subInfo->monId = monId[i];
+
+            EDGE_LOG_V(TAG, "Inserting MAP ELEMENT \n\t keyValue :: %s \n",
+                   hfContexts[i]);
+            insertMapElement(subscriptionList, (keyValue) hfContexts[i],
+                             (keyValue) subInfo);
+        }
     }
 
     if (0 == subscriptionCount)
@@ -384,38 +402,11 @@ static UA_StatusCode createSub(UA_Client *client, EdgeMessage *msg)
         pthread_create(&subscription_thread, NULL, &subscription_thread_handler, (void *) client);
     }
     subscriptionCount++;
-
-    if (!subscriptionList)
-    {
-        /* Create subscription list */
-        subscriptionList = createMap();
-    }
-    if (subscriptionList)
-    {
-        for (int i = 0; i < itemSize; i++)
-        {
-            subscriptionInfo *subInfo = (subscriptionInfo *) malloc(sizeof(subscriptionInfo));
-            subInfo->msg = msgCopy;
-            subInfo->subId = subId;
-            subInfo->monId = monId[i];
-
-            EDGE_LOG_V(TAG, "Inserting MAP ELEMENT \n\t keyValue :: %s \n",
-                    hfContexts[i]);
-            insertMapElement(subscriptionList, (keyValue) hfContexts[i], (keyValue) subInfo);
-
-            //free(hfContexts[i]); hfContexts[i] = NULL;
-        }
-
-        free(monId);
-        monId = NULL;
-        //free(hfContexts); hfContexts = NULL;
-        free(hfs);
-        hfs = NULL;
-        free(itemResults);
-        itemResults = NULL;
-        free(items);
-        items = NULL;
-    }
+    
+    free(monId); monId = NULL;
+    free(hfs); hfs = NULL;
+    free(itemResults); itemResults = NULL;
+    free(items); items = NULL;    
 
     return UA_STATUSCODE_GOOD;
 }
