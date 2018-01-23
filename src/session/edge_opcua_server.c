@@ -113,6 +113,9 @@ EdgeResult start_server(EdgeEndPointInfo *epInfo)
     UA_String_deleteMembers(&m_serverConfig->buildInfo.softwareVersion);
     UA_String_deleteMembers(&m_serverConfig->buildInfo.buildNumber);
 
+    UA_String_deleteMembers(&m_serverConfig->endpoints->endpointDescription.server.applicationUri);
+    UA_LocalizedText_deleteMembers(&m_serverConfig->endpoints->endpointDescription.server.applicationName);
+
     m_serverConfig->applicationDescription.applicationUri = UA_STRING_ALLOC(config->applicationUri);
     m_serverConfig->applicationDescription.applicationName = UA_LOCALIZEDTEXT_ALLOC("en-US",
             config->applicationName);
@@ -122,6 +125,10 @@ EdgeResult start_server(EdgeEndPointInfo *epInfo)
     m_serverConfig->buildInfo.productName = UA_STRING_ALLOC("edgeSolution");
     m_serverConfig->buildInfo.softwareVersion = UA_STRING_ALLOC("0.9");
     m_serverConfig->buildInfo.buildNumber = UA_STRING_ALLOC("0.1");
+
+    m_serverConfig->endpoints->endpointDescription.server.applicationUri = UA_STRING_ALLOC(config->applicationUri);
+    m_serverConfig->endpoints->endpointDescription.server.applicationName = UA_LOCALIZEDTEXT_ALLOC("en-US",
+            config->applicationName);
 
     //    UA_ByteString_deleteMembers(&certificate);
     m_server = UA_Server_new(m_serverConfig);
