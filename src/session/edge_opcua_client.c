@@ -46,17 +46,10 @@ static void getAddressPort(char *endpoint, char **out)
         EDGE_LOG_V(TAG, "Server URL is invalid. Unable to get endpoints\n");
         return ;
     }
-    char *addr = (char *) hostName.data;
-    int idx = 0, len = 0;
-    for (idx = 0; idx < hostName.length; idx++)
-    {
-        if (addr[idx] == ':')
-            break;
-        len += 1;
-    }
 
     char address[512];
-    strncpy(address, (char*) hostName.data, len);
+    strncpy(address, (char*) hostName.data, hostName.length);
+    address[hostName.length] = '\0';
 
     char addr_port[512];
     memset(addr_port, '\0', 512);
