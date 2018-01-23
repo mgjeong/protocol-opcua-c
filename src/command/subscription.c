@@ -475,7 +475,8 @@ static UA_StatusCode createSub(UA_Client *client, EdgeMessage *msg)
             {
                 EDGE_LOG_V(TAG, "Error :: Existing Monitored ID received:: %u\n", monId[i]);
                 EDGE_LOG_V(TAG, "Existing Node Details : Sub ID %d, Monitored ID :: %u\n"
-                    "Error :: %s Not added to subscription list\n\n ", subId, monId[i], hfContexts[i]);
+
+                    "Error :: %s Not added to subscription list\n\n ", subId, monId[i], client_alias[i]->valueAlias);
                 continue;
             }
 
@@ -500,7 +501,7 @@ static UA_StatusCode createSub(UA_Client *client, EdgeMessage *msg)
 
         if (NULL == clientSub)
         {
-            EDGE_LOG_V(TAG, "subscription list for the client is empty\n");
+            EDGE_LOG(TAG, "subscription list for the client is empty\n");
             clientSub = (clientSubscription*) malloc(sizeof(clientSubscription));
             clientSub->subscriptionCount = 0;
             clientSub->subscriptionList = NULL;
