@@ -332,12 +332,13 @@ static bool parseEndpoints(size_t endpointArraySize, UA_EndpointDescription *end
             EDGE_LOG(TAG, "Application URI is empty. Endpoint is invalid.");
             continue;
         }
-
+#if 0
         if(endpointArray[i].server.discoveryUrlsSize <= 0)
         {
             EDGE_LOG(TAG, "Discovery URL is empty. Endpoint is invalid.");
             continue;
         }
+#endif
 
         if(UA_APPLICATIONTYPE_CLIENT == endpointArray[i].server.applicationType)
         {
