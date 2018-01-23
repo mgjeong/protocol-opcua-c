@@ -31,70 +31,171 @@
 #include <open62541.h>
 #include <inttypes.h>
 
-#define TAG "session_client"
+static edgeMap *sessionClientMap = NULL;
+static int clientCount = 0;
 
-static UA_Client *m_client = NULL;
+static void getAddressPort(char *endpoint, char **out)
+{
+    UA_String hostName = UA_STRING_NULL, path = UA_STRING_NULL;
+    UA_UInt16 port = 0;
+    UA_String endpointUrlString = UA_STRING((char *)(uintptr_t)endpoint);
 
-static char *m_endpointUri;
-//static char* m_securityUri;
+    UA_StatusCode parse_retval = UA_parseEndpointUrl(&endpointUrlString, &hostName, &port, &path);
+    if (parse_retval != UA_STATUSCODE_GOOD)
+    {
+        EDGE_LOG_V(TAG, "Server URL is invalid. Unable to get endpoints\n");
+        return ;
+    }
+    char *addr = (char *) hostName.data;
+    int idx = 0, len = 0;
+    for (idx = 0; idx < hostName.length; idx++)
+    {
+        if (addr[idx] == ':')
+            break;
+        len += 1;
+    }
+
+    char address[512];
+    strncpy(address, (char*) hostName.data, len);
+
+    char addr_port[512];
+    memset(addr_port, '\0', 512);
+    int written = snprintf(addr_port, 512, "%s:%d", address, port);
+    if (written > 0)
+    {
+        *out = (char*) malloc(sizeof(char) * (written+1));
+        strncpy(*out,  addr_port, written);
+        (*out)[written] = '\0';
+    }
+}
+
+static keyValue getSessionClient(char *endpoint)
+{
+    if (!sessionClientMap)
+        return NULL;
+    char *ep = NULL;
+    getAddressPort(endpoint, &ep);
+    if (!ep)
+        return NULL;
+
+    edgeMapNode *temp = sessionClientMap->head;
+    while (temp != NULL)
+    {
+        if (!strcmp(temp->key, ep))
+        {
+            free (ep); ep = NULL;
+            return temp->value;
+        }
+        temp = temp->next;
+    }
+    free (ep); ep = NULL;
+    return NULL;
+}
+
+static edgeMapNode *removeClientFromSessionMap(char *endpoint)
+{
+    if (!sessionClientMap)
+        return NULL;
+    char *ep = NULL;
+    getAddressPort(endpoint, &ep);
+    if (!ep)
+        return NULL;
+
+    edgeMapNode *temp = sessionClientMap->head;
+    edgeMapNode *prev = NULL;
+    while (temp != NULL)
+    {
+        if (!strcmp(temp->key, ep))
+        {
+            if (prev == NULL)
+            {
+                sessionClientMap->head = temp->next;
+            }
+            else
+            {
+                prev->next = temp->next;
+            }
+            free (ep); ep = NULL;
+            return temp;
+        }
+        prev = temp;
+        temp = temp->next;
+    }
+    free (ep); ep = NULL;
+    return NULL;
+}
 
 EdgeResult readNodesFromServer(EdgeMessage *msg)
 {
-    EdgeResult result = executeRead(m_client, msg);
+    EdgeResult result = executeRead((UA_Client*) getSessionClient(msg->endpointInfo->endpointUri), msg);
     return result;
 }
 
 EdgeResult writeNodesInServer(EdgeMessage *msg)
 {
-    EdgeResult result = executeWrite(m_client, msg);
+    EdgeResult result = executeWrite((UA_Client*) getSessionClient(msg->endpointInfo->endpointUri), msg);
     return result;
 }
 
 EdgeResult browseNodesInServer(EdgeMessage *msg)
 {
-    EdgeResult result = executeBrowse(m_client, msg, false);
+    EdgeResult result = executeBrowse((UA_Client*) getSessionClient(msg->endpointInfo->endpointUri), msg, false);
     return result;
 }
 
 EdgeResult browseNextInServer(EdgeMessage *msg)
 {
-    EdgeResult result = executeBrowse(m_client, msg, true);
+    EdgeResult result = executeBrowse((UA_Client*) getSessionClient(msg->endpointInfo->endpointUri), msg, true);
     return result;
 }
 
 EdgeResult callMethodInServer(EdgeMessage *msg)
 {
-    EdgeResult result = executeMethod(m_client, msg);
+    EdgeResult result = executeMethod((UA_Client*) getSessionClient(msg->endpointInfo->endpointUri), msg);
     return result;
 }
 
 EdgeResult executeSubscriptionInServer(EdgeMessage *msg)
 {
-    EdgeResult result = executeSub(m_client, msg);
+    EdgeResult result = executeSub((UA_Client*) getSessionClient(msg->endpointInfo->endpointUri), msg);
     return result;
 }
 
 bool connect_client(char *endpoint)
 {
-    m_endpointUri = endpoint;
-
+    UA_StatusCode retVal;
     UA_ClientConfig config = UA_ClientConfig_default;
+    UA_Client *m_client = NULL;
+    char *m_endpoint = NULL;
+
+    if (NULL != getSessionClient(endpoint)) {
+        EDGE_LOG_V(TAG, "client already connected.\n");
+        return false;
+    }
 
     m_client = UA_Client_new(config);
-
-    UA_StatusCode retVal;
 
     EDGE_LOG_V(TAG, "endpoint :: %s\n", endpoint);
     retVal = UA_Client_connect(m_client, endpoint);
     if (retVal != UA_STATUSCODE_GOOD)
     {
         EDGE_LOG_V(TAG, "\n [CLIENT] Unable to connect 0x%08x!\n", retVal);
-        UA_Client_delete(m_client);
-        m_client = NULL;
+        if (m_client) {
+            UA_Client_delete(m_client);
+            m_client = NULL;
+        }
         return false;
     }
 
     EDGE_LOG(TAG, "\n [CLIENT] Client connection successful \n");
+	getAddressPort(endpoint, &m_endpoint);
+
+    // Add the client to session map
+    if (NULL == sessionClientMap) {
+        sessionClientMap = createMap();
+    }
+    insertMapElement(sessionClientMap, (keyValue) m_endpoint, (keyValue) m_client);
+    clientCount++;
 
     EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
     ep->endpointUri = endpoint;
@@ -107,12 +208,28 @@ bool connect_client(char *endpoint)
 
 void disconnect_client(EdgeEndPointInfo *epInfo)
 {
-    if (m_client)
-    {
-        UA_Client_delete(m_client);
-        m_client = NULL;
+    edgeMapNode *session = NULL;
+    session = removeClientFromSessionMap(epInfo->endpointUri);
+    if (session) {
+        if (session->key)
+        {
+            free(session->key);
+            session->key = NULL;
+        }
+        if (session->value)
+        {
+            UA_Client *m_client =  (UA_Client*) session->value;
+            UA_Client_delete(m_client); m_client = NULL;
+        }
+        free (session); session = NULL;
+        clientCount--;
+        onStatusCallback(epInfo, STATUS_STOP_CLIENT);
     }
-    onStatusCallback(epInfo, STATUS_STOP_CLIENT);
+    if (0 == clientCount)
+    {
+        free (sessionClientMap);
+        sessionClientMap = NULL;
+    }
 }
 
 static void logEndpointDescription(UA_EndpointDescription *ep)

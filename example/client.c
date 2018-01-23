@@ -20,10 +20,18 @@ static bool stopFlag = false;
 
 static char ipAddress[MAX_CHAR_SIZE];
 static char endpointUri[MAX_CHAR_SIZE];
+static int endpointCount = 0;
 
 static EdgeConfigure *config = NULL;
 
 #define TEST_WITH_REFERENCE_SERVER 0
+
+typedef struct EndPointList {
+    char *endpoint;
+    struct EndPointList* next;
+} EndPointList;
+
+static EndPointList* epList = NULL;
 
 typedef struct BrowseNextData
 {
@@ -39,6 +47,11 @@ BrowseNextData *browseNextData = NULL;
 #define MAX_CP_LIST_COUNT 1000
 
 int maxReferencesPerNode = 0;
+
+static void add_to_endpoint_list(char *endpoint);
+static EndPointList *remove_from_endpoint_list(char *endpoint);
+
+static void startClient(char *addr, int port, char *securityPolicyUri, char *endpoint);
 
 // TODO: Remove this function later when sdk expose it.
 char *cloneString(const char *str)
@@ -188,8 +201,6 @@ BrowseNextData *cloneBrowseNextData(BrowseNextData *data)
 
     return clone;
 }
-
-static void startClient(char *addr, int port, char *securityPolicyUri);
 
 static void response_msg_cb (EdgeMessage *data)
 {
@@ -567,6 +578,8 @@ static void status_start_cb (EdgeEndPointInfo *epInfo, EdgeStatusCode status)
     {
         printf("[Application Callback] Client connected\n");
         startFlag = true;
+        add_to_endpoint_list(epInfo->endpointUri);
+        endpointCount++;
     }
 }
 
@@ -575,7 +588,17 @@ static void status_stop_cb (EdgeEndPointInfo *epInfo, EdgeStatusCode status)
     if (status == STATUS_STOP_CLIENT)
     {
         printf("[Application Callback] Client disconnected \n\n");
-        stopFlag = true;
+	EndPointList *list = remove_from_endpoint_list(epInfo->endpointUri);
+        if (list)
+        {
+            free (list->endpoint); list->endpoint = NULL;
+            free (list); list = NULL;
+            endpointCount--;
+        }
+        if (0 == endpointCount)
+        {
+            stopFlag = true;
+        }
     }
 }
 
@@ -599,7 +622,7 @@ static void endpoint_found_cb (EdgeDevice *device)
             printf("[Application Callback] SecurityPolicyUri :: %s\n\n",
                    device->endpointsInfo[idx]->config->securityPolicyUri);
 
-            startClient(device->address, device->port, device->endpointsInfo[idx]->config->securityPolicyUri);
+            startClient(device->address, device->port, device->endpointsInfo[idx]->config->securityPolicyUri, device->endpointsInfo[idx]->endpointUri);
         }
     }
 }
@@ -608,6 +631,119 @@ static void device_found_cb (EdgeDevice *device)
 {
 
 }
+
+////////////////////////// START : helper function for endpoint list //////////////////////////////
+
+static EndPointList *create_endpoint_list(char *endpoint) {
+    EndPointList *ep = (EndPointList*) malloc(sizeof(EndPointList));
+    ep->endpoint = (char*) malloc(sizeof(char) * (strlen(endpoint) + 1));
+    ep->endpoint[strlen(endpoint)] = '\0';
+    strcpy(ep->endpoint, endpoint);
+    ep->next = NULL;
+    return ep;
+}
+
+static void add_to_endpoint_list(char *endpoint)
+{
+    if (NULL == epList)
+    {
+        printf("creating new endpoint list\n\n");
+        epList = create_endpoint_list(endpoint);
+        return ;
+    }
+
+    EndPointList *temp = epList;
+    while (temp)
+    {
+        if (temp->next == NULL)
+        {
+            // add to the end of the list
+            EndPointList *list = create_endpoint_list(endpoint);
+            temp->next = list;
+            break;
+        }
+        temp = temp->next;
+    }
+}
+
+static char* get_endpoint_from_list(int option) {
+
+    int cnt = 1;
+    EndPointList *temp = epList;
+    while (temp)
+    {
+        if (cnt == option)
+        {
+            return temp->endpoint;
+        }
+        temp = temp->next;
+        cnt++;
+    }
+    return NULL;
+}
+
+static int print_endpoint_list() {
+    int cnt = 0;
+    EndPointList *temp = epList;
+    while (temp)
+    {
+        printf("(%d)   %s \n", cnt+1, temp->endpoint);
+        temp = temp->next;
+        cnt++;
+    }
+    printf("\n\n");
+    return cnt;
+}
+
+static EndPointList *remove_from_endpoint_list(char *endpoint)
+{
+    EndPointList *temp = epList;
+    EndPointList *prev = NULL;
+    while (temp != NULL)
+    {
+        if (!strcmp(temp->endpoint, endpoint))
+        {
+            if (prev == NULL)
+            {
+                epList = temp->next;
+            }
+            else
+            {
+                prev->next = temp->next;
+            }
+//      free (temp); temp = NULL;
+            return temp;
+        }
+        prev = temp;
+        temp = temp->next;
+    }
+    return NULL;
+}
+
+////////////////////////// END : helper function for endpoint list //////////////////////////////
+
+
+////////////////////////// START : Get endpoint info from user //////////////////////////////
+
+static char *getEndPoint_input()
+{
+    int cnt = print_endpoint_list();
+    int inp;
+    printf("Enter the endpoint (integer option) to connect to ::  ");
+    scanf("%d", &inp);
+
+    if (inp < 0 || inp > cnt)
+    {
+        printf("invalid option.\n");
+        return NULL;
+    }
+
+    char *ep = get_endpoint_from_list(inp);
+    return ep;
+}
+
+////////////////////////// END : Get endpoint info from user ///////////////////////////////
+
 
 static void init()
 {
@@ -644,7 +780,7 @@ static void testGetEndpoints()
 
     EdgeMessage *msg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
     msg->endpointInfo = ep;
-    msg->command = CMD_START_SERVER;
+    msg->command = CMD_GET_ENDPOINTS;
     msg->type = SEND_REQUEST;
 
     EdgeResult res = getEndpointInfo(ep);
@@ -658,7 +794,7 @@ static void testGetEndpoints()
     free(msg); msg = NULL;
 }
 
-static void startClient(char *addr, int port, char *securityPolicyUri)
+static void startClient(char *addr, int port, char *securityPolicyUri, char *endpoint)
 {
     printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET);
     printf("\n" COLOR_YELLOW "                       Client connect            "COLOR_RESET);
@@ -695,26 +831,33 @@ static void startClient(char *addr, int port, char *securityPolicyUri)
 
 static void stopClient()
 {
-    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
-    ep->endpointUri = endpointUri;
-    ep->config = NULL;
+    char *ep = getEndPoint_input();
+    if (ep == NULL)
+    {
+        printf("Client not connected to any endpoints\n\n");
+        return ;
+    }
+
+    EdgeEndPointInfo *epInfo = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    epInfo->endpointUri = ep;
+    epInfo->config = NULL;
 
     EdgeMessage *msg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
-    msg->endpointInfo = ep;
+    msg->endpointInfo = epInfo;
     msg->command = CMD_STOP_CLIENT;
 
     printf("\n" COLOR_YELLOW "********************** stop client **********************"
            COLOR_RESET"\n");
-    disconnectClient(ep);
+    disconnectClient(epInfo);
 
-    free(ep); ep = NULL;
+    free(epInfo); epInfo = NULL;
     free(msg); msg = NULL;
 }
 
 static void deinit()
 {
     stopClient();
-    if (config)
+/*    if (config)
     {
         if (config->recvCallback)
         {
@@ -732,7 +875,7 @@ static void deinit()
             config->discoveryCallback = NULL;
         }
         free (config); config = NULL;
-    }
+    }*/
 }
 
 static void testBrowseNext()
@@ -959,15 +1102,22 @@ static void testBrowses()
 
 static void testRead()
 {
+    char *ep = getEndPoint_input();
+    if (ep == NULL)
+    {
+        printf("Client not connected to any endpoints\n\n");
+        return ;
+    }
+
     // Get the list of browse names and display them to user.
     testBrowse();
 
     char nodeName[MAX_CHAR_SIZE];
     int num_requests = 1;
 
-    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
-    ep->endpointUri = endpointUri;
-    ep->config = NULL;
+    EdgeEndPointInfo *epInfo = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    epInfo->endpointUri = ep;
+    epInfo->config = NULL;
 
     EdgeNodeInfo **nodeInfo = (EdgeNodeInfo **) malloc(sizeof(EdgeNodeInfo *) * num_requests);
     for (int i = 0; i < num_requests; i++)
@@ -988,7 +1138,7 @@ static void testRead()
     }
 
     EdgeMessage *msg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
-    msg->endpointInfo = ep;
+    msg->endpointInfo = epInfo;
     msg->command = CMD_READ;
     msg->type = SEND_REQUESTS;
     msg->requests = requests;
@@ -1002,7 +1152,7 @@ static void testRead()
         free (nodeInfo[i]); nodeInfo[i] = NULL;
     }
     free (nodeInfo); nodeInfo = NULL;
-    free(ep); ep = NULL;
+    free(epInfo); epInfo = NULL;
     for (int i = 0; i < num_requests; i++)
     {
         free (requests[i]); requests[i] = NULL;
@@ -1013,14 +1163,21 @@ static void testRead()
 
 static void testReadGroup()
 {
+    char *ep = getEndPoint_input();
+    if (ep == NULL)
+    {
+        printf("Client not connected to any endpoints\n\n");
+        return ;
+    }
+
     char nodeName[MAX_CHAR_SIZE];
     int num_requests;
     printf("Enter number of nodes to read (less than 10) :: ");
     scanf("%d", &num_requests);
 
-    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
-    ep->endpointUri = endpointUri;
-    ep->config = NULL;
+    EdgeEndPointInfo *epInfo = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    epInfo->endpointUri = ep;
+    epInfo->config = NULL;
 
     EdgeNodeInfo **nodeInfo = (EdgeNodeInfo **) malloc(sizeof(EdgeNodeInfo *) * num_requests);
     EdgeRequest **requests = (EdgeRequest **) malloc(sizeof(EdgeRequest *) * num_requests);
@@ -1038,7 +1195,7 @@ static void testReadGroup()
     }
 
     EdgeMessage *msg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
-    msg->endpointInfo = ep;
+    msg->endpointInfo = epInfo;
     msg->command = CMD_READ;
     msg->type = SEND_REQUESTS;
     msg->requests = requests;
@@ -1052,7 +1209,7 @@ static void testReadGroup()
         free (nodeInfo[i]); nodeInfo[i] = NULL;
     }
     free (nodeInfo); nodeInfo = NULL;
-    free(ep); ep = NULL;
+    free(epInfo); epInfo = NULL;
     for (int i = 0; i < num_requests; i++)
     {
         free (requests[i]); requests[i] = NULL;
@@ -1183,12 +1340,19 @@ static void *getNewValuetoWrite(EdgeNodeIdentifier type)
 
 static void testWrite()
 {
+    char *ep = getEndPoint_input();
+    if (ep == NULL)
+    {
+        printf("Client not connected to any endpoints\n\n");
+        return ;
+    }
+
     char nodeName[MAX_CHAR_SIZE];
     int num_requests = 1;
 
-    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
-    ep->endpointUri = endpointUri;
-    ep->config = NULL;
+    EdgeEndPointInfo *epInfo = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    epInfo->endpointUri = ep;
+    epInfo->config = NULL;
 
     EdgeNodeInfo **nodeInfo = (EdgeNodeInfo **) malloc(sizeof(EdgeNodeInfo *));
     EdgeRequest **requests = (EdgeRequest **) malloc(sizeof(EdgeRequest *) * num_requests);
@@ -1208,7 +1372,7 @@ static void testWrite()
     }
 
     EdgeMessage *msg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
-    msg->endpointInfo = ep;
+    msg->endpointInfo = epInfo;
     msg->command = CMD_WRITE;
     msg->type = SEND_REQUESTS;
     msg->requests = requests;
@@ -1224,7 +1388,7 @@ static void testWrite()
         free (nodeInfo[i]); nodeInfo[i] = NULL;
     }
     free (nodeInfo); nodeInfo = NULL;
-    free(ep); ep = NULL;
+    free(epInfo); epInfo = NULL;
     for (int i = 0; i < num_requests; i++)
     {
         free (requests[i]->value); requests[i]->value = NULL;
@@ -1236,14 +1400,21 @@ static void testWrite()
 
 static void testWriteGroup()
 {
+    char *ep = getEndPoint_input();
+    if (ep == NULL)
+    {
+        printf("Client not connected to any endpoints\n\n");
+        return ;
+    }
+
     char nodeName[MAX_CHAR_SIZE];
     int num_requests;
     printf("Enter number of nodes to write (less than 10) :: ");
     scanf("%d", &num_requests);
 
-    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
-    ep->endpointUri = endpointUri;
-    ep->config = NULL;
+    EdgeEndPointInfo *epInfo = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    epInfo->endpointUri = ep;
+    epInfo->config = NULL;
 
     EdgeNodeInfo **nodeInfo = (EdgeNodeInfo **) malloc(sizeof(EdgeNodeInfo *) * num_requests);
     EdgeRequest **requests = (EdgeRequest **) malloc(sizeof(EdgeRequest *) * num_requests);
@@ -1263,7 +1434,7 @@ static void testWriteGroup()
     }
 
     EdgeMessage *msg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
-    msg->endpointInfo = ep;
+    msg->endpointInfo = epInfo;
     msg->command = CMD_WRITE;
     msg->type = SEND_REQUESTS;
     msg->requests = requests;
@@ -1277,7 +1448,7 @@ static void testWriteGroup()
         free (nodeInfo[i]); nodeInfo[i] = NULL;
     }
     free (nodeInfo); nodeInfo = NULL;
-    free(ep); ep = NULL;
+    free(epInfo); epInfo = NULL;
     for (int i = 0; i < num_requests; i++)
     {
         free (requests[i]->value); requests[i]->value = NULL;
@@ -1385,6 +1556,12 @@ static void testMethod()
 
 static void testSub()
 {
+    char *ep = getEndPoint_input();
+    if (ep == NULL)
+    {
+        printf("Client not connected to any endpoints\n\n");
+        return ;
+    }
 
     // Get the list of browse names and display them to user.
     testBrowse();
@@ -1398,9 +1575,9 @@ static void testSub()
         return;
     }
 
-    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
-    ep->endpointUri = endpointUri;
-    ep->config = NULL;
+    EdgeEndPointInfo *epInfo = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    epInfo->endpointUri = ep;
+    epInfo->config = NULL;
 
     EdgeRequest **requests = (EdgeRequest **) malloc(sizeof(EdgeRequest *) * num_requests);
     EdgeSubRequest *subReq = (EdgeSubRequest *) malloc(sizeof(EdgeSubRequest));
@@ -1430,7 +1607,7 @@ static void testSub()
     }
 
     EdgeMessage *msg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
-    msg->endpointInfo = ep;
+    msg->endpointInfo = epInfo;
     msg->command = CMD_SUB;
     msg->type = SEND_REQUESTS;
     msg->requests = requests;
@@ -1453,12 +1630,18 @@ static void testSub()
     }
 
     free(requests); requests = NULL;
-    free(ep); ep = NULL;
+    free(epInfo); epInfo = NULL;
     free (msg); msg = NULL;
 }
 
 static void testSubModify()
 {
+    char *ep = getEndPoint_input();
+    if (ep == NULL)
+    {
+        printf("Client not connected to any endpoints\n\n");
+        return ;
+    }
 
     testBrowse();
     char nodeName[MAX_CHAR_SIZE];
@@ -1466,9 +1649,9 @@ static void testSubModify()
     printf("\nEnter the node name to modify Subscribe :: ");
     scanf("%s", nodeName);
 
-    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
-    ep->endpointUri = endpointUri;
-    ep->config = NULL;
+    EdgeEndPointInfo *epInfo = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    epInfo->endpointUri = ep;
+    epInfo->config = NULL;
 
     EdgeSubRequest *subReq = (EdgeSubRequest *) malloc(sizeof(EdgeSubRequest));
     subReq->subType = Edge_Modify_Sub;
@@ -1494,7 +1677,7 @@ static void testSubModify()
     request->subMsg = subReq;
 
     EdgeMessage *msg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
-    msg->endpointInfo = ep;
+    msg->endpointInfo = epInfo;
     msg->command = CMD_SUB;
     msg->request = request;
 
@@ -1508,20 +1691,26 @@ static void testSubModify()
     free(nodeInfo); nodeInfo = NULL;
     free(subReq); subReq = NULL;
     free(request); request = NULL;
-    free(ep); ep = NULL;
+    free(epInfo); epInfo = NULL;
     free (msg); msg = NULL;
 }
 
 static void testRePublish()
 {
+    char *ep = getEndPoint_input();
+    if (ep == NULL)
+    {
+        printf("Client not connected to any endpoints\n\n");
+        return ;
+    }
 
     char nodeName[MAX_CHAR_SIZE];
     printf("\nEnter the node name to Re publish :: ");
     scanf("%s", nodeName);
 
-    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
-    ep->endpointUri = endpointUri;
-    ep->config = NULL;
+    EdgeEndPointInfo *epInfo = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    epInfo->endpointUri = ep;
+    epInfo->config = NULL;
 
     EdgeSubRequest *subReq = (EdgeSubRequest *) malloc(sizeof(EdgeSubRequest));
     subReq->subType = Edge_Republish_Sub;
@@ -1535,7 +1724,7 @@ static void testRePublish()
     request->subMsg = subReq;
 
     EdgeMessage *msg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
-    msg->endpointInfo = ep;
+    msg->endpointInfo = epInfo;
     msg->command = CMD_SUB;
     msg->request = request;
 
@@ -1550,12 +1739,18 @@ static void testRePublish()
     free(nodeInfo); nodeInfo = NULL;
     free(subReq); subReq = NULL;
     free(request); request = NULL;
-    free(ep); ep = NULL;
+    free(epInfo); epInfo = NULL;
     free (msg); msg = NULL;
 }
 
 static void testSubDelete()
 {
+    char *ep = getEndPoint_input();
+    if (ep == NULL)
+    {
+        printf("Client not connected to any endpoints\n\n");
+        return ;
+    }
 
     //testBrowse();
     char nodeName[MAX_CHAR_SIZE];
@@ -1563,9 +1758,9 @@ static void testSubDelete()
     printf("\nEnter the node name to delete Subscribe :: ");
     scanf("%s", nodeName);
 
-    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
-    ep->endpointUri = endpointUri;
-    ep->config = NULL;
+    EdgeEndPointInfo *epInfo = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    epInfo->endpointUri = ep;
+    epInfo->config = NULL;
 
     EdgeSubRequest *subReq = (EdgeSubRequest *) malloc(sizeof(EdgeSubRequest));
     subReq->subType = Edge_Delete_Sub;
@@ -1579,7 +1774,7 @@ static void testSubDelete()
     request->subMsg = subReq;
 
     EdgeMessage *msg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
-    msg->endpointInfo = ep;
+    msg->endpointInfo = epInfo;
     msg->command = CMD_SUB;
     msg->request = request;
 
@@ -1594,7 +1789,7 @@ static void testSubDelete()
     free(nodeInfo); nodeInfo = NULL;
     free(subReq); subReq = NULL;
     free(request); request = NULL;
-    free(ep); ep = NULL;
+    free(epInfo); epInfo = NULL;
     free (msg); msg = NULL;
 }
 
