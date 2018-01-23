@@ -31,6 +31,8 @@
 #include <open62541.h>
 #include <inttypes.h>
 
+#define TAG "session_client"
+
 static edgeMap *sessionClientMap = NULL;
 static int clientCount = 0;
 
@@ -43,7 +45,7 @@ static void getAddressPort(char *endpoint, char **out)
     UA_StatusCode parse_retval = UA_parseEndpointUrl(&endpointUrlString, &hostName, &port, &path);
     if (parse_retval != UA_STATUSCODE_GOOD)
     {
-        EDGE_LOG_V(TAG, "Server URL is invalid. Unable to get endpoints\n");
+        EDGE_LOG(TAG, "Server URL is invalid. Unable to get endpoints\n");
         return ;
     }
 
@@ -162,7 +164,7 @@ bool connect_client(char *endpoint)
     char *m_endpoint = NULL;
 
     if (NULL != getSessionClient(endpoint)) {
-        EDGE_LOG_V(TAG, "client already connected.\n");
+        EDGE_LOG(TAG, "client already connected.\n");
         return false;
     }
 
@@ -241,7 +243,7 @@ static void logEndpointDescription(UA_EndpointDescription *ep)
     EDGE_LOG_V(TAG, "Endpoint security mode: %d.\n", ep->securityMode);
     EDGE_LOG_V(TAG, "Endpoint security policy URI: %s.\n", (str = convertUAStringToString(&ep->securityPolicyUri)));
     free(str);
-    EDGE_LOG_V(TAG, "Endpoint user identity token count: %" PRIu64 ".\n", ep->userIdentityTokensSize);
+    EDGE_LOG_V(TAG, "Endpoint user identity token count: %d\n", ep->userIdentityTokensSize);
     EDGE_LOG_V(TAG, "Endpoint transport profile URI: %s.\n", (str = convertUAStringToString(&ep->transportProfileUri)));
     free(str);
     EDGE_LOG_V(TAG, "Endpoint security level: %u.\n", ep->securityLevel);
@@ -256,7 +258,7 @@ static void logEndpointDescription(UA_EndpointDescription *ep)
     free(str);
     EDGE_LOG_V(TAG, "Endpoint discovery profile URI: %s.\n", (str = convertUAStringToString(&ep->server.discoveryProfileUri)));
     free(str);
-    EDGE_LOG_V(TAG, "Endpoint discovery URL count: %" PRIu64 ".\n", ep->server.discoveryUrlsSize);
+    EDGE_LOG_V(TAG, "Endpoint discovery URL count: %d\n", ep->server.discoveryUrlsSize);
     for(int i = 0; i < ep->server.discoveryUrlsSize; ++i)
     {
         EDGE_LOG_V(TAG, "Endpoint discovery URL(%d): %s.\n", i+1, (str = convertUAStringToString(&ep->server.discoveryUrls[i])));

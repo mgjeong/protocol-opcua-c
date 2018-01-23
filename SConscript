@@ -67,6 +67,12 @@ env.AppendUnique(CPPPATH= [
 
 env.AppendUnique(LIBS= ['pthread', 'rt'])
 
+debug = ARGUMENTS.get('DEBUG')
+if ARGUMENTS.get('DEBUG', False) in [
+            'y', 'yes', 'true', 't', '1', 'on', 'all', True
+    ]:
+    env.AppendUnique(CPPDEFINES= ['DEBUG'])
+
 ######################################################################
 # Source files and Targets
 ######################################################################
