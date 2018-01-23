@@ -24,6 +24,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define TAG "edge_utils"
+
 edgeMap *createMap()
 {
     edgeMap *map = (edgeMap *) malloc(sizeof(edgeMap));
@@ -34,6 +36,7 @@ edgeMap *createMap()
 void insertMapElement(edgeMap *map, keyValue key, keyValue value)
 {
     edgeMapNode *node = (edgeMapNode *) malloc(sizeof(edgeMapNode));
+    VERIFY_NON_NULL_NR(node);
     node->key = key;
     node->value = value;
     node->next = NULL;

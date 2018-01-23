@@ -171,6 +171,7 @@ bool connect_client(char *endpoint)
     m_client = UA_Client_new(config);
 
     EDGE_LOG_V(TAG, "endpoint :: %s\n", endpoint);
+    VERIFY_NON_NULL(m_client, false);
     retVal = UA_Client_connect(m_client, endpoint);
     if (retVal != UA_STATUSCODE_GOOD)
     {
@@ -193,6 +194,7 @@ bool connect_client(char *endpoint)
     clientCount++;
 
     EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    VERIFY_NON_NULL(ep, false);
     ep->endpointUri = endpoint;
     onStatusCallback(ep, STATUS_CLIENT_STARTED);
     free(ep);
@@ -561,7 +563,10 @@ EXIT:
         UA_Array_delete(endpointArray, endpointArraySize, &UA_TYPES[UA_TYPES_ENDPOINTDESCRIPTION]);
     }
     deleteList(&endpointList);
-    UA_Client_delete(client);
+    if(client)
+    {
+        UA_Client_delete(client);
+    }
     freeEdgeDevice(device);
     return result;
 }
