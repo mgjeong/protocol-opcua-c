@@ -84,6 +84,12 @@ static void addVariableNode(UA_Server *server, EdgeNodeItem *item)
         UA_String val = UA_STRING_ALLOC((char * ) item->variableData);
         UA_Variant_setScalarCopy(&attr.value, &val, &UA_TYPES[type]);
         UA_String_deleteMembers(&val);
+
+        if(val.data != NULL)
+        {
+            free(val.data);
+            val.data = NULL;
+        }
     }
     else
     {
@@ -467,6 +473,7 @@ static UA_StatusCode methodCallback(UA_Server *server, const UA_NodeId *sessionI
         if (inputSize > 0)
         {
             inp = malloc(sizeof(void *) * inputSize);
+            VERIFY_NON_NULL(inp, STATUS_ERROR);
             for (int i = 0; i < inputSize; i++)
             {
                 inp[i] = input[i].data;
@@ -476,6 +483,7 @@ static UA_StatusCode methodCallback(UA_Server *server, const UA_NodeId *sessionI
         if (outputSize > 0)
         {
             out = malloc(sizeof(void *) * outputSize);
+            VERIFY_NON_NULL(out, STATUS_ERROR);
             for (int i = 0; i < outputSize; i++)
             {
                 out[i] = NULL;
@@ -502,6 +510,11 @@ static UA_StatusCode methodCallback(UA_Server *server, const UA_NodeId *sessionI
                         UA_String val = UA_STRING_ALLOC((char * ) *out);
                         UA_Variant_setScalarCopy(&output[idx], &val, &UA_TYPES[type]);
                         UA_String_deleteMembers(&val);
+                        if(val.data != NULL)
+                        {
+                            free(val.data);
+                            val.data = NULL;
+                        }
                     }
                     else
                     {
@@ -608,14 +621,9 @@ EdgeResult addNodes(UA_Server *server, EdgeNodeItem *item)
 EdgeResult addMethodNode(UA_Server *server, EdgeNodeItem *item, EdgeMethod *method)
 {
     EdgeResult result;
-    result.code = STATUS_OK;
+    result.code = STATUS_ERROR;
 
-    if (!server)
-    {
-        EDGE_LOG(TAG, "Server handle Invalid\n");
-        result.code = STATUS_ERROR;
-        return result;
-    }
+    VERIFY_NON_NULL(server, result);
 
     int num_inpArgs = method->num_inpArgs;
     int num_outArgs = method->num_outArgs;
@@ -638,6 +646,7 @@ EdgeResult addMethodNode(UA_Server *server, EdgeNodeItem *item, EdgeMethod *meth
         {
             inputArguments[idx].valueRank = 1; /* Array with one dimensions */
             UA_UInt32 *inputDimensions = (UA_UInt32 *) malloc(sizeof(UA_UInt32));
+            VERIFY_NON_NULL(inputDimensions, result);
             inputDimensions[0] = method->inpArg[idx]->arrayLength;
             inputArguments[idx].arrayDimensionsSize = 1;
             inputArguments[idx].arrayDimensions = inputDimensions;
@@ -661,6 +670,7 @@ EdgeResult addMethodNode(UA_Server *server, EdgeNodeItem *item, EdgeMethod *meth
         {
             outputArguments[idx].valueRank = 1; /* Array with one dimensions */
             UA_UInt32 *outputDimensions = (UA_UInt32 *) malloc(sizeof(UA_UInt32));
+            VERIFY_NON_NULL(outputDimensions, result);
             outputDimensions[0] = method->outArg[idx]->arrayLength;
             outputArguments[idx].arrayDimensionsSize = 1;
             outputArguments[idx].arrayDimensions = outputDimensions;
@@ -695,6 +705,7 @@ EdgeResult addMethodNode(UA_Server *server, EdgeNodeItem *item, EdgeMethod *meth
             methodNodeMap = createMap();
 
         char *browseName = (char *) malloc(strlen(item->browseName) + 1);
+        VERIFY_NON_NULL(browseName, result);
         strncpy(browseName, item->browseName, strlen(item->browseName));
         browseName[strlen(item->browseName)] = '\0';
         insertMapElement(methodNodeMap, (void *) browseName, method);
@@ -735,18 +746,15 @@ EdgeResult addDataAccessNode(EdgeNodeItem *item)
 EdgeResult modifyNode(UA_Server *server, char *nodeUri, EdgeVersatility *value)
 {
     EdgeResult result;
-    result.code = STATUS_OK;
+    result.code = STATUS_ERROR;
 
-    if (!server)
-    {
-        EDGE_LOG(TAG, "Server handle Invalid\n");
-        result.code = STATUS_ERROR;
-        return result;
-    }
+    VERIFY_NON_NULL(server, result);
 
     // read the value;
     UA_NodeId node = UA_NODEID_STRING(1, nodeUri);
     UA_Variant *readval = UA_Variant_new();
+    VERIFY_NON_NULL(readval, result);
+    
     UA_StatusCode ret = UA_Server_readValue(server, node, readval);
     if (ret != UA_STATUSCODE_GOOD)
     {
@@ -762,6 +770,12 @@ EdgeResult modifyNode(UA_Server *server, char *nodeUri, EdgeVersatility *value)
         UA_String val = UA_STRING_ALLOC((char * ) value->value);
         ret = UA_Variant_setScalarCopy(myVariant, &val, type);
         UA_String_deleteMembers(&val);
+
+        if(val.data != NULL)
+        {
+            free(val.data);
+            val.data = NULL;
+        }
     }
     else
     {
@@ -772,6 +786,8 @@ EdgeResult modifyNode(UA_Server *server, char *nodeUri, EdgeVersatility *value)
     {
         EDGE_LOG(TAG, "error in set scalar copy during modify node \n");
         result.code = STATUS_ERROR;
+        UA_Variant_delete(readval);
+        UA_Variant_delete(myVariant);
         return result;
     }
 

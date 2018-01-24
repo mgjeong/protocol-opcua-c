@@ -29,11 +29,17 @@
 
 #include "open62541.h"
 #include "opcua_common.h"
+#include "edge_logger.h"
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
+
+#define VERIFY_NON_NULL(arg, retVal) { if (!(arg)) { EDGE_LOG(TAG, \
+             #arg " is NULL"); return (retVal); } }
+#define VERIFY_NON_NULL_NR(arg) { if (!(arg)) { EDGE_LOG(TAG, \
+             #arg " is NULL"); return; } }
 
     typedef struct List
     {
