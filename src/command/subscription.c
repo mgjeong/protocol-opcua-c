@@ -19,7 +19,6 @@
  ******************************************************************/
 
 #include "subscription.h"
-#include "edge_utils.h"
 #include "edge_logger.h"
 
 #include <stdio.h>
@@ -183,18 +182,34 @@ static void monitoredItemHandler(UA_UInt32 monId, UA_DataValue *value, void *con
             return;
 
         EdgeResponse *response = (EdgeResponse *) malloc(sizeof(EdgeResponse));
-        if (response)
+        if (IS_NOT_NULL(response))
         {
             response->nodeInfo = (EdgeNodeInfo *) malloc(sizeof(EdgeNodeInfo));
+            if(IS_NULL(response->nodeInfo))
+            {
+                EDGE_LOG(TAG, "Error : Malloc failed for response->nodeInfo in monitor item handler\n");
+                goto EXIT;
+            }
             //memcpy(response->nodeInfo, subInfo->msg->request->nodeInfo, sizeof(EdgeNodeInfo));
             response->nodeInfo->valueAlias = (char *) malloc(strlen(valueAlias) + 1);
-            strcpy(response->nodeInfo->valueAlias, valueAlias);
+            if(IS_NULL(response->nodeInfo->valueAlias))
+            {
+                EDGE_LOG(TAG, "Error : Malloc failed for response->nodeInfo->valueAlias in monitor item handler\n");
+                goto EXIT;
+            }
+            strncpy(response->nodeInfo->valueAlias, valueAlias, strlen(valueAlias));
+            response->nodeInfo->valueAlias[strlen(valueAlias)] = '\0';
 
             // TODO: Handle requestId when implemented
             //if (subInfo->msg != NULL && subInfo->msg->requests != NULL)
                 //response->requestId = subInfo->msg->request->requestId;
 
             EdgeVersatility *versatility = (EdgeVersatility *) malloc(sizeof(EdgeVersatility));
+            if(IS_NULL(versatility))
+            {
+                EDGE_LOG(TAG, "Error : Malloc failed for versatility in monitor item handler\n");
+                goto EXIT;
+            }
             versatility->arrayLength = 0;
             versatility->isArray = false;
             versatility->value = value->value.data;
@@ -250,31 +265,49 @@ static void monitoredItemHandler(UA_UInt32 monId, UA_DataValue *value, void *con
             response->message = versatility;
 
             EdgeMessage *resultMsg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
+            if(IS_NULL(resultMsg))
+            {
+                EDGE_LOG(TAG, "Error : Malloc failed for resultMsg in monitor item handler\n");
+                goto EXIT;
+            }
             resultMsg->endpointInfo = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+            if(IS_NULL(resultMsg->endpointInfo))
+            {
+                EDGE_LOG(TAG, "Error : Malloc failed for resultMsg.endpointInfo in monitor item handler\n");
+                goto EXIT;
+            }
             memcpy(resultMsg->endpointInfo, subInfo->msg->endpointInfo, sizeof(EdgeEndPointInfo));
 
             resultMsg->type = REPORT;
             resultMsg->responseLength = 1;
-            resultMsg->responses = (EdgeResponse **) malloc(1 * sizeof(EdgeResponse));
+            resultMsg->responses = (EdgeResponse **) malloc(1 * sizeof(EdgeResponse*));
+            if(IS_NULL(resultMsg->responses))
+            {
+                EDGE_LOG(TAG, "Error : Malloc failed for resultMsg.responses in monitor item handler\n");
+                goto EXIT;
+            }
 
             resultMsg->responses[0] = response;
 
             onResponseMessage(resultMsg);
 
-            free(response->nodeInfo->valueAlias);
-            response->nodeInfo->valueAlias = NULL;
-            free(response->nodeInfo);
-            response->nodeInfo = NULL;
-            free(response->message);
-            response->message = NULL;
-            free(response);
-            response = NULL;
-            free(resultMsg->responses);
-            resultMsg->responses = NULL;
-            free(resultMsg->endpointInfo);
-            resultMsg->endpointInfo = NULL;
-            free(resultMsg);
-            resultMsg = NULL;
+            EXIT:
+            if(IS_NOT_NULL(response))
+            {
+                if(IS_NOT_NULL(response->nodeInfo))
+                {
+                    FREE(response->nodeInfo->valueAlias);
+                }
+                FREE(response->nodeInfo);
+                FREE(response->message);
+                FREE(response);
+            }
+            if(IS_NOT_NULL(resultMsg))
+            {
+                FREE(resultMsg->responses);
+                FREE(resultMsg->endpointInfo);
+                FREE(resultMsg);
+            }
         }
     }
 }
@@ -300,7 +333,7 @@ static UA_StatusCode createSub(UA_Client *client, EdgeMessage *msg)
 {
     clientSubscription *clientSub = NULL;
     clientSub = get_subscription_list(client);
-
+    
     EdgeSubRequest *subReq;
     if (msg->type == SEND_REQUESTS)
     {
@@ -334,7 +367,7 @@ static UA_StatusCode createSub(UA_Client *client, EdgeMessage *msg)
 
     EDGE_LOG_V(TAG, "Subscription ID received is %u\n", subId);
 
-    if (clientSub != NULL && !validSubId(clientSub->subscriptionList, subId))
+    if (IS_NOT_NULL(clientSub) && !validSubId(clientSub->subscriptionList, subId))
     {
         EDGE_LOG_V(TAG, "ERROR :: Subscription ID received is already in use, Please unsubcribe and try again %s\n",
                 UA_StatusCode_name(UA_STATUSCODE_BADSUBSCRIPTIONIDINVALID));
@@ -344,20 +377,56 @@ static UA_StatusCode createSub(UA_Client *client, EdgeMessage *msg)
     int itemSize = msg->requestLength;
     UA_MonitoredItemCreateRequest *items = (UA_MonitoredItemCreateRequest *) malloc(
             sizeof(UA_MonitoredItemCreateRequest) * itemSize);
+    if(IS_NULL(items))
+    {
+        EDGE_LOG(TAG, "Error : Malloc failed for items in create subscription");
+        goto EXIT;
+    }
     UA_UInt32 *monId = (UA_UInt32 *) malloc(sizeof(UA_UInt32) * itemSize);
+    if(IS_NULL(monId))
+    {
+        EDGE_LOG(TAG, "Error : Malloc failed for monId in create subscription");
+        goto EXIT;
+    }
     UA_StatusCode *itemResults = (UA_StatusCode *) malloc(sizeof(UA_StatusCode) * itemSize);
+    if(IS_NULL(itemResults))
+    {
+        EDGE_LOG(TAG, "Error : Malloc failed for itemResults in create subscription");
+        goto EXIT;
+    }
     UA_MonitoredItemHandlingFunction *hfs = (UA_MonitoredItemHandlingFunction *) malloc(
             sizeof(UA_MonitoredItemHandlingFunction) * itemSize);
+    if(IS_NULL(hfs))
+    {
+        EDGE_LOG(TAG, "Error : Malloc failed for UA_MonitoredItemHandlingFunction in create subscription");
+        goto EXIT;
+    }
     client_valueAlias **client_alias = (client_valueAlias**) malloc(sizeof(client_valueAlias*) * itemSize);
+    if(IS_NULL(client_alias))
+    {
+        EDGE_LOG(TAG, "Error : Malloc failed for client_alias in create subscription");
+        goto EXIT;
+    }
 
     for (int i = 0; i < itemSize; i++)
     {
         monId[i] = 0;
         hfs[i] = &monitoredItemHandler;
         client_alias[i] = (client_valueAlias*) malloc(sizeof(client_valueAlias));
+         if(IS_NULL(client_alias[i]))
+        {
+            EDGE_LOG_V(TAG, "Error : Malloc failed for client_alias id %d in create subscription\n", i);
+            goto EXIT;
+        }
         client_alias[i]->client = client;
         client_alias[i]->valueAlias = (char *)malloc(EDGE_UA_SUBSCRIPTION_ITEM_SIZE);
-        strcpy(client_alias[i]->valueAlias, msg->requests[i]->nodeInfo->valueAlias);
+        if(IS_NULL(client_alias[i]->valueAlias))
+        {
+            EDGE_LOG_V(TAG, "Error : Malloc failed for client_alias.valuealias id %d in create subscription\n", i);
+            goto EXIT;
+        }
+        strncpy(client_alias[i]->valueAlias, msg->requests[i]->nodeInfo->valueAlias,
+            strlen(msg->requests[i]->nodeInfo->valueAlias));
         client_alias[i]->valueAlias[strlen(msg->requests[i]->nodeInfo->valueAlias)] = '\0';
         UA_MonitoredItemCreateRequest_init(&items[i]);
         items[i].itemToMonitor.nodeId = UA_NODEID_STRING(1,
@@ -406,22 +475,38 @@ static UA_StatusCode createSub(UA_Client *client, EdgeMessage *msg)
             return itemResults[i];
         }
 
-        if (NULL == clientSub)
+        if (IS_NULL(clientSub))
         {
             EDGE_LOG(TAG, "subscription list for the client is empty\n");
             clientSub = (clientSubscription*) malloc(sizeof(clientSubscription));
+            if(IS_NULL(clientSub))
+            {
+                EDGE_LOG(TAG, "Error : Malloc failed for clientSub in create subscription\n");
+                goto EXIT;
+            }
             clientSub->subscriptionCount = 0;
             clientSub->subscriptionList = NULL;
         }
 
-        if (NULL == clientSub->subscriptionList)
+        if (IS_NULL(clientSub->subscriptionList))
         {
             clientSub->subscriptionList = createMap();
         }
         if (clientSub->subscriptionList)
         {   
             subscriptionInfo *subInfo = (subscriptionInfo *) malloc(sizeof(subscriptionInfo));
+            if(IS_NULL(subInfo))
+            {
+                EDGE_LOG(TAG, "Error : Malloc failed for subInfo in create subscription");
+                goto EXIT;
+            }
             EdgeMessage *msgCopy = (EdgeMessage *) malloc(sizeof(EdgeMessage));
+            if(IS_NULL(msgCopy))
+            {
+                FREE(subInfo);
+                EDGE_LOG(TAG, "Error : Malloc failed for msgCopy in create subscription");
+                goto EXIT;
+            }
             memcpy(msgCopy, msg, sizeof * msg);
             subInfo->msg = msgCopy;
             subInfo->subId = subId;
@@ -430,7 +515,15 @@ static UA_StatusCode createSub(UA_Client *client, EdgeMessage *msg)
             EDGE_LOG_V(TAG, "Inserting MAP ELEMENT valueAlias :: %s \n",
                    msgCopy->requests[i]->nodeInfo->valueAlias);
             char *valueAlias = (char *)malloc(sizeof(char) * (strlen(msgCopy->requests[i]->nodeInfo->valueAlias) + 1));
-            strcpy(valueAlias, msgCopy->requests[i]->nodeInfo->valueAlias);
+            if(IS_NULL(valueAlias))
+            {
+                FREE(subInfo);
+                EDGE_LOG(TAG, "Error : Malloc failed for valueAlias in create subscription");
+                goto EXIT;
+            }
+            
+            strncpy(valueAlias, msgCopy->requests[i]->nodeInfo->valueAlias,
+                strlen(msgCopy->requests[i]->nodeInfo->valueAlias));
             valueAlias[strlen(msgCopy->requests[i]->nodeInfo->valueAlias)] = '\0';
             insertMapElement(clientSub->subscriptionList, (keyValue) valueAlias,
                              (keyValue) subInfo);
@@ -449,11 +542,12 @@ static UA_StatusCode createSub(UA_Client *client, EdgeMessage *msg)
         pthread_create(&(clientSub->subscription_thread), NULL, &subscription_thread_handler, (void *) client);
     }
     clientSub->subscriptionCount++;
-    
-    free(monId); monId = NULL;
-    free(hfs); hfs = NULL;
-    free(itemResults); itemResults = NULL;
-    free(items); items = NULL;    
+
+    EXIT:
+    FREE(monId);
+    FREE(hfs);
+    FREE(itemResults);
+    FREE(items); 
 
     return UA_STATUSCODE_GOOD;
 }
@@ -463,7 +557,7 @@ static UA_StatusCode deleteSub(UA_Client *client, EdgeMessage *msg)
     subscriptionInfo *subInfo =  NULL;
     clientSubscription *clientSub = NULL;
     clientSub = (clientSubscription*) get_subscription_list(client);
-    if (!clientSub)
+    if (IS_NULL(clientSub))
         return UA_STATUSCODE_BADNOSUBSCRIPTION;
 
     subInfo = (subscriptionInfo *) getSubInfo(clientSub->subscriptionList, msg->request->nodeInfo->valueAlias);
@@ -492,26 +586,21 @@ static UA_StatusCode deleteSub(UA_Client *client, EdgeMessage *msg)
     else
     {
         EDGE_LOG(TAG, "Monitoring deleted successfully\n\n");
-        edgeMapNode *removed = removeSubFromMap(clientSub->subscriptionList, msg->request->nodeInfo->valueAlias);
+        edgeMapNode *removed = removeSubFromMap(clientSub->subscriptionList,
+            msg->request->nodeInfo->valueAlias);
         if (removed != NULL)
         {
             subscriptionInfo *info = (subscriptionInfo *) removed->value;
-            if (info)
+            if (IS_NOT_NULL(info))
             {
-				client_valueAlias *alias = (client_valueAlias*) info->hfContext;
-                free(alias->valueAlias);
-				alias->valueAlias = NULL;
-                free(alias);
-				alias = NULL;
-                free(info->msg);
-                info->msg = NULL;
-                free(info);
-                info = NULL;
+                client_valueAlias *alias = (client_valueAlias*) info->hfContext;
+                FREE(alias->valueAlias);
+                FREE(alias);
+                FREE(info->msg);
+                FREE(info);
             }
-            free(removed->key);
-            removed->key = NULL;
-            free(removed);
-            removed = NULL;
+            FREE(removed->key);
+            FREE(removed);
         }
     }
 
@@ -657,6 +746,7 @@ static UA_StatusCode modifySub(UA_Client *client, EdgeMessage *msg)
     setMonitoringModeRequest.subscriptionId = subInfo->subId;
     setMonitoringModeRequest.monitoredItemIdsSize = 1;
     setMonitoringModeRequest.monitoredItemIds = UA_malloc(sizeof(UA_UInt32));
+    VERIFY_NON_NULL(setMonitoringModeRequest.monitoredItemIds, UA_STATUSCODE_BADOUTOFMEMORY);
     setMonitoringModeRequest.monitoredItemIds[0] = monId;
     setMonitoringModeRequest.monitoringMode = UA_MONITORINGMODE_REPORTING;
     UA_SetMonitoringModeResponse setMonitoringModeResponse;
@@ -681,6 +771,7 @@ static UA_StatusCode modifySub(UA_Client *client, EdgeMessage *msg)
     UA_SetPublishingModeRequest_init(&setPublishingModeRequest);
     setPublishingModeRequest.subscriptionIdsSize = 1;
     setPublishingModeRequest.subscriptionIds = UA_malloc(sizeof(UA_UInt32));
+    VERIFY_NON_NULL(setPublishingModeRequest.subscriptionIds, UA_STATUSCODE_BADOUTOFMEMORY);
     setPublishingModeRequest.subscriptionIds[0] = subInfo->subId;
     setPublishingModeRequest.publishingEnabled = subReq->publishingEnabled; //UA_TRUE;
     UA_SetPublishingModeResponse setPublishingModeResponse;

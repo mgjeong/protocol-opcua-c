@@ -85,11 +85,7 @@ static void addVariableNode(UA_Server *server, EdgeNodeItem *item)
         UA_Variant_setScalarCopy(&attr.value, &val, &UA_TYPES[type]);
         UA_String_deleteMembers(&val);
 
-        if(val.data != NULL)
-        {
-            free(val.data);
-            val.data = NULL;
-        }
+        FREE(val.data);
     }
     else
     {
@@ -483,7 +479,12 @@ static UA_StatusCode methodCallback(UA_Server *server, const UA_NodeId *sessionI
         if (outputSize > 0)
         {
             out = malloc(sizeof(void *) * outputSize);
-            VERIFY_NON_NULL(out, STATUS_ERROR);
+            if(IS_NULL(out))
+            {
+                EDGE_LOG(TAG, "ERROR : out in methodCallback Malloc FAILED\n");
+                FREE(inp);
+                return STATUS_ERROR;
+            }
             for (int i = 0; i < outputSize; i++)
             {
                 out[i] = NULL;
@@ -491,11 +492,7 @@ static UA_StatusCode methodCallback(UA_Server *server, const UA_NodeId *sessionI
         }
         method_to_call(inputSize, inp, outputSize, out);
 
-        if (inp)
-        {
-            free(inp);
-            inp = NULL;
-        }
+        FREE(inp);
 
         for (int idx = 0; idx < method->num_outArgs; idx++)
         {
@@ -510,11 +507,7 @@ static UA_StatusCode methodCallback(UA_Server *server, const UA_NodeId *sessionI
                         UA_String val = UA_STRING_ALLOC((char * ) *out);
                         UA_Variant_setScalarCopy(&output[idx], &val, &UA_TYPES[type]);
                         UA_String_deleteMembers(&val);
-                        if(val.data != NULL)
-                        {
-                            free(val.data);
-                            val.data = NULL;
-                        }
+                        FREE(val.data);
                     }
                     else
                     {
@@ -550,12 +543,10 @@ static UA_StatusCode methodCallback(UA_Server *server, const UA_NodeId *sessionI
                                 &UA_TYPES[type]);
                     }
                 }
-                free(out[idx]);
-                out[idx] = NULL;
+                FREE(out[idx]);
             }
         }
-        free(out);
-        out = NULL;
+        FREE(out);
         return UA_STATUSCODE_GOOD;
     }
     else
@@ -670,7 +661,19 @@ EdgeResult addMethodNode(UA_Server *server, EdgeNodeItem *item, EdgeMethod *meth
         {
             outputArguments[idx].valueRank = 1; /* Array with one dimensions */
             UA_UInt32 *outputDimensions = (UA_UInt32 *) malloc(sizeof(UA_UInt32));
-            VERIFY_NON_NULL(outputDimensions, result);
+            if(IS_NULL(outputDimensions))
+            {
+                EDGE_LOG(TAG, "ERROR : outputDimensions MALLOC failed\n");
+                for (idx = 0; idx < num_inpArgs; idx++)
+                {
+                    if (method->inpArg[idx]->valType == ARRAY_1D)
+                    {
+                        FREE(inputArguments[idx].arrayDimensions);
+                    }
+                }
+                result.code = STATUS_ERROR;
+                return result;                
+            }
             outputDimensions[0] = method->outArg[idx]->arrayLength;
             outputArguments[idx].arrayDimensionsSize = 1;
             outputArguments[idx].arrayDimensions = outputDimensions;
@@ -720,7 +723,7 @@ EdgeResult addMethodNode(UA_Server *server, EdgeNodeItem *item, EdgeMethod *meth
     {
         if (method->outArg[idx]->valType == ARRAY_1D)
         {
-            free(outputArguments[idx].arrayDimensions);
+            FREE(outputArguments[idx].arrayDimensions);
         }
     }
     for (idx = 0; idx < num_inpArgs; idx++)
@@ -728,7 +731,7 @@ EdgeResult addMethodNode(UA_Server *server, EdgeNodeItem *item, EdgeMethod *meth
 
         if (method->inpArg[idx]->valType == ARRAY_1D)
         {
-            free(inputArguments[idx].arrayDimensions);
+            FREE(inputArguments[idx].arrayDimensions);
         }
     }
 
@@ -770,12 +773,7 @@ EdgeResult modifyNode(UA_Server *server, char *nodeUri, EdgeVersatility *value)
         UA_String val = UA_STRING_ALLOC((char * ) value->value);
         ret = UA_Variant_setScalarCopy(myVariant, &val, type);
         UA_String_deleteMembers(&val);
-
-        if(val.data != NULL)
-        {
-            free(val.data);
-            val.data = NULL;
-        }
+        FREE(val.data);
     }
     else
     {
