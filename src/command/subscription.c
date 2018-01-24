@@ -54,94 +54,6 @@ typedef struct client_valueAlias
 
 static edgeMap *clientSubMap  = NULL;
 
-#if 0
-static bool validSubscriptionId(UA_UInt32 subId)
-{
-    if (subscriptionList)
-    {
-        edgeMapNode *temp = subscriptionList->head;
-        while (temp != NULL)
-        {
-            subscriptionInfo *subInfo = (subscriptionInfo *) temp->value;
-
-            if (subInfo->subId == subId)
-                return false;
-
-            temp = temp->next;
-        }
-    }
-
-    return true;
-}
-
-static bool validateMonitoringId(UA_UInt32 subId, UA_UInt32 monId)
-{
-    if (subscriptionList)
-    {
-        edgeMapNode *temp = subscriptionList->head;
-        while (temp != NULL)
-        {
-            subscriptionInfo *subInfo = (subscriptionInfo *) temp->value;
-
-            if (subInfo->subId == subId && subInfo->monId == monId)
-                return false;
-
-            temp = temp->next;
-        }
-    }
-
-    return true;
-}
-
-static keyValue getSubscriptionInfo(char *valueAlias)
-{
-    edgeMapNode *temp = subscriptionList->head;
-    while (temp != NULL)
-    {
-        if (!strcmp(temp->key, valueAlias))
-        {
-            return temp->value;
-        }
-        temp = temp->next;
-    }
-    return NULL;
-}
-
-static edgeMapNode *removeSubscriptionFromMap(char *valueAlias)
-{
-    edgeMapNode *temp = subscriptionList->head;
-    edgeMapNode *prev = NULL;
-    while (temp != NULL)
-    {
-        if (!strcmp(temp->key, valueAlias))
-        {
-            if (prev == NULL)
-            {
-                subscriptionList->head = temp->next;
-            }
-            else
-            {
-                prev->next = temp->next;
-            }
-
-            return temp;
-        }
-        prev = temp;
-        temp = temp->next;
-    }
-    return NULL;
-}
-
-static void printMap()
-{
-    edgeMapNode *temp = subscriptionList->head;
-    while (temp != NULL)
-    {
-        temp = temp->next;
-    }
-}
-#endif
-
 static bool validateMonitoringId(edgeMap *list, UA_UInt32 subId, UA_UInt32 monId)
 {
     if (list)
@@ -269,8 +181,6 @@ static void monitoredItemHandler(UA_UInt32 monId, UA_DataValue *value, void *con
         subInfo = (subscriptionInfo *) getSubInfo(clientSub->subscriptionList, client_alias->valueAlias);
         if (!subInfo)
             return;
-
-//        sleep(1);
 
         EdgeResponse *response = (EdgeResponse *) malloc(sizeof(EdgeResponse));
         if (response)
@@ -430,9 +340,6 @@ static UA_StatusCode createSub(UA_Client *client, EdgeMessage *msg)
                 UA_StatusCode_name(UA_STATUSCODE_BADSUBSCRIPTIONIDINVALID));
         return UA_STATUSCODE_BADSUBSCRIPTIONIDINVALID;
     }
-
-    //EdgeMessage *msgCopy = (EdgeMessage *) malloc(sizeof(EdgeMessage));
-    //memcpy(msgCopy, msg, sizeof * msg);
 
     int itemSize = msg->requestLength;
     UA_MonitoredItemCreateRequest *items = (UA_MonitoredItemCreateRequest *) malloc(
@@ -724,21 +631,16 @@ static UA_StatusCode modifySub(UA_Client *client, EdgeMessage *msg)
         if (result.revisedQueueSize != subReq->queueSize)
         {
             EDGE_LOG(TAG, "WARNING : Revised Queue Size in Response MISMATCH\n\n");
-
             EDGE_LOG_V(TAG, "Result Queue Size : %u\n", result.revisedQueueSize);
-
             EDGE_LOG_V(TAG, "Queue Size : %u\n", subReq->queueSize);
         }
 
         if (result.revisedSamplingInterval != subReq->samplingInterval)
         {
             EDGE_LOG(TAG, "WARNING : Revised Sampling Interval in Response MISMATCH\n\n");
-
             EDGE_LOG_V(TAG, " Result Sampling Interval %f\n", result.revisedSamplingInterval);
-
             EDGE_LOG_V(TAG, " Sampling Interval %f\n", subReq->samplingInterval);
         }
-
     }
     else
     {
