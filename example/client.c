@@ -620,9 +620,9 @@ static void endpoint_found_cb (EdgeDevice *device)
             printf("[Application Callback] Address :: %s, Port : %d, ServerName :: %s\n", device->address,
                    device->port, device->serverName);
             printf("[Application Callback] SecurityPolicyUri :: %s\n\n",
-                   device->endpointsInfo[idx]->config->securityPolicyUri);
+                   device->endpointsInfo[idx]->securityPolicyUri);
 
-            startClient(device->address, device->port, device->endpointsInfo[idx]->config->securityPolicyUri, device->endpointsInfo[idx]->endpointUri);
+            startClient(device->address, device->port, device->endpointsInfo[idx]->securityPolicyUri, device->endpointsInfo[idx]->endpointUri);
         }
     }
 }
@@ -768,7 +768,7 @@ static void init()
 
 static void testGetEndpoints()
 {
-    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     ep->endpointUri = endpointUri;
 
     EdgeMessage *msg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
@@ -781,6 +781,7 @@ static void testGetEndpoints()
     {
         printf("getEndpointInfo() failed.\n");
     }
+
     free(ep); ep = NULL;
     free(msg); msg = NULL;
 }
@@ -792,19 +793,22 @@ static void startClient(char *addr, int port, char *securityPolicyUri, char *end
     printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET
            "\n\n");
 
-    EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) malloc(sizeof(EdgeEndpointConfig));
+    EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) calloc(1, sizeof(EdgeEndpointConfig));
+    endpointConfig->requestTimeout = 60000;
+    endpointConfig->serverName = DEFAULT_SERVER_NAME_VALUE;
     endpointConfig->bindAddress = addr;
     endpointConfig->bindPort = port;
-    endpointConfig->applicationName = DEFAULT_SERVER_APP_NAME_VALUE;
-    endpointConfig->applicationUri = DEFAULT_SERVER_APP_URI_VALUE;
-    endpointConfig->productUri = DEFAULT_PRODUCT_URI_VALUE;
-    endpointConfig->securityPolicyUri = securityPolicyUri;
-    endpointConfig->serverName = DEFAULT_SERVER_NAME_VALUE;
-    endpointConfig->requestTimeout = 60000;
 
-    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    EdgeApplicationConfig *appConfig = (EdgeApplicationConfig *) calloc(1, sizeof(EdgeApplicationConfig));
+    appConfig->applicationUri = DEFAULT_SERVER_APP_URI_VALUE;
+    appConfig->productUri = DEFAULT_PRODUCT_URI_VALUE;
+    appConfig->applicationName = DEFAULT_SERVER_APP_NAME_VALUE;
+
+    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     ep->endpointUri = endpointUri;
-    ep->config = endpointConfig;
+    ep->endpointConfig = endpointConfig;
+    ep->appConfig = appConfig;
+    ep->securityPolicyUri = securityPolicyUri;
 
     EdgeMessage *msg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
     msg->endpointInfo = ep;
@@ -822,24 +826,20 @@ static void startClient(char *addr, int port, char *securityPolicyUri, char *end
 
 static void stopClient()
 {
-    char *ep = getEndPoint_input();
-    if (ep == NULL)
-    {
-        printf("Client not connected to any endpoints\n\n");
-        return ;
-    }
-
-    EdgeEndPointInfo *epInfo = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
-    epInfo->endpointUri = ep;
-    epInfo->config = NULL;
-
+    EdgeEndPointInfo *epInfo = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     EdgeMessage *msg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
     msg->endpointInfo = epInfo;
     msg->command = CMD_STOP_CLIENT;
 
-    printf("\n" COLOR_YELLOW "********************** stop client **********************"
+    EndPointList *temp = epList;
+    while (temp)
+    {
+        epInfo->endpointUri = temp->endpoint;
+        printf("\n" COLOR_YELLOW "********************** stop client **********************"
            COLOR_RESET"\n");
-    disconnectClient(epInfo);
+        disconnectClient(epInfo);
+        temp = temp->next;
+    }
 
     free(epInfo); epInfo = NULL;
     free(msg); msg = NULL;
@@ -894,7 +894,6 @@ static void testBrowseNext()
 
     EdgeEndPointInfo *ep = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     ep->endpointUri = endpointUri;
-    ep->config = NULL;
 
     EdgeMessage *msg = (EdgeMessage *) calloc(1, sizeof(EdgeMessage));
     msg->type = SEND_REQUESTS; // There can be one or more continuation points.
@@ -948,7 +947,6 @@ static void testBrowse()
 
     EdgeEndPointInfo *ep = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     ep->endpointUri = endpointUri;
-    ep->config = NULL;
 
     EdgeMessage *msg = (EdgeMessage *) calloc(1, sizeof(EdgeMessage));
     msg->type = SEND_REQUEST;
@@ -1004,7 +1002,6 @@ static void testBrowses()
            "\n\n");
     EdgeEndPointInfo *ep = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     ep->endpointUri = endpointUri;
-    ep->config = NULL;
 
     EdgeMessage *msg = (EdgeMessage *) calloc(1, sizeof(EdgeMessage));
     msg->type = SEND_REQUESTS;
@@ -1106,9 +1103,8 @@ static void testRead()
     char nodeName[MAX_CHAR_SIZE];
     int num_requests = 1;
 
-    EdgeEndPointInfo *epInfo = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    EdgeEndPointInfo *epInfo = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     epInfo->endpointUri = ep;
-    epInfo->config = NULL;
 
     EdgeNodeInfo **nodeInfo = (EdgeNodeInfo **) malloc(sizeof(EdgeNodeInfo *) * num_requests);
     for (int i = 0; i < num_requests; i++)
@@ -1166,9 +1162,8 @@ static void testReadGroup()
     printf("Enter number of nodes to read (less than 10) :: ");
     scanf("%d", &num_requests);
 
-    EdgeEndPointInfo *epInfo = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    EdgeEndPointInfo *epInfo = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     epInfo->endpointUri = ep;
-    epInfo->config = NULL;
 
     EdgeNodeInfo **nodeInfo = (EdgeNodeInfo **) malloc(sizeof(EdgeNodeInfo *) * num_requests);
     EdgeRequest **requests = (EdgeRequest **) malloc(sizeof(EdgeRequest *) * num_requests);
@@ -1341,9 +1336,8 @@ static void testWrite()
     char nodeName[MAX_CHAR_SIZE];
     int num_requests = 1;
 
-    EdgeEndPointInfo *epInfo = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    EdgeEndPointInfo *epInfo = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     epInfo->endpointUri = ep;
-    epInfo->config = NULL;
 
     EdgeNodeInfo **nodeInfo = (EdgeNodeInfo **) malloc(sizeof(EdgeNodeInfo *));
     EdgeRequest **requests = (EdgeRequest **) malloc(sizeof(EdgeRequest *) * num_requests);
@@ -1403,9 +1397,8 @@ static void testWriteGroup()
     printf("Enter number of nodes to write (less than 10) :: ");
     scanf("%d", &num_requests);
 
-    EdgeEndPointInfo *epInfo = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    EdgeEndPointInfo *epInfo = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     epInfo->endpointUri = ep;
-    epInfo->config = NULL;
 
     EdgeNodeInfo **nodeInfo = (EdgeNodeInfo **) malloc(sizeof(EdgeNodeInfo *) * num_requests);
     EdgeRequest **requests = (EdgeRequest **) malloc(sizeof(EdgeRequest *) * num_requests);
@@ -1456,9 +1449,8 @@ static void testMethod()
     printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET
            "\n\n");
 
-    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     ep->endpointUri = endpointUri;
-    ep->config = NULL;
 
     EdgeNodeInfo *nodeInfo = (EdgeNodeInfo *) malloc(sizeof(EdgeNodeInfo));
     nodeInfo->valueAlias = "square_root";
@@ -1498,9 +1490,8 @@ static void testMethod()
 
     printf("\n=====================================\n\n");
 
-    ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    ep = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     ep->endpointUri = endpointUri;
-    ep->config = NULL;
 
     nodeInfo = (EdgeNodeInfo *) malloc(sizeof(EdgeNodeInfo));
     nodeInfo->valueAlias = "incrementInc32Array";
@@ -1566,9 +1557,8 @@ static void testSub()
         return;
     }
 
-    EdgeEndPointInfo *epInfo = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    EdgeEndPointInfo *epInfo = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     epInfo->endpointUri = ep;
-    epInfo->config = NULL;
 
     EdgeRequest **requests = (EdgeRequest **) malloc(sizeof(EdgeRequest *) * num_requests);
     EdgeSubRequest *subReq = (EdgeSubRequest *) malloc(sizeof(EdgeSubRequest));
@@ -1640,9 +1630,8 @@ static void testSubModify()
     printf("\nEnter the node name to modify Subscribe :: ");
     scanf("%s", nodeName);
 
-    EdgeEndPointInfo *epInfo = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    EdgeEndPointInfo *epInfo = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     epInfo->endpointUri = ep;
-    epInfo->config = NULL;
 
     EdgeSubRequest *subReq = (EdgeSubRequest *) malloc(sizeof(EdgeSubRequest));
     subReq->subType = Edge_Modify_Sub;
@@ -1699,9 +1688,8 @@ static void testRePublish()
     printf("\nEnter the node name to Re publish :: ");
     scanf("%s", nodeName);
 
-    EdgeEndPointInfo *epInfo = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    EdgeEndPointInfo *epInfo = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     epInfo->endpointUri = ep;
-    epInfo->config = NULL;
 
     EdgeSubRequest *subReq = (EdgeSubRequest *) malloc(sizeof(EdgeSubRequest));
     subReq->subType = Edge_Republish_Sub;
@@ -1749,9 +1737,8 @@ static void testSubDelete()
     printf("\nEnter the node name to delete Subscribe :: ");
     scanf("%s", nodeName);
 
-    EdgeEndPointInfo *epInfo = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    EdgeEndPointInfo *epInfo = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     epInfo->endpointUri = ep;
-    epInfo->config = NULL;
 
     EdgeSubRequest *subReq = (EdgeSubRequest *) malloc(sizeof(EdgeSubRequest));
     subReq->subType = Edge_Delete_Sub;
@@ -1886,7 +1873,7 @@ int main()
         else if (!strcmp(command, "quit"))
         {
             deinit();
-            //stopFlag = true;
+            stopFlag = true;
         }
         else if (!strcmp(command, "help"))
         {

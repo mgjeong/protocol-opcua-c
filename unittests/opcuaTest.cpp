@@ -448,7 +448,7 @@ extern "C"
             int idx = 0;
             for (idx = 0; idx < num_endpoints; idx++)
                 startClient(device->address, device->port,
-                        device->endpointsInfo[idx]->config->securityPolicyUri);
+                        device->endpointsInfo[idx]->securityPolicyUri);
         }
     }
 
@@ -544,9 +544,8 @@ static void deleteMessage(EdgeMessage *msg, EdgeEndPointInfo *ep)
 
 static void subscribeAndModifyNodes()
 {
-    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     ep->endpointUri = endpointUri;
-    ep->config = NULL;
 
     EdgeRequest **requests = (EdgeRequest **) malloc(sizeof(EdgeRequest *) * 2);
     EdgeSubRequest *subReq = (EdgeSubRequest *) malloc(sizeof(EdgeSubRequest));
@@ -603,9 +602,8 @@ static void subscribeAndModifyNodes()
     ep = NULL;
 
     //Deleting Subscription - node_arr[0]
-    EdgeEndPointInfo *epDel1 = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    EdgeEndPointInfo *epDel1 = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     epDel1->endpointUri = endpointUri;
-    epDel1->config = NULL;
 
     EdgeSubRequest *subReqDel1 = (EdgeSubRequest *) malloc(sizeof(EdgeSubRequest));
     subReqDel1->subType = Edge_Delete_Sub;
@@ -635,9 +633,8 @@ static void subscribeAndModifyNodes()
 
     sleep(2);
 
-    EdgeEndPointInfo *epModify = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    EdgeEndPointInfo *epModify = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     epModify->endpointUri = endpointUri;
-    epModify->config = NULL;
 
     EdgeSubRequest *subReqMod = (EdgeSubRequest *) malloc(sizeof(EdgeSubRequest));
     subReqMod->subType = Edge_Modify_Sub;
@@ -682,9 +679,8 @@ static void subscribeAndModifyNodes()
     requestMod = NULL;
     deleteMessage(msgMod, epModify);
 
-    EdgeEndPointInfo *epRepub = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    EdgeEndPointInfo *epRepub = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     epRepub->endpointUri = endpointUri;
-    epRepub->config = NULL;
 
     EdgeSubRequest *subReqRepub = (EdgeSubRequest *) malloc(sizeof(EdgeSubRequest));
     subReqRepub->subType = Edge_Republish_Sub;
@@ -717,9 +713,8 @@ static void subscribeAndModifyNodes()
 static void deleteSub()
 {
     //Deleting Subscription - node_arr[1]
-    EdgeEndPointInfo *epDel2 = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    EdgeEndPointInfo *epDel2 = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     epDel2->endpointUri = endpointUri;
-    epDel2->config = NULL;
 
     EdgeSubRequest *subReqDel2 = (EdgeSubRequest *) malloc(sizeof(EdgeSubRequest));
     subReqDel2->subType = Edge_Delete_Sub;
@@ -755,7 +750,6 @@ static void browseNodes()
 {
     EdgeEndPointInfo *ep = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     ep->endpointUri = endpointUri;
-    ep->config = NULL;
 
     EdgeMessage *msg = (EdgeMessage *) calloc(1, sizeof(EdgeMessage));
     msg->type = SEND_REQUEST;
@@ -852,9 +846,8 @@ static void writeNodes(bool defaultFlag)
     {
         PRINT_ARG("*****  Writting the node with browse name  ", node_arr[id]);
 
-        EdgeEndPointInfo *epWrite = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+        EdgeEndPointInfo *epWrite = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
         epWrite->endpointUri = endpointUri;
-        epWrite->config = NULL;
 
         EdgeNodeInfo **nodeInfo = (EdgeNodeInfo **) malloc(sizeof(EdgeNodeInfo *));
         nodeInfo[0] = (EdgeNodeInfo *) malloc(sizeof(EdgeNodeInfo));
@@ -930,9 +923,8 @@ static void readNodes()
 {
     PRINT("=============== Reading Nodes ==================");
 
-    EdgeEndPointInfo *epRead = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    EdgeEndPointInfo *epRead = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     epRead->endpointUri = endpointUri;
-    epRead->config = NULL;
 
     EdgeNodeInfo **nodeInfo = (EdgeNodeInfo **) malloc(sizeof(EdgeNodeInfo *) * 1);
 
@@ -982,7 +974,6 @@ static void callClientMethods()
     PRINT("=============== Calling Methods ==================");
     EdgeEndPointInfo *ep = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     ep->endpointUri = endpointUri;
-    ep->config = NULL;
 
     EdgeNodeInfo *nodeInfo = (EdgeNodeInfo *) malloc(sizeof(EdgeNodeInfo));
     nodeInfo->valueAlias = "square_root";
@@ -1027,9 +1018,8 @@ static void callClientMethods()
     request = NULL;
     deleteMessage(msg, ep);
 
-    ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    ep = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     ep->endpointUri = endpointUri;
-    ep->config = NULL;
 
     nodeInfo = (EdgeNodeInfo *) malloc(sizeof(EdgeNodeInfo));
     nodeInfo->valueAlias = "incrementInc32Array";
@@ -1085,28 +1075,33 @@ static void callClientMethods()
 static void startClient(char *addr, int port, char *securityPolicyUri)
 {
     PRINT("                       Client connect            ");
-    EdgeEndpointConfig *endpointConfigClient = (EdgeEndpointConfig *) malloc(
-            sizeof(EdgeEndpointConfig));
+    EdgeEndpointConfig *endpointConfigClient = (EdgeEndpointConfig *) calloc(
+            1, sizeof(EdgeEndpointConfig));
     EXPECT_EQ(NULL != endpointConfigClient, true);
     endpointConfigClient->bindAddress = ipAddress;
     EXPECT_EQ(strcmp(endpointConfigClient->bindAddress, ipAddress) == 0, true);
     endpointConfigClient->bindPort = port;
-    endpointConfigClient->applicationName = DEFAULT_SERVER_APP_NAME_VALUE;
-    endpointConfigClient->applicationUri = DEFAULT_SERVER_APP_URI_VALUE;
-    endpointConfigClient->productUri = DEFAULT_PRODUCT_URI_VALUE;
-    endpointConfigClient->securityPolicyUri = securityPolicyUri;
-    //EXPECT_EQ(endpointConfigClient->securityPolicyUri == NULL,  true);
     endpointConfigClient->serverName = DEFAULT_SERVER_NAME_VALUE;
     endpointConfigClient->requestTimeout = 60000;
     EXPECT_EQ(endpointConfigClient->requestTimeout, 60000);
 
-    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    EdgeApplicationConfig *endpointAppConfig = (EdgeApplicationConfig *) calloc(
+            1, sizeof(EdgeApplicationConfig));
+    EXPECT_EQ(NULL != endpointAppConfig, true);
+    endpointAppConfig->applicationName = DEFAULT_SERVER_APP_NAME_VALUE;
+    endpointAppConfig->applicationUri = DEFAULT_SERVER_APP_URI_VALUE;
+    endpointAppConfig->productUri = DEFAULT_PRODUCT_URI_VALUE;
+
+    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     EXPECT_EQ(NULL != ep, true);
     ep->endpointUri = endpointUri;
     EXPECT_EQ(strcmp(ep->endpointUri, ipAddress) == 0, true);
-    ep->config = endpointConfigClient;
+    ep->securityPolicyUri = securityPolicyUri;
+    //EXPECT_EQ(ep->securityPolicyUri == NULL,  true);
+    ep->endpointConfig = endpointConfigClient;
+    ep->appConfig = endpointAppConfig;
 
-    EdgeMessage *msg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
+    EdgeMessage *msg = (EdgeMessage *) calloc(1, sizeof(EdgeMessage));
     EXPECT_EQ(NULL != msg, true);
     msg->endpointInfo = ep;
     msg->command = CMD_START_CLIENT;
@@ -1123,13 +1118,15 @@ static void startClient(char *addr, int port, char *securityPolicyUri)
 
     free(endpointConfigClient);
     endpointConfigClient = NULL;
+
+    free(endpointAppConfig);
+    endpointAppConfig = NULL;
 }
 
 static void stopClient()
 {
-    EdgeEndPointInfo *ep_t = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    EdgeEndPointInfo *ep_t = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     ep_t->endpointUri = endpointUri;
-    ep_t->config = NULL;
 
     EdgeMessage *msg_t = (EdgeMessage *) malloc(sizeof(EdgeMessage));
     msg_t->endpointInfo = ep_t;
@@ -1149,7 +1146,7 @@ protected:
         strcpy(ipAddress, LOCALHOST);
         snprintf(endpointUri, sizeof(endpointUri), ENDPOINT_URI, ipAddress);
 
-        epInfo = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+        epInfo = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
 
     }
 
@@ -1270,7 +1267,7 @@ TEST_F(OPC_serverTests , StartServer_N)
 
     configureCallbacks();
 
-    EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) malloc(sizeof(EdgeEndpointConfig));
+    EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) calloc(1, sizeof(EdgeEndpointConfig));
     EXPECT_EQ(NULL != endpointConfig, true);
 
     endpointConfig->bindAddress = ipAddress;
@@ -1279,26 +1276,29 @@ TEST_F(OPC_serverTests , StartServer_N)
     endpointConfig->bindPort = 12686;
     EXPECT_EQ(endpointConfig->bindPort, 12686);
 
-    endpointConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
-    EXPECT_EQ(strcmp(endpointConfig->applicationName, DEFAULT_SERVER_APP_NAME_VALUE) == 0, true);
-
-    endpointConfig->applicationUri = (char *) DEFAULT_SERVER_URI_VALUE;
-    EXPECT_EQ(strcmp(endpointConfig->applicationUri, DEFAULT_SERVER_URI_VALUE) == 0, true);
-
-    endpointConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
-    EXPECT_EQ(strcmp(endpointConfig->productUri, DEFAULT_PRODUCT_URI_VALUE) == 0, true);
-
-    endpointConfig->securityPolicyUri = NULL;
-    EXPECT_EQ(endpointConfig->securityPolicyUri == NULL, true);
-
     endpointConfig->serverName = (char *) DEFAULT_SERVER_NAME_VALUE;
     EXPECT_EQ(strcmp(endpointConfig->serverName, DEFAULT_SERVER_NAME_VALUE) == 0, true);
 
-    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    EdgeApplicationConfig *appConfig = (EdgeApplicationConfig *) calloc(1, sizeof(EdgeApplicationConfig));
+    EXPECT_EQ(NULL != appConfig, true);
+
+    appConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
+    EXPECT_EQ(strcmp(appConfig->applicationName, DEFAULT_SERVER_APP_NAME_VALUE) == 0, true);
+
+    appConfig->applicationUri = (char *) DEFAULT_SERVER_URI_VALUE;
+    EXPECT_EQ(strcmp(appConfig->applicationUri, DEFAULT_SERVER_URI_VALUE) == 0, true);
+
+    appConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
+    EXPECT_EQ(strcmp(appConfig->productUri, DEFAULT_PRODUCT_URI_VALUE) == 0, true);
+
+    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     EXPECT_EQ(NULL != ep, true);
     ep->endpointUri = endpointUri;
     ASSERT_TRUE(strcmp(ep->endpointUri, "opc:tcp://localhost:12686/edge-opc-server") == 0);
-    ep->config = endpointConfig;
+    ep->securityPolicyUri = NULL;
+    EXPECT_EQ(ep->securityPolicyUri == NULL, true);
+    ep->endpointConfig = endpointConfig;
+    ep->appConfig = appConfig;
 
     EdgeMessage *msg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
     EXPECT_EQ(NULL != msg, true);
@@ -1324,6 +1324,9 @@ TEST_F(OPC_serverTests , StartServer_N)
 
     cleanCallbacks();
 
+    free(endpointConfig);
+    free(appConfig);
+
     if (epInfo->endpointUri != NULL)
     {
         free(epInfo->endpointUri);
@@ -1340,17 +1343,20 @@ TEST_F(OPC_serverTests , StartServer_P)
     epInfo->endpointUri[len] = '\0';
     configureCallbacks();
 
-    EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) malloc(sizeof(EdgeEndpointConfig));
+    EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) calloc(1, sizeof(EdgeEndpointConfig));
     endpointConfig->bindAddress = ipAddress;
     endpointConfig->bindPort = 12686;
-    endpointConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
-    endpointConfig->applicationUri = (char *) DEFAULT_SERVER_URI_VALUE;
-    endpointConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
-    endpointConfig->securityPolicyUri = NULL;
     endpointConfig->serverName = (char *) DEFAULT_SERVER_NAME_VALUE;
-    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+
+    EdgeApplicationConfig *appConfig = (EdgeApplicationConfig *) calloc(1, sizeof(EdgeApplicationConfig));
+    appConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
+    appConfig->applicationUri = (char *) DEFAULT_SERVER_URI_VALUE;
+    appConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
+
+    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     ep->endpointUri = endpointUri;
-    ep->config = endpointConfig;
+    ep->endpointConfig = endpointConfig;
+    ep->appConfig = appConfig;
 
     EdgeMessage *msg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
     msg->endpointInfo = ep;
@@ -1370,6 +1376,9 @@ TEST_F(OPC_serverTests , StartServer_P)
 
     cleanCallbacks();
 
+    free(endpointConfig);
+    free(appConfig);
+
     if (epInfo->endpointUri != NULL)
     {
         free(epInfo->endpointUri);
@@ -1387,19 +1396,20 @@ TEST_F(OPC_serverTests , ServerCreateNamespace_P)
 
     configureCallbacks();
 
-    EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) malloc(sizeof(EdgeEndpointConfig));
-
+    EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) calloc(1, sizeof(EdgeEndpointConfig));
     endpointConfig->bindAddress = ipAddress;
     endpointConfig->bindPort = 12686;
-    endpointConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
-    endpointConfig->applicationUri = (char *) DEFAULT_SERVER_URI_VALUE;
-    endpointConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
-    endpointConfig->securityPolicyUri = NULL;
     endpointConfig->serverName = (char *) DEFAULT_SERVER_NAME_VALUE;
 
-    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    EdgeApplicationConfig *appConfig = (EdgeApplicationConfig *) calloc(1, sizeof(EdgeApplicationConfig));
+    appConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
+    appConfig->applicationUri = (char *) DEFAULT_SERVER_URI_VALUE;
+    appConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
+
+    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     ep->endpointUri = endpointUri;
-    ep->config = endpointConfig;
+    ep->endpointConfig = endpointConfig;
+    ep->appConfig = appConfig;
 
     EdgeMessage *msg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
     msg->endpointInfo = ep;
@@ -1423,6 +1433,9 @@ TEST_F(OPC_serverTests , ServerCreateNamespace_P)
 
     cleanCallbacks();
 
+    free(endpointConfig);
+    free(appConfig);
+
     if (epInfo->endpointUri != NULL)
     {
         free(epInfo->endpointUri);
@@ -1440,18 +1453,20 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
 
     configureCallbacks();
 
-    EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) malloc(sizeof(EdgeEndpointConfig));
+    EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) calloc(1, sizeof(EdgeEndpointConfig));
     endpointConfig->bindAddress = ipAddress;
     endpointConfig->bindPort = 12686;
-    endpointConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
-    endpointConfig->applicationUri = (char *) DEFAULT_SERVER_URI_VALUE;
-    endpointConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
-    endpointConfig->securityPolicyUri = NULL;
     endpointConfig->serverName = (char *) DEFAULT_SERVER_NAME_VALUE;
 
-    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    EdgeApplicationConfig *appConfig = (EdgeApplicationConfig *) calloc(1, sizeof(EdgeApplicationConfig));
+    appConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
+    appConfig->applicationUri = (char *) DEFAULT_SERVER_URI_VALUE;
+    appConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
+
+    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     ep->endpointUri = endpointUri;
-    ep->config = endpointConfig;
+    ep->endpointConfig = endpointConfig;
+    ep->appConfig = appConfig;
 
     EdgeMessage *msg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
     msg->endpointInfo = ep;
@@ -1694,6 +1709,9 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
 
     cleanCallbacks();
 
+    free(endpointConfig);
+    free(appConfig);
+
     if (epInfo->endpointUri != NULL)
     {
         free(epInfo->endpointUri);
@@ -1711,19 +1729,20 @@ TEST_F(OPC_serverTests , StartStopServer_P)
 
     configureCallbacks();
 
-    EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) malloc(sizeof(EdgeEndpointConfig));
-
+    EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) calloc(1, sizeof(EdgeEndpointConfig));
     endpointConfig->bindAddress = ipAddress;
     endpointConfig->bindPort = 12686;
-    endpointConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
-    endpointConfig->applicationUri = (char *) DEFAULT_SERVER_URI_VALUE;
-    endpointConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
-    endpointConfig->securityPolicyUri = NULL;
     endpointConfig->serverName = (char *) DEFAULT_SERVER_NAME_VALUE;
 
-    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    EdgeApplicationConfig *appConfig = (EdgeApplicationConfig *) calloc(1, sizeof(EdgeApplicationConfig));
+    appConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
+    appConfig->applicationUri = (char *) DEFAULT_SERVER_URI_VALUE;
+    appConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
+
+    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     ep->endpointUri = endpointUri;
-    ep->config = endpointConfig;
+    ep->endpointConfig = endpointConfig;
+    ep->appConfig = appConfig;
 
     EdgeMessage *msg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
     msg->endpointInfo = ep;
@@ -1740,9 +1759,8 @@ TEST_F(OPC_serverTests , StartStopServer_P)
 
     PRINT("=============STOP SERVER===============");
 
-    EdgeEndPointInfo *epStop = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    EdgeEndPointInfo *epStop = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     epStop->endpointUri = endpointUri;
-    epStop->config = NULL;
 
     EdgeMessage *msgStop = (EdgeMessage *) malloc(sizeof(EdgeMessage));
     ASSERT_TRUE(NULL != msgStop);
@@ -1760,6 +1778,9 @@ TEST_F(OPC_serverTests , StartStopServer_P)
 
     cleanCallbacks();
 
+    free(endpointConfig);
+    free(appConfig);
+
     if (epInfo->endpointUri != NULL)
     {
         free(epInfo->endpointUri);
@@ -1776,19 +1797,20 @@ TEST_F(OPC_serverTests , StartServerNew_P)
     epInfo->endpointUri[len] = '\0';
     configureCallbacks();
 
-    EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) malloc(sizeof(EdgeEndpointConfig));
-
+    EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) calloc(1, sizeof(EdgeEndpointConfig));
     endpointConfig->bindAddress = ipAddress;
     endpointConfig->bindPort = 12686;
-    endpointConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
-    endpointConfig->applicationUri = (char *) DEFAULT_SERVER_URI_VALUE;
-    endpointConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
-    endpointConfig->securityPolicyUri = NULL;
     endpointConfig->serverName = (char *) DEFAULT_SERVER_NAME_VALUE;
 
-    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    EdgeApplicationConfig *appConfig = (EdgeApplicationConfig *) calloc(1, sizeof(EdgeApplicationConfig));
+    appConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
+    appConfig->applicationUri = (char *) DEFAULT_SERVER_URI_VALUE;
+    appConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
+
+    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     ep->endpointUri = endpointUri;
-    ep->config = endpointConfig;
+    ep->endpointConfig = endpointConfig;
+    ep->appConfig = appConfig;
 
     EdgeMessage *msg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
     msg->endpointInfo = ep;
@@ -1804,6 +1826,9 @@ TEST_F(OPC_serverTests , StartServerNew_P)
     deleteMessage(msg, ep);
 
     cleanCallbacks();
+
+    free(endpointConfig);
+    free(appConfig);
 
     if (epInfo->endpointUri != NULL)
     {
@@ -1834,22 +1859,26 @@ TEST_F(OPC_clientTests , InitializeClient_P)
 
 TEST_F(OPC_clientTests , StartClient_P)
 {
-    EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) malloc(sizeof(EdgeEndpointConfig));
+    EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) calloc(1, sizeof(EdgeEndpointConfig));
     EXPECT_EQ(NULL != endpointConfig, true);
-    endpointConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
-    EXPECT_EQ(strcmp(endpointConfig->applicationName, DEFAULT_SERVER_APP_NAME_VALUE) == 0, true);
-    endpointConfig->applicationUri = (char *) DEFAULT_SERVER_APP_URI_VALUE;
-    EXPECT_EQ(strcmp(endpointConfig->applicationUri, DEFAULT_SERVER_APP_URI_VALUE) == 0, true);
-    endpointConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
-    EXPECT_EQ(strcmp(endpointConfig->productUri, DEFAULT_PRODUCT_URI_VALUE) == 0, true);
     endpointConfig->serverName = (char *) DEFAULT_SERVER_NAME_VALUE;
     EXPECT_EQ(strcmp(endpointConfig->serverName, DEFAULT_SERVER_NAME_VALUE) == 0, true);
 
-    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    EdgeApplicationConfig *appConfig = (EdgeApplicationConfig *) calloc(1, sizeof(EdgeApplicationConfig));
+    EXPECT_EQ(NULL != appConfig, true);
+    appConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
+    EXPECT_EQ(strcmp(appConfig->applicationName, DEFAULT_SERVER_APP_NAME_VALUE) == 0, true);
+    appConfig->applicationUri = (char *) DEFAULT_SERVER_APP_URI_VALUE;
+    EXPECT_EQ(strcmp(appConfig->applicationUri, DEFAULT_SERVER_APP_URI_VALUE) == 0, true);
+    appConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
+    EXPECT_EQ(strcmp(appConfig->productUri, DEFAULT_PRODUCT_URI_VALUE) == 0, true);
+
+    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     EXPECT_EQ(NULL != ep, true);
     ep->endpointUri = endpointUri;
     EXPECT_EQ(strcmp(ep->endpointUri, ipAddress) == 0, true);
-    ep->config = endpointConfig;
+    ep->endpointConfig = endpointConfig;
+    ep->appConfig = appConfig;
 
     EdgeMessage *msg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
     EXPECT_EQ(NULL != msg, true);
@@ -1872,19 +1901,24 @@ TEST_F(OPC_clientTests , StartClient_P)
 
     EXPECT_EQ(startClientFlag, false);
 
+    free(endpointConfig);
+    free(appConfig);
 }
 
 TEST_F(OPC_clientTests , ClientBrowse_P)
 {
-    EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) malloc(sizeof(EdgeEndpointConfig));
-    endpointConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
-    endpointConfig->applicationUri = (char *) DEFAULT_SERVER_APP_URI_VALUE;
-    endpointConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
+    EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) calloc(1, sizeof(EdgeEndpointConfig));
     endpointConfig->serverName = (char *) DEFAULT_SERVER_NAME_VALUE;
 
-    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    EdgeApplicationConfig *appConfig = (EdgeApplicationConfig *) calloc(1, sizeof(EdgeApplicationConfig));
+    appConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
+    appConfig->applicationUri = (char *) DEFAULT_SERVER_APP_URI_VALUE;
+    appConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
+
+    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     ep->endpointUri = endpointUri;
-    ep->config = endpointConfig;
+    ep->endpointConfig = endpointConfig;
+    ep->appConfig = appConfig;
 
     EdgeMessage *msg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
     msg->endpointInfo = ep;
@@ -1901,9 +1935,8 @@ TEST_F(OPC_clientTests , ClientBrowse_P)
 
     browseNodes();
 
-    EdgeEndPointInfo *ep_t = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    EdgeEndPointInfo *ep_t = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     ep_t->endpointUri = endpointUri;
-    ep_t->config = NULL;
 
     EdgeMessage *msg_t = (EdgeMessage *) malloc(sizeof(EdgeMessage));
     msg_t->endpointInfo = ep_t;
@@ -1915,19 +1948,24 @@ TEST_F(OPC_clientTests , ClientBrowse_P)
 
     deleteMessage(msg_t, ep_t);
 
+    free(endpointConfig);
+    free(appConfig);
 }
 
 TEST_F(OPC_clientTests , ClientRead_P)
 {
-    EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) malloc(sizeof(EdgeEndpointConfig));
-    endpointConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
-    endpointConfig->applicationUri = (char *) DEFAULT_SERVER_APP_URI_VALUE;
-    endpointConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
+    EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) calloc(1, sizeof(EdgeEndpointConfig));
     endpointConfig->serverName = (char *) DEFAULT_SERVER_NAME_VALUE;
 
-    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    EdgeApplicationConfig *appConfig = (EdgeApplicationConfig *) calloc(1, sizeof(EdgeApplicationConfig));
+    appConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
+    appConfig->applicationUri = (char *) DEFAULT_SERVER_APP_URI_VALUE;
+    appConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
+
+    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     ep->endpointUri = endpointUri;
-    ep->config = endpointConfig;
+    ep->endpointConfig = endpointConfig;
+    ep->appConfig = appConfig;
 
     EdgeMessage *msg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
     msg->endpointInfo = ep;
@@ -1944,9 +1982,8 @@ TEST_F(OPC_clientTests , ClientRead_P)
 
     readNodes();
 
-    EdgeEndPointInfo *ep_t = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    EdgeEndPointInfo *ep_t = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     ep_t->endpointUri = endpointUri;
-    ep_t->config = NULL;
 
     EdgeMessage *msg_t = (EdgeMessage *) malloc(sizeof(EdgeMessage));
     msg_t->endpointInfo = ep_t;
@@ -1957,19 +1994,25 @@ TEST_F(OPC_clientTests , ClientRead_P)
     EXPECT_EQ(startClientFlag, false);
 
     deleteMessage(msg_t, ep_t);
+
+    free(endpointConfig);
+    free(appConfig);
 }
 
 TEST_F(OPC_clientTests , ClientWrite_P)
 {
-    EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) malloc(sizeof(EdgeEndpointConfig));
-    endpointConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
-    endpointConfig->applicationUri = (char *) DEFAULT_SERVER_APP_URI_VALUE;
-    endpointConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
+    EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) calloc(1, sizeof(EdgeEndpointConfig));
     endpointConfig->serverName = (char *) DEFAULT_SERVER_NAME_VALUE;
 
-    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    EdgeApplicationConfig *appConfig = (EdgeApplicationConfig *) calloc(1, sizeof(EdgeApplicationConfig));
+    appConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
+    appConfig->applicationUri = (char *) DEFAULT_SERVER_APP_URI_VALUE;
+    appConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
+
+    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     ep->endpointUri = endpointUri;
-    ep->config = endpointConfig;
+    ep->endpointConfig = endpointConfig;
+    ep->appConfig = appConfig;
 
     EdgeMessage *msg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
     msg->endpointInfo = ep;
@@ -1992,9 +2035,8 @@ TEST_F(OPC_clientTests , ClientWrite_P)
 
     writeNodes(true);
 
-    EdgeEndPointInfo *ep_t = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    EdgeEndPointInfo *ep_t = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     ep_t->endpointUri = endpointUri;
-    ep_t->config = NULL;
 
     EdgeMessage *msg_t = (EdgeMessage *) malloc(sizeof(EdgeMessage));
     msg_t->endpointInfo = ep_t;
@@ -2005,19 +2047,25 @@ TEST_F(OPC_clientTests , ClientWrite_P)
     EXPECT_EQ(startClientFlag, false);
 
     deleteMessage(msg_t, ep_t);
+
+    free(endpointConfig);
+    free(appConfig);
 }
 
 TEST_F(OPC_clientTests , ClientMethodCall_P)
 {
-    EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) malloc(sizeof(EdgeEndpointConfig));
-    endpointConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
-    endpointConfig->applicationUri = (char *) DEFAULT_SERVER_APP_URI_VALUE;
-    endpointConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
+    EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) calloc(1, sizeof(EdgeEndpointConfig));
     endpointConfig->serverName = (char *) DEFAULT_SERVER_NAME_VALUE;
 
-    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    EdgeApplicationConfig *appConfig = (EdgeApplicationConfig *) calloc(1, sizeof(EdgeApplicationConfig));
+    appConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
+    appConfig->applicationUri = (char *) DEFAULT_SERVER_APP_URI_VALUE;
+    appConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
+
+    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     ep->endpointUri = endpointUri;
-    ep->config = endpointConfig;
+    ep->endpointConfig = endpointConfig;
+    ep->appConfig = appConfig;
 
     EdgeMessage *msg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
     msg->endpointInfo = ep;
@@ -2034,9 +2082,8 @@ TEST_F(OPC_clientTests , ClientMethodCall_P)
 
     callClientMethods();
 
-    EdgeEndPointInfo *ep_t = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    EdgeEndPointInfo *ep_t = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     ep_t->endpointUri = endpointUri;
-    ep_t->config = NULL;
 
     EdgeMessage *msg_t = (EdgeMessage *) malloc(sizeof(EdgeMessage));
     msg_t->endpointInfo = ep_t;
@@ -2047,19 +2094,25 @@ TEST_F(OPC_clientTests , ClientMethodCall_P)
     EXPECT_EQ(startClientFlag, false);
 
     deleteMessage(msg_t, ep_t);
+
+    free(endpointConfig);
+    free(appConfig);
 }
 
 TEST_F(OPC_clientTests , ClientSubscribe_P)
 {
-    EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) malloc(sizeof(EdgeEndpointConfig));
-    endpointConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
-    endpointConfig->applicationUri = (char *) DEFAULT_SERVER_APP_URI_VALUE;
-    endpointConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
+    EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) calloc(1, sizeof(EdgeEndpointConfig));
     endpointConfig->serverName = (char *) DEFAULT_SERVER_NAME_VALUE;
 
-    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    EdgeApplicationConfig *appConfig = (EdgeApplicationConfig *) calloc(1, sizeof(EdgeApplicationConfig));
+    appConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
+    appConfig->applicationUri = (char *) DEFAULT_SERVER_APP_URI_VALUE;
+    appConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
+
+    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     ep->endpointUri = endpointUri;
-    ep->config = endpointConfig;
+    ep->endpointConfig = endpointConfig;
+    ep->appConfig = appConfig;
 
     EdgeMessage *msg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
     msg->endpointInfo = ep;
@@ -2078,9 +2131,8 @@ TEST_F(OPC_clientTests , ClientSubscribe_P)
 
     //deleteSub();
 
-    EdgeEndPointInfo *ep_t = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    EdgeEndPointInfo *ep_t = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     ep_t->endpointUri = endpointUri;
-    ep_t->config = NULL;
 
     EdgeMessage *msg_t = (EdgeMessage *) malloc(sizeof(EdgeMessage));
     msg_t->endpointInfo = ep_t;
@@ -2091,6 +2143,9 @@ TEST_F(OPC_clientTests , ClientSubscribe_P)
     EXPECT_EQ(startClientFlag, false);
 
     deleteMessage(msg_t, ep_t);
+
+    free(endpointConfig);
+    free(appConfig);
 }
 
 int main(int argc, char **argv)

@@ -127,7 +127,7 @@ EdgeResult executeMethod(UA_Client *client, EdgeMessage *msg)
                 {
                     EDGE_LOG(TAG, "ERROR : versatility malloc failed in executeMethod\n");
                     result.code = STATUS_ERROR;
-                    goto EXIT;                 
+                    goto EXIT;
                 }
                 if (UA_Variant_isScalar(&output[i]) == UA_TRUE)
                 {
@@ -252,7 +252,7 @@ EdgeResult executeMethod(UA_Client *client, EdgeMessage *msg)
                 result.code = STATUS_ERROR;
                 goto EXIT;
             }
-            resultMsg->endpointInfo = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+            resultMsg->endpointInfo = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
             if(IS_NULL(resultMsg->endpointInfo))
             {
                 EDGE_LOG(TAG, "ERROR : ResultMsg.endpointInfo malloc failed in executeMethod\n");
@@ -303,7 +303,7 @@ EdgeResult executeMethod(UA_Client *client, EdgeMessage *msg)
             EDGE_LOG(TAG, "Error : Malloc failed for resultMsg in executeMethod\n");
             goto EXIT_ERROR;
         }
-        resultMsg->endpointInfo = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+        resultMsg->endpointInfo = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
         if(IS_NULL(resultMsg))
         {
             EDGE_LOG(TAG, "Error : Malloc failed for resultMsg.endpointInfo in executeMethod\n");
