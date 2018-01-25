@@ -768,15 +768,8 @@ static void init()
 
 static void testGetEndpoints()
 {
-    EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) malloc(sizeof(EdgeEndpointConfig));
-    endpointConfig->applicationName = DEFAULT_SERVER_APP_NAME_VALUE;
-    endpointConfig->applicationUri = DEFAULT_SERVER_APP_URI_VALUE;
-    endpointConfig->productUri = DEFAULT_PRODUCT_URI_VALUE;
-    endpointConfig->serverName = DEFAULT_SERVER_NAME_VALUE;
-
     EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
     ep->endpointUri = endpointUri;
-    ep->config = endpointConfig;
 
     EdgeMessage *msg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
     msg->endpointInfo = ep;
@@ -788,8 +781,6 @@ static void testGetEndpoints()
     {
         printf("getEndpointInfo() failed.\n");
     }
-
-    free(endpointConfig); endpointConfig = NULL;
     free(ep); ep = NULL;
     free(msg); msg = NULL;
 }
