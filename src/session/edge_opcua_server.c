@@ -43,7 +43,7 @@ void createNamespaceInServer(char *namespaceUri, char *rootNodeIdentifier, char 
     {
         int idx = UA_Server_addNamespace(m_server, namespaceUri);
         (void) idx;
-        EDGE_LOG_V(TAG, "\n [SERVER] Namespace Index :: [%d]", idx);EDGE_LOG(TAG, "\n [SERVER] Namespace created\n");
+        EDGE_LOG_V(TAG, "[SERVER] Namespace Index :: [%d]\n", idx);EDGE_LOG(TAG, "[SERVER] Namespace created\n");
 
 //    nameSpace = ((new EdgeNamespace::Builder(m_server, idx, namespaceUri))->setNodeId(rootNodeIdentifier)->
 //        setBrowseName(rootNodeBrowseName)->setDisplayName(rootNodeDisplayName))->build();
