@@ -158,20 +158,24 @@ TEST_F(OPC_util , cloneEdgeEndpoint_P)
 {
     EdgeEndPointInfo *retEndpoint = NULL;
 
-    EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) malloc(sizeof(EdgeEndpointConfig));
+    EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) calloc(1, sizeof(EdgeEndpointConfig));
     endpointConfig->bindAddress = "100.100.100.100";
     endpointConfig->bindPort = 12686;
-    endpointConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
-    endpointConfig->applicationUri = (char *) DEFAULT_SERVER_URI_VALUE;
-    endpointConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
-    endpointConfig->securityPolicyUri = NULL;
     endpointConfig->serverName = (char *) DEFAULT_SERVER_NAME_VALUE;
+
+    EdgeApplicationConfig *appConfig = (EdgeApplicationConfig *) calloc(1, sizeof(EdgeApplicationConfig));
+    appConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
+    appConfig->applicationUri = (char *) DEFAULT_SERVER_URI_VALUE;
+    appConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
 
     EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
     ep->endpointUri = "opc.tcp://107.108.81.116:12686/edge-opc-server";
-    ep->config = endpointConfig;
+    ep->endpointConfig = endpointConfig;
+    ep->appConfig = appConfig;
+    ep->securityPolicyUri = NULL;
 
     EXPECT_EQ(endpointConfig != NULL, true);
+    EXPECT_EQ(appConfig != NULL, true);
     EXPECT_EQ(ep != NULL, true);
     EXPECT_EQ(retEndpoint == NULL, true);
 
@@ -179,21 +183,24 @@ TEST_F(OPC_util , cloneEdgeEndpoint_P)
 
     EXPECT_EQ(retEndpoint != NULL, true);
     EXPECT_EQ(strcmp(retEndpoint->endpointUri, ep->endpointUri), 0);
-    EXPECT_EQ(strcmp(retEndpoint->config->bindAddress, endpointConfig->bindAddress), 0);
-    EXPECT_EQ(strcmp(retEndpoint->config->bindAddress, endpointConfig->bindAddress), 0);
-    EXPECT_EQ(strcmp(retEndpoint->config->applicationUri, endpointConfig->applicationUri), 0);
-    EXPECT_EQ(strcmp(retEndpoint->config->productUri, endpointConfig->productUri), 0);
-    EXPECT_EQ(strcmp(retEndpoint->config->serverName, endpointConfig->serverName), 0);
-    EXPECT_EQ(endpointConfig->bindPort, retEndpoint->config->bindPort);
+    EXPECT_EQ(strcmp(retEndpoint->endpointConfig->bindAddress, endpointConfig->bindAddress), 0);
+    EXPECT_EQ(strcmp(retEndpoint->endpointConfig->bindAddress, endpointConfig->bindAddress), 0);
+    EXPECT_EQ(strcmp(retEndpoint->appConfig->applicationUri, appConfig->applicationUri), 0);
+    EXPECT_EQ(strcmp(retEndpoint->appConfig->productUri, appConfig->productUri), 0);
+    EXPECT_EQ(strcmp(retEndpoint->endpointConfig->serverName, endpointConfig->serverName), 0);
+    EXPECT_EQ(endpointConfig->bindPort, retEndpoint->endpointConfig->bindPort);
 
     freeEdgeEndpointInfo(retEndpoint);
     retEndpoint = NULL;
     free(endpointConfig);
     endpointConfig = NULL;
+    free(appConfig);
+    appConfig = NULL;
     free(ep);
     ep = NULL;
 
     EXPECT_EQ(endpointConfig == NULL, true);
+    EXPECT_EQ(appConfig == NULL, true);
     EXPECT_EQ(ep == NULL, true);
     EXPECT_EQ(retEndpoint == NULL, true);
 

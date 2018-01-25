@@ -118,6 +118,8 @@ extern "C"
 
     void freeEdgeEndpointConfig(EdgeEndpointConfig *config);
 
+    void freeEdgeApplicationConfig(EdgeApplicationConfig *config);
+
     void freeEdgeEndpointInfo(EdgeEndPointInfo *endpointInfo);
 
     void freeEdgeBrowseResult(EdgeBrowseResult *browseResult, int browseResultLength);
@@ -149,6 +151,8 @@ extern "C"
     void freeEdgeDevice(EdgeDevice *dev);
 
     EdgeEndpointConfig *cloneEdgeEndpointConfig(EdgeEndpointConfig *config);
+
+    EdgeApplicationConfig *cloneEdgeApplicationConfig(EdgeApplicationConfig *config);
 
     EdgeEndPointInfo *cloneEdgeEndpointInfo(EdgeEndPointInfo *endpointInfo);
 

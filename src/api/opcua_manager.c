@@ -14,6 +14,8 @@ static DiscoveryCallback *discoveryCb;
 
 static bool b_serverInitialized = false;
 
+#define TAG "OPCUA_MANAGER"
+
 static void registerRecvCallback(ReceivedMessageCallback *callback)
 {
     receivedMsgCb = callback;
@@ -110,12 +112,13 @@ EdgeResult createMethodNode(char *namespaceUri, EdgeNodeItem *item, EdgeMethod *
 
 void createServer(EdgeEndPointInfo *epInfo)
 {
-    EDGE_LOG(TAG, "\n[Received command] :: Server start \n");
+    EDGE_LOG(TAG, "[Received command] :: Server start.");
     if (b_serverInitialized)
     {
-        EDGE_LOG(TAG, "Server already initialised");
+        EDGE_LOG(TAG, "Server already initialized.");
         return ;
     }
+
     EdgeResult result = start_server(epInfo);
     if (result.code == STATUS_OK)
     {
@@ -134,13 +137,13 @@ void closeServer(EdgeEndPointInfo *epInfo)
 
 EdgeResult getEndpointInfo(EdgeEndPointInfo *epInfo)
 {
-    EDGE_LOG_V(TAG, "\n[Received command] :: Get endpoint info for [%s] \n\n", epInfo->endpointUri);
+    EDGE_LOG_V(TAG, "[Received command] :: Get endpoint info for [%s].\n", epInfo->endpointUri);
     return getClientEndpoints(epInfo->endpointUri);
 }
 
 void connectClient(EdgeEndPointInfo *epInfo)
 {
-    EDGE_LOG(TAG, "\n[Received command] :: Client connect \n");
+    EDGE_LOG(TAG, "[Received command] :: Client connect.");
     bool result = connect_client(epInfo->endpointUri);
     if (!result)
         return ;
@@ -148,7 +151,7 @@ void connectClient(EdgeEndPointInfo *epInfo)
 
 void disconnectClient(EdgeEndPointInfo *epInfo)
 {
-    EDGE_LOG(TAG, "\n[Received command] :: Client disconnect \n");
+    EDGE_LOG(TAG, "[Received command] :: Client disconnect.");
     disconnect_client(epInfo);
 }
 
@@ -203,7 +206,7 @@ void onResponseMessage(EdgeMessage *msg)
 {
     if (NULL == receivedMsgCb || NULL == msg)
     {
-        EDGE_LOG(TAG, "parameter is invalid\n\n");
+        EDGE_LOG(TAG, "parameter is invalid.");
         return;
     }
 

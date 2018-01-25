@@ -38,7 +38,7 @@ static void sendErrorResponse(EdgeMessage *msg, char *err_desc)
 {
     EdgeMessage *resultMsg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
     VERIFY_NON_NULL_NR(resultMsg);
-    resultMsg->endpointInfo = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    resultMsg->endpointInfo = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     if(IS_NULL(resultMsg->endpointInfo))
     {
         EDGE_LOG(TAG, "Error : Malloc failed for resultMessage.endpointfo sendErrorResponse\n");
@@ -238,7 +238,7 @@ static EdgeDiagnosticInfo *checkDiagnosticInfo(int nodesToProcess,
                 diagnostics->msg = (void *) "mismatch entries returned";
                 return diagnostics;
             }
-            strncpy(additional_info, (char *) (diagnosticInfo[0].additionalInfo.data), 
+            strncpy(additional_info, (char *) (diagnosticInfo[0].additionalInfo.data),
                 strlen((char *) (diagnosticInfo[0].additionalInfo.data)));
             additional_info[diagnosticInfo[0].additionalInfo.length] = '\0';
             diagnostics->additionalInfo = additional_info;
@@ -375,7 +375,7 @@ static void readGroup(UA_Client *client, EdgeMessage *msg)
         EDGE_LOG(TAG, "Error : Malloc failed for resultMsg in Read Group\n");
         goto EXIT;
     }
-    resultMsg->endpointInfo = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    resultMsg->endpointInfo = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     if(IS_NULL(resultMsg->endpointInfo))
     {
         EDGE_LOG(TAG, "Error : Malloc failed for resultMsg.endpointInfo in Read Group\n");
@@ -656,7 +656,7 @@ static void readGroup(UA_Client *client, EdgeMessage *msg)
         FREE(resultMsg->responses);
         FREE(resultMsg);
     }
-    
+
     FREE(rv);
     UA_ReadResponse_deleteMembers(&readResponse);
 

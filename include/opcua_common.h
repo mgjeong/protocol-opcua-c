@@ -91,21 +91,6 @@ typedef struct EdgeEndpointConfig
     /** requestTimeout.*/
     int requestTimeout;
 
-    /** applicationName.*/
-    char *applicationName;
-
-    /** applicationUri.*/
-    char *applicationUri;
-
-    /** productUri.*/
-    char *productUri;
-
-    /** securityPolicyUri.*/
-    char *securityPolicyUri;
-
-    /** transportProfileUri.*/
-    char *transportProfileUri;
-
     /** serverName.*/
     char *serverName;
 
@@ -116,14 +101,74 @@ typedef struct EdgeEndpointConfig
     int bindPort;
 } EdgeEndpointConfig;
 
+/** The types of applications. */
+typedef enum {
+    EDGE_APPLICATIONTYPE_SERVER = 0,
+    EDGE_APPLICATIONTYPE_CLIENT = 1,
+    EDGE_APPLICATIONTYPE_CLIENTANDSERVER = 2,
+    EDGE_APPLICATIONTYPE_DISCOVERYSERVER = 3,
+    EDGE_APPLICATIONTYPE_UNKNOWN = 0x7fffffff
+} EdgeApplicationType;
+
+typedef struct EdgeApplicationConfig
+{
+    /** applicationUri.*/
+    char *applicationUri;
+
+    /** productUri.*/
+    char *productUri;
+
+    /** applicationName.*/
+    char *applicationName;
+
+    /** Type of application. */
+    EdgeApplicationType applicationType;
+
+    /** Gateway Server's URL.*/
+    char *gatewayServerUri;
+
+    /** Discovery Profile URL.*/
+    char *discoveryProfileUri;
+
+    /** Discovery Endpoint URL.*/
+    char **discoveryUrls;
+
+    /** Number of discovery endpoint URLs.*/
+    int discoveryUrlsSize;
+} EdgeApplicationConfig;
+
+/** The type of security to use on a message.*/
+typedef enum
+{
+    EDGE_MESSAGESECURITYMODE_INVALID = 0,
+    EDGE_MESSAGESECURITYMODE_NONE = 1,
+    EDGE_MESSAGESECURITYMODE_SIGN = 2,
+    EDGE_MESSAGESECURITYMODE_SIGNANDENCRYPT = 3,
+    EDGE_MESSAGESECURITYMODE_UNKNOWN = 0x7fffffff
+} EdgeSecurityMode;
+
 typedef struct EdgeEndPointInfo
 {
     /** endpointUri.*/
     char *endpointUri;
 
     /** EdgeEndpointConfig.*/
-    EdgeEndpointConfig *config;
+    EdgeEndpointConfig *endpointConfig;
 
+    /** EdgeApplicationConfig.*/
+    EdgeApplicationConfig *appConfig;
+
+    /** Security mode of messages.*/
+    EdgeSecurityMode securityMode;
+
+    /** securityPolicyUri.*/
+    char *securityPolicyUri;
+
+    /** transportProfileUri.*/
+    char *transportProfileUri;
+
+    /** securityLevel.*/
+    int securityLevel;
 } EdgeEndPointInfo;
 
 typedef struct EdgeDevice

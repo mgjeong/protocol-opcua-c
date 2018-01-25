@@ -205,13 +205,28 @@ void freeEdgeEndpointConfig(EdgeEndpointConfig *config)
         return;
     }
 
-    free(config->applicationName);
-    free(config->applicationUri);
-    free(config->productUri);
-    free(config->securityPolicyUri);
-    free(config->transportProfileUri);
     free(config->serverName);
     free(config->bindAddress);
+    free(config);
+}
+
+void freeEdgeApplicationConfig(EdgeApplicationConfig *config)
+{
+    if(!config)
+    {
+        return;
+    }
+
+    free(config->applicationUri);
+    free(config->productUri);
+    free(config->applicationName);
+    free(config->gatewayServerUri);
+    free(config->discoveryProfileUri);
+    for(int i = 0; i < config->discoveryUrlsSize; ++i)
+    {
+        free(config->discoveryUrls[i]);
+    }
+    free(config->discoveryUrls);
     free(config);
 }
 
@@ -277,63 +292,12 @@ EdgeEndpointConfig *cloneEdgeEndpointConfig(EdgeEndpointConfig *config)
 
     clone->requestTimeout = config->requestTimeout;
     clone->bindPort = config->bindPort;
-    if (config->applicationName)
-    {
-        clone->applicationName = cloneString(config->applicationName);
-        if (!clone->applicationName)
-        {
-            freeEdgeEndpointConfig(clone);
-            return NULL;
-        }
-    }
-
-    if (config->applicationUri)
-    {
-        clone->applicationUri = cloneString(config->applicationUri);
-        if (!clone->applicationUri)
-        {
-            freeEdgeEndpointConfig(clone);
-            return NULL;
-        }
-    }
-
-    if (config->productUri)
-    {
-        clone->productUri = cloneString(config->productUri);
-        if (!clone->productUri)
-        {
-            freeEdgeEndpointConfig(clone);
-            return NULL;
-        }
-    }
-
-    if (config->securityPolicyUri)
-    {
-        clone->securityPolicyUri = cloneString(config->securityPolicyUri);
-        if (!clone->securityPolicyUri)
-        {
-            freeEdgeEndpointConfig(clone);
-            return NULL;
-        }
-    }
-
-    if (config->transportProfileUri)
-    {
-        clone->transportProfileUri = cloneString(config->transportProfileUri);
-        if (!clone->transportProfileUri)
-        {
-            freeEdgeEndpointConfig(clone);
-            return NULL;
-        }
-    }
-
     if (config->serverName)
     {
         clone->serverName = cloneString(config->serverName);
         if (!clone->serverName)
         {
-            freeEdgeEndpointConfig(clone);
-            return NULL;
+            goto ERROR;
         }
     }
 
@@ -342,12 +306,101 @@ EdgeEndpointConfig *cloneEdgeEndpointConfig(EdgeEndpointConfig *config)
         clone->bindAddress = cloneString(config->bindAddress);
         if (!clone->bindAddress)
         {
-            freeEdgeEndpointConfig(clone);
-            return NULL;
+            goto ERROR;
         }
     }
 
     return clone;
+
+ERROR:
+    freeEdgeEndpointConfig(clone);
+    return NULL;
+}
+
+EdgeApplicationConfig *cloneEdgeApplicationConfig(EdgeApplicationConfig *config)
+{
+    if (!config)
+    {
+        return NULL;
+    }
+
+    EdgeApplicationConfig *clone = (EdgeApplicationConfig *)calloc(1, sizeof(EdgeApplicationConfig));
+    if (!clone)
+    {
+        return NULL;
+    }
+
+    clone->applicationType = config->applicationType;
+
+    if (config->applicationUri)
+    {
+        clone->applicationUri = cloneString(config->applicationUri);
+        if (!clone->applicationUri)
+        {
+            goto ERROR;
+        }
+    }
+
+    if (config->productUri)
+    {
+        clone->productUri = cloneString(config->productUri);
+        if (!clone->productUri)
+        {
+            goto ERROR;
+        }
+    }
+
+    if (config->applicationName)
+    {
+        clone->applicationName = cloneString(config->applicationName);
+        if (!clone->applicationName)
+        {
+            goto ERROR;
+        }
+    }
+
+    if (config->gatewayServerUri)
+    {
+        clone->gatewayServerUri = cloneString(config->gatewayServerUri);
+        if (!clone->gatewayServerUri)
+        {
+            goto ERROR;
+        }
+    }
+
+    if (config->discoveryProfileUri)
+    {
+        clone->discoveryProfileUri = cloneString(config->discoveryProfileUri);
+        if (!clone->discoveryProfileUri)
+        {
+            goto ERROR;
+        }
+    }
+
+    clone->discoveryUrlsSize = config->discoveryUrlsSize;
+    clone->discoveryUrls = (char **)calloc(config->discoveryUrlsSize, sizeof(char *));
+    if(!clone->discoveryUrls)
+    {
+        goto ERROR;
+    }
+
+    for(int i = 0; i < clone->discoveryUrlsSize; ++i)
+    {
+        if (config->discoveryUrls[i])
+        {
+            clone->discoveryUrls[i] = cloneString(config->discoveryUrls[i]);
+            if (!clone->discoveryUrls[i])
+            {
+                goto ERROR;
+            }
+        }
+    }
+
+    return clone;
+
+ERROR:
+    freeEdgeApplicationConfig(clone);
+    return NULL;
 }
 
 void freeEdgeEndpointInfo(EdgeEndPointInfo *endpointInfo)
@@ -357,7 +410,10 @@ void freeEdgeEndpointInfo(EdgeEndPointInfo *endpointInfo)
         return;
     }
     free(endpointInfo->endpointUri);
-    freeEdgeEndpointConfig(endpointInfo->config);
+    freeEdgeEndpointConfig(endpointInfo->endpointConfig);
+    freeEdgeApplicationConfig(endpointInfo->appConfig);
+    free(endpointInfo->securityPolicyUri);
+    free(endpointInfo->transportProfileUri);
     free(endpointInfo);
 }
 
@@ -374,27 +430,59 @@ EdgeEndPointInfo *cloneEdgeEndpointInfo(EdgeEndPointInfo *endpointInfo)
         return NULL;
     }
 
+    clone->securityMode = endpointInfo->securityMode;
+    clone->securityLevel = endpointInfo->securityLevel;
+
     if (endpointInfo->endpointUri)
     {
         clone->endpointUri = cloneString(endpointInfo->endpointUri);
         if (!clone->endpointUri)
         {
-            freeEdgeEndpointInfo(clone);
-            return NULL;
+            goto ERROR;
         }
     }
 
-    if (endpointInfo->config)
+    if (endpointInfo->securityPolicyUri)
     {
-        clone->config = cloneEdgeEndpointConfig(endpointInfo->config);
-        if (!clone->config)
+        clone->securityPolicyUri = cloneString(endpointInfo->securityPolicyUri);
+        if (!clone->securityPolicyUri)
         {
-            freeEdgeEndpointInfo(clone);
-            return NULL;
+            goto ERROR;
+        }
+    }
+
+    if (endpointInfo->transportProfileUri)
+    {
+        clone->transportProfileUri = cloneString(endpointInfo->transportProfileUri);
+        if (!clone->transportProfileUri)
+        {
+            goto ERROR;
+        }
+    }
+
+    if (endpointInfo->endpointConfig)
+    {
+        clone->endpointConfig = cloneEdgeEndpointConfig(endpointInfo->endpointConfig);
+        if (!clone->endpointConfig)
+        {
+            goto ERROR;
+        }
+    }
+
+    if (endpointInfo->appConfig)
+    {
+        clone->appConfig = cloneEdgeApplicationConfig(endpointInfo->appConfig);
+        if (!clone->appConfig)
+        {
+            goto ERROR;
         }
     }
 
     return clone;
+
+ERROR:
+    freeEdgeEndpointInfo(clone);
+    return NULL;
 }
 
 void freeEdgeBrowseResult(EdgeBrowseResult *browseResult, int browseResultLength)

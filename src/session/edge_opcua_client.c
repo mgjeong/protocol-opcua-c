@@ -193,7 +193,7 @@ bool connect_client(char *endpoint)
     insertMapElement(sessionClientMap, (keyValue) m_endpoint, (keyValue) m_client);
     clientCount++;
 
-    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     VERIFY_NON_NULL(ep, false);
     ep->endpointUri = endpoint;
     onStatusCallback(ep, STATUS_CLIENT_STARTED);
@@ -269,6 +269,159 @@ static void logEndpointDescription(UA_EndpointDescription *ep)
 #else
     (void)ep;
 #endif
+}
+
+static EdgeApplicationConfig *convertToEdgeApplicationConfig(UA_ApplicationDescription *appDesc)
+{
+    if(!appDesc)
+    {
+        return NULL;
+    }
+
+    EdgeApplicationConfig *appConfig = (EdgeApplicationConfig *) calloc(1, sizeof(EdgeApplicationConfig));
+    if(!appConfig)
+    {
+        EDGE_LOG(TAG, "Memory allocation failed.");
+        goto ERROR;
+    }
+
+    if (appDesc->applicationUri.length > 0)
+    {
+        appConfig->applicationUri = convertUAStringToString(&appDesc->applicationUri);
+        if(!appConfig->applicationUri)
+        {
+            EDGE_LOG(TAG, "Memory allocation failed.");
+            goto ERROR;
+        }
+    }
+
+    if (appDesc->productUri.length > 0)
+    {
+        appConfig->productUri = convertUAStringToString(&appDesc->productUri);
+        if(!appConfig->productUri)
+        {
+            EDGE_LOG(TAG, "Memory allocation failed.");
+            goto ERROR;
+        }
+    }
+
+    if (appDesc->applicationName.text.length > 0)
+    {
+        appConfig->applicationName = convertUAStringToString(&appDesc->applicationName.text);
+        if(!appConfig->applicationName)
+        {
+            EDGE_LOG(TAG, "Memory allocation failed.");
+            goto ERROR;
+        }
+    }
+
+    if (appDesc->gatewayServerUri.length > 0)
+    {
+        appConfig->gatewayServerUri = convertUAStringToString(&appDesc->gatewayServerUri);
+        if(!appConfig->gatewayServerUri)
+        {
+            EDGE_LOG(TAG, "Memory allocation failed.");
+            goto ERROR;
+        }
+    }
+
+    if (appDesc->discoveryProfileUri.length > 0)
+    {
+        appConfig->discoveryProfileUri = convertUAStringToString(&appDesc->discoveryProfileUri);
+        if(!appConfig->discoveryProfileUri)
+        {
+            EDGE_LOG(TAG, "Memory allocation failed.");
+            goto ERROR;
+        }
+    }
+
+    appConfig->applicationType = appDesc->applicationType;
+    appConfig->discoveryUrlsSize = appDesc->discoveryUrlsSize;
+    appConfig->discoveryUrls = (char **)calloc(appDesc->discoveryUrlsSize, sizeof(char *));
+    if(!appConfig->discoveryUrls)
+    {
+        EDGE_LOG(TAG, "Memory allocation failed.");
+        goto ERROR;
+    }
+
+    for(int i = 0; i < appDesc->discoveryUrlsSize; ++i)
+    {
+        if(appDesc->discoveryUrls[i].length > 0)
+        {
+            appConfig->discoveryUrls[i] = convertUAStringToString(&appDesc->discoveryUrls[i]);
+            if(!appConfig->discoveryUrls[i])
+            {
+                EDGE_LOG(TAG, "Memory allocation failed.");
+                goto ERROR;
+            }
+        }
+    }
+
+    return appConfig;
+
+ERROR:
+    freeEdgeApplicationConfig(appConfig);
+    return NULL;
+}
+
+static EdgeEndPointInfo *convertToEdgeEndpointInfo(UA_EndpointDescription *endpoint)
+{
+    if(!endpoint)
+    {
+        return NULL;
+    }
+
+    EdgeEndPointInfo *epInfo = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
+    if(!epInfo)
+    {
+        EDGE_LOG(TAG, "Memory allocation failed.");
+        goto ERROR;
+    }
+
+    if (endpoint->endpointUrl.length > 0)
+    {
+        epInfo->endpointUri = convertUAStringToString(&endpoint->endpointUrl);
+        if(!epInfo->endpointUri)
+        {
+            EDGE_LOG(TAG, "Memory allocation failed.");
+            goto ERROR;
+        }
+    }
+
+    if (endpoint->securityPolicyUri.length > 0)
+    {
+        epInfo->securityPolicyUri = convertUAStringToString(&endpoint->securityPolicyUri);
+        if(!epInfo->securityPolicyUri)
+        {
+            EDGE_LOG(TAG, "Memory allocation failed.");
+            goto ERROR;
+        }
+    }
+
+    if (endpoint->transportProfileUri.length > 0)
+    {
+        epInfo->transportProfileUri = convertUAStringToString(&endpoint->transportProfileUri);
+        if(!epInfo->transportProfileUri)
+        {
+            EDGE_LOG(TAG, "Memory allocation failed.");
+            goto ERROR;
+        }
+    }
+
+    epInfo->securityMode = endpoint->securityMode;
+    epInfo->securityLevel = endpoint->securityLevel;
+    epInfo->appConfig = convertToEdgeApplicationConfig(&endpoint->server);
+    if(!epInfo->appConfig)
+    {
+        EDGE_LOG(TAG, "Memory allocation failed.");
+        goto ERROR;
+    }
+
+    return epInfo;
+
+ERROR:
+    freeEdgeEndpointInfo(epInfo);
+    return NULL;
 }
 
 static bool parseEndpoints(size_t endpointArraySize, UA_EndpointDescription *endpointArray, size_t *count, List **endpointList)
@@ -396,39 +549,8 @@ static bool parseEndpoints(size_t endpointArraySize, UA_EndpointDescription *end
             EDGE_LOG(TAG, "Security mode is 'NONE'. Connection to this endpoint will be insecure.");
         }
 
-        epInfo = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
+        epInfo = convertToEdgeEndpointInfo(&endpointArray[i]);
         if(!epInfo)
-        {
-            EDGE_LOG(TAG, "Memory allocation failed.");
-            goto ERROR;
-        }
-
-        if (endpointArray[i].endpointUrl.data)
-        {
-            epInfo->endpointUri = convertUAStringToString(&endpointArray[i].endpointUrl);
-            if(!epInfo->endpointUri)
-            {
-                EDGE_LOG(TAG, "Memory allocation failed.");
-                goto ERROR;
-            }
-        }
-
-        EdgeEndpointConfig *config = (EdgeEndpointConfig *) calloc(1, sizeof(EdgeEndpointConfig));
-        if(!config)
-        {
-            EDGE_LOG(TAG, "Memory allocation failed.");
-            goto ERROR;
-        }
-        epInfo->config = config;
-        config->securityPolicyUri = convertUAStringToString(&endpointArray[i].securityPolicyUri);
-        if(!config->securityPolicyUri)
-        {
-            EDGE_LOG(TAG, "Memory allocation failed.");
-            goto ERROR;
-        }
-
-        config->transportProfileUri = convertUAStringToString(&endpointArray[i].transportProfileUri);
-        if(!config->transportProfileUri)
         {
             EDGE_LOG(TAG, "Memory allocation failed.");
             goto ERROR;
