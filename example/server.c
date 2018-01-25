@@ -682,62 +682,20 @@ static void testCreateNodes()
     FREE(item->sourceNodeId);
 
 
-    /******************* Reference Node *********************/
+    /******************* Add Reference *********************/
     printf("\n-------------------------------------------------------");
     printf("\n[%d]) Reference Node:\n", ++index);
     EdgeReference *reference = (EdgeReference *) malloc(sizeof(EdgeReference));
-    reference->forward =  false;
-    reference->sourceNamespace = DEFAULT_NAMESPACE_VALUE;
-    reference->sourcePath = "ObjectType1";
-    reference->targetNamespace = DEFAULT_NAMESPACE_VALUE;
-    reference->targetPath = "ObjectType2";
-    addReference(reference);
 
-    reference->forward =  true;
-    reference->sourceNamespace = DEFAULT_NAMESPACE_VALUE;
-    reference->sourcePath = "ObjectType1";
-    reference->targetNamespace = DEFAULT_NAMESPACE_VALUE;
-    reference->targetPath = "ObjectType3";
-    addReference(reference);
-
-    reference->forward =  true;
-    reference->sourceNamespace = DEFAULT_NAMESPACE_VALUE;
-    reference->sourcePath = "ObjectType1";
-    reference->targetNamespace = DEFAULT_NAMESPACE_VALUE;
-    reference->targetPath = "ObjectType4";
-    addReference(reference);
-
-    reference->forward =  true;
-    reference->sourceNamespace = DEFAULT_NAMESPACE_VALUE;
-    reference->sourcePath = "ObjectType1";
-    reference->targetNamespace = DEFAULT_NAMESPACE_VALUE;
-    reference->targetPath = "ObjectType5";
-    addReference(reference);
-
-    reference->forward =  true;
-    reference->sourceNamespace = DEFAULT_NAMESPACE_VALUE;
-    reference->sourcePath = "ObjectType5";
-    reference->targetNamespace = DEFAULT_NAMESPACE_VALUE;
-    reference->targetPath = "ObjectType1";
-    addReference(reference);
-
-    printf("\n[%d]) Reference Node1:\n", ++index);
     reference->forward =  true;
     reference->sourceNamespace = DEFAULT_NAMESPACE_VALUE;
     reference->sourcePath = "ViewNode1";
     reference->targetNamespace = DEFAULT_NAMESPACE_VALUE;
     reference->targetPath = "ObjectType1";
+    reference->referenceId = Organizes;
     addReference(reference);
 
-    printf("\n[%d]) Reference Node2:\n", ++index);
-    reference->forward =  true;
-    reference->sourceNamespace = DEFAULT_NAMESPACE_VALUE;
-    reference->sourcePath = "ObjectType1";
-    reference->targetNamespace = DEFAULT_NAMESPACE_VALUE;
-    reference->targetPath = "ViewNode1";
-    addReference(reference);
     FREE(reference);
-
 
     /******************* Reference Type Node *********************/
     printf("\n-------------------------------------------------------");
