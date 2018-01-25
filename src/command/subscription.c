@@ -29,6 +29,7 @@
 #define TAG "subscription"
 
 #define EDGE_UA_SUBSCRIPTION_ITEM_SIZE 20
+#define EDGE_UA_MINIMUM_PUBLISHING_TIME 50
 
 typedef struct subscriptionInfo
 {
@@ -289,7 +290,7 @@ static void *subscription_thread_handler(void *ptr)
     while (clientSub->subscription_thread_running)
     {
         sendPublishRequest(client);
-        sleep(1);
+        usleep(EDGE_UA_MINIMUM_PUBLISHING_TIME * 1000);
     }
 
     EDGE_LOG(TAG, ">>>>>>>>>>>>>>>>>> subscription thread destroyed <<<<<<<<<<<<<<<<<<<< \n");
