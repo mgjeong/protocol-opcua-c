@@ -24,6 +24,8 @@
 #include "opcua_common.h"
 #include "open62541.h"
 
+#include "edge_utils.h"
+
 #ifdef __cplusplus
 extern "C"
 {

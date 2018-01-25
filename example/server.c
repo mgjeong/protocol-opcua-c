@@ -15,7 +15,7 @@
 #define COLOR_PURPLE      "\x1b[35m"
 #define COLOR_RESET         "\x1b[0m"
 
-#define FREE(arg) free(arg);arg=NULL
+#define FREE(arg) if(arg) {free(arg); arg=NULL; }
 
 static bool startFlag = false;
 static bool stopFlag = false;

@@ -29,7 +29,7 @@ EdgeResult executeMethod(UA_Client *client, EdgeMessage *msg)
 {
     EdgeResult result;
     result.code = STATUS_OK;
-    if (!client)
+    if (IS_NULL(client))
     {
         EDGE_LOG(TAG, "Client handle Invalid\n");
         result.code = STATUS_ERROR;
@@ -52,6 +52,7 @@ EdgeResult executeMethod(UA_Client *client, EdgeMessage *msg)
             {
                 UA_String val = UA_STRING_ALLOC((char * ) params->inpArg[idx]->scalarValue);
                 UA_Variant_setScalarCopy(&input[idx], &val, &UA_TYPES[type]);
+                FREE(val.data);
                 UA_String_deleteMembers(&val);
             }
             else
@@ -99,18 +100,35 @@ EdgeResult executeMethod(UA_Client *client, EdgeMessage *msg)
         EDGE_LOG(TAG, "method call was success\n\n");
 
         EdgeResponse **response = (EdgeResponse **) malloc(sizeof(EdgeResponse *) * outputSize);
+        if(IS_NULL(response))
+        {
+            EDGE_LOG(TAG, "ERROR : EdgeResponse malloc failed in executeMethod\n");
+            result.code = STATUS_ERROR;
+            goto EXIT;
+        }
         if (response)
         {
             for (int i = 0; i < outputSize; i++)
             {
                 response[i] = (EdgeResponse *) malloc(sizeof(EdgeResponse));
-
+                if(IS_NULL(response[i]))
+                {
+                    EDGE_LOG_V(TAG, "ERROR : EdgeResponse %d Malloc failed in executeMethod\n", i);
+                    result.code = STATUS_ERROR;
+                    goto EXIT;
+                }
                 response[i]->nodeInfo = (EdgeNodeInfo *) malloc(sizeof(EdgeNodeInfo));
                 memcpy(response[i]->nodeInfo, msg->request->nodeInfo, sizeof(EdgeNodeInfo));
                 response[i]->requestId = msg->request->requestId;
-//        response[i]->value = output[i].data;
+                //response[i]->value = output[i].data;
 
                 EdgeVersatility *versatility = (EdgeVersatility *) malloc(sizeof(EdgeVersatility));
+                if(IS_NULL(versatility))
+                {
+                    EDGE_LOG(TAG, "ERROR : versatility malloc failed in executeMethod\n");
+                    result.code = STATUS_ERROR;
+                    goto EXIT;                 
+                }
                 if (UA_Variant_isScalar(&output[i]) == UA_TRUE)
                 {
                     // Output argument is scalar type
@@ -228,7 +246,19 @@ EdgeResult executeMethod(UA_Client *client, EdgeMessage *msg)
             }
 
             EdgeMessage *resultMsg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
+            if(IS_NULL(resultMsg))
+            {
+                EDGE_LOG(TAG, "ERROR : ResultMsg malloc failed in executeMethod\n");
+                result.code = STATUS_ERROR;
+                goto EXIT;
+            }
             resultMsg->endpointInfo = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+            if(IS_NULL(resultMsg->endpointInfo))
+            {
+                EDGE_LOG(TAG, "ERROR : ResultMsg.endpointInfo malloc failed in executeMethod\n");
+                result.code = STATUS_ERROR;
+                goto EXIT;
+            }
             memcpy(resultMsg->endpointInfo, msg->endpointInfo, sizeof(EdgeEndPointInfo));
             resultMsg->type = GENERAL_RESPONSE;
             resultMsg->responseLength = outputSize;
@@ -238,23 +268,28 @@ EdgeResult executeMethod(UA_Client *client, EdgeMessage *msg)
 
             onResponseMessage(resultMsg);
 
+            EXIT:
             for (int i = 0; i < outputSize; i++)
             {
-                free(response[i]->nodeInfo);
-                response[i]->nodeInfo = NULL;
-                free(response[i]->message);
-                response[i]->message = NULL;
-                free(response[i]);
-                response[i] = NULL;
+                if(IS_NOT_NULL(response[i]->nodeInfo))
+                {
+                    FREE(response[i]->nodeInfo);
+                }
+                if(IS_NOT_NULL(response[i]->message))
+                {
+                    FREE(response[i]->message);
+                }
+                if(IS_NOT_NULL(response[i]->message))
+                {
+                    FREE(response[i]);
+                }
             }
-            free(response);
-            response = NULL;
-            free(resultMsg->endpointInfo);
-            resultMsg->endpointInfo = NULL;
-            free(resultMsg);
-            resultMsg = NULL;
-
-            result.code = STATUS_OK;
+            FREE(response);
+            if(IS_NOT_NULL(resultMsg))
+            {
+                FREE(resultMsg->endpointInfo);
+                FREE(resultMsg);
+            }
         }
     }
     else
@@ -263,22 +298,39 @@ EdgeResult executeMethod(UA_Client *client, EdgeMessage *msg)
         result.code = STATUS_ERROR;
 
         EdgeMessage *resultMsg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
+        if(IS_NULL(resultMsg))
+        {
+            EDGE_LOG(TAG, "Error : Malloc failed for resultMsg in executeMethod\n");
+            goto EXIT_ERROR;
+        }
         resultMsg->endpointInfo = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+        if(IS_NULL(resultMsg))
+        {
+            EDGE_LOG(TAG, "Error : Malloc failed for resultMsg.endpointInfo in executeMethod\n");
+            goto EXIT_ERROR;
+        }
         memcpy(resultMsg->endpointInfo, msg->endpointInfo, sizeof(EdgeEndPointInfo));
         resultMsg->type = ERROR;
         resultMsg->responseLength = 0;
 
         EdgeResult *res = (EdgeResult *) malloc(sizeof(EdgeResult));
+        if(IS_NULL(res))
+        {
+            EDGE_LOG(TAG, "Error : Malloc failed for result in executeMethod\n");
+            goto EXIT_ERROR;
+        }
         res->code = STATUS_ERROR;
         resultMsg->result = res;
 
         onResponseMessage(resultMsg);
-        free(resultMsg->endpointInfo);
-        resultMsg->endpointInfo = NULL;
-        free(resultMsg);
-        resultMsg = NULL;
-        free(res);
-        res = NULL;
+
+        EXIT_ERROR:
+        if(IS_NOT_NULL(resultMsg))
+        {
+            FREE(resultMsg->endpointInfo);
+            FREE(resultMsg);
+        }
+        FREE(res);
     }
 
     for (idx = 0; idx < params->num_inpArgs; idx++)
@@ -286,11 +338,6 @@ EdgeResult executeMethod(UA_Client *client, EdgeMessage *msg)
         UA_Variant_deleteMembers(&input[idx]);
     }
 
-    if (input)
-    {
-        free(input);
-        input = NULL;
-    }
-
+    FREE(input);
     return result;
 }

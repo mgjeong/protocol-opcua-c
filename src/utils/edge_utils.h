@@ -41,6 +41,11 @@ extern "C"
 #define VERIFY_NON_NULL_NR(arg) { if (!(arg)) { EDGE_LOG(TAG, \
              #arg " is NULL"); return; } }
 
+#define IS_NULL(arg) (arg == NULL) ? true : false
+#define IS_NOT_NULL(arg) (arg != NULL) ? true : false
+
+#define FREE(arg) if(arg) {free(arg); arg=NULL; }
+
     typedef struct List
     {
         void *data;
