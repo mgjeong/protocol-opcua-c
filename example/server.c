@@ -144,18 +144,20 @@ static void init()
 
 static void startServer()
 {
-
-    EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) malloc(sizeof(EdgeEndpointConfig));
+    EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) calloc(1, sizeof(EdgeEndpointConfig));
     endpointConfig->bindAddress = ipAddress;
     endpointConfig->bindPort = 12686;
-    endpointConfig->applicationName = DEFAULT_SERVER_APP_NAME_VALUE;
-    endpointConfig->applicationUri = DEFAULT_SERVER_APP_URI_VALUE;
-    endpointConfig->productUri = DEFAULT_PRODUCT_URI_VALUE;
-    endpointConfig->securityPolicyUri = NULL;
     endpointConfig->serverName = DEFAULT_SERVER_NAME_VALUE;
     //endpointConfig->requestTimeout = 60000;
-    
-    epInfo->config = endpointConfig;
+
+    EdgeApplicationConfig *appConfig = (EdgeApplicationConfig *) calloc(1, sizeof(EdgeApplicationConfig));
+    appConfig->applicationName = DEFAULT_SERVER_APP_NAME_VALUE;
+    appConfig->applicationUri = DEFAULT_SERVER_APP_URI_VALUE;
+    appConfig->productUri = DEFAULT_PRODUCT_URI_VALUE;
+
+    epInfo->endpointConfig = endpointConfig;
+    epInfo->appConfig = appConfig;
+    epInfo->securityPolicyUri = NULL;
 
     // Commented - For future message queue handling
     /*EdgeMessage *msg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
@@ -170,8 +172,10 @@ static void startServer()
 
 static void stopServer()
 {
-    free(epInfo->config);
-    epInfo->config = NULL;
+    free(epInfo->endpointConfig);
+    free(epInfo->appConfig);
+    epInfo->endpointConfig = NULL;
+    epInfo->appConfig = NULL;
 
     // Commented - For future message queue handling
     /*EdgeMessage *msg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
@@ -993,7 +997,7 @@ static void deinit()
                 free (config->discoveryCallback);
                 config->discoveryCallback = NULL;
             }
-            
+
             free (config); config = NULL;
         }
 
@@ -1042,9 +1046,8 @@ int main()
             strcpy(ipAddress, "localhost");
             snprintf(endpointUri, sizeof(endpointUri), "opc:tcp://%s:12686/edge-opc-server", ipAddress);
 
-            epInfo = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+            epInfo = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
             epInfo->endpointUri = endpointUri;
-            epInfo->config = NULL;
 
             init();
             startServer();

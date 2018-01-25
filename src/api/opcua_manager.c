@@ -1,6 +1,7 @@
 #include "opcua_manager.h"
 #include "edge_opcua_server.h"
 #include "edge_opcua_client.h"
+#include "edge_logger.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,6 +11,8 @@ static StatusCallback *statusCb;
 static DiscoveryCallback *discoveryCb;
 
 static bool b_serverInitialized = false;
+
+#define TAG "OPCUA_MANAGER"
 
 static void registerRecvCallback(ReceivedMessageCallback *callback)
 {
@@ -107,10 +110,10 @@ EdgeResult createMethodNode(char *namespaceUri, EdgeNodeItem *item, EdgeMethod *
 
 void createServer(EdgeEndPointInfo *epInfo)
 {
-    printf ("\n[Received command] :: Server start \n");
+    EDGE_LOG(TAG, "[Received command] :: Server start.");
     if (b_serverInitialized)
     {
-        printf( "Server already initialised");
+        EDGE_LOG(TAG, "Server already initialized.");
         return ;
     }
     EdgeResult result = start_server(epInfo);
@@ -131,13 +134,13 @@ void closeServer(EdgeEndPointInfo *epInfo)
 
 EdgeResult getEndpointInfo(EdgeEndPointInfo *epInfo)
 {
-    printf("\n[Received command] :: Get endpoint info for [%s] \n\n", epInfo->endpointUri);
+    EDGE_LOG_V(TAG, "[Received command] :: Get endpoint info for [%s].\n", epInfo->endpointUri);
     return getClientEndpoints(epInfo->endpointUri);
 }
 
 void connectClient(EdgeEndPointInfo *epInfo)
 {
-    printf ("\n[Received command] :: Client connect \n");
+    EDGE_LOG(TAG, "[Received command] :: Client connect.");
     bool result = connect_client(epInfo->endpointUri);
     if (!result)
         return ;
@@ -145,7 +148,7 @@ void connectClient(EdgeEndPointInfo *epInfo)
 
 void disconnectClient(EdgeEndPointInfo *epInfo)
 {
-    printf("\n[Received command] :: Client disconnect \n");
+    EDGE_LOG(TAG, "[Received command] :: Client disconnect.");
     disconnect_client(epInfo);
 }
 
@@ -200,7 +203,7 @@ void onResponseMessage(EdgeMessage *msg)
 {
     if (NULL == receivedMsgCb)
     {
-        printf("receiver callback not registered\n\n");
+        EDGE_LOG(TAG, "receiver callback not registered.");
         return;
     }
 

@@ -271,7 +271,7 @@ static void monitoredItemHandler(UA_UInt32 monId, UA_DataValue *value, void *con
                 EDGE_LOG(TAG, "Error : Malloc failed for resultMsg in monitor item handler\n");
                 goto EXIT;
             }
-            resultMsg->endpointInfo = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+            resultMsg->endpointInfo = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
             if(IS_NULL(resultMsg->endpointInfo))
             {
                 EDGE_LOG(TAG, "Error : Malloc failed for resultMsg.endpointInfo in monitor item handler\n");
@@ -334,7 +334,7 @@ static UA_StatusCode createSub(UA_Client *client, EdgeMessage *msg)
 {
     clientSubscription *clientSub = NULL;
     clientSub = get_subscription_list(client);
-    
+
     EdgeSubRequest *subReq;
     if (msg->type == SEND_REQUESTS)
     {
@@ -494,7 +494,7 @@ static UA_StatusCode createSub(UA_Client *client, EdgeMessage *msg)
             clientSub->subscriptionList = createMap();
         }
         if (clientSub->subscriptionList)
-        {   
+        {
             subscriptionInfo *subInfo = (subscriptionInfo *) malloc(sizeof(subscriptionInfo));
             if(IS_NULL(subInfo))
             {
@@ -522,7 +522,7 @@ static UA_StatusCode createSub(UA_Client *client, EdgeMessage *msg)
                 EDGE_LOG(TAG, "Error : Malloc failed for valueAlias in create subscription");
                 goto EXIT;
             }
-            
+
             strncpy(valueAlias, msgCopy->requests[i]->nodeInfo->valueAlias,
                 strlen(msgCopy->requests[i]->nodeInfo->valueAlias));
             valueAlias[strlen(msgCopy->requests[i]->nodeInfo->valueAlias)] = '\0';
@@ -548,7 +548,7 @@ static UA_StatusCode createSub(UA_Client *client, EdgeMessage *msg)
     FREE(monId);
     FREE(hfs);
     FREE(itemResults);
-    FREE(items); 
+    FREE(items);
 
     return UA_STATUSCODE_GOOD;
 }

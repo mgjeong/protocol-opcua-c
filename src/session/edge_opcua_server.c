@@ -92,17 +92,18 @@ EdgeResult start_server(EdgeEndPointInfo *epInfo)
     EdgeResult result;
     result.code = STATUS_OK;
 
-    if (!epInfo)
+    if (!epInfo || !epInfo->endpointConfig || !epInfo->appConfig)
     {
         result.code = STATUS_PARAM_INVALID;
         return result;
     }
 
-    EdgeEndpointConfig *config = epInfo->config;
+    EdgeEndpointConfig *epConfig = epInfo->endpointConfig;
+    EdgeApplicationConfig *appConfig = epInfo->appConfig;
 
     //UA_ByteString certificate = loadCertificate();
     //m_serverConfig = UA_ServerConfig_new_default();    //UA_ServerConfig_new_minimal(4840, &certificate);
-    m_serverConfig = UA_ServerConfig_new_minimal(config->bindPort, NULL);
+    m_serverConfig = UA_ServerConfig_new_minimal(epConfig->bindPort, NULL);
 
     UA_String_deleteMembers(&m_serverConfig->applicationDescription.applicationUri);
     UA_LocalizedText_deleteMembers(&m_serverConfig->applicationDescription.applicationName);
@@ -116,19 +117,19 @@ EdgeResult start_server(EdgeEndPointInfo *epInfo)
     UA_String_deleteMembers(&m_serverConfig->endpoints->endpointDescription.server.applicationUri);
     UA_LocalizedText_deleteMembers(&m_serverConfig->endpoints->endpointDescription.server.applicationName);
 
-    m_serverConfig->applicationDescription.applicationUri = UA_STRING_ALLOC(config->applicationUri);
+    m_serverConfig->applicationDescription.applicationUri = UA_STRING_ALLOC(appConfig->applicationUri);
     m_serverConfig->applicationDescription.applicationName = UA_LOCALIZEDTEXT_ALLOC("en-US",
-            config->applicationName);
-    m_serverConfig->applicationDescription.productUri = UA_STRING_ALLOC(config->productUri);
+            appConfig->applicationName);
+    m_serverConfig->applicationDescription.productUri = UA_STRING_ALLOC(appConfig->productUri);
     m_serverConfig->buildInfo.productUri = UA_STRING_ALLOC("/edge");
     m_serverConfig->buildInfo.manufacturerName = UA_STRING_ALLOC("samsung");
     m_serverConfig->buildInfo.productName = UA_STRING_ALLOC("edgeSolution");
     m_serverConfig->buildInfo.softwareVersion = UA_STRING_ALLOC("0.9");
     m_serverConfig->buildInfo.buildNumber = UA_STRING_ALLOC("0.1");
 
-    m_serverConfig->endpoints->endpointDescription.server.applicationUri = UA_STRING_ALLOC(config->applicationUri);
+    m_serverConfig->endpoints->endpointDescription.server.applicationUri = UA_STRING_ALLOC(appConfig->applicationUri);
     m_serverConfig->endpoints->endpointDescription.server.applicationName = UA_LOCALIZEDTEXT_ALLOC("en-US",
-            config->applicationName);
+            appConfig->applicationName);
 
     //    UA_ByteString_deleteMembers(&certificate);
     m_server = UA_Server_new(m_serverConfig);
