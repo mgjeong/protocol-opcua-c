@@ -53,10 +53,10 @@ static EdgeDiagnosticInfo *checkDiagnosticInfo(int nodesToProcess,
             {
                 EDGE_LOG(TAG, "Error : Malloc failed for additional_info in checkDiagnosticInfo");
                 diagnostics->msg = (void *) "mismatch entries returned";
-                return diagnostics;                
+                return diagnostics;
             }
-             
-            strncpy(additional_info, (char *) (diagnosticInfo[0].additionalInfo.data), 
+
+            strncpy(additional_info, (char *) (diagnosticInfo[0].additionalInfo.data),
                 diagnosticInfo[0].additionalInfo.length);
             diagnostics->additionalInfo = additional_info;
         }
@@ -88,7 +88,7 @@ static void writeGroup(UA_Client *client, EdgeMessage *msg)
         FREE(wv);
         return;
     }
-    
+
     for (int i = 0; i < reqLen; i++)
     {
         EDGE_LOG_V(TAG, "[WRITEGROUP] Node to write :: %s\n", msg->requests[i]->nodeInfo->valueAlias);
@@ -145,7 +145,7 @@ static void writeGroup(UA_Client *client, EdgeMessage *msg)
             EDGE_LOG(TAG, "Error : Malloc failed for resultMsg in Write Group");
             goto EXIT_BADLENGTH;
         }
-        resultMsg->endpointInfo = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+        resultMsg->endpointInfo = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
         if(IS_NULL(resultMsg->endpointInfo))
         {
             EDGE_LOG(TAG, "Error : Malloc failed for resultMsg->endpointInfo in Write Group");
@@ -190,7 +190,7 @@ static void writeGroup(UA_Client *client, EdgeMessage *msg)
         EDGE_LOG(TAG, "Error : Malloc Failed for resultMsg in Write Group");
         goto EXIT;
     }
-    resultMsg->endpointInfo = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    resultMsg->endpointInfo = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     if(IS_NULL(resultMsg->endpointInfo ))
     {
         EDGE_LOG(TAG, "Error : Malloc Failed for resultMsg->endpointInfo in Write Group");
@@ -216,7 +216,7 @@ static void writeGroup(UA_Client *client, EdgeMessage *msg)
                 EDGE_LOG(TAG, "Error : Malloc Failed for resultMsg in Write Group");
                 goto EXIT1;
             }
-            resultMsg->endpointInfo = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+            resultMsg->endpointInfo = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
             if(IS_NULL(resultMsg->endpointInfo))
             {
                 EDGE_LOG(TAG, "Error : Malloc Failed for resultMsg->endpointInfo in Write Group");
