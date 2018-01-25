@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define TAG "opcua_manager"
+
 static ReceivedMessageCallback *receivedMsgCb;
 static StatusCallback *statusCb;
 static DiscoveryCallback *discoveryCb;
@@ -116,6 +118,7 @@ void createServer(EdgeEndPointInfo *epInfo)
         EDGE_LOG(TAG, "Server already initialized.");
         return ;
     }
+
     EdgeResult result = start_server(epInfo);
     if (result.code == STATUS_OK)
     {
@@ -165,11 +168,11 @@ void disconnectClient(EdgeEndPointInfo *epInfo)
 //}
 
 //void onSendMessage(EdgeMessage* msg) {
-//  printf("============= onSendMessage============");
+//  EDGE_LOG(TAG, "============= onSendMessage============");
 //  if (msg->command == CMD_START_SERVER) {
-//    printf ("\n[Received command] :: Server start \n");
+//    EDGE_LOG(TAG, "\n[Received command] :: Server start \n");
 //    if (b_serverInitialized) {
-//      printf( "Server already initialised");
+//      EDGE_LOG(TAG, "Server already initialised");
 //      return ;
 //    }
 //    EdgeResult* result = start_server(msg->endpointInfo);
@@ -180,9 +183,9 @@ void disconnectClient(EdgeEndPointInfo *epInfo)
 //    }
 //    free (result); result = NULL;
 //  } else if (msg->command == CMD_START_CLIENT) {
-//    printf ("\n[Received command] :: Client connect \n");
+//    EDGE_LOG(TAG, "\n[Received command] :: Client connect \n");
 //    if (b_clientInitialized) {
-//      printf( "Client already initialised");
+//      EDGE_LOG(TAG, "Client already initialised");
 //      return ;
 //    }
 //    bool result = connect_client(msg->endpointInfo->endpointUri);
@@ -193,7 +196,7 @@ void disconnectClient(EdgeEndPointInfo *epInfo)
 //    stop_server(msg->endpointInfo);
 //    b_serverInitialized = false;
 //  } else if (msg->command == CMD_STOP_CLIENT) {
-//    printf("\n[Received command] :: Client disconnect \n");
+//    EDGE_LOG(TAG, "\n[Received command] :: Client disconnect \n");
 //    disconnect_client();
 //    b_clientInitialized = false;
 //  }
@@ -201,9 +204,9 @@ void disconnectClient(EdgeEndPointInfo *epInfo)
 
 void onResponseMessage(EdgeMessage *msg)
 {
-    if (NULL == receivedMsgCb)
+    if (NULL == receivedMsgCb || NULL == msg)
     {
-        EDGE_LOG(TAG, "receiver callback not registered.");
+        EDGE_LOG(TAG, "parameter is invalid.");
         return;
     }
 
