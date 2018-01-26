@@ -73,7 +73,7 @@ static bool validateMonitoringId(edgeMap *list, UA_UInt32 subId, UA_UInt32 monId
     return true;
 }
 
-static bool validSubId(edgeMap *list, UA_UInt32 subId)
+static bool hasSubscriptionId(edgeMap *list, UA_UInt32 subId)
 {
     if (list)
     {
@@ -83,14 +83,13 @@ static bool validSubId(edgeMap *list, UA_UInt32 subId)
             subscriptionInfo *subInfo = (subscriptionInfo *)temp->value;
 
             if (subInfo->subId == subId)
-                return false;
+                return true;
 
             temp = temp->next;
         }
     }
-    return true;
+    return false;
 }
-
 
 static void* get_subscription_list(UA_Client *client)
 {
@@ -368,9 +367,9 @@ static UA_StatusCode createSub(UA_Client *client, EdgeMessage *msg)
 
     EDGE_LOG_V(TAG, "Subscription ID received is %u\n", subId);
 
-    if (IS_NOT_NULL(clientSub) && !validSubId(clientSub->subscriptionList, subId))
+    if (IS_NOT_NULL(clientSub) && !hasSubscriptionId(clientSub->subscriptionList, subId))
     {
-        EDGE_LOG_V(TAG, "ERROR :: Subscription ID received is already in use, Please unsubcribe and try again %s\n",
+        EDGE_LOG_V(TAG, "ERROR :: Subscription ID is not in subscriptionList %s\n",
                 UA_StatusCode_name(UA_STATUSCODE_BADSUBSCRIPTIONIDINVALID));
         return UA_STATUSCODE_BADSUBSCRIPTIONIDINVALID;
     }
@@ -605,7 +604,7 @@ static UA_StatusCode deleteSub(UA_Client *client, EdgeMessage *msg)
         }
     }
 
-    if (validSubId(clientSub->subscriptionList, subInfo->subId))
+    if (!hasSubscriptionId(clientSub->subscriptionList, subInfo->subId))
     {
         EDGE_LOG_V(TAG, "Removing the subscription  SID %d \n", subInfo->subId);
         UA_StatusCode retVal = UA_Client_Subscriptions_remove(client, subInfo->subId);
