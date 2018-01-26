@@ -14,8 +14,6 @@ static DiscoveryCallback *discoveryCb;
 
 static bool b_serverInitialized = false;
 
-#define TAG "OPCUA_MANAGER"
-
 static void registerRecvCallback(ReceivedMessageCallback *callback)
 {
     receivedMsgCb = callback;
