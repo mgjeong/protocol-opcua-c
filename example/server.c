@@ -4,6 +4,7 @@
 #include <math.h>
 
 #include <pthread.h>
+#include <unistd.h>
 
 #include <opcua_manager.h>
 #include "opcua_common.h"
@@ -16,6 +17,10 @@
 #define COLOR_RESET         "\x1b[0m"
 
 #define FREE(arg) if(arg) {free(arg); arg=NULL; }
+
+#define MAX_TEST_NUMBER 10000
+#define SAMPLE_STRING_1 "test_1"
+#define SAMPLE_STRING_2 "test_2"
 
 static bool startFlag = false;
 static bool stopFlag = false;
@@ -920,10 +925,12 @@ static void testModifyNode()
     printf("[4] Double\n");
     printf("[5] Int32\n");
     printf("[6] UInt16\n");
+    printf("[7] String1 Changing Thread\n");
+    printf("[8] Int32 Increasing Thread\n");
     printf("\nEnter any of the above option :: ");
     scanf("%d", &option);
 
-    if (option < 1 || option > 6)
+    if (option < 1 || option > 8)
     {
         printf( "Invalid Option!!! \n\n");
         return ;
@@ -965,6 +972,37 @@ static void testModifyNode()
         scanf("%u", &u_value);
         strcpy(name, "UInt16");
         new_value = (void *) &u_value;
+    } else if (option == 7) {
+        for (int i = 0; i < MAX_TEST_NUMBER; i++) {
+            if(i % 2 == 0) {
+                strcpy(s_value, SAMPLE_STRING_1);
+            } else {
+                strcpy(s_value, SAMPLE_STRING_2);
+            }
+
+            new_value = (void *) s_value;
+            EdgeVersatility *message = (EdgeVersatility *) malloc(sizeof(EdgeVersatility));
+            message->value = new_value;
+
+            modifyVariableNode(DEFAULT_NAMESPACE_VALUE, name, message);
+
+            FREE(message);
+            usleep(1000 * 1000);
+        }
+        return;
+    } else if (option == 8) {
+        for (int i = 0; i < MAX_TEST_NUMBER; i++) {
+            new_value = (void *) &i;
+
+            EdgeVersatility *message = (EdgeVersatility *) malloc(sizeof(EdgeVersatility));
+            message->value = new_value;
+
+            modifyVariableNode(DEFAULT_NAMESPACE_VALUE, name, message);
+
+            FREE(message);
+            usleep(1000 * 1000);
+        }
+        return;
     }
 
     EdgeVersatility *message = (EdgeVersatility *) malloc(sizeof(EdgeVersatility));
