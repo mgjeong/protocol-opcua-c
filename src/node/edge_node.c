@@ -392,6 +392,10 @@ EdgeResult addReferences(UA_Server *server, EdgeReference *reference)
         return result;
     }
 
+    if (!reference->referenceId) {
+        reference->referenceId = Organizes;
+    }
+
     UA_ExpandedNodeId expanded_nodeId = UA_EXPANDEDNODEID_STRING(1, reference->targetPath);
     UA_StatusCode status = UA_Server_addReference(server, UA_NODEID_STRING(1, reference->sourcePath),
                                                 UA_NODEID_NUMERIC(0, reference->referenceId), expanded_nodeId, reference->forward);
@@ -405,15 +409,6 @@ EdgeResult addReferences(UA_Server *server, EdgeReference *reference)
         EDGE_LOG(TAG, "+++ addReference failed +++\n");
     }
 
-    status = UA_Server_addReference(server, UA_NODEID_STRING(1, reference->targetPath),
-                                                  UA_NODEID_NUMERIC(0, reference->referenceId),
-                                                  UA_EXPANDEDNODEID_STRING(1, reference->sourcePath), !(reference->forward));
-    if (status == UA_STATUSCODE_GOOD) {
-        EDGE_LOG(TAG, "+++ addReference success +++\n");
-    } else {
-        result.code = STATUS_ERROR;
-        EDGE_LOG(TAG, "+++ addReference failed +++\n");
-    }
     return result;
 }
 
