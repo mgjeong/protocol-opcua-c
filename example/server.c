@@ -696,7 +696,7 @@ static void testCreateNodes()
     reference->sourcePath = "ViewNode1";
     reference->targetNamespace = DEFAULT_NAMESPACE_VALUE;
     reference->targetPath = "ObjectType1";
-    reference->referenceId = Organizes;
+    /* default reference ID : Organizes */
     addReference(reference);
 
     FREE(reference);
