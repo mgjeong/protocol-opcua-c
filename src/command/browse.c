@@ -687,6 +687,86 @@ void printNodeId(UA_NodeId n1)
     }
 }
 
+typedef struct _browsePathNode{
+	EdgeNodeId *edgeNodeId;
+	struct _browsePathNode *pre;
+	struct _browsePathNode *next;
+}browsePathNode;
+
+browsePathNode *browsePathNodeListHead = NULL, *browsePathNodeListTail = NULL;
+
+void DestroyBrowsePathNodeList() {
+	browsePathNode *ptr = browsePathNodeListHead;
+	while(ptr != NULL){
+		browsePathNode *nextNode = ptr->next;
+		FREE(ptr);
+		ptr = nextNode;
+	}
+	browsePathNodeListHead = NULL;
+	browsePathNodeListTail = NULL;
+}
+
+browsePathNode *InitBrowsePathNodeList(){
+	if (browsePathNodeListHead != NULL){
+		DestroyBrowsePathNodeList();
+	}
+	browsePathNodeListHead = NULL;
+	browsePathNodeListHead = (browsePathNode*)malloc(sizeof(browsePathNode));
+	if(browsePathNodeListHead == NULL){
+		EDGE_LOG(TAG, "Memory allocation failed.");
+		return NULL;
+	}
+	browsePathNodeListHead->edgeNodeId = NULL;
+	browsePathNodeListHead->next = NULL;
+	browsePathNodeListHead->pre = NULL;
+	browsePathNodeListTail = browsePathNodeListHead;
+	return browsePathNodeListHead;
+}
+
+browsePathNode* PushBrowsePathNode(EdgeNodeId *edgeNodeId){
+	if(browsePathNodeListTail == NULL || browsePathNodeListHead == NULL){
+		return NULL;
+	}
+	browsePathNode *newNode = (browsePathNode*)malloc(sizeof(browsePathNode));
+	if(newNode == NULL){
+		EDGE_LOG(TAG, "Memory allocation failed.");
+		return NULL;
+	}
+	newNode->edgeNodeId = edgeNodeId;
+	newNode->pre = browsePathNodeListTail;
+	newNode->next = NULL;
+	browsePathNodeListTail->next = newNode;
+	browsePathNodeListTail = newNode;
+	return newNode;
+}
+
+void PopBrowsePathNode(){
+	if(browsePathNodeListTail == NULL || browsePathNodeListHead == NULL
+			|| browsePathNodeListTail == browsePathNodeListHead){
+		printf("Browse Path Node Pop Error");
+		return;
+	}
+	browsePathNode *deleteNode = browsePathNodeListTail;
+	browsePathNodeListTail = browsePathNodeListTail->pre;
+	browsePathNodeListTail->next = NULL;
+	FREE(deleteNode);
+}
+
+void PrintCurrentBrowsePath(){
+	if(browsePathNodeListTail == NULL || browsePathNodeListHead == NULL){
+		return;
+	}
+	for(browsePathNode *ptr = browsePathNodeListHead->next; ptr != NULL ; ptr = ptr->next){
+		EdgeNodeTypeCommon type = ptr->edgeNodeId->type;
+		if(type == INTEGER){
+			printf("/%d",ptr->edgeNodeId->integerNodeId);
+		}else if( type == STRING){
+			printf("/%s",ptr->edgeNodeId->nodeId);
+		}
+	}
+	printf("\n");
+}
+
 EdgeStatusCode browse(UA_Client *client, EdgeMessage *msg, bool browseNext, UA_NodeId *nodeIdList,
         int nodeCount, int *msgIdList, int msgCount, BrowseMap *map, int mapSize)
 {
@@ -907,16 +987,22 @@ EdgeStatusCode browse(UA_Client *client, EdgeMessage *msg, bool browseNext, UA_N
                     &resp->results[i].continuationPoint);
         }
 
+        if(PushBrowsePathNode(srcNodeId) == NULL){
+        	printf("Push Node of Browse Path Error");
+        }
+        PrintCurrentBrowsePath();
         if (nextNodeListCount > 0)
         {
             browse(client, msg, false, nextNodeIdList, nextNodeListCount, nextMsgIdList,
                     nextMsgListCount, map, mapSize);
         }
+        PopBrowsePathNode();
         freeEdgeNodeId(srcNodeId);
         srcNodeId = NULL;
         FREE(nextMsgIdList);
         FREE(nextNodeIdList);
     }
+
     statusCode = STATUS_OK;
 
     EXIT: FREE(nextMsgIdList);
@@ -1028,17 +1114,22 @@ EdgeResult executeBrowse(UA_Client *client, EdgeMessage *msg, bool browseNext)
     }
     else
     {
-        EdgeStatusCode statusCode = browse(client, msg, browseNext, nodeIdList, nodesToBrowseSize,
+    	if(InitBrowsePathNodeList() == NULL){
+    		printf("Init Browse Path List Error\n");
+    	}else{
+    		EdgeStatusCode statusCode = browse(client, msg, browseNext, nodeIdList, nodesToBrowseSize,
                 msgIdList, nodesToBrowseSize, map, mapSize);
-        if (statusCode != STATUS_OK)
-        {
-            EDGE_LOG(TAG, "Browse failed.");
-            result.code = STATUS_ERROR;
-        }
-        else
-        {
-            result.code = STATUS_OK;
-        }
+    		DestroyBrowsePathNodeList();
+    		if (statusCode != STATUS_OK)
+    		{
+    			EDGE_LOG(TAG, "Browse failed.");
+    			result.code = STATUS_ERROR;
+    		}
+    		else
+    		{
+    			result.code = STATUS_OK;
+    		}
+    	}
     }
 
     for (int i = 0; i < nodesToBrowseSize; ++i)
