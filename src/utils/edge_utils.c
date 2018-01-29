@@ -180,6 +180,23 @@ char *cloneString(const char *str)
     return clone;
 }
 
+void *clone(const void *src, int lenInbytes)
+{
+    if(!src || lenInbytes < 1)
+    {
+        return NULL;
+    }
+
+    void *cloned = malloc(lenInbytes);
+    if(!cloned)
+    {
+        return NULL;
+    }
+
+    memcpy(cloned, src, lenInbytes);
+    return cloned;
+}
+
 char *convertUAStringToString(UA_String *uaStr)
 {
     if (!uaStr || uaStr->length <= 0)
