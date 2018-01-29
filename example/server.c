@@ -68,7 +68,7 @@ static void status_start_cb (EdgeEndPointInfo *epInfo, EdgeStatusCode status)
 {
     if (status == STATUS_SERVER_STARTED)
     {
-        printf("[Application Callback] Server started\n");
+        printf(COLOR_GREEN "\n[Application Callback] Server started\n" COLOR_RESET);
         startFlag = true;
 
         testCreateNamespace();
@@ -80,7 +80,7 @@ static void status_stop_cb (EdgeEndPointInfo *epInfo, EdgeStatusCode status)
 {
     if (status == STATUS_STOP_SERVER)
     {
-        printf("[Application Callback] Server stopped \n");
+        printf(COLOR_GREEN "\n[Application Callback] Server stopped \n" COLOR_RESET);
         exit(0);
     }
 }

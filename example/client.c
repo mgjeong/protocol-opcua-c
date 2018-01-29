@@ -692,7 +692,7 @@ static int print_endpoint_list() {
     EndPointList *temp = epList;
     while (temp)
     {
-        printf("(%d)   %s \n", cnt+1, temp->endpoint);
+        printf("\n(%d)   %s", cnt+1, temp->endpoint);
         temp = temp->next;
         cnt++;
     }
@@ -2318,6 +2318,11 @@ static void testMethod()
 
 static void testSub()
 {
+
+    printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET);
+    printf("\n" COLOR_YELLOW "                    Subscribe Node             "COLOR_RESET);
+    printf("\n" COLOR_YELLOW "------------------------------------------------------\n" COLOR_RESET);
+
     char *ep = getEndPoint_input();
     if (ep == NULL)
     {
@@ -2416,10 +2421,11 @@ static void testSub()
     msg->requestLength = num_requests;
 
     EdgeResult result = handleSubscription(msg);
-    printf("CREATE RESULT : %d\n",  result.code);
     if (result.code == STATUS_OK)
     {
-        printf("SUBSCRPTION CREATE SUCCESSFULL\n");
+        printf(COLOR_GREEN "\nSUBSCRPTION CREATE SUCCESSFULLY\n" COLOR_RESET);
+    } else {
+        printf("CREATE RESULT : %d\n",  result.code);
     }
 
     EXIT_SUB:
@@ -2471,7 +2477,7 @@ static void testSubModify()
         goto EXIT_SUBMODIFY;
     }
     subReq->subType = Edge_Modify_Sub;
-    subReq->samplingInterval = 3000.0;
+    subReq->samplingInterval = 5000.0;
     subReq->publishingInterval = 0.0;
     subReq->maxKeepAliveCount = (1 > (int) (ceil(10000.0 / subReq->publishingInterval))) ? 1 :
                                 (int) ceil(
@@ -2758,6 +2764,7 @@ int main()
 
             testGetEndpoints();
             //startFlag = true;
+            print_menu();
         }
         else if (!strcmp(command, "read"))
         {
@@ -2821,7 +2828,6 @@ int main()
             printf("Enter a value for maximum references allowed per node:");
             scanf("%d", &maxReferencesPerNode);
         }
-        print_menu();
     }
 
     destroyBrowseNextData(browseNextData);
