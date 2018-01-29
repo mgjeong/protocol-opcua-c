@@ -28,7 +28,7 @@
 #define TAG "subscription"
 
 #define EDGE_UA_SUBSCRIPTION_ITEM_SIZE 20
-#define EDGE_UA_MINIMUM_PUBLISHING_TIME 50
+#define EDGE_UA_MINIMUM_PUBLISHING_TIME 100
 
 typedef struct subscriptionInfo
 {
@@ -367,9 +367,9 @@ static UA_StatusCode createSub(UA_Client *client, EdgeMessage *msg)
 
     EDGE_LOG_V(TAG, "Subscription ID received is %u\n", subId);
 
-    if (IS_NOT_NULL(clientSub) && !hasSubscriptionId(clientSub->subscriptionList, subId))
+    if (NULL != clientSub && hasSubscriptionId(clientSub->subscriptionList, subId))
     {
-        EDGE_LOG_V(TAG, "ERROR :: Subscription ID is not in subscriptionList %s\n",
+        EDGE_LOG_V(TAG, "ERROR :: Subscription ID is already present in subscriptionList %s\n",
                 UA_StatusCode_name(UA_STATUSCODE_BADSUBSCRIPTIONIDINVALID));
         return UA_STATUSCODE_BADSUBSCRIPTIONIDINVALID;
     }
