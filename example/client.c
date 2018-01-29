@@ -424,6 +424,7 @@ static void monitored_msg_cb (EdgeMessage *data)
         int idx = 0;
         for (idx = 0; idx < len; idx++)
         {
+            printf("[Node Name] : %s\n", data->responses[idx]->nodeInfo->valueAlias);
             if (data->responses[idx]->message != NULL)
             {
                 if (data->responses[idx]->type == Int16)
@@ -439,13 +440,13 @@ static void monitored_msg_cb (EdgeMessage *data)
                     printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>>  [%d]\n",
                            *((int *)data->responses[idx]->message->value));
                 else if (data->responses[idx]->type == UInt32)
-                    printf("[MonitoredItem DataChange callbackk] Monitored Change Value read from node ===>>  [%d]\n",
+                    printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>>  [%d]\n",
                            *((int *)data->responses[idx]->message->value));
                 else if (data->responses[idx]->type == Int64)
-                    printf("[MonitoredItem DataChange callbackk] Monitored Change Value read from node ===>>  [%ld]\n",
+                    printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>>  [%ld]\n",
                            *((long *)data->responses[idx]->message->value));
                 else if (data->responses[idx]->type == UInt64)
-                    printf("[MonitoredItem DataChange callbackk] Monitored Change Value read from node ===>>  [%ld]\n",
+                    printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>>  [%ld]\n",
                            *((long *)data->responses[idx]->message->value));
                 else if (data->responses[idx]->type == Float)
                     printf("[MonitoredItem DataChange callback] Monitored Change Value read from node  ===>>  [%f]\n",
@@ -578,7 +579,7 @@ static void status_start_cb (EdgeEndPointInfo *epInfo, EdgeStatusCode status)
 {
     if (status == STATUS_CLIENT_STARTED)
     {
-        printf("[Application Callback] Client connected\n");
+        printf(COLOR_GREEN "[Application Callback] Client connected\n" COLOR_RESET);
         startFlag = true;
         add_to_endpoint_list(epInfo->endpointUri);
         endpointCount++;
@@ -589,8 +590,8 @@ static void status_stop_cb (EdgeEndPointInfo *epInfo, EdgeStatusCode status)
 {
     if (status == STATUS_STOP_CLIENT)
     {
-        printf("[Application Callback] Client disconnected \n\n");
-	EndPointList *list = remove_from_endpoint_list(epInfo->endpointUri);
+        printf(COLOR_GREEN "[Application Callback] Client disconnected \n\n" COLOR_RESET);
+        EndPointList *list = remove_from_endpoint_list(epInfo->endpointUri);
         if (list)
         {
             FREE (list->endpoint);
@@ -649,9 +650,9 @@ static EndPointList *create_endpoint_list(char *endpoint) {
 
 static void add_to_endpoint_list(char *endpoint)
 {
+    printf("Adding new endpoint list : %s\n\n", endpoint);
     if (NULL == epList)
     {
-        printf("creating new endpoint list\n\n");
         epList = create_endpoint_list(endpoint);
         return ;
     }
@@ -691,7 +692,7 @@ static int print_endpoint_list() {
     EndPointList *temp = epList;
     while (temp)
     {
-        printf("(%d)   %s \n", cnt+1, temp->endpoint);
+        printf("\n(%d)   %s", cnt+1, temp->endpoint);
         temp = temp->next;
         cnt++;
     }
@@ -823,10 +824,6 @@ static void startClient(char *addr, int port, char *securityPolicyUri, char *end
     endpointConfig->bindAddress = addr;
     endpointConfig->bindPort = port;
 
-    EdgeApplicationConfig *appConfig = (EdgeApplicationConfig *) calloc(1, sizeof(EdgeApplicationConfig));
-    appConfig->applicationUri = DEFAULT_SERVER_APP_URI_VALUE;
-    appConfig->productUri = DEFAULT_PRODUCT_URI_VALUE;
-    appConfig->applicationName = DEFAULT_SERVER_APP_NAME_VALUE;
 
     EdgeEndPointInfo *ep = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     if(IS_NULL(ep))
@@ -836,7 +833,7 @@ static void startClient(char *addr, int port, char *securityPolicyUri, char *end
     }
     ep->endpointUri = endpointUri;
     ep->endpointConfig = endpointConfig;
-    ep->appConfig = appConfig;
+//    ep->appConfig = appConfig;
     ep->securityPolicyUri = securityPolicyUri;
 
     EdgeMessage *msg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
@@ -849,8 +846,6 @@ static void startClient(char *addr, int port, char *securityPolicyUri, char *end
     msg->command = CMD_START_CLIENT;
     msg->type = SEND_REQUEST;
 
-    printf("\n" COLOR_YELLOW "********************** startClient **********************"
-           COLOR_RESET"\n");
     connectClient(ep);
 
     EXIT_START:
@@ -1922,7 +1917,7 @@ static void testMethod()
     printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET
            "\n\n");
 
-    printf("\n|------------------- [Method Call ] - sqrt(x) \n");
+    printf("\n|------------------- [Method Call] - sqrt(x) \n");
 
     EdgeEndPointInfo *ep = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     if(IS_NULL(ep))
@@ -1962,8 +1957,10 @@ static void testMethod()
     }
     methodParams->inpArg[0]->argType = Double;
     methodParams->inpArg[0]->valType = SCALAR;
-    double d = 16.0;
-    methodParams->inpArg[0]->scalarValue = (void *) &d;
+    double input = 16.0;
+    methodParams->inpArg[0]->scalarValue = (void *) &input;
+
+    printf("input(x) :: [%.2f]\n", input);
 
     EdgeRequest *request = (EdgeRequest *) malloc(sizeof(EdgeRequest));
     if(IS_NULL(request))
@@ -2059,6 +2056,9 @@ static void testMethod()
     int delta = 5;
     methodParams->inpArg[1]->scalarValue = (void *) &delta;
 
+    printf("input(x, delta) :: [%d %d %d %d %d] [%d]\n",
+            array[0], array[1], array[2], array[3], array[4], delta);
+
     request = (EdgeRequest *) malloc(sizeof(EdgeRequest));
     if(IS_NULL(request))
     {
@@ -2140,6 +2140,8 @@ static void testMethod()
     methodParams->inpArg[0]->valType = SCALAR;
     int32_t val = 100;
     methodParams->inpArg[0]->scalarValue = &val;
+
+    printf("input(x) :: [%d]\n", val);
 
     request = (EdgeRequest *) malloc(sizeof(EdgeRequest));
     if(IS_NULL(request))
@@ -2316,6 +2318,11 @@ static void testMethod()
 
 static void testSub()
 {
+
+    printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET);
+    printf("\n" COLOR_YELLOW "                    Subscribe Node             "COLOR_RESET);
+    printf("\n" COLOR_YELLOW "------------------------------------------------------\n" COLOR_RESET);
+
     char *ep = getEndPoint_input();
     if (ep == NULL)
     {
@@ -2334,6 +2341,7 @@ static void testSub()
         printf("Error :: Invalid input. Try Again\n ");
         return;
     }
+
 
     EdgeEndPointInfo *epInfo = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     if(IS_NULL(epInfo))
@@ -2355,8 +2363,13 @@ static void testSub()
         printf("Error : Malloc failed for subReq in test subscription\n");
         goto EXIT_SUB;
     }
+
+    double samplingInterval;
+    printf("\nEnter number of sampling interval[millisecond] (minimum : 100ms) :: ");
+    scanf("%lf", &samplingInterval);
+
     subReq->subType = Edge_Create_Sub;
-    subReq->samplingInterval = 1000.0;
+    subReq->samplingInterval = samplingInterval;
     subReq->publishingInterval = 0.0;
     subReq->maxKeepAliveCount = (1 > (int) (
                                      ceil(10000.0 / subReq->publishingInterval))) ? 1 : (int) ceil(10000.0 / subReq->publishingInterval);
@@ -2408,10 +2421,11 @@ static void testSub()
     msg->requestLength = num_requests;
 
     EdgeResult result = handleSubscription(msg);
-    printf("CREATE RESULT : %d\n",  result.code);
     if (result.code == STATUS_OK)
     {
-        printf("SUBSCRPTION CREATE SUCCESSFULL\n");
+        printf(COLOR_GREEN "\nSUBSCRPTION CREATE SUCCESSFULLY\n" COLOR_RESET);
+    } else {
+        printf("CREATE RESULT : %d\n",  result.code);
     }
 
     EXIT_SUB:
@@ -2463,7 +2477,7 @@ static void testSubModify()
         goto EXIT_SUBMODIFY;
     }
     subReq->subType = Edge_Modify_Sub;
-    subReq->samplingInterval = 3000.0;
+    subReq->samplingInterval = 5000.0;
     subReq->publishingInterval = 0.0;
     subReq->maxKeepAliveCount = (1 > (int) (ceil(10000.0 / subReq->publishingInterval))) ? 1 :
                                 (int) ceil(
@@ -2698,7 +2712,7 @@ static void testSubDelete()
 
 static void print_menu()
 {
-    printf("=============== OPC UA =======================\n\n");
+    printf("\n=============== OPC UA =======================\n\n");
 
     printf("start : Get endpoints and start opcua client \n");
     printf("read : read attribute for target node\n");
@@ -2750,7 +2764,7 @@ int main()
 
             testGetEndpoints();
             //startFlag = true;
-
+            print_menu();
         }
         else if (!strcmp(command, "read"))
         {
