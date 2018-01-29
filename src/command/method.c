@@ -39,10 +39,15 @@ EdgeResult executeMethod(UA_Client *client, EdgeMessage *msg)
     EdgeMethodRequestParams *params = request->methodParams;
     int idx = 0;
     UA_Variant *input = NULL;
-    if (params->num_inpArgs > 0)
+    int num_inpArgs = 0;
+    if (params)
+    {
+        num_inpArgs = params->num_inpArgs;
+    }
+    if (num_inpArgs > 0)
         input = (UA_Variant *) malloc(sizeof(UA_Variant) * params->num_inpArgs);
 
-    for (idx = 0; idx < params->num_inpArgs; idx++)
+    for (idx = 0; idx < num_inpArgs; idx++)
     {
         UA_Variant_init(&input[idx]);
         if (params->inpArg[idx]->valType == SCALAR)
@@ -57,7 +62,6 @@ EdgeResult executeMethod(UA_Client *client, EdgeMessage *msg)
             }
             else
             {
-                EDGE_LOG(TAG, "\n\n======== scalar copy======== \n\n");
                 UA_Variant_setScalarCopy(&input[idx], params->inpArg[idx]->scalarValue,
                         &UA_TYPES[type]);
             }
@@ -93,7 +97,7 @@ EdgeResult executeMethod(UA_Client *client, EdgeMessage *msg)
     size_t outputSize;
     UA_Variant *output;
     UA_StatusCode retVal = UA_Client_call(client, UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER),
-            UA_NODEID_STRING(1, request->nodeInfo->valueAlias), params->num_inpArgs, input,
+            UA_NODEID_STRING(1, request->nodeInfo->valueAlias), num_inpArgs, input,
             &outputSize, &output);
     if (retVal == UA_STATUSCODE_GOOD)
     {
@@ -120,7 +124,6 @@ EdgeResult executeMethod(UA_Client *client, EdgeMessage *msg)
                 response[i]->nodeInfo = (EdgeNodeInfo *) malloc(sizeof(EdgeNodeInfo));
                 memcpy(response[i]->nodeInfo, msg->request->nodeInfo, sizeof(EdgeNodeInfo));
                 response[i]->requestId = msg->request->requestId;
-                //response[i]->value = output[i].data;
 
                 EdgeVersatility *versatility = (EdgeVersatility *) malloc(sizeof(EdgeVersatility));
                 if(IS_NULL(versatility))
@@ -173,7 +176,7 @@ EdgeResult executeMethod(UA_Client *client, EdgeMessage *msg)
                     else if (output[i].type == &UA_TYPES[UA_TYPES_STRING])
                     {
                         UA_String str = *((UA_String *) output[i].data);
-                        response[i]->value = (void *) str.data;
+                        versatility->value = (void *) str.data;
                         response[i]->type = String;
                     }
                     else if (output[i].type == &UA_TYPES[UA_TYPES_BYTE])
@@ -333,7 +336,7 @@ EdgeResult executeMethod(UA_Client *client, EdgeMessage *msg)
         FREE(res);
     }
 
-    for (idx = 0; idx < params->num_inpArgs; idx++)
+    for (idx = 0; idx < num_inpArgs; idx++)
     {
         UA_Variant_deleteMembers(&input[idx]);
     }
