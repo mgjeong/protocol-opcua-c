@@ -34,6 +34,15 @@ static EdgeConfigure *config = NULL;
 static void testCreateNamespace();
 static void testCreateNodes();
 
+/***** Method Callbacks ******/
+extern void test_method_shutdown(int inpSize, void **input, int outSize, void **output);
+extern void test_method_print(int inpSize, void **input, int outSize, void **output);
+extern void test_method_version(int inpSize, void **input, int outSize, void **output);
+extern void test_method_sqrt(int inpSize, void **input, int outSize, void **output);
+extern void test_method_increment_int32Array(int inpSize, void **input, int outSize, void **output);
+
+// TODO: Remove this function later when sdk expose it.
+
 static void response_msg_cb (EdgeMessage *data)
 {
 
@@ -91,40 +100,6 @@ static void device_found_cb (EdgeDevice *device)
 {
 
 }
-
-
-/**************************************************************************************************/
-// Method callbacks
-// Method callbacks
-
-static void arg_method(int inpSize, void **input, int outSize, void **output)
-{
-
-}
-
-static void sqrt_method(int inpSize, void **input, int outSize, void **output)
-{
-    double *inp = (double *) input[0];
-    double *sq_root = (double *) malloc(sizeof(double));
-    *sq_root = sqrt(*inp);
-    output[0] = (void *) sq_root;
-}
-
-static void increment_int32Array_method(int inpSize, void **input, int outSize, void **output)
-{
-    int32_t *inputArray = (int32_t *) input[0];
-    int *delta = (int *) input[1];
-
-    int32_t *outputArray = (int32_t *) malloc(sizeof(int32_t) * 5);
-    for (int i = 0; i < 5; i++)
-    {
-        outputArray[i] = inputArray[i] + *delta;
-    }
-    output[0] = (void *) outputArray;
-}
-
-
-/**************************************************************************************************/
 
 static void init()
 {
@@ -754,13 +729,13 @@ static void testCreateNodes()
     printf(COLOR_GREEN"\n[Create Method Node]\n"COLOR_RESET);
     printf("\n[%d] Method Node with square_root \n", ++index);
     EdgeNodeItem *methodNodeItem = (EdgeNodeItem *) malloc(sizeof(EdgeNodeItem));
-    methodNodeItem->browseName = "square_root";
+    methodNodeItem->browseName = "sqrt(x)";
     methodNodeItem->sourceNodeId = NULL;
 
     EdgeMethod *method = (EdgeMethod *) malloc(sizeof(EdgeMethod));
     method->description = "Calculate square root";
     method->methodNodeName = "square_root";
-    method->method_fn = sqrt_method;
+    method->method_fn = test_method_sqrt;
     method->num_inpArgs = 1;
     method->inpArg = (EdgeArgument **) malloc(sizeof(EdgeArgument *) * method->num_inpArgs);
     for (int idx = 0; idx < method->num_inpArgs; idx++)
@@ -784,13 +759,13 @@ static void testCreateNodes()
 
     printf("\n[%d] Method Node with incrementInc32Array \n", ++index);
     EdgeNodeItem *methodNodeItem1 = (EdgeNodeItem *) malloc(sizeof(EdgeNodeItem));
-    methodNodeItem1->browseName = "incrementInc32Array";
+    methodNodeItem1->browseName = "incrementInc32Array(x,delta)";
     methodNodeItem1->sourceNodeId = NULL;
 
     EdgeMethod *method1 = (EdgeMethod *) malloc(sizeof(EdgeMethod));
     method1->description = "Increment int32 array by delta";
     method1->methodNodeName = "incrementInc32Array";
-    method1->method_fn = increment_int32Array_method;
+    method1->method_fn = test_method_increment_int32Array;
 
     method1->num_inpArgs = 2;
     method1->inpArg = (EdgeArgument **) malloc(sizeof(EdgeArgument *) * method1->num_inpArgs);
@@ -818,13 +793,13 @@ static void testCreateNodes()
 
     printf("\n[%d] Method Node with noArgMethod \n", ++index);
     EdgeNodeItem *methodNodeItem2 = (EdgeNodeItem *) malloc(sizeof(EdgeNodeItem));
-    methodNodeItem2->browseName = "noArgMethod";
+    methodNodeItem2->browseName = "shutdown()";
     methodNodeItem2->sourceNodeId = NULL;
 
     EdgeMethod *method2 = (EdgeMethod *) malloc(sizeof(EdgeMethod));
-    method2->description = "no arg method";
-    method2->methodNodeName = "noArgMethod";
-    method2->method_fn = arg_method;
+    method2->description = "shutdown method";
+    method2->methodNodeName = "shutdown";
+    method2->method_fn = test_method_shutdown;
 
     method2->num_inpArgs = 0;
     method2->inpArg = NULL;
@@ -838,13 +813,13 @@ static void testCreateNodes()
 
     printf("\n[%d] Method Node with inArgMethod \n", ++index);
     EdgeNodeItem *methodNodeItem3 = (EdgeNodeItem *) malloc(sizeof(EdgeNodeItem));
-    methodNodeItem3->browseName = "inArgMethod";
+    methodNodeItem3->browseName = "print(x)";
     methodNodeItem3->sourceNodeId = NULL;
 
     EdgeMethod *method3 = (EdgeMethod *) malloc(sizeof(EdgeMethod));
-    method3->description = "only input arg method";
-    method3->methodNodeName = "inArgMethod";
-    method3->method_fn = arg_method;
+    method3->description = "print x";
+    method3->methodNodeName = "print";
+    method3->method_fn = test_method_print;
 
     method3->num_inpArgs = 1;
     method3->inpArg = (EdgeArgument **) malloc(sizeof(EdgeArgument *) * method3->num_inpArgs);
@@ -861,13 +836,13 @@ static void testCreateNodes()
 
     printf("\n[%d] Method Node with outArgMethod \n", ++index);
     EdgeNodeItem *methodNodeItem4 = (EdgeNodeItem *) malloc(sizeof(EdgeNodeItem));
-    methodNodeItem4->browseName = "outArgMethod";
+    methodNodeItem4->browseName = "version()";
     methodNodeItem4->sourceNodeId = NULL;
 
     EdgeMethod *method4 = (EdgeMethod *) malloc(sizeof(EdgeMethod));
-    method4->description = "only output arg method";
-    method4->methodNodeName = "outArgMethod";
-    method4->method_fn = arg_method;
+    method4->description = "Get Version Info";
+    method4->methodNodeName = "version";
+    method4->method_fn = test_method_version;
 
     method4->num_inpArgs = 0;
     method4->inpArg = NULL;
@@ -875,7 +850,7 @@ static void testCreateNodes()
     method4->num_outArgs = 1;
     method4->outArg = (EdgeArgument **) malloc(sizeof(EdgeArgument *) * method4->num_outArgs);
     method4->outArg[0] = (EdgeArgument *) malloc(sizeof(EdgeArgument));
-    method4->outArg[0]->argType = Double;
+    method4->outArg[0]->argType = String;
     method4->outArg[0]->valType = SCALAR;
 
     createMethodNode(DEFAULT_NAMESPACE_VALUE, methodNodeItem4, method4);

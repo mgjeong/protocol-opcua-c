@@ -225,9 +225,10 @@ BrowseNextData *cloneBrowseNextData(BrowseNextData *data)
 static void response_msg_cb (EdgeMessage *data)
 {
     if (data->type == GENERAL_RESPONSE)
-    {
-        printf("\n[Application response Callback] General response received\n");
+    {        
         int len = data->responseLength;
+        if (0 == len)
+            printf("Response Received ::  \n");
         int idx = 0;
         for (idx = 0; idx < len; idx++)
         {
@@ -235,6 +236,7 @@ static void response_msg_cb (EdgeMessage *data)
             {
                 if (data->command == CMD_READ || data->command == CMD_METHOD)
                 {
+                    printf("Response Received ::  ");
                     if (data->responses[idx]->message->isArray)
                     {
                         // Handle Output array
@@ -242,7 +244,6 @@ static void response_msg_cb (EdgeMessage *data)
                         if (data->responses[idx]->type == Boolean)
                         {
                             /* Handle Boolean output array */
-                            printf("Boolean output array length :: [%d]\n\n", arrayLen);
                             for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                             {
                                 printf("%d  ", ((bool *) data->responses[idx]->message->value)[arrayIdx]);
@@ -251,7 +252,6 @@ static void response_msg_cb (EdgeMessage *data)
                         else if (data->responses[idx]->type == Byte)
                         {
                             /* Handle Byte output array */
-                            printf("Byte output array length :: [%d]\n\n", arrayLen);
                             for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                             {
                                 printf("%" PRIu8 " ", ((uint8_t *) data->responses[idx]->message->value)[arrayIdx]);
@@ -260,7 +260,6 @@ static void response_msg_cb (EdgeMessage *data)
                         else if (data->responses[idx]->type == SByte)
                         {
                             /* Handle SByte output array */
-                            printf("SByte output array length :: [%d]\n\n", arrayLen);
                             for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                             {
                                 printf("%" PRId8 " ", ((int8_t *) data->responses[idx]->message->value)[arrayIdx]);
@@ -269,7 +268,6 @@ static void response_msg_cb (EdgeMessage *data)
                         else if (data->responses[idx]->type == Int16)
                         {
                             /* Handle int16 output array */
-                            printf("Int16 output array length :: [%d]\n\n", arrayLen);
                             for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                             {
                                 printf("%" PRId16 "  ", ((int16_t *) data->responses[idx]->message->value)[arrayIdx]);
@@ -278,7 +276,6 @@ static void response_msg_cb (EdgeMessage *data)
                         else if (data->responses[idx]->type == UInt16)
                         {
                             /* Handle UInt16 output array */
-                            printf("UInt16 output array length :: [%d]\n\n", arrayLen);
                             for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                             {
                                 printf("%" PRIu16 "  ", ((uint16_t *) data->responses[idx]->message->value)[arrayIdx]);
@@ -287,7 +284,6 @@ static void response_msg_cb (EdgeMessage *data)
                         else if (data->responses[idx]->type == Int32)
                         {
                             /* Handle Int32 output array */
-                            printf("Int32 output array length :: [%d]\n\n", arrayLen);
                             for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                             {
                                 printf("%d  ", ((int32_t *) data->responses[idx]->message->value)[arrayIdx]);
@@ -296,7 +292,6 @@ static void response_msg_cb (EdgeMessage *data)
                         else if (data->responses[idx]->type == UInt32)
                         {
                             /* Handle UInt32 output array */
-                            printf("UInt32 output array length :: [%d]\n\n", arrayLen);
                             for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                             {
                                 printf("%u  ", ((uint *) data->responses[idx]->message->value)[arrayIdx]);
@@ -305,7 +300,6 @@ static void response_msg_cb (EdgeMessage *data)
                         else if (data->responses[idx]->type == Int64)
                         {
                             /* Handle Int64 output array */
-                            printf("Int64 output array length :: [%d]\n\n", arrayLen);
                             for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                             {
                                 printf("%ld  ", ((long int *) data->responses[idx]->message->value)[arrayIdx]);
@@ -314,7 +308,6 @@ static void response_msg_cb (EdgeMessage *data)
                         else if (data->responses[idx]->type == UInt64)
                         {
                             /* Handle UInt64 output array */
-                            printf("UInt64 output array length :: [%d]\n\n", arrayLen);
                             for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                             {
                                 printf("%lu  ", ((ulong *) data->responses[idx]->message->value)[arrayIdx]);
@@ -323,7 +316,6 @@ static void response_msg_cb (EdgeMessage *data)
                         else if (data->responses[idx]->type == Float)
                         {
                             /* Handle Float output array */
-                            printf("Float output array length :: [%d]\n\n", arrayLen);
                             for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                             {
                                 printf("%g  ", ((float *) data->responses[idx]->message->value)[arrayIdx]);
@@ -332,7 +324,6 @@ static void response_msg_cb (EdgeMessage *data)
                         else if (data->responses[idx]->type == Double)
                         {
                             /* Handle Double output array */
-                            printf("Double output array length :: [%d]\n\n", arrayLen);
                             for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                             {
                                 printf("%g  ", ((double *) data->responses[idx]->message->value)[arrayIdx]);
@@ -342,7 +333,6 @@ static void response_msg_cb (EdgeMessage *data)
                                  || data->responses[idx]->type == Guid)
                         {
                             /* Handle String/ByteString/Guid output array */
-                            printf("String/ByteString/Guid output array length :: [%d]\n\n", arrayLen);
                             char **values = ((char **) data->responses[idx]->message->value);
                             for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                             {
@@ -352,70 +342,68 @@ static void response_msg_cb (EdgeMessage *data)
                         else if (data->responses[idx]->type == DateTime)
                         {
                             /* Handle DateTime output array */
-                            printf("DateTime output array length :: [%d]\n\n", arrayLen);
                             for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                             {
                                 printf("%" PRId64 "  ", ((int64_t *) data->responses[idx]->message->value)[arrayIdx]);
                             }
                         }
-                        printf("\n\n");
+                        printf("\n");
                     }
                     else
                     {
                         if (data->responses[idx]->type == Boolean)
-                            printf("[Application response Callback] Data read from node ===>> [%d]\n",
+                            printf("[%d]\n",
                                    *((int *)data->responses[idx]->message->value));
                         else if (data->responses[idx]->type == Byte)
-                            printf("[Application response Callback] Data read from node ===>> [%" PRIu8 "]\n",
+                            printf("[%" PRIu8 "]\n",
                                    *((uint8_t *)data->responses[idx]->message->value));
                         else if (data->responses[idx]->type == SByte)
-                            printf("[Application response Callback] Data read from node ===>> [%" PRId8 "]\n",
+                            printf("[%" PRId8 "]\n",
                                    *((int8_t *)data->responses[idx]->message->value));
                         else if (data->responses[idx]->type == ByteString)
-                            printf("[Application response Callback] Data read from node ===>> [%s]\n",
+                            printf("[%s]\n",
                                    (char *)data->responses[idx]->message->value);
                         else if (data->responses[idx]->type == DateTime)
-                            printf("[Application response Callback] Data read from node ===>> [%" PRId64 "]\n",
+                            printf("[%" PRId64 "]\n",
                                    *((int64_t *)data->responses[idx]->message->value));
                         else if (data->responses[idx]->type == Double)
-                            printf("[Application response Callback] Data read from node ===>>  [%g]\n",
+                            printf(" [%g]\n",
                                    *((double *)data->responses[idx]->message->value));
                         else if (data->responses[idx]->type == Float)
-                            printf("[Application response Callback] Data read from node ===>>  [%g]\n",
+                            printf("[%g]\n",
                                    *((float *)data->responses[idx]->message->value));
                         else if (data->responses[idx]->type == Int16)
-                            printf("[Application response Callback] Data read from node ===>> [%" PRId16 "]\n",
+                            printf("[%" PRId16 "]\n",
                                    *((int16_t *)data->responses[idx]->message->value));
                         else if (data->responses[idx]->type == UInt16)
-                            printf("[Application response Callback] Data read from node ===>> [%" PRIu16 "]\n",
+                            printf("[%" PRIu16 "]\n",
                                    *((uint16_t *)data->responses[idx]->message->value));
                         else if (data->responses[idx]->type == Int32)
-                            printf("[Application response Callback] Data read from node ===>>  [%" PRId32 "]\n",
+                            printf("[%" PRId32 "]\n",
                                    *((int32_t *)data->responses[idx]->message->value));
                         else if (data->responses[idx]->type == UInt32)
-                            printf("[Application response Callback] Data read from node ===>>  [%" PRIu32 "]\n",
+                            printf("[%" PRIu32 "]\n",
                                    *((uint32_t *)data->responses[idx]->message->value));
                         else if (data->responses[idx]->type == Int64)
-                            printf("[Application response Callback] Data read from node ===>>  [%" PRId64 "]\n",
+                            printf("[%" PRId64 "]\n",
                                    *((int64_t *)data->responses[idx]->message->value));
                         else if (data->responses[idx]->type == UInt64)
-                            printf("[Application response Callback] Data read from node ===>>  [%" PRIu64 "]\n",
+                            printf("[%" PRIu64 "]\n",
                                    *((uint64_t *)data->responses[idx]->message->value));
                         else if (data->responses[idx]->type == String)
-                            printf("[Application response Callback] Data read from node ===>>  [%s]\n",
+                            printf("[%s]\n",
                                    (char *)data->responses[idx]->message->value);
                     }
                 }
                 else if (data->command == CMD_WRITE)
                 {
-                    printf("[Application response Callback] Write response :: %s\n",
+                    printf("\nWrite response :: %s\n",
                            (char *) data->responses[idx]->message->value);
                 }
-
                 // Diagnostics information
                 if (data->responses[idx]->m_diagnosticInfo)
                 {
-                    printf("[Application response Callback] Diagnostics information\n");
+                    printf("Diagnostics information\n");
                     printf("symbolicId :: %d, localizedText : %d, additionalInfo : %s , msg :: %s\n" ,
                            data->responses[idx]->m_diagnosticInfo->symbolicId,
                            data->responses[idx]->m_diagnosticInfo->localizedText,
@@ -423,10 +411,7 @@ static void response_msg_cb (EdgeMessage *data)
                            data->responses[idx]->m_diagnosticInfo->msg);
                 }
             }
-
-            printf("\n=========\n");
         }
-        printf("\n\n");
     }
 }
 
@@ -542,9 +527,6 @@ static void browse_msg_cb (EdgeMessage *data)
 #endif
 static void browse_msg_cb (EdgeMessage *data)
 {
-    //printf("\n[Application browse response callback] [Request(%d)]\n",
-    //       data->responses[0]->requestId);
-
     if (data->browseResult)
     {
         EdgeBrowseResult *browseResult = data->browseResult;
@@ -1940,6 +1922,8 @@ static void testMethod()
     printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET
            "\n\n");
 
+    printf("\n|------------------- [Method Call ] - sqrt(x) \n");
+
     EdgeEndPointInfo *ep = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     if(IS_NULL(ep))
     {
@@ -1954,7 +1938,7 @@ static void testMethod()
         printf("Error : Malloc failed for nodeInfo in test Method\n");
         goto EXIT_METHOD;
     }
-    nodeInfo->valueAlias = "square_root";
+    nodeInfo->valueAlias = "sqrt(x)";
 
     EdgeMethodRequestParams *methodParams = (EdgeMethodRequestParams *) malloc(sizeof(
             EdgeMethodRequestParams));
@@ -2021,7 +2005,7 @@ static void testMethod()
     FREE(ep);
     FREE (msg);
 
-    printf("\n=====================================\n\n");
+    printf("\n|------------------- [Method Call ] - incrementInc32Array(x,delta) \n");
 
     ep = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     if(IS_NULL(ep))
@@ -2037,7 +2021,7 @@ static void testMethod()
         printf("Error : Malloc failed for EdgeNodeInfo in test Method1\n");
         goto EXIT_METHOD1;
     }
-    nodeInfo->valueAlias = "incrementInc32Array";
+    nodeInfo->valueAlias = "incrementInc32Array(x,delta)";
 
     methodParams = (EdgeMethodRequestParams *) malloc(sizeof(EdgeMethodRequestParams));
     if(IS_NULL(methodParams))
@@ -2097,6 +2081,220 @@ static void testMethod()
     callMethod(msg);
 
     EXIT_METHOD1: 
+    if(IS_NOT_NULL(methodParams))
+    {
+        if(IS_NOT_NULL(methodParams->inpArg))
+        {
+            for (int i = 0; i < methodParams->num_inpArgs; i++)
+            {
+                FREE (methodParams->inpArg[i]);
+            }
+        }
+        FREE (methodParams->inpArg);
+        FREE (methodParams);
+    }
+
+    FREE(nodeInfo);
+    FREE(request);
+    FREE(ep);
+    FREE (msg);
+
+    printf("\n|------------------- [Method Call ] - print(x) \n");
+
+    ep = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
+    if(IS_NULL(ep))
+    {
+        printf("Error : Malloc failed for EdgeEndPointInfo in test Method1\n");
+        goto EXIT_METHOD2;
+    }
+    ep->endpointUri = endpointUri;
+
+    nodeInfo = (EdgeNodeInfo *) malloc(sizeof(EdgeNodeInfo));
+    if(IS_NULL(nodeInfo))
+    {
+        printf("Error : Malloc failed for EdgeNodeInfo in test Method1\n");
+        goto EXIT_METHOD2;
+    }
+    nodeInfo->valueAlias = "print(x)";
+
+    methodParams = (EdgeMethodRequestParams *) malloc(sizeof(EdgeMethodRequestParams));
+    if(IS_NULL(methodParams))
+    {
+        printf("Error : Malloc failed for methodParams in test Method1\n");
+        goto EXIT_METHOD2;
+    }
+    methodParams->num_inpArgs = 1;
+    methodParams->inpArg = (EdgeArgument **) malloc(sizeof(EdgeArgument *) * methodParams->num_inpArgs);
+    if(IS_NULL(methodParams->inpArg))
+    {
+        printf("Error : Malloc failed for methodParams->inpArg in test Method1\n");
+        goto EXIT_METHOD2;
+    }
+    methodParams->inpArg[0] = (EdgeArgument *) malloc(sizeof(EdgeArgument));
+    if(IS_NULL(methodParams->inpArg[0]))
+    {
+        printf("Error : Malloc failed for methodParams->inpArg[0] in test Method1\n");
+        goto EXIT_METHOD2;
+    }
+    methodParams->inpArg[0]->argType = Int32;
+    methodParams->inpArg[0]->valType = SCALAR;
+    int32_t val = 100;
+    methodParams->inpArg[0]->scalarValue = &val;
+
+    request = (EdgeRequest *) malloc(sizeof(EdgeRequest));
+    if(IS_NULL(request))
+    {
+        printf("Error : Malloc failed for request in test Method1\n");
+        goto EXIT_METHOD2;
+    }
+    request->nodeInfo = nodeInfo;
+    request->methodParams = methodParams;
+
+    msg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
+    if(IS_NULL(msg))
+    {
+        printf("Error : Malloc failed for msg in test Method1\n");
+        goto EXIT_METHOD2;
+    }
+    msg->endpointInfo = ep;
+    msg->command = CMD_METHOD;
+    msg->request = request;
+
+    callMethod(msg);
+
+    EXIT_METHOD2:
+    if(IS_NOT_NULL(methodParams))
+    {
+        if(IS_NOT_NULL(methodParams->inpArg))
+        {
+            for (int i = 0; i < methodParams->num_inpArgs; i++)
+            {
+                FREE (methodParams->inpArg[i]);
+            }
+        }
+        FREE (methodParams->inpArg);
+        FREE (methodParams);
+    }
+
+    FREE(nodeInfo);
+    FREE(request);
+    FREE(ep);
+    FREE (msg);
+
+    printf("\n|------------------- [Method Call ] - shutdown() \n");
+
+    ep = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
+    if(IS_NULL(ep))
+    {
+        printf("Error : Malloc failed for EdgeEndPointInfo in test Method1\n");
+        goto EXIT_METHOD3;
+    }
+    ep->endpointUri = endpointUri;
+
+    nodeInfo = (EdgeNodeInfo *) malloc(sizeof(EdgeNodeInfo));
+    if(IS_NULL(nodeInfo))
+    {
+        printf("Error : Malloc failed for EdgeNodeInfo in test Method1\n");
+        goto EXIT_METHOD3;
+    }
+    nodeInfo->valueAlias = "shutdown()";
+
+    methodParams = (EdgeMethodRequestParams *) malloc(sizeof(EdgeMethodRequestParams));
+    if(IS_NULL(methodParams))
+    {
+        printf("Error : Malloc failed for methodParams in test Method1\n");
+        goto EXIT_METHOD3;
+    }
+    methodParams->num_inpArgs = 0;
+
+    request = (EdgeRequest *) malloc(sizeof(EdgeRequest));
+    if(IS_NULL(request))
+    {
+        printf("Error : Malloc failed for request in test Method1\n");
+        goto EXIT_METHOD3;
+    }
+    request->nodeInfo = nodeInfo;
+    request->methodParams = methodParams;
+
+    msg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
+    if(IS_NULL(msg))
+    {
+        printf("Error : Malloc failed for msg in test Method1\n");
+        goto EXIT_METHOD3;
+    }
+    msg->endpointInfo = ep;
+    msg->command = CMD_METHOD;
+    msg->request = request;
+
+    callMethod(msg);
+
+    EXIT_METHOD3:
+    if(IS_NOT_NULL(methodParams))
+    {
+        if(IS_NOT_NULL(methodParams->inpArg))
+        {
+            for (int i = 0; i < methodParams->num_inpArgs; i++)
+            {
+                FREE (methodParams->inpArg[i]);
+            }
+        }
+        FREE (methodParams->inpArg);
+        FREE (methodParams);
+    }
+
+    FREE(nodeInfo);
+    FREE(request);
+    FREE(ep);
+    FREE (msg);
+
+    printf("\n|------------------- [Method Call ] - version() \n");
+
+    ep = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
+    if(IS_NULL(ep))
+    {
+        printf("Error : Malloc failed for EdgeEndPointInfo in test Method1\n");
+        goto EXIT_METHOD4;
+    }
+    ep->endpointUri = endpointUri;
+
+    nodeInfo = (EdgeNodeInfo *) malloc(sizeof(EdgeNodeInfo));
+    if(IS_NULL(nodeInfo))
+    {
+        printf("Error : Malloc failed for EdgeNodeInfo in test Method1\n");
+        goto EXIT_METHOD4;
+    }
+    nodeInfo->valueAlias = "version()";
+
+    methodParams = (EdgeMethodRequestParams *) malloc(sizeof(EdgeMethodRequestParams));
+    if(IS_NULL(methodParams))
+    {
+        printf("Error : Malloc failed for methodParams in test Method1\n");
+        goto EXIT_METHOD4;
+    }
+    methodParams->num_inpArgs = 0;
+
+    request = (EdgeRequest *) malloc(sizeof(EdgeRequest));
+    if(IS_NULL(request))
+    {
+        printf("Error : Malloc failed for request in test Method1\n");
+        goto EXIT_METHOD4;
+    }
+    request->nodeInfo = nodeInfo;
+    request->methodParams = methodParams;
+
+    msg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
+    if(IS_NULL(msg))
+    {
+        printf("Error : Malloc failed for msg in test Method1\n");
+        goto EXIT_METHOD4;
+    }
+    msg->endpointInfo = ep;
+    msg->command = CMD_METHOD;
+    msg->request = request;
+
+    callMethod(msg);
+
+    EXIT_METHOD4:
     if(IS_NOT_NULL(methodParams))
     {
         if(IS_NOT_NULL(methodParams->inpArg))
@@ -2601,7 +2799,7 @@ int main()
         else if (!strcmp(command, "quit"))
         {
             deinit();
-            stopFlag = true;
+            //stopFlag = true;
         }
         else if (!strcmp(command, "help"))
         {

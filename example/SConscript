@@ -70,6 +70,6 @@ example_env.VariantDir(variant_dir = (outDir + '/'), src_dir = '.', duplicate = 
 
 #example_env.Execute('export LD_LIBRARY_PATH=../build')
 
-example_env.Program(outDir + '/server', outDir + '/server.c')
+example_env.Program(outDir + '/server', [outDir + '/server.c', outDir + '/sample_method.c'])
 example_env.Program(outDir + '/client', outDir + '/client.c')
 
