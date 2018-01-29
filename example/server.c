@@ -130,10 +130,19 @@ static void startServer()
     endpointConfig->serverName = DEFAULT_SERVER_NAME_VALUE;
     //endpointConfig->requestTimeout = 60000;
 
+    printf(COLOR_GREEN "[Endpoint Configuration]\n" COLOR_RESET);
+    printf("\nBind Address : %s", endpointConfig->bindAddress);
+    printf("\nBind Port : %d\n", endpointConfig->bindPort);
+
     EdgeApplicationConfig *appConfig = (EdgeApplicationConfig *) calloc(1, sizeof(EdgeApplicationConfig));
     appConfig->applicationName = DEFAULT_SERVER_APP_NAME_VALUE;
     appConfig->applicationUri = DEFAULT_SERVER_APP_URI_VALUE;
     appConfig->productUri = DEFAULT_PRODUCT_URI_VALUE;
+
+    printf(COLOR_GREEN "\n[Application Configuration]\n" COLOR_RESET);
+    printf("\nApplication Name : %s", appConfig->applicationName);
+    printf("\nApplication Uri : %s", appConfig->applicationUri);
+    printf("\nProudct Uri  : %s\n", appConfig->productUri);
 
     epInfo->endpointConfig = endpointConfig;
     epInfo->appConfig = appConfig;
@@ -168,7 +177,8 @@ static void testCreateNamespace()
 {
     printf("\n" COLOR_PURPLE "=================== Creating namespace ================" COLOR_RESET
            "\n");
-    printf("\n[Create Namespace] : %s\n", DEFAULT_NAMESPACE_VALUE);
+    printf(COLOR_GREEN "\n[Create Namespace]" COLOR_RESET);
+    printf(": %s\n", DEFAULT_NAMESPACE_VALUE);
     createNamespace(DEFAULT_NAMESPACE_VALUE,
                     DEFAULT_ROOT_NODE_INFO_VALUE,
                     DEFAULT_ROOT_NODE_INFO_VALUE,
@@ -948,9 +958,10 @@ static void testModifyNode()
         strcpy(name, "UInt16");
         new_value = (void *) &u_value;
     } else if (option == 7) {
+        strcpy(name, "String1");
         for (int i = 0; i < MAX_TEST_NUMBER; i++) {
             if(i % 2 == 0) {
-                strcpy(s_value, SAMPLE_STRING_1);
+                strcpy(s_value , SAMPLE_STRING_1);
             } else {
                 strcpy(s_value, SAMPLE_STRING_2);
             }
@@ -966,6 +977,7 @@ static void testModifyNode()
         }
         return;
     } else if (option == 8) {
+        strcpy(name, "Int32");
         for (int i = 0; i < MAX_TEST_NUMBER; i++) {
             new_value = (void *) &i;
 
