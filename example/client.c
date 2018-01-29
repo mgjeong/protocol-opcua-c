@@ -579,7 +579,7 @@ static void status_start_cb (EdgeEndPointInfo *epInfo, EdgeStatusCode status)
 {
     if (status == STATUS_CLIENT_STARTED)
     {
-        printf("[Application Callback] Client connected\n");
+        printf(COLOR_GREEN "[Application Callback] Client connected\n" COLOR_RESET);
         startFlag = true;
         add_to_endpoint_list(epInfo->endpointUri);
         endpointCount++;
@@ -590,8 +590,8 @@ static void status_stop_cb (EdgeEndPointInfo *epInfo, EdgeStatusCode status)
 {
     if (status == STATUS_STOP_CLIENT)
     {
-        printf("[Application Callback] Client disconnected \n\n");
-	EndPointList *list = remove_from_endpoint_list(epInfo->endpointUri);
+        printf(COLOR_GREEN "[Application Callback] Client disconnected \n\n" COLOR_RESET);
+        EndPointList *list = remove_from_endpoint_list(epInfo->endpointUri);
         if (list)
         {
             FREE (list->endpoint);
