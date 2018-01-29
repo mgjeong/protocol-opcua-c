@@ -1030,7 +1030,7 @@ static void testBrowseNext()
     destroyBrowseNextData(clone);
 }
 
-static void testBrowse()
+static void testBrowse(char* endpointUri)
 {
     printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET);
     printf("\n" COLOR_YELLOW "                       Browse Node            "COLOR_RESET);
@@ -1360,7 +1360,7 @@ static void testRead()
     }
 
     // Get the list of browse names and display them to user.
-    testBrowse();
+    testBrowse(ep);
 
     char nodeName[MAX_CHAR_SIZE];
     int num_requests = 1;
@@ -2331,7 +2331,7 @@ static void testSub()
     }
 
     // Get the list of browse names and display them to user.
-    testBrowse();
+    testBrowse(ep);
     char nodeName[MAX_CHAR_SIZE];
     int num_requests;
     printf("Enter number of nodes to Subscribe (less than 10) :: ");
@@ -2456,7 +2456,7 @@ static void testSubModify()
         return ;
     }
 
-    testBrowse();
+    testBrowse(ep);
     char nodeName[MAX_CHAR_SIZE];
 
     printf("\nEnter the node name to modify Subscribe :: ");
@@ -2784,7 +2784,13 @@ int main()
         }
         else if (!strcmp(command, "browse"))
         {
-            testBrowse();
+            char *ep = getEndPoint_input();
+            if (ep == NULL)
+            {
+                printf("Client not connected to any endpoints\n\n");
+                break;
+            }
+            testBrowse(ep);
         }
         else if (!strcmp(command, "browse_m"))
         {
