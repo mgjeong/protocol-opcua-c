@@ -33,6 +33,8 @@ extern "C"
 
     EdgeResult executeBrowse(UA_Client *client, EdgeMessage *msg, bool browseNext);
 
+    EdgeResult executeBrowseViews(UA_Client *client, EdgeMessage *msg);
+
 #ifdef __cplusplus
 }
 #endif

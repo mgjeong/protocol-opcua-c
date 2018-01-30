@@ -36,6 +36,7 @@ extern "C"
     EdgeResult readNodesFromServer(EdgeMessage *msg);
     EdgeResult writeNodesInServer(EdgeMessage *msg);
     EdgeResult browseNodesInServer(EdgeMessage *msg);
+    EdgeResult browseViewsInServer(EdgeMessage *msg);
     EdgeResult browseNextInServer(EdgeMessage *msg);
     EdgeResult callMethodInServer(EdgeMessage *msg);
     EdgeResult executeSubscriptionInServer(EdgeMessage *msg);
