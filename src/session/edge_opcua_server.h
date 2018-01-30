@@ -44,7 +44,9 @@ extern "C"
     void stop_server(EdgeEndPointInfo *epInfo);
 
     /* Create and delete node item */
-    EdgeNodeItem* createNodeItemImpl(char* name, EdgeNodeIdentifier type, void* data);
+    EdgeNodeItem* createNodeItemImpl(char* name, EdgeIdentifier nodeType, EdgeNodeId *sourceNodeId);
+    EdgeNodeItem* createVariableNodeItemImpl(char* name, EdgeNodeIdentifier type, void* data,
+            EdgeIdentifier nodeType);
     EdgeResult deleteNodeItemImpl(EdgeNodeItem* item);
 
 #ifdef __cplusplus

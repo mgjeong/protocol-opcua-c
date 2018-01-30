@@ -75,7 +75,8 @@ EdgeResult addMethodNodeInServer(EdgeNodeItem *item, EdgeMethod *method)
     return result;
 }
 
-EdgeNodeItem* createNodeItemImpl(char* name, EdgeNodeIdentifier type, void* data)
+EdgeNodeItem* createVariableNodeItemImpl(char* name, EdgeNodeIdentifier type, void* data,
+        EdgeIdentifier nodeType)
 {
     EdgeNodeItem* item = (EdgeNodeItem *) calloc(1, sizeof(EdgeNodeItem));
     //VERIFY_NON_NULL_RET(item);
@@ -84,10 +85,28 @@ EdgeNodeItem* createNodeItemImpl(char* name, EdgeNodeIdentifier type, void* data
     item->userAccessLevel = READ_WRITE;
     item->writeMask = 0;
     item->userWriteMask = 0;
+    item->nodeType = nodeType;
     item->forward = true;
     item->browseName = name;
     item->variableIdentifier = type;
     item->variableData = data;
+
+    return item;
+}
+
+EdgeNodeItem* createNodeItemImpl(char* name, EdgeIdentifier nodeType, EdgeNodeId *sourceNodeId)
+{
+    EdgeNodeItem* item = (EdgeNodeItem *) calloc(1, sizeof(EdgeNodeItem));
+    //VERIFY_NON_NULL_RET(item);
+    item->nodeType = DEFAULT_NODE_TYPE;
+    item->accessLevel = READ_WRITE;
+    item->userAccessLevel = READ_WRITE;
+    item->writeMask = 0;
+    item->userWriteMask = 0;
+    item->nodeType = nodeType;
+    item->forward = true;
+    item->browseName = name;
+    item->sourceNodeId = sourceNodeId;
 
     return item;
 }
@@ -140,9 +159,11 @@ EdgeResult start_server(EdgeEndPointInfo *epInfo)
     UA_String_deleteMembers(&m_serverConfig->buildInfo.buildNumber);
 
     UA_String_deleteMembers(&m_serverConfig->endpoints->endpointDescription.server.applicationUri);
-    UA_LocalizedText_deleteMembers(&m_serverConfig->endpoints->endpointDescription.server.applicationName);
+    UA_LocalizedText_deleteMembers(
+            &m_serverConfig->endpoints->endpointDescription.server.applicationName);
 
-    m_serverConfig->applicationDescription.applicationUri = UA_STRING_ALLOC(appConfig->applicationUri);
+    m_serverConfig->applicationDescription.applicationUri = UA_STRING_ALLOC(
+            appConfig->applicationUri);
     m_serverConfig->applicationDescription.applicationName = UA_LOCALIZEDTEXT_ALLOC("en-US",
             appConfig->applicationName);
     m_serverConfig->applicationDescription.productUri = UA_STRING_ALLOC(appConfig->productUri);
@@ -152,9 +173,10 @@ EdgeResult start_server(EdgeEndPointInfo *epInfo)
     m_serverConfig->buildInfo.softwareVersion = UA_STRING_ALLOC("0.9");
     m_serverConfig->buildInfo.buildNumber = UA_STRING_ALLOC("0.1");
 
-    m_serverConfig->endpoints->endpointDescription.server.applicationUri = UA_STRING_ALLOC(appConfig->applicationUri);
-    m_serverConfig->endpoints->endpointDescription.server.applicationName = UA_LOCALIZEDTEXT_ALLOC("en-US",
-            appConfig->applicationName);
+    m_serverConfig->endpoints->endpointDescription.server.applicationUri = UA_STRING_ALLOC(
+            appConfig->applicationUri);
+    m_serverConfig->endpoints->endpointDescription.server.applicationName = UA_LOCALIZEDTEXT_ALLOC(
+            "en-US", appConfig->applicationName);
 
     //    UA_ByteString_deleteMembers(&certificate);
     m_server = UA_Server_new(m_serverConfig);

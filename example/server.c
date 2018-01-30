@@ -236,19 +236,19 @@ static void testCreateNodes()
     printf("\n[%d] Variable node with string variant\n", ++index);
 
     EdgeNodeItem* item = NULL;
-    item = createNodeItem("String1", String, "test1");
+    item = createVariableNodeItem("String1", String, "test1", VARIABLE_NODE);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added]  %s\n", item->browseName);
     deleteNodeItem(item);
 
-    item = createNodeItem("String2", String, "test2");
+    item = createVariableNodeItem("String2", String, "test2", VARIABLE_NODE);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
     deleteNodeItem(item);
 
-    item = createNodeItem("String3", String, "test3");
+    item = createVariableNodeItem("String3", String, "test3", VARIABLE_NODE);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
@@ -261,7 +261,7 @@ static void testCreateNodes()
     {
         xml_value->length = 2;
         xml_value->data = (UA_Byte *) "ab";
-        item = createNodeItem("xml_value", XmlElement, (void *) xml_value);
+        item = createVariableNodeItem("xml_value", XmlElement, (void *) xml_value, VARIABLE_NODE);
         VERIFY_NON_NULL_NR(item);
         createNode(DEFAULT_NAMESPACE_VALUE, item);
         printf("\n|------------[Added] %s\n", item->browseName);
@@ -279,7 +279,7 @@ static void testCreateNodes()
     {
         lt_value->locale = UA_STRING_ALLOC("COUNTRY");
         lt_value->text = UA_STRING_ALLOC("INDIA");
-        item = createNodeItem("LocalizedText", LocalizedText, (void *) lt_value);
+        item = createVariableNodeItem("LocalizedText", LocalizedText, (void *) lt_value, VARIABLE_NODE);
         VERIFY_NON_NULL_NR(item);
         createNode(DEFAULT_NAMESPACE_VALUE, item);
         printf("\n|------------[Added] %s\n", item->browseName);
@@ -299,7 +299,7 @@ static void testCreateNodes()
     {
         bs_value->length = 7;
         bs_value->data = (UA_Byte *) "samsung";
-        item = createNodeItem("ByteString", ByteString, (void *) bs_value);
+        item = createVariableNodeItem("ByteString", ByteString, (void *) bs_value, VARIABLE_NODE);
         VERIFY_NON_NULL_NR(item);
         createNode(DEFAULT_NAMESPACE_VALUE, item);
         printf("\n|------------[Added] %s\n", item->browseName);
@@ -313,7 +313,7 @@ static void testCreateNodes()
 
     printf("\n[%d] Variable node with byte variant: \n", ++index);
     UA_Byte b_value = 2;
-    item = createNodeItem("Byte", Byte, (void *) &b_value);
+    item = createVariableNodeItem("Byte", Byte, (void *) &b_value, VARIABLE_NODE);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
@@ -321,7 +321,7 @@ static void testCreateNodes()
 
     printf("\n[%d] Variable node with float variant: \n", ++index);
     float f_value = 4.4;
-    item = createNodeItem("Float", Float, (void *) &f_value);
+    item = createVariableNodeItem("Float", Float, (void *) &f_value, VARIABLE_NODE);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
@@ -329,7 +329,7 @@ static void testCreateNodes()
 
     printf("\n[%d] Variable node with int variant: \n", ++index);
     int value = 30;
-    item = createNodeItem("UInt16", UInt16, (void *) &value);
+    item = createVariableNodeItem("UInt16", UInt16, (void *) &value, VARIABLE_NODE);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
@@ -337,7 +337,7 @@ static void testCreateNodes()
 
     printf("\n[%d] Variable node with UInt32 variant: \n", ++index);
     value = 444;
-    item = createNodeItem("UInt32", UInt32, (void *) &value);
+    item = createVariableNodeItem("UInt32", UInt32, (void *) &value, VARIABLE_NODE);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
@@ -345,7 +345,7 @@ static void testCreateNodes()
 
     printf("\n[%d] Variable node with UInt64 variant: \n", ++index);
     value = 3445516;
-    item = createNodeItem("UInt64", UInt64, (void *) &value);
+    item = createVariableNodeItem("UInt64", UInt64, (void *) &value, VARIABLE_NODE);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
@@ -353,7 +353,7 @@ static void testCreateNodes()
 
     printf("\n[%d] Variable node with Int16 variant: \n", ++index);
     value = 4;
-    item = createNodeItem("Int16", Int16, (void *) &value);
+    item = createVariableNodeItem("Int16", Int16, (void *) &value, VARIABLE_NODE);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
@@ -361,7 +361,7 @@ static void testCreateNodes()
 
     printf("\n[%d] Variable node with Int32 variant: \n", ++index);
     value = 40;
-    item = createNodeItem("Int32", Int32, (void *) &value);
+    item = createVariableNodeItem("Int32", Int32, (void *) &value, VARIABLE_NODE);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
@@ -371,7 +371,7 @@ static void testCreateNodes()
     VERIFY_NON_NULL_NR(item);
     printf("\n[%d] Variable node with Int64 variant: \n", ++index);
     value = 32700;
-    item = createNodeItem("Int64", Int64, (void *) &value);
+    item = createVariableNodeItem("Int64", Int64, (void *) &value, VARIABLE_NODE);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
@@ -379,7 +379,7 @@ static void testCreateNodes()
 
     printf("\n[%d] Variable node with UInt32 variant: \n", ++index);
     uint32_t int32_val = 4456;
-    item = createNodeItem("UInt32writeonly", UInt32, (void *) &int32_val);
+    item = createVariableNodeItem("UInt32writeonly", UInt32, (void *) &int32_val, VARIABLE_NODE);
     VERIFY_NON_NULL_NR(item);
     item->accessLevel = WRITE;
     item->userAccessLevel = WRITE;
@@ -389,7 +389,7 @@ static void testCreateNodes()
 
     printf("\n[%d] Variable node with UInt64 variant: \n", ++index);
     int64_t int64_val = 3270000;
-    item = createNodeItem("UInt64readonly", UInt64, (void *) &int64_val);
+    item = createVariableNodeItem("UInt64readonly", UInt64, (void *) &int64_val, VARIABLE_NODE);
     VERIFY_NON_NULL_NR(item);
     item->userAccessLevel = READ;
     item->accessLevel = READ;
@@ -399,7 +399,7 @@ static void testCreateNodes()
 
     printf("\n[%d] Variable node with double variant: \n", ++index);
     double d_val = 50.4;
-    item = createNodeItem("Double", Double, (void *) &d_val);
+    item = createVariableNodeItem("Double", Double, (void *) &d_val, VARIABLE_NODE);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
@@ -407,7 +407,7 @@ static void testCreateNodes()
 
     printf("\n[%d] Variable node with boolean variant: \n", ++index);
     bool flag = true;
-    item = createNodeItem("Boolean", Boolean, (void *) &flag);
+    item = createVariableNodeItem("Boolean", Boolean, (void *) &flag, VARIABLE_NODE);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
@@ -415,7 +415,7 @@ static void testCreateNodes()
 
     printf("\n[%d] Variable node with dateTime variant: \n", ++index);
     UA_DateTime time = UA_DateTime_now();
-    item = createNodeItem("DateTime", DateTime, (void *) &time);
+    item = createVariableNodeItem("DateTime", DateTime, (void *) &time, VARIABLE_NODE);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
@@ -423,7 +423,7 @@ static void testCreateNodes()
 
     printf("\n[%d] Variable node with SByte variant: \n", ++index);
     UA_SByte sbyte = 2;
-    item = createNodeItem("SByte", SByte, (void *) &sbyte);
+    item = createVariableNodeItem("SByte", SByte, (void *) &sbyte, VARIABLE_NODE);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
@@ -433,7 +433,7 @@ static void testCreateNodes()
     UA_Guid guid =
     { 1, 0, 1,
     { 0, 0, 0, 0, 1, 1, 1, 1 } };
-    item = createNodeItem("Guid", Guid, (void *) &guid);
+    item = createVariableNodeItem("Guid", Guid, (void *) &guid, VARIABLE_NODE);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
@@ -446,7 +446,7 @@ static void testCreateNodes()
         UA_String str = UA_STRING_ALLOC("qualifiedName");
         qn_value->namespaceIndex = 2;
         qn_value->name = str;
-        item = createNodeItem("QualifiedName", QualifiedName, (void *) qn_value);
+        item = createVariableNodeItem("QualifiedName", QualifiedName, (void *) qn_value, VARIABLE_NODE);
         VERIFY_NON_NULL_NR(item);
         createNode(DEFAULT_NAMESPACE_VALUE, item);
         printf("\n|------------[Added] %s\n", item->browseName);
@@ -461,7 +461,7 @@ static void testCreateNodes()
 
     printf("\n[%d] Variable node with NODEID variant: \n", ++index);
     UA_NodeId node = UA_NODEID_NUMERIC(DEFAULT_NAMESPACE_INDEX, RootFolder);
-    item = createNodeItem("NodeId", NodeId, (void *) &node);
+    item = createVariableNodeItem("NodeId", NodeId, (void *) &node, VARIABLE_NODE);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
@@ -486,7 +486,7 @@ static void testCreateNodes()
             *dataArray[2] = UA_BYTESTRING_ALLOC("klmno");
             *dataArray[3] = UA_BYTESTRING_ALLOC("pqrst");
             *dataArray[4] = UA_BYTESTRING_ALLOC("uvwxyz");
-            item = createNodeItem("ByteStringArray", ByteString, (void *) dataArray);
+            item = createVariableNodeItem("ByteStringArray", ByteString, (void *) dataArray, VARIABLE_NODE);
             VERIFY_NON_NULL_NR(item);
             item->nodeType = ARRAY_NODE;
             item->arrayLength = 5;
@@ -522,7 +522,7 @@ static void testCreateNodes()
         arr[2] = true;
         arr[3] = false;
         arr[4] = true;
-        item = createNodeItem("BoolArray", Boolean, (void *) arr);
+        item = createVariableNodeItem("BoolArray", Boolean, (void *) arr, VARIABLE_NODE);
         VERIFY_NON_NULL_NR(item);
         item->nodeType = ARRAY_NODE;
         item->arrayLength = 5;
@@ -545,7 +545,7 @@ static void testCreateNodes()
         sbData[2] = 120;
         sbData[3] = 122;
         sbData[4] = 127;
-        item = createNodeItem("SByteArray", SByte, (void *) sbData);
+        item = createVariableNodeItem("SByteArray", SByte, (void *) sbData, VARIABLE_NODE);
         VERIFY_NON_NULL_NR(item);
         item->nodeType = ARRAY_NODE;
         item->arrayLength = 5;
@@ -570,7 +570,7 @@ static void testCreateNodes()
         intData[4] = 55;
         intData[5] = 66;
         intData[6] = 77;
-        item = createNodeItem("int32Array", Int32, (void *) intData);
+        item = createVariableNodeItem("int32Array", Int32, (void *) intData, VARIABLE_NODE);
         VERIFY_NON_NULL_NR(item);
         item->nodeType = ARRAY_NODE;
         item->arrayLength = 7;
@@ -593,7 +593,7 @@ static void testCreateNodes()
         int64Data[2] = 33333;
         int64Data[3] = 44444;
         int64Data[4] = 55555;
-        item = createNodeItem("int64Array", Int64, (void *) int64Data);
+        item = createVariableNodeItem("int64Array", Int64, (void *) int64Data, VARIABLE_NODE);
         VERIFY_NON_NULL_NR(item);
         item->nodeType = ARRAY_NODE;
         item->arrayLength = 5;
@@ -616,7 +616,7 @@ static void testCreateNodes()
         data[2] = 30.2;
         data[3] = 40.2;
         data[4] = 50.2;
-        item = createNodeItem("DoubleArray", Double, (void *) data);
+        item = createVariableNodeItem("DoubleArray", Double, (void *) data, VARIABLE_NODE);
         VERIFY_NON_NULL_NR(item);
         item->nodeType = ARRAY_NODE;
         item->arrayLength = 5;
@@ -654,7 +654,7 @@ static void testCreateNodes()
             strncpy(data1[4], "elephant", strlen("elephant"));
             data1[0][strlen("elephant")] = '\0';
 
-            item = createNodeItem("CharArray", String, (void *) data1);
+            item = createVariableNodeItem("CharArray", String, (void *) data1, VARIABLE_NODE);
             VERIFY_NON_NULL_NR(item);
             item->nodeType = ARRAY_NODE;
             item->arrayLength = 5;
@@ -687,7 +687,7 @@ static void testCreateNodes()
         b_arrvalue[2] = 0x33;
         b_arrvalue[3] = 0x44;
         b_arrvalue[4] = 0x55;
-        item = createNodeItem("ByteArray", Byte, (void *) b_arrvalue);
+        item = createVariableNodeItem("ByteArray", Byte, (void *) b_arrvalue, VARIABLE_NODE);
         VERIFY_NON_NULL_NR(item);
         item->arrayLength = 5;
         item->nodeType = ARRAY_NODE;
@@ -704,262 +704,232 @@ static void testCreateNodes()
     /******************* Object Node *********************/
     printf(COLOR_GREEN"\n[Create Object Node]\n"COLOR_RESET);
     printf("\n[%d] Object node : \"Object1\"\n", ++index);
-    item = createNodeItem("Object1", 0, NULL);
-    VERIFY_NON_NULL_NR(item);
-    item->nodeType = OBJECT_NODE;
-    item->sourceNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
-    if (IS_NOT_NULL(item->sourceNodeId))
+    EdgeNodeId *edgeNodeId = (EdgeNodeId *) calloc(1, sizeof(EdgeNodeId));
+    if (IS_NOT_NULL(edgeNodeId))
     {
-        item->sourceNodeId->nodeId = NULL; // no source node
+        item = createNodeItem("Object1", OBJECT_NODE, edgeNodeId);
+        VERIFY_NON_NULL_NR(item);
         createNode(DEFAULT_NAMESPACE_VALUE, item);
         printf("\n|------------[Added] %s\n", item->browseName);
         FREE(item->sourceNodeId);
+        deleteNodeItem(item);
     }
     else
     {
         printf("Error :: malloc failed for Object1 in Test create Nodes\n");
     }
-    deleteNodeItem(item);
 
     printf("\n[%d] Object node : \"Object2\" with source Node \"Object1\"\n", ++index);
-    item = createNodeItem("Object2", 0, NULL);
-    VERIFY_NON_NULL_NR(item);
-    item->nodeType = OBJECT_NODE;
-    item->sourceNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
-    if (IS_NOT_NULL(item->sourceNodeId))
+    edgeNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
+    if (IS_NOT_NULL(edgeNodeId))
     {
-        item->sourceNodeId->nodeId = "Object1";
+        edgeNodeId->nodeId = "Object1";
+        item = createNodeItem("Object2", OBJECT_NODE, edgeNodeId);
+        VERIFY_NON_NULL_NR(item);
         createNode(DEFAULT_NAMESPACE_VALUE, item);
         printf("\n|------------[Added] %s\n", item->browseName);
-        FREE(item->sourceNodeId);
+        FREE(edgeNodeId);
+        deleteNodeItem(item);
     }
     else
     {
         printf("Error :: malloc failed for Object2 in Test create Nodes\n");
     }
-    deleteNodeItem(item);
 
-    item = (EdgeNodeItem *) calloc(1, sizeof(EdgeNodeItem));
-    VERIFY_NON_NULL_NR(item);
     /******************* View Node *********************/
     printf(COLOR_GREEN"\n[Create View Node]\n"COLOR_RESET);
     printf("\n[%d] View Node with ViewNode1\n", ++index);
-    item->nodeType = VIEW_NODE;
-    item->browseName = "ViewNode1";
-    item->sourceNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
-    if (IS_NOT_NULL(item->sourceNodeId))
+    edgeNodeId = (EdgeNodeId *) calloc(1, sizeof(EdgeNodeId));
+    if (IS_NOT_NULL(edgeNodeId))
     {
-        item->sourceNodeId->nodeId = NULL; // no source node
+        item = createNodeItem("ViewNode1", VIEW_NODE, edgeNodeId);
+        VERIFY_NON_NULL_NR(item);
         createNode(DEFAULT_NAMESPACE_VALUE, item);
         printf("\n|------------[Added] %s\n", item->browseName);
-        FREE(item->sourceNodeId);
+        FREE(edgeNodeId);
+        deleteNodeItem(item);
     }
     else
     {
         printf("Error :: malloc failed for ViewNode1 in Test create Nodes\n");
     }
-    deleteNodeItem(item);
 
-    item = (EdgeNodeItem *) calloc(1, sizeof(EdgeNodeItem));
-    VERIFY_NON_NULL_NR(item);
     printf("\n[%d] View Node with ViewNode2\n", ++index);
-    item->nodeType = VIEW_NODE;
-    item->browseName = "ViewNode2";
-    item->sourceNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
-    if (IS_NOT_NULL(item->sourceNodeId))
+    edgeNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
+    if (IS_NOT_NULL(edgeNodeId))
     {
-        item->sourceNodeId->nodeId = "ViewNode1";
+        edgeNodeId->nodeId = "ViewNode1";
+        item = createNodeItem("ViewNode2", VIEW_NODE, edgeNodeId);
+        VERIFY_NON_NULL_NR(item);
         createNode(DEFAULT_NAMESPACE_VALUE, item);
         printf("\n|------------[Added] %s\n", item->browseName);
-        FREE(item->sourceNodeId);
+        FREE(edgeNodeId);
+        deleteNodeItem(item);
     }
     else
     {
         printf("Error :: malloc failed for ViewNode2 in Test create Nodes\n");
     }
-    deleteNodeItem(item);
 
-    item = (EdgeNodeItem *) calloc(1, sizeof(EdgeNodeItem));
-    VERIFY_NON_NULL_NR(item);
     /******************* Object Type Node *********************/
     printf(COLOR_GREEN"\n[Create Object Type Node]\n"COLOR_RESET);
     printf("\n[%d] Object Type node : \"ObjectType1\"\n", ++index);
-    item->nodeType = OBJECT_TYPE_NODE;
-    item->browseName = "ObjectType1";
-    item->sourceNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
-    if (IS_NOT_NULL(item->sourceNodeId))
+    edgeNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
+    if (IS_NOT_NULL(edgeNodeId))
     {
-        item->sourceNodeId->nodeId = NULL; // no source node
+        edgeNodeId->nodeId = NULL; // no source node
+        item = createNodeItem("ObjectType1", OBJECT_TYPE_NODE, edgeNodeId);
+        VERIFY_NON_NULL_NR(item);
         createNode(DEFAULT_NAMESPACE_VALUE, item);
         printf("\n|------------[Added] %s\n", item->browseName);
-        FREE(item->sourceNodeId);
+        FREE(edgeNodeId);
+        deleteNodeItem(item);
     }
     else
     {
         printf("Error :: malloc failed for ObjectType1 in Test create Nodes\n");
     }
-    deleteNodeItem(item);
 
-    item = (EdgeNodeItem *) calloc(1, sizeof(EdgeNodeItem));
-    VERIFY_NON_NULL_NR(item);
     printf("\n[%d] Object Type node : \"ObjectType2\" with source Node \"ObjectType1\"\n", ++index);
-    item->nodeType = OBJECT_TYPE_NODE;
-    item->browseName = "ObjectType2";
-    item->sourceNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
-    if (IS_NOT_NULL(item->sourceNodeId))
+    edgeNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
+    if (IS_NOT_NULL(edgeNodeId))
     {
-        item->sourceNodeId->nodeId = "ObjectType1";
+        edgeNodeId->nodeId = "ObjectType1";
+        item = createNodeItem("ObjectType2", OBJECT_TYPE_NODE, edgeNodeId);
+        VERIFY_NON_NULL_NR(item);
         createNode(DEFAULT_NAMESPACE_VALUE, item);
         printf("\n|------------[Added] %s\n", item->browseName);
-        FREE(item->sourceNodeId);
+        FREE(edgeNodeId);
+        deleteNodeItem(item);
     }
     else
     {
         printf("Error :: malloc failed for ObjectType2 in Test create Nodes\n");
     }
-    deleteNodeItem(item);
 
-    item = (EdgeNodeItem *) calloc(1, sizeof(EdgeNodeItem));
-    VERIFY_NON_NULL_NR(item);
     printf("\n[%d] Object Type node : \"ObjectType3\" with source Node \"ObjectType2\"\n", ++index);
-    item->nodeType = OBJECT_TYPE_NODE;
-    item->browseName = "ObjectType3";
-    item->sourceNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
-    if (IS_NOT_NULL(item->sourceNodeId))
+    edgeNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
+    if (IS_NOT_NULL(edgeNodeId))
     {
-        item->sourceNodeId->nodeId = "ObjectType1";
+        edgeNodeId->nodeId = "ObjectType1";
+        item = createNodeItem("ObjectType3", OBJECT_TYPE_NODE, edgeNodeId);
+        VERIFY_NON_NULL_NR(item);
         createNode(DEFAULT_NAMESPACE_VALUE, item);
         printf("\n|------------[Added] %s\n", item->browseName);
-        FREE(item->sourceNodeId);
+        FREE(edgeNodeId);
+        deleteNodeItem(item);
     }
     else
     {
         printf("Error :: malloc failed for ObjectType3 in Test create Nodes\n");
     }
-    deleteNodeItem(item);
 
-    item = (EdgeNodeItem *) calloc(1, sizeof(EdgeNodeItem));
-    VERIFY_NON_NULL_NR(item);
     printf("\n[%d] Object Type node : \"ObjectType4\" with source Node \"ObjectType3\"\n", ++index);
-    item->nodeType = OBJECT_TYPE_NODE;
-    item->browseName = "ObjectType4";
-    item->sourceNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
-    if (IS_NOT_NULL(item->sourceNodeId))
+    edgeNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
+    if (IS_NOT_NULL(edgeNodeId))
     {
-        item->sourceNodeId->nodeId = "ObjectType1";
+        edgeNodeId->nodeId = "ObjectType1";
+        item = createNodeItem("ObjectType4", OBJECT_TYPE_NODE, edgeNodeId);
+        VERIFY_NON_NULL_NR(item);
         createNode(DEFAULT_NAMESPACE_VALUE, item);
         printf("\n|------------[Added] %s\n", item->browseName);
-        FREE(item->sourceNodeId);
+        FREE(edgeNodeId);
+        deleteNodeItem(item);
     }
     else
     {
         printf("Error :: malloc failed for ObjectType4 in Test create Nodes\n");
     }
-    deleteNodeItem(item);
 
-    item = (EdgeNodeItem *) calloc(1, sizeof(EdgeNodeItem));
-    VERIFY_NON_NULL_NR(item);
     printf("\n[%d] Object Type node : \"ObjectType5\" with source Node \"ObjectType3\"\n", ++index);
-    item->nodeType = OBJECT_TYPE_NODE;
-    item->browseName = "ObjectType5";
-    item->sourceNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
-    if (IS_NOT_NULL(item->sourceNodeId))
+    edgeNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
+    if (IS_NOT_NULL(edgeNodeId))
     {
-        item->sourceNodeId->nodeId = "ObjectType1";
+        edgeNodeId->nodeId = "ObjectType1";
+        item = createNodeItem("ObjectType5", OBJECT_TYPE_NODE, edgeNodeId);
+        VERIFY_NON_NULL_NR(item);
         createNode(DEFAULT_NAMESPACE_VALUE, item);
         printf("\n|------------[Added] %s\n", item->browseName);
-        FREE(item->sourceNodeId);
+        FREE(edgeNodeId);
+        deleteNodeItem(item);
     }
     else
     {
         printf("Error :: malloc failed for ObjectType5 in Test create Nodes\n");
     }
-    deleteNodeItem(item);
 
-    item = (EdgeNodeItem *) calloc(1, sizeof(EdgeNodeItem));
-    VERIFY_NON_NULL_NR(item);
     /******************* Variable Type Node *********************/
     printf(COLOR_GREEN"\n[Create Variable Type Node]\n"COLOR_RESET);
     printf("\n[%d] Variable Type Node with Double Variable Type \n", ++index);
-    double d[2] =
-    { 10.2, 20.2 };
-    item->browseName = "DoubleVariableType";
-    item->nodeType = VARIABLE_TYPE_NODE;
-    item->variableIdentifier = Double;
+    double d[2] = { 10.2, 20.2 };
+    item = createVariableNodeItem("DoubleVariableType", Double, (void *)d, VARIABLE_TYPE_NODE);
+    VERIFY_NON_NULL_NR(item);
     item->arrayLength = 2;
-    item->variableData = (void *) (d);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
+    deleteNodeItem(item);
 
     /******************* Data Type Node *********************/
     printf("\n[%d] Data Type Node with DataType1\n", ++index);
-    item->nodeType = DATA_TYPE_NODE;
-    item->browseName = "DataType1";
-    item->sourceNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
-    if (IS_NOT_NULL(item->sourceNodeId))
+    edgeNodeId = (EdgeNodeId *) calloc(1, sizeof(EdgeNodeId));
+    if (IS_NOT_NULL(edgeNodeId))
     {
-        item->sourceNodeId->nodeId = NULL; // no source node
+        item = createNodeItem("DataType1", DATA_TYPE_NODE, edgeNodeId);
+        VERIFY_NON_NULL_NR(item);
         createNode(DEFAULT_NAMESPACE_VALUE, item);
         printf("\n|------------[Added] %s\n", item->browseName);
-        FREE(item->sourceNodeId);
+        FREE(edgeNodeId);
+        deleteNodeItem(item);
     }
     else
     {
         printf("Error :: malloc failed for DataType1 in Test create Nodes\n");
     }
-    deleteNodeItem(item);
 
-    item = (EdgeNodeItem *) calloc(1, sizeof(EdgeNodeItem));
-    VERIFY_NON_NULL_NR(item);
     printf("\n[%d] Data Type Node with DataType2\n", ++index);
-    item->nodeType = DATA_TYPE_NODE;
-    item->browseName = "DataType2";
-    item->sourceNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
-    if (IS_NOT_NULL(item->sourceNodeId))
+    edgeNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
+    if (IS_NOT_NULL(edgeNodeId))
     {
-        item->sourceNodeId->nodeId = "DataType1";
+        edgeNodeId->nodeId = "DataType1";
+        item = createNodeItem("DataType2", DATA_TYPE_NODE, edgeNodeId);
+        VERIFY_NON_NULL_NR(item);
         createNode(DEFAULT_NAMESPACE_VALUE, item);
-        FREE(item->sourceNodeId);
+        FREE(edgeNodeId);
+        deleteNodeItem(item);
     }
     else
     {
         printf("Error :: malloc failed for DataType2 in Test create Nodes\n");
     }
-    deleteNodeItem(item);
 
-    item = (EdgeNodeItem *) calloc(1, sizeof(EdgeNodeItem));
-    VERIFY_NON_NULL_NR(item);
     /******************* Reference Type Node *********************/
     printf(COLOR_GREEN"\n[Create Reference Type Node]\n"COLOR_RESET);
     printf("\n[%d] Reference Type Node with ReferenceTypeNode1", ++index);
-    item->nodeType = REFERENCE_TYPE_NODE;
-    item->browseName = "ReferenceTypeNode1";
-    item->sourceNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
-    if (IS_NOT_NULL(item->sourceNodeId))
+    edgeNodeId = (EdgeNodeId *) calloc(1, sizeof(EdgeNodeId));
+    if (IS_NOT_NULL(edgeNodeId))
     {
-        item->sourceNodeId->nodeId = NULL; // no source node
+        item = createNodeItem("ReferenceTypeNode1", REFERENCE_TYPE_NODE, edgeNodeId);
+        VERIFY_NON_NULL_NR(item);
         createNode(DEFAULT_NAMESPACE_VALUE, item);
         printf("\n|------------[Added] %s\n", item->browseName);
-        FREE(item->sourceNodeId);
+        FREE(edgeNodeId);
+        deleteNodeItem(item);
     }
     else
     {
         printf("Error :: malloc failed for ReferenceTypeNode1 in Test create Nodes\n");
     }
-    deleteNodeItem(item);
 
-    item = (EdgeNodeItem *) calloc(1, sizeof(EdgeNodeItem));
-    VERIFY_NON_NULL_NR(item);
     printf("\n[%d] Reference Type Node with source node\"ReferenceTypeNode1\"\n", ++index);
-    item->nodeType = REFERENCE_TYPE_NODE;
-    item->browseName = "ReferenceTypeNode2";
-    item->sourceNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
-    if (IS_NOT_NULL(item->sourceNodeId))
+    edgeNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
+    if (IS_NOT_NULL(edgeNodeId))
     {
-        item->sourceNodeId->nodeId = "ReferenceTypeNode1";
+        edgeNodeId->nodeId = "ReferenceTypeNode1";
+        item = createNodeItem("ReferenceTypeNode2", REFERENCE_TYPE_NODE, edgeNodeId);
+        VERIFY_NON_NULL_NR(item);
         createNode(DEFAULT_NAMESPACE_VALUE, item);
         printf("\n|------------[Added] %s\n", item->browseName);
-        FREE(item->sourceNodeId);
+        FREE(edgeNodeId);
     }
     else
     {
