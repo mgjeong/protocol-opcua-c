@@ -877,7 +877,7 @@ unsigned char *getCurrentBrowsePath()
         {
             curSize += blockSize;
             unsigned char *newLoc = (unsigned char *)realloc(browsePath, curSize);
-            if(IS_NULL(browsePath))
+            if(IS_NULL(newLoc))
             {
                 EDGE_LOG(TAG, "Memory allocation failed.");
                 FREE(browsePath);
@@ -909,6 +909,7 @@ unsigned char *getCompleteBrowsePath(char *browseName)
     unsigned char *browsePath = getCurrentBrowsePath();
     int pathLen = strlen((char *)browsePath);
     unsigned char *completePath = (unsigned char *)calloc(pathLen+browseNameLen + 2, sizeof(unsigned char));
+    VERIFY_NON_NULL(completePath, NULL);
     memcpy(completePath, browsePath, pathLen);
     if(browseNameLen > 0)
     {
@@ -933,6 +934,7 @@ unsigned char *convertNodeIdToString(UA_NodeId *nodeId)
     {
         int maxDigits = 10;
         browseName = (unsigned char *)calloc(maxDigits+1, sizeof(unsigned char));
+        VERIFY_NON_NULL(browseName, NULL);
         snprintf((char *)browseName, maxDigits, "%" PRIu32, nodeId->identifier.numeric);
     }
     else if(UA_NODEIDTYPE_STRING == nodeId->identifierType)
