@@ -30,6 +30,7 @@
 #include "open62541.h"
 #include "opcua_common.h"
 #include "edge_logger.h"
+#include "edge_malloc.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -43,8 +44,6 @@ extern "C"
 
 #define IS_NULL(arg) (arg == NULL) ? true : false
 #define IS_NOT_NULL(arg) (arg != NULL) ? true : false
-
-#define FREE(arg) if(arg) {free(arg); arg=NULL; }
 
     typedef struct List
     {
