@@ -36,9 +36,8 @@ void registerCallbacks(EdgeConfigure *config)
     registerDiscoveryCallback(config->discoveryCallback);
 }
 
-
-EdgeResult createNamespace(char *name, char *rootNodeId,
-                           char *rootBrowseName, char *rootDisplayName)
+EdgeResult createNamespace(char *name, char *rootNodeId, char *rootBrowseName,
+        char *rootDisplayName)
 {
     createNamespaceInServer(name, rootNodeId, rootBrowseName, rootDisplayName);
     EdgeResult result;
@@ -114,7 +113,7 @@ void createServer(EdgeEndPointInfo *epInfo)
     if (b_serverInitialized)
     {
         EDGE_LOG(TAG, "Server already initialized.");
-        return ;
+        return;
     }
 
     EdgeResult result = start_server(epInfo);
@@ -144,7 +143,7 @@ void connectClient(EdgeEndPointInfo *epInfo)
     EDGE_LOG(TAG, "[Received command] :: Client connect.");
     bool result = connect_client(epInfo->endpointUri);
     if (!result)
-        return ;
+        return;
 }
 
 void disconnectClient(EdgeEndPointInfo *epInfo)
@@ -153,11 +152,19 @@ void disconnectClient(EdgeEndPointInfo *epInfo)
     disconnect_client(epInfo);
 }
 
-EdgeNodeItem* createNodeItem(char* name, EdgeNodeIdentifier type, void* data) {
-    return createNodeItemImpl(name, type, data);
+EdgeNodeItem* createVariableNodeItem(char* name, EdgeNodeIdentifier type, void* data,
+        EdgeIdentifier nodeType)
+{
+    return createVariableNodeItemImpl(name, type, data, nodeType);
 }
 
-EdgeResult deleteNodeItem(EdgeNodeItem* item) {
+EdgeNodeItem* createNodeItem(char* name, EdgeIdentifier nodeType, EdgeNodeId *sourceNodeId)
+{
+    return createNodeItemImpl(name, nodeType, sourceNodeId);
+}
+
+EdgeResult deleteNodeItem(EdgeNodeItem* item)
+{
     return deleteNodeItemImpl(item);
 }
 
@@ -239,7 +246,7 @@ void onDiscoveryCallback(EdgeDevice *device)
     if (NULL == discoveryCb)
     {
         // discovery callback not registered by application.
-        return ;
+        return;
     }
     discoveryCb->endpoint_found_cb(device);
 }
@@ -249,7 +256,7 @@ void onStatusCallback(EdgeEndPointInfo *epInfo, EdgeStatusCode status)
     if (NULL == statusCb)
     {
         // status callback not registered by application.
-        return ;
+        return;
     }
     if (STATUS_SERVER_STARTED == status || STATUS_CLIENT_STARTED == status)
     {
