@@ -65,9 +65,6 @@ typedef struct EdgeNodeItem
     /** variableItemSet.*/
     //Object[][] variableItemSet;
 
-    /** variableItemName.*/
-    char *variableItemName;
-
     /** EdgeNodeIdentifier.*/
     EdgeNodeIdentifier variableIdentifier;
 

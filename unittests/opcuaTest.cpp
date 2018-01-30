@@ -1497,7 +1497,6 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     item->userWriteMask = 0;
     item->forward = true;
     item->browseName = "String1";
-    item->variableItemName = "Location";
     item->variableIdentifier = String;
     item->variableData = (void *) "test1";
     result = createNode(DEFAULT_NAMESPACE_VALUE, item);
@@ -1505,7 +1504,6 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
 
     int value = 30;
     item->browseName = "UInt16";
-    item->variableItemName = "Location";
     item->variableIdentifier = UInt16;
     item->variableData = (void *) &value;
     result = createNode(DEFAULT_NAMESPACE_VALUE, item);
@@ -1526,7 +1524,6 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     data[1] = 20.2;
     item->browseName = "IntArray";
     item->nodeType = ARRAY_NODE;
-    item->variableItemName = "IntArray";
     item->variableIdentifier = Double;
     item->arrayLength = 2;
     item->variableData = (void *) data;
@@ -1547,7 +1544,6 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     *dataArray[4] = UA_BYTESTRING_ALLOC("uvwxyz");
     item->browseName = "ByteStringArray";
     item->nodeType = ARRAY_NODE;
-    item->variableItemName = "ByteStringArray";
     item->variableIdentifier = ByteString;
     item->arrayLength = 5;
     item->variableData = (void *) dataArray;
@@ -1568,7 +1564,6 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     strcpy(data1[4], "elephant");
     item->browseName = "CharArray";
     item->nodeType = ARRAY_NODE;
-    item->variableItemName = "CharArray";
     item->variableIdentifier = String;
     item->arrayLength = 5;
     item->variableData = (void *) (data1);
@@ -1623,7 +1618,6 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     { 10.2, 20.2 };
     item->browseName = "DoubleVariableType";
     item->nodeType = VARIABLE_TYPE_NODE;
-    item->variableItemName = "DoubleVariableType";
     item->variableIdentifier = Double;
     item->arrayLength = 2;
     item->variableData = (void *) (d);

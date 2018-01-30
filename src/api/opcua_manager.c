@@ -153,6 +153,13 @@ void disconnectClient(EdgeEndPointInfo *epInfo)
     disconnect_client(epInfo);
 }
 
+EdgeNodeItem* createNodeItem(char* name, EdgeNodeIdentifier type, void* data) {
+    return createNodeItemImpl(name, type, data);
+}
+
+EdgeResult deleteNodeItem(EdgeNodeItem* item) {
+    return deleteNodeItemImpl(item);
+}
 
 //EdgeResult* send(EdgeMessage* msg) {
 //  if (msg == NULL)
