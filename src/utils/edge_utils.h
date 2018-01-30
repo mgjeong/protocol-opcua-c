@@ -114,6 +114,8 @@ extern "C"
 
     char *cloneString(const char *str);
 
+    void *clone(const void *src, int lenInbytes);
+
     char *convertUAStringToString(UA_String *uaStr);
 
     void freeEdgeEndpointConfig(EdgeEndpointConfig *config);

@@ -225,7 +225,7 @@ BrowseNextData *cloneBrowseNextData(BrowseNextData *data)
 static void response_msg_cb (EdgeMessage *data)
 {
     if (data->type == GENERAL_RESPONSE)
-    {        
+    {
         int len = data->responseLength;
         if (0 == len)
             printf("Response Received ::  \n");
@@ -530,7 +530,8 @@ static void browse_msg_cb (EdgeMessage *data)
 {
     if (data->browseResult)
     {
-        EdgeBrowseResult *browseResult = data->browseResult;
+        printf("%s\n", (unsigned char *)data->responses[0]->message->value);
+        /*EdgeBrowseResult *browseResult = data->browseResult;
         //EdgeNodeId *nodeId = data->responses[0]->nodeInfo->nodeId;
         //printf("Source Node ID: ");
         //(nodeId->type == INTEGER) ? printf("%d\n", nodeId->integerNodeId) : printf("%s\n", nodeId->nodeId);
@@ -541,10 +542,10 @@ static void browse_msg_cb (EdgeMessage *data)
             for (int idx = 0; idx < data->browseResultLength; idx++)
             {
                 if (idx != 0) printf(", ");
-                printf("%s\n", browseResult[idx].browseName);
+                printf("Browse Name: %s\n", browseResult[idx].browseName);
             }
             //printf("\n\n");
-        }
+        }*/
     }
     else
     {
@@ -554,7 +555,7 @@ static void browse_msg_cb (EdgeMessage *data)
             for (int i = 0; i < data->cpList->count; ++i)
             {
                 EdgeNodeId *nodeId = data->responses[i]->nodeInfo->nodeId;
-                printf("Node ID of Continuation point[%d] { ", i + 1);
+                printf("Node ID of Continuation point[%d]: ", i + 1);
                 (nodeId->type == INTEGER) ? printf("%d\n", nodeId->integerNodeId) : printf("%s\n", nodeId->nodeId);
 
                 int length = data->cpList->cp[i]->length;
@@ -641,7 +642,7 @@ static EndPointList *create_endpoint_list(char *endpoint) {
     EndPointList *ep = (EndPointList*) malloc(sizeof(EndPointList));
     VERIFY_NON_NULL(ep, NULL);
     ep->endpoint = (char*) malloc(sizeof(char) * (strlen(endpoint) + 1));
-    VERIFY_NON_NULL(ep->endpoint, NULL);    
+    VERIFY_NON_NULL(ep->endpoint, NULL);
     strncpy(ep->endpoint, endpoint, strlen(endpoint));
     ep->endpoint[strlen(endpoint)] = '\0';
     ep->next = NULL;
@@ -972,6 +973,7 @@ static void testBrowseNext()
         if(IS_NULL(requests[i]))
         {
             printf("Error : Malloc failed for requests[%d] in test browse Next\n", i);
+            FREE(nodeInfo);
             goto EXIT_BROWSENEXT;
         }
         requests[i]->nodeInfo = nodeInfo;
@@ -1018,11 +1020,8 @@ static void testBrowseNext()
     {
         if(IS_NOT_NULL(msg->cpList))
         {
-            for (int i = 0; i < requestLength; i++)
-            {
-                FREE(msg->cpList->cp);
-                FREE(msg->cpList);
-            }
+            FREE(msg->cpList->cp);
+            FREE(msg->cpList);
         }
     }
     FREE(ep);
@@ -1128,7 +1127,7 @@ static void testBrowse(char* endpointUri)
     {
         FREE(nodeInfo->nodeId);
         FREE(nodeInfo);
-    }    
+    }
     FREE(msg);
     FREE(ep);
 }
@@ -1451,7 +1450,7 @@ static void testRead()
         }
         FREE(requests);
     }
-    
+
     FREE(epInfo);
     FREE(msg);
 }
@@ -1495,7 +1494,7 @@ static void testReadGroup()
         printf("Error : Malloc failed for requests in test read group\n");
         goto EXIT_READGROUP;
     }
-    
+
     for (int i = 0; i < num_requests; i++)
     {
         printf("\nEnter the node #%d  name to read :: ", (i + 1));
@@ -1559,7 +1558,7 @@ static void testReadGroup()
         }
         FREE(requests);
     }
-    
+
     FREE(epInfo);
     FREE(msg);
 }
@@ -1785,9 +1784,9 @@ static void testWrite()
             FREE (requests[i]);
         }
     }
-       
+
     FREE (nodeInfo);
-    FREE(epInfo);    
+    FREE(epInfo);
     FREE(requests);
     FREE(msg);
 }
@@ -1903,7 +1902,7 @@ static void testWriteGroup()
             FREE (nodeInfo[i]);
         }
     }
-    
+
     FREE (nodeInfo);
     FREE(requests);
     FREE(epInfo);
@@ -1982,8 +1981,8 @@ static void testMethod()
     msg->request = request;
 
     callMethod(msg);
-    
-    EXIT_METHOD: 
+
+    EXIT_METHOD:
     if(IS_NOT_NULL(methodParams))
     {
         if(IS_NOT_NULL(methodParams->inpArg))
@@ -1996,7 +1995,7 @@ static void testMethod()
         FREE (methodParams->inpArg);
         FREE (methodParams);
     }
-    
+
     FREE(nodeInfo);
     FREE(request);
     FREE(ep);
@@ -2080,7 +2079,7 @@ static void testMethod()
 
     callMethod(msg);
 
-    EXIT_METHOD1: 
+    EXIT_METHOD1:
     if(IS_NOT_NULL(methodParams))
     {
         if(IS_NOT_NULL(methodParams->inpArg))
@@ -2435,7 +2434,7 @@ static void testSub()
         {
             if(IS_NOT_NULL(requests[i]->nodeInfo))
             {
-                FREE(requests[i]->nodeInfo->valueAlias);                
+                FREE(requests[i]->nodeInfo->valueAlias);
             }
             FREE(requests[i]->nodeInfo);
             FREE(requests[i]);
