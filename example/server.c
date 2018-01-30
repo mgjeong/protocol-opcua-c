@@ -16,11 +16,15 @@
 #define COLOR_PURPLE      "\x1b[35m"
 #define COLOR_RESET         "\x1b[0m"
 
-#define FREE(arg) if(arg) {free(arg); arg=NULL; }
-
 #define MAX_TEST_NUMBER 10000
 #define SAMPLE_STRING_1 "test_1"
 #define SAMPLE_STRING_2 "test_2"
+
+#define FREE(arg) if(arg) {free(arg); arg=NULL; }
+#define IS_NULL(arg) (arg == NULL) ? true : false
+#define IS_NOT_NULL(arg) (arg != NULL) ? true : false
+#define VERIFY_NON_NULL(arg, retval) { if (!(arg)) { printf(#arg " is NULL"); return retval; } }
+#define VERIFY_NON_NULL_NR(arg) { if (!(arg)) { printf(#arg " is NULL"); return; } }
 
 static bool startFlag = false;
 static bool stopFlag = false;
@@ -104,18 +108,46 @@ static void device_found_cb (EdgeDevice *device)
 static void init()
 {
     config = (EdgeConfigure *) malloc(sizeof(EdgeConfigure));
+    VERIFY_NON_NULL_NR(config);
     config->recvCallback = (ReceivedMessageCallback *) malloc(sizeof(ReceivedMessageCallback));
+    if(IS_NULL(config->recvCallback))
+    {
+        printf("Error :: calloc failed for config->recvCallback in init server\n");
+        FREE(config);
+        return;
+    }
     config->recvCallback->resp_msg_cb = response_msg_cb;
     config->recvCallback->monitored_msg_cb = monitored_msg_cb;
     config->recvCallback->error_msg_cb = error_msg_cb;
     config->recvCallback->browse_msg_cb = browse_msg_cb;
 
     config->statusCallback = (StatusCallback *) malloc(sizeof(StatusCallback));
+    if(IS_NULL(config->statusCallback))
+    {
+        printf("Error :: calloc failed for config->statusCallback in init server\n");
+        if(IS_NOT_NULL(config))
+        {
+            FREE(config->recvCallback);
+            FREE(config);
+        }
+        return;
+    }
     config->statusCallback->start_cb = status_start_cb;
     config->statusCallback->stop_cb = status_stop_cb;
     config->statusCallback->network_cb = status_network_cb;
 
     config->discoveryCallback = (DiscoveryCallback *) malloc(sizeof(DiscoveryCallback));
+    if(IS_NULL(config->recvCallback))
+    {
+        printf("Error :: calloc failed for config->recvCallback in init server\n");
+        if(IS_NOT_NULL(config))
+        {
+            FREE(config->recvCallback);
+            FREE(config->statusCallback);
+            FREE(config);
+        }
+        return;
+    }
     config->discoveryCallback->endpoint_found_cb = endpoint_found_cb;
     config->discoveryCallback->device_found_cb = device_found_cb;
 
@@ -125,6 +157,7 @@ static void init()
 static void startServer()
 {
     EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) calloc(1, sizeof(EdgeEndpointConfig));
+    VERIFY_NON_NULL_NR(endpointConfig);
     endpointConfig->bindAddress = ipAddress;
     endpointConfig->bindPort = 12686;
     endpointConfig->serverName = DEFAULT_SERVER_NAME_VALUE;
@@ -135,6 +168,12 @@ static void startServer()
     printf("\nBind Port : %d\n", endpointConfig->bindPort);
 
     EdgeApplicationConfig *appConfig = (EdgeApplicationConfig *) calloc(1, sizeof(EdgeApplicationConfig));
+    if(IS_NULL(appConfig))
+    {
+          printf("Error :: calloc failed for appConfig in start server\n");
+          FREE(endpointConfig);
+          return;
+    }
     appConfig->applicationName = DEFAULT_SERVER_APP_NAME_VALUE;
     appConfig->applicationUri = DEFAULT_SERVER_APP_URI_VALUE;
     appConfig->productUri = DEFAULT_PRODUCT_URI_VALUE;
@@ -193,6 +232,7 @@ static void testCreateNodes()
     printf(COLOR_GREEN"\n[Create Variable Node]\n"COLOR_RESET);
     printf("\n[%d] Variable node with string variant\n", ++index);
     EdgeNodeItem *item = (EdgeNodeItem *) malloc(sizeof(EdgeNodeItem));
+    VERIFY_NON_NULL_NR(item);
     item->nodeType = VARIABLE_NODE;
     item->accessLevel = READ_WRITE;
     item->userAccessLevel = READ_WRITE;
@@ -234,41 +274,64 @@ static void testCreateNodes()
 
     printf("\n[%d] Variable node with XML ELEMENT variant: \n", ++index);
     UA_XmlElement *xml_value = (UA_XmlElement *) malloc(sizeof(UA_XmlElement));
-    xml_value->length = 2;
-    xml_value->data = (UA_Byte *) "ab";
-    item->browseName = "xml_value";
-    item->variableItemName = "Location";
-    item->variableIdentifier = XmlElement;
-    item->variableData = (void *) xml_value;
-    createNode(DEFAULT_NAMESPACE_VALUE, item);
-    printf("\n|------------[Added] %s\n", item->browseName);
-    FREE(xml_value);
+    if(IS_NOT_NULL(xml_value))
+    {
+        xml_value->length = 2;
+        xml_value->data = (UA_Byte *) "ab";
+        item->browseName = "xml_value";
+        item->variableItemName = "Location";
+        item->variableIdentifier = XmlElement;
+        item->variableData = (void *) xml_value;
+        createNode(DEFAULT_NAMESPACE_VALUE, item);
+        printf("\n|------------[Added] %s\n", item->browseName);
+        FREE(xml_value);
+    }
+    else
+    {
+        printf("Error :: malloc failed for UA_XmlElement in Test create Nodes\n");
+    }
+    
 
     printf("\n[%d] Variable node with localized text variant: \n", ++index);
     UA_LocalizedText *lt_value = (UA_LocalizedText *) malloc(sizeof(UA_LocalizedText));
-    lt_value->locale = UA_STRING_ALLOC("COUNTRY");
-    lt_value->text = UA_STRING_ALLOC("INDIA");
-    item->browseName = "LocalizedText";
-    item->variableItemName = "Location";
-    item->variableIdentifier = LocalizedText;
-    item->variableData = (void *) lt_value;
-    createNode(DEFAULT_NAMESPACE_VALUE, item);
-    printf("\n|------------[Added] %s\n", item->browseName);
-    FREE(lt_value->locale.data);
-    FREE(lt_value->text.data);
-    FREE(lt_value);
+    if(IS_NOT_NULL(lt_value))
+    {
+        lt_value->locale = UA_STRING_ALLOC("COUNTRY");
+        lt_value->text = UA_STRING_ALLOC("INDIA");
+        item->browseName = "LocalizedText";
+        item->variableItemName = "Location";
+        item->variableIdentifier = LocalizedText;
+        item->variableData = (void *) lt_value;
+        createNode(DEFAULT_NAMESPACE_VALUE, item);
+        printf("\n|------------[Added] %s\n", item->browseName);
+        FREE(lt_value->locale.data);
+        FREE(lt_value->text.data);
+        FREE(lt_value);
+    }
+    else
+    {
+        printf("Error :: malloc failed for UA_LocalizedText in Test create Nodes\n");
+    }
 
     printf("\n[%d] Variable node with byte string variant: \n", ++index);
     UA_ByteString *bs_value = (UA_ByteString *) malloc(sizeof(UA_ByteString));
-    bs_value->length = 7;
-    bs_value->data = (UA_Byte *) "samsung";
-    item->browseName = "ByteString";
-    item->variableItemName = "Location";
-    item->variableIdentifier = ByteString;
-    item->variableData = (void *) bs_value;
-    createNode(DEFAULT_NAMESPACE_VALUE, item);
-    printf("\n|------------[Added] %s\n", item->browseName);
-    FREE(bs_value);
+    if(IS_NOT_NULL(bs_value))
+    {
+        bs_value->length = 7;
+        bs_value->data = (UA_Byte *) "samsung";
+        item->browseName = "ByteString";
+        item->variableItemName = "Location";
+        item->variableIdentifier = ByteString;
+        item->variableData = (void *) bs_value;
+        createNode(DEFAULT_NAMESPACE_VALUE, item);
+        printf("\n|------------[Added] %s\n", item->browseName);
+        FREE(bs_value);
+    }
+    else
+    {
+        printf("Error :: malloc failed for UA_ByteString in Test create Nodes\n");
+    }
+    
 
     printf("\n[%d] Variable node with byte variant: \n", ++index);
     UA_Byte b_value = 2;
@@ -413,18 +476,25 @@ static void testCreateNodes()
 
     printf("\n[%d] Variable node with qualified name variant: \n", ++index);
     UA_QualifiedName *qn_value = (UA_QualifiedName *) malloc(sizeof(UA_QualifiedName));
-    UA_String str = UA_STRING_ALLOC("qualifiedName");
-    qn_value->namespaceIndex = 2;
-    qn_value->name = str;
-    item->browseName = "QualifiedName";
-    item->variableItemName = "QualifiedName";
-    item->variableIdentifier = QualifiedName;
-    item->variableData = (void *) qn_value;
-    createNode(DEFAULT_NAMESPACE_VALUE, item);
-    printf("\n|------------[Added] %s\n", item->browseName);
-    FREE(str.data);
-    FREE(qn_value);
-
+    if(IS_NOT_NULL(qn_value))
+    {
+        UA_String str = UA_STRING_ALLOC("qualifiedName");
+        qn_value->namespaceIndex = 2;
+        qn_value->name = str;
+        item->browseName = "QualifiedName";
+        item->variableItemName = "QualifiedName";
+        item->variableIdentifier = QualifiedName;
+        item->variableData = (void *) qn_value;
+        createNode(DEFAULT_NAMESPACE_VALUE, item);
+        printf("\n|------------[Added] %s\n", item->browseName);
+        FREE(str.data);
+        FREE(qn_value);
+    }
+    else
+    {
+        printf("Error :: malloc failed for UA_QualifiedName in Test create Nodes\n");
+    }
+    
     printf("\n[%d] Variable node with NODEID variant: \n", ++index);
     UA_NodeId node = UA_NODEID_NUMERIC(DEFAULT_NAMESPACE_INDEX, RootFolder);
     item->browseName = "NodeId";
@@ -439,161 +509,249 @@ static void testCreateNodes()
     printf(COLOR_GREEN "\n[Create Array Node]\n" COLOR_RESET);
     printf("\n[%d] Array node with ByteString values: \n", ++index);
     UA_ByteString **dataArray = (UA_ByteString **) malloc(sizeof(UA_ByteString *) * 5);
-    dataArray[0] = (UA_ByteString *) malloc(sizeof(UA_ByteString));
-    *dataArray[0] = UA_BYTESTRING_ALLOC("abcde");
-    dataArray[1] = (UA_ByteString *) malloc(sizeof(UA_ByteString));
-    *dataArray[1] = UA_BYTESTRING_ALLOC("fghij");
-    dataArray[2] = (UA_ByteString *) malloc(sizeof(UA_ByteString));
-    *dataArray[2] = UA_BYTESTRING_ALLOC("klmno");
-    dataArray[3] = (UA_ByteString *) malloc(sizeof(UA_ByteString));
-    *dataArray[3] = UA_BYTESTRING_ALLOC("pqrst");
-    dataArray[4] = (UA_ByteString *) malloc(sizeof(UA_ByteString));
-    *dataArray[4] = UA_BYTESTRING_ALLOC("uvwxyz");
-    item->browseName = "ByteStringArray";
-    item->nodeType = ARRAY_NODE;
-    item->variableItemName = "ByteStringArray";
-    item->variableIdentifier = ByteString;
-    item->arrayLength = 5;
-    item->variableData = (void *) dataArray;
-    createNode(DEFAULT_NAMESPACE_VALUE, item);
-    printf("\n|------------[Added] %s\n", item->browseName);
-    for (int i = 0; i < 5; i++)
+    if(IS_NOT_NULL(dataArray))
     {
-        UA_ByteString temp = *dataArray[i];
-        free(temp.data); temp.data = NULL;
-        free(dataArray[i]); dataArray[i] = NULL;
+        dataArray[0] = (UA_ByteString *) malloc(sizeof(UA_ByteString));
+        dataArray[1] = (UA_ByteString *) malloc(sizeof(UA_ByteString));
+        dataArray[2] = (UA_ByteString *) malloc(sizeof(UA_ByteString));
+        dataArray[3] = (UA_ByteString *) malloc(sizeof(UA_ByteString));
+        dataArray[4] = (UA_ByteString *) malloc(sizeof(UA_ByteString));
+        if(IS_NOT_NULL(dataArray[0]) &&
+            IS_NOT_NULL(dataArray[1]) &&
+            IS_NOT_NULL(dataArray[2]) &&
+            IS_NOT_NULL(dataArray[3]) &&
+            IS_NOT_NULL(dataArray[4]))
+        {
+            *dataArray[0] = UA_BYTESTRING_ALLOC("abcde");        
+            *dataArray[1] = UA_BYTESTRING_ALLOC("fghij");            
+            *dataArray[2] = UA_BYTESTRING_ALLOC("klmno");            
+            *dataArray[3] = UA_BYTESTRING_ALLOC("pqrst");            
+            *dataArray[4] = UA_BYTESTRING_ALLOC("uvwxyz");
+            item->browseName = "ByteStringArray";
+            item->nodeType = ARRAY_NODE;
+            item->variableItemName = "ByteStringArray";
+            item->variableIdentifier = ByteString;
+            item->arrayLength = 5;
+            item->variableData = (void *) dataArray;
+            createNode(DEFAULT_NAMESPACE_VALUE, item);
+            printf("\n|------------[Added] %s\n", item->browseName);
+        }
+        else
+        {
+            printf("Error :: malloc failed for UA_ByteString dataArray INDEX in Test create Nodes\n");
+        }
+
+        for (int i = 0; i < 5; i++)
+        {
+            UA_ByteString temp = *dataArray[i];
+            FREE(temp.data);    
+            FREE(dataArray[i]);
+        }
+        FREE(dataArray);
     }
-    FREE(dataArray);
+    else
+    {
+        printf("Error :: malloc failed for UA_ByteString dataArray in Test create Nodes\n");
+    }
 
     printf("\n[%d] Array node with Boolean values: \n", ++index);
     bool *arr = (bool *) malloc(sizeof(bool) * 5);
-    arr[0] = true;
-    arr[1] = false;
-    arr[2] = true;
-    arr[3] = false;
-    arr[4] = true;
-    item->browseName = "BoolArray";
-    item->nodeType = ARRAY_NODE;
-    item->variableItemName = "BoolArray";
-    item->variableIdentifier = Boolean;
-    item->arrayLength = 5;
-    item->variableData = (void *) arr;
-    createNode(DEFAULT_NAMESPACE_VALUE, item);
-    printf("\n|------------[Added] %s\n", item->browseName);
-    FREE(arr);
+    if(IS_NOT_NULL(arr))
+    {
+        arr[0] = true;
+        arr[1] = false;
+        arr[2] = true;
+        arr[3] = false;
+        arr[4] = true;
+        item->browseName = "BoolArray";
+        item->nodeType = ARRAY_NODE;
+        item->variableItemName = "BoolArray";
+        item->variableIdentifier = Boolean;
+        item->arrayLength = 5;
+        item->variableData = (void *) arr;
+        createNode(DEFAULT_NAMESPACE_VALUE, item);
+        printf("\n|------------[Added] %s\n", item->browseName);
+        FREE(arr);
+    }
+    else
+    {
+        printf("Error :: malloc failed for bool array in Test create Nodes\n");
+    }
 
     printf("\n[%d] Array node with SByte values: \n", ++index);
     UA_SByte *sbData = (UA_SByte *) malloc(sizeof(UA_SByte) * 5);
-    sbData[0] = -128;
-    sbData[1] = 112;
-    sbData[2] = 120;
-    sbData[3] = 122;
-    sbData[4] = 127;
-    item->browseName = "SByteArray";
-    item->nodeType = ARRAY_NODE;
-    item->variableItemName = "SByteArray";
-    item->variableIdentifier = SByte;
-    item->arrayLength = 5;
-    item->variableData = (void *) sbData;
-    createNode(DEFAULT_NAMESPACE_VALUE, item);
-    printf("\n|------------[Added] %s\n", item->browseName);
-    FREE(sbData);
+    if(IS_NOT_NULL(sbData))
+    {
+        sbData[0] = -128;
+        sbData[1] = 112;
+        sbData[2] = 120;
+        sbData[3] = 122;
+        sbData[4] = 127;
+        item->browseName = "SByteArray";
+        item->nodeType = ARRAY_NODE;
+        item->variableItemName = "SByteArray";
+        item->variableIdentifier = SByte;
+        item->arrayLength = 5;
+        item->variableData = (void *) sbData;
+        createNode(DEFAULT_NAMESPACE_VALUE, item);
+        printf("\n|------------[Added] %s\n", item->browseName);
+        FREE(sbData);
+    }
+    else
+    {
+        printf("Error :: malloc failed for UA_SByte array in Test create Nodes\n");
+    }
 
     printf("\n[%d] Array node with Int32 values: \n", ++index);
     int *intData = (int *) malloc(sizeof(int) * 7);
-    intData[0] = 11;
-    intData[1] = 22;
-    intData[2] = 33;
-    intData[3] = 44;
-    intData[4] = 55;
-    intData[5] = 66;
-    intData[6] = 77;
-    item->browseName = "int32Array";
-    item->nodeType = ARRAY_NODE;
-    item->variableItemName = "int32Array";
-    item->variableIdentifier = Int32;
-    item->arrayLength = 7;
-    item->variableData = (void *) intData;
-    createNode(DEFAULT_NAMESPACE_VALUE, item);
-    printf("\n|------------[Added] %s\n", item->browseName);
-    FREE(intData);
+    if(IS_NOT_NULL(intData))
+    {
+        intData[0] = 11;
+        intData[1] = 22;
+        intData[2] = 33;
+        intData[3] = 44;
+        intData[4] = 55;
+        intData[5] = 66;
+        intData[6] = 77;
+        item->browseName = "int32Array";
+        item->nodeType = ARRAY_NODE;
+        item->variableItemName = "int32Array";
+        item->variableIdentifier = Int32;
+        item->arrayLength = 7;
+        item->variableData = (void *) intData;
+        createNode(DEFAULT_NAMESPACE_VALUE, item);
+        printf("\n|------------[Added] %s\n", item->browseName);
+        FREE(intData);
+    }
+    else
+    {
+        printf("Error :: malloc failed for int Array in Test create Nodes\n");
+    }
 
     printf("\n[%d] Array node with Int64 values: \n", ++index);
     int *int64Data = (int *) malloc(sizeof(int) * 5);
-    int64Data[0] = 11111;
-    int64Data[1] = 22222;
-    int64Data[2] = 33333;
-    int64Data[3] = 44444;
-    int64Data[4] = 55555;
-    item->browseName = "int64Array";
-    item->nodeType = ARRAY_NODE;
-    item->variableItemName = "int64Array";
-    item->variableIdentifier = Int64;
-    item->arrayLength = 5;
-    item->variableData = (void *) int64Data;
-    createNode(DEFAULT_NAMESPACE_VALUE, item);
-    printf("\n|------------[Added] %s\n", item->browseName);
-    FREE(int64Data);
+    if(IS_NOT_NULL(int64Data))
+    {
+        int64Data[0] = 11111;
+        int64Data[1] = 22222;
+        int64Data[2] = 33333;
+        int64Data[3] = 44444;
+        int64Data[4] = 55555;
+        item->browseName = "int64Array";
+        item->nodeType = ARRAY_NODE;
+        item->variableItemName = "int64Array";
+        item->variableIdentifier = Int64;
+        item->arrayLength = 5;
+        item->variableData = (void *) int64Data;
+        createNode(DEFAULT_NAMESPACE_VALUE, item);
+        printf("\n|------------[Added] %s\n", item->browseName);
+        FREE(int64Data);
+    }
+    else
+    {
+        printf("Error :: malloc failed for int64Data Array in Test create Nodes\n");
+    }
+    
 
     printf("\n[%d] Array node with double values: \n", ++index);
     double *data = (double *) malloc(sizeof(double) * 5);
-    data[0] = 10.2;
-    data[1] = 20.2;
-    data[2] = 30.2;
-    data[3] = 40.2;
-    data[4] = 50.2;
-    item->browseName = "DoubleArray";
-    item->nodeType = ARRAY_NODE;
-    item->variableItemName = "DoubleArray";
-    item->variableIdentifier = Double;
-    item->arrayLength = 5;
-    item->variableData = (void *) data;
-    createNode(DEFAULT_NAMESPACE_VALUE, item);
-    printf("\n|------------[Added] %s\n", item->browseName);
-    FREE(data);
+    if(IS_NOT_NULL(data))
+    {
+        data[0] = 10.2;
+        data[1] = 20.2;
+        data[2] = 30.2;
+        data[3] = 40.2;
+        data[4] = 50.2;
+        item->browseName = "DoubleArray";
+        item->nodeType = ARRAY_NODE;
+        item->variableItemName = "DoubleArray";
+        item->variableIdentifier = Double;
+        item->arrayLength = 5;
+        item->variableData = (void *) data;
+        createNode(DEFAULT_NAMESPACE_VALUE, item);
+        printf("\n|------------[Added] %s\n", item->browseName);
+        FREE(data);
+    }
+    else
+    {
+        printf("Error :: malloc failed for double Array in Test create Nodes\n");
+    }
 
     printf("\n[%d] Array node with string values: \n", ++index);
     char **data1 = (char **) malloc(sizeof(char *) * 5);
-    data1[0] = (char *) malloc(10);
-    strcpy(data1[0], "apple");
-    data1[1] = (char *) malloc(10);
-    strcpy(data1[1], "ball");
-    data1[2] = (char *) malloc(10);
-    strcpy(data1[2], "cats");
-    data1[3] = (char *) malloc(10);
-    strcpy(data1[3], "dogs");
-    data1[4] = (char *) malloc(10);
-    strcpy(data1[4], "elephant");
-    item->browseName = "CharArray";
-    item->nodeType = ARRAY_NODE;
-    item->variableItemName = "CharArray";
-    item->variableIdentifier = String;
-    item->arrayLength = 5;
-    item->variableData = (void *) (data1);
-    createNode(DEFAULT_NAMESPACE_VALUE, item);
-    printf("\n|------------[Added] %s\n", item->browseName);
-    for (int i = 0; i < 5; i++)
+    if(IS_NOT_NULL(data1))
     {
-        free(data1[i]); data1[i] = NULL;
+        data1[0] = (char *) malloc(10);
+        data1[1] = (char *) malloc(10);
+        data1[2] = (char *) malloc(10);
+        data1[3] = (char *) malloc(10);
+        data1[4] = (char *) malloc(10);
+
+        if(IS_NOT_NULL(data1[0]) &&
+            IS_NOT_NULL(data1[1]) &&
+            IS_NOT_NULL(data1[2]) &&
+            IS_NOT_NULL(data1[3]) &&
+            IS_NOT_NULL(data1[4]))
+        {
+            strncpy(data1[0], "apple", strlen("apple"));
+            data1[0][strlen("apple")] = '\0';
+            strncpy(data1[1], "ball", strlen("ball"));
+            data1[0][strlen("ball")] = '\0';
+            strncpy(data1[2], "cats", strlen("cats"));
+            data1[0][strlen("cats")] = '\0';
+            strncpy(data1[3], "dogs", strlen("dogs"));
+            data1[0][strlen("dogs")] = '\0';
+            strncpy(data1[4], "elephant", strlen("elephant"));
+            data1[0][strlen("elephant")] = '\0';
+            
+            item->browseName = "CharArray";
+            item->nodeType = ARRAY_NODE;
+            item->variableItemName = "CharArray";
+            item->variableIdentifier = String;
+            item->arrayLength = 5;
+            item->variableData = (void *) (data1);
+            createNode(DEFAULT_NAMESPACE_VALUE, item);
+            printf("\n|------------[Added] %s\n", item->browseName);
+
+            for (int i = 0; i < 5; i++)
+            {
+                FREE(data1[i]);
+            }
+            FREE(data1);
+        }
+        else
+        {
+            printf("Error :: malloc failed for char dataArray in Test create Nodes\n");
+        }
     }
-    FREE(data1);
+    else
+    {
+        printf("Error :: malloc failed for char Array in Test create Nodes\n");
+    }
 
     printf("\n[%d] Variable node with byte array variant: \n", ++index);
     UA_Byte *b_arrvalue = (UA_Byte *) malloc(sizeof(UA_Byte) * 5);
-    b_arrvalue[0] = 0x11;
-    b_arrvalue[1] = 0x22;
-    b_arrvalue[2] = 0x33;
-    b_arrvalue[3] = 0x44;
-    b_arrvalue[4] = 0x55;
-    item->arrayLength = 5;
-    item->browseName = "ByteArray";
-    item->nodeType = ARRAY_NODE;
-    item->variableItemName = "Location";
-    item->variableIdentifier = Byte;
-    item->variableData = (void *) b_arrvalue;
-    createNode(DEFAULT_NAMESPACE_VALUE, item);
-    printf("\n|------------[Added] %s\n", item->browseName);
-    FREE(b_arrvalue);
+    if(IS_NOT_NULL(b_arrvalue))
+    {
+        b_arrvalue[0] = 0x11;
+        b_arrvalue[1] = 0x22;
+        b_arrvalue[2] = 0x33;
+        b_arrvalue[3] = 0x44;
+        b_arrvalue[4] = 0x55;
+        item->arrayLength = 5;
+        item->browseName = "ByteArray";
+        item->nodeType = ARRAY_NODE;
+        item->variableItemName = "Location";
+        item->variableIdentifier = Byte;
+        item->variableData = (void *) b_arrvalue;
+        createNode(DEFAULT_NAMESPACE_VALUE, item);
+        printf("\n|------------[Added] %s\n", item->browseName);
+        FREE(b_arrvalue);
+    }
+    else
+    {
+        printf("Error :: malloc failed for UA_Byte Array in Test create Nodes\n");
+    }
 
     /******************* Object Node *********************/
     printf(COLOR_GREEN"\n[Create Object Node]\n"COLOR_RESET);
@@ -601,19 +759,33 @@ static void testCreateNodes()
     item->nodeType = OBJECT_NODE;
     item->browseName = "Object1";
     item->sourceNodeId = (EdgeNodeId *) malloc (sizeof(EdgeNodeId));
-    item->sourceNodeId->nodeId = NULL;    // no source node
-    createNode(DEFAULT_NAMESPACE_VALUE, item);
-    printf("\n|------------[Added] %s\n", item->browseName);
-    FREE(item->sourceNodeId);
+    if(IS_NOT_NULL(item->sourceNodeId))
+    {
+        item->sourceNodeId->nodeId = NULL;    // no source node
+        createNode(DEFAULT_NAMESPACE_VALUE, item);
+        printf("\n|------------[Added] %s\n", item->browseName);
+        FREE(item->sourceNodeId);
+    }
+    else
+    {
+        printf("Error :: malloc failed for Object1 in Test create Nodes\n");
+    }
 
     printf("\n[%d] Object node : \"Object2\" with source Node \"Object1\"\n", ++index);
     item->nodeType = OBJECT_NODE;
     item->browseName = "Object2";
     item->sourceNodeId = (EdgeNodeId *) malloc (sizeof(EdgeNodeId));
-    item->sourceNodeId->nodeId = "Object1";
-    createNode(DEFAULT_NAMESPACE_VALUE, item);
-    printf("\n|------------[Added] %s\n", item->browseName);
-    FREE(item->sourceNodeId);
+    if(IS_NOT_NULL(item->sourceNodeId))
+    {
+        item->sourceNodeId->nodeId = "Object1";
+        createNode(DEFAULT_NAMESPACE_VALUE, item);
+        printf("\n|------------[Added] %s\n", item->browseName);
+        FREE(item->sourceNodeId);
+    }
+    else
+    {
+        printf("Error :: malloc failed for Object2 in Test create Nodes\n");
+    }
 
     /******************* View Node *********************/
     printf(COLOR_GREEN"\n[Create View Node]\n"COLOR_RESET);
@@ -621,19 +793,34 @@ static void testCreateNodes()
     item->nodeType = VIEW_NODE;
     item->browseName = "ViewNode1";
     item->sourceNodeId = (EdgeNodeId *) malloc (sizeof(EdgeNodeId));
-    item->sourceNodeId->nodeId = NULL;    // no source node
-    createNode(DEFAULT_NAMESPACE_VALUE, item);
-    printf("\n|------------[Added] %s\n", item->browseName);
-    FREE(item->sourceNodeId);
+    if(IS_NOT_NULL(item->sourceNodeId))
+    {
+        item->sourceNodeId->nodeId = NULL;    // no source node
+        createNode(DEFAULT_NAMESPACE_VALUE, item);
+        printf("\n|------------[Added] %s\n", item->browseName);
+        FREE(item->sourceNodeId);
+    }
+    else
+    {
+        printf("Error :: malloc failed for ViewNode1 in Test create Nodes\n");
+    }
+    
 
     printf("\n[%d] View Node with ViewNode2\n", ++index);
     item->nodeType = VIEW_NODE;
     item->browseName = "ViewNode2";
     item->sourceNodeId = (EdgeNodeId *) malloc (sizeof(EdgeNodeId));
-    item->sourceNodeId->nodeId = "ViewNode1";
-    createNode(DEFAULT_NAMESPACE_VALUE, item);
-    printf("\n|------------[Added] %s\n", item->browseName);
-    FREE(item->sourceNodeId);
+    if(IS_NOT_NULL(item->sourceNodeId))
+    {
+        item->sourceNodeId->nodeId = "ViewNode1";
+        createNode(DEFAULT_NAMESPACE_VALUE, item);
+        printf("\n|------------[Added] %s\n", item->browseName);
+        FREE(item->sourceNodeId);
+    }
+    else
+    {
+        printf("Error :: malloc failed for ViewNode2 in Test create Nodes\n");
+    }
 
     /******************* Object Type Node *********************/
     printf(COLOR_GREEN"\n[Create Object Type Node]\n"COLOR_RESET);
@@ -641,47 +828,82 @@ static void testCreateNodes()
     item->nodeType = OBJECT_TYPE_NODE;
     item->browseName = "ObjectType1";
     item->sourceNodeId = (EdgeNodeId *) malloc (sizeof(EdgeNodeId));
-    item->sourceNodeId->nodeId = NULL;    // no source node
-    createNode(DEFAULT_NAMESPACE_VALUE, item);
-    printf("\n|------------[Added] %s\n", item->browseName);
-    FREE(item->sourceNodeId);
+    if(IS_NOT_NULL(item->sourceNodeId))
+    {
+        item->sourceNodeId->nodeId = NULL;    // no source node
+        createNode(DEFAULT_NAMESPACE_VALUE, item);
+        printf("\n|------------[Added] %s\n", item->browseName);
+        FREE(item->sourceNodeId);
+    }
+    else
+    {
+        printf("Error :: malloc failed for ObjectType1 in Test create Nodes\n");
+    }    
 
     printf("\n[%d] Object Type node : \"ObjectType2\" with source Node \"ObjectType1\"\n", ++index);
     item->nodeType = OBJECT_TYPE_NODE;
     item->browseName = "ObjectType2";
     item->sourceNodeId = (EdgeNodeId *) malloc (sizeof(EdgeNodeId));
-    item->sourceNodeId->nodeId = "ObjectType1";
-    createNode(DEFAULT_NAMESPACE_VALUE, item);
-    printf("\n|------------[Added] %s\n", item->browseName);
-    FREE(item->sourceNodeId);
+    if(IS_NOT_NULL(item->sourceNodeId))
+    {
+        item->sourceNodeId->nodeId = "ObjectType1";
+        createNode(DEFAULT_NAMESPACE_VALUE, item);
+        printf("\n|------------[Added] %s\n", item->browseName);
+        FREE(item->sourceNodeId);
+    }
+    else
+    {
+        printf("Error :: malloc failed for ObjectType2 in Test create Nodes\n");
+    }
 
     printf("\n[%d] Object Type node : \"ObjectType3\" with source Node \"ObjectType2\"\n", ++index);
     item->nodeType = OBJECT_TYPE_NODE;
     item->browseName = "ObjectType3";
     item->sourceNodeId = (EdgeNodeId *) malloc (sizeof(EdgeNodeId));
-    item->sourceNodeId->nodeId = "ObjectType1";
-    createNode(DEFAULT_NAMESPACE_VALUE, item);
-    printf("\n|------------[Added] %s\n", item->browseName);
-    FREE(item->sourceNodeId);
-
+    if(IS_NOT_NULL(item->sourceNodeId))
+    {
+        item->sourceNodeId->nodeId = "ObjectType1";
+        createNode(DEFAULT_NAMESPACE_VALUE, item);
+        printf("\n|------------[Added] %s\n", item->browseName);
+        FREE(item->sourceNodeId);
+    }
+    else
+    {
+        printf("Error :: malloc failed for ObjectType3 in Test create Nodes\n");
+    }
+    
     printf("\n[%d] Object Type node : \"ObjectType4\" with source Node \"ObjectType3\"\n", ++index);
     item->nodeType = OBJECT_TYPE_NODE;
     item->browseName = "ObjectType4";
     item->sourceNodeId = (EdgeNodeId *) malloc (sizeof(EdgeNodeId));
-    item->sourceNodeId->nodeId = "ObjectType1";
-    createNode(DEFAULT_NAMESPACE_VALUE, item);
-    printf("\n|------------[Added] %s\n", item->browseName);
-    FREE(item->sourceNodeId);
+    if(IS_NOT_NULL(item->sourceNodeId))
+    {
+        item->sourceNodeId->nodeId = "ObjectType1";
+        createNode(DEFAULT_NAMESPACE_VALUE, item);
+        printf("\n|------------[Added] %s\n", item->browseName);
+        FREE(item->sourceNodeId);
+    }
+    else
+    {
+        printf("Error :: malloc failed for ObjectType4 in Test create Nodes\n");
+    }
 
     printf("\n[%d] Object Type node : \"ObjectType5\" with source Node \"ObjectType3\"\n", ++index);
     item->nodeType = OBJECT_TYPE_NODE;
     item->browseName = "ObjectType5";
     item->sourceNodeId = (EdgeNodeId *) malloc (sizeof(EdgeNodeId));
-    item->sourceNodeId->nodeId = "ObjectType1";
-    createNode(DEFAULT_NAMESPACE_VALUE, item);
-    printf("\n|------------[Added] %s\n", item->browseName);
-    FREE(item->sourceNodeId);
-
+    if(IS_NOT_NULL(item->sourceNodeId))
+    {
+        item->sourceNodeId->nodeId = "ObjectType1";
+        createNode(DEFAULT_NAMESPACE_VALUE, item);
+        printf("\n|------------[Added] %s\n", item->browseName);
+        FREE(item->sourceNodeId);
+    }
+    else
+    {
+        printf("Error :: malloc failed for ObjectType5 in Test create Nodes\n");
+    }
+    
     /******************* Variable Type Node *********************/
     printf(COLOR_GREEN"\n[Create Variable Type Node]\n"COLOR_RESET);
     printf("\n[%d] Variable Type Node with Double Variable Type \n", ++index);
@@ -700,66 +922,125 @@ static void testCreateNodes()
     item->nodeType = DATA_TYPE_NODE;
     item->browseName = "DataType1";
     item->sourceNodeId = (EdgeNodeId *) malloc (sizeof(EdgeNodeId));
-    item->sourceNodeId->nodeId = NULL;    // no source node
-    createNode(DEFAULT_NAMESPACE_VALUE, item);
-    printf("\n|------------[Added] %s\n", item->browseName);
-    FREE(item->sourceNodeId);
+    if(IS_NOT_NULL(item->sourceNodeId))
+    {
+        item->sourceNodeId->nodeId = NULL;    // no source node
+        createNode(DEFAULT_NAMESPACE_VALUE, item);
+        printf("\n|------------[Added] %s\n", item->browseName);
+        FREE(item->sourceNodeId);
+    }
+    else
+    {
+        printf("Error :: malloc failed for DataType1 in Test create Nodes\n");
+    }
 
     printf("\n[%d] Data Type Node with DataType2\n", ++index);
     item->nodeType = DATA_TYPE_NODE;
     item->browseName = "DataType2";
     item->sourceNodeId = (EdgeNodeId *) malloc (sizeof(EdgeNodeId));
-    item->sourceNodeId->nodeId = "DataType1";
-    createNode(DEFAULT_NAMESPACE_VALUE, item);
-    FREE(item->sourceNodeId);
-
+    if(IS_NOT_NULL(item->sourceNodeId))
+    {
+        item->sourceNodeId->nodeId = "DataType1";
+        createNode(DEFAULT_NAMESPACE_VALUE, item);
+        FREE(item->sourceNodeId);
+    }
+    else
+    {
+        printf("Error :: malloc failed for DataType2 in Test create Nodes\n");
+    }
+    
     /******************* Reference Type Node *********************/
     printf(COLOR_GREEN"\n[Create Reference Type Node]\n"COLOR_RESET);
     printf("\n[%d] Reference Type Node with ReferenceTypeNode1", ++index);
     item->nodeType = REFERENCE_TYPE_NODE;
     item->browseName = "ReferenceTypeNode1";
     item->sourceNodeId = (EdgeNodeId *) malloc (sizeof(EdgeNodeId));
-    item->sourceNodeId->nodeId = NULL;    // no source node
-    createNode(DEFAULT_NAMESPACE_VALUE, item);
-    printf("\n|------------[Added] %s\n", item->browseName);
-    FREE(item->sourceNodeId);
+    if(IS_NOT_NULL(item->sourceNodeId))
+    {
+         item->sourceNodeId->nodeId = NULL;    // no source node
+        createNode(DEFAULT_NAMESPACE_VALUE, item);
+        printf("\n|------------[Added] %s\n", item->browseName);
+        FREE(item->sourceNodeId);
+    }
+    else
+    {
+        printf("Error :: malloc failed for ReferenceTypeNode1 in Test create Nodes\n");
+    }
 
     printf("\n[%d] Reference Type Node with source node\"ReferenceTypeNode1\"\n", ++index);
     item->nodeType = REFERENCE_TYPE_NODE;
     item->browseName = "ReferenceTypeNode2";
     item->sourceNodeId = (EdgeNodeId *) malloc (sizeof(EdgeNodeId));
-    item->sourceNodeId->nodeId = "ReferenceTypeNode1";
-    createNode(DEFAULT_NAMESPACE_VALUE, item);
-    printf("\n|------------[Added] %s\n", item->browseName);
-    FREE(item->sourceNodeId);
-
+    if(IS_NOT_NULL(item->sourceNodeId))
+    {
+        item->sourceNodeId->nodeId = "ReferenceTypeNode1";
+        createNode(DEFAULT_NAMESPACE_VALUE, item);
+        printf("\n|------------[Added] %s\n", item->browseName);
+        FREE(item->sourceNodeId);
+    }
+    else
+    {
+        printf("Error :: malloc failed for ReferenceTypeNode2 in Test create Nodes\n");
+    }
+    
     FREE(item);
 
     /******************* Method Node *********************/
     printf(COLOR_GREEN"\n[Create Method Node]\n"COLOR_RESET);
     printf("\n[%d] Method Node with square_root \n", ++index);
     EdgeNodeItem *methodNodeItem = (EdgeNodeItem *) malloc(sizeof(EdgeNodeItem));
+    VERIFY_NON_NULL_NR(methodNodeItem);
     methodNodeItem->browseName = "sqrt(x)";
     methodNodeItem->sourceNodeId = NULL;
 
     EdgeMethod *method = (EdgeMethod *) malloc(sizeof(EdgeMethod));
+    if(IS_NULL(method))
+    {
+        FREE(methodNodeItem);
+        printf("Error :: malloc failed for method square_root  in Test create Nodes\n");
+        return;
+    }
     method->description = "Calculate square root";
     method->methodNodeName = "square_root";
     method->method_fn = test_method_sqrt;
     method->num_inpArgs = 1;
     method->inpArg = (EdgeArgument **) malloc(sizeof(EdgeArgument *) * method->num_inpArgs);
+    if(IS_NULL(method->inpArg))
+    {
+        FREE(methodNodeItem);
+        printf("Error :: malloc failed for method method->inpArg  in Test create Nodes\n");
+        return;
+    }
     for (int idx = 0; idx < method->num_inpArgs; idx++)
     {
         method->inpArg[idx] = (EdgeArgument *) malloc(sizeof(EdgeArgument));
+        if(IS_NULL(method->inpArg[idx]))
+        {
+            FREE(methodNodeItem);
+            printf("Error :: malloc failed for method method->inpArg[%d]  in Test create Nodes\n", idx);
+            return;
+        }
         method->inpArg[idx]->argType = Double;
         method->inpArg[idx]->valType = SCALAR;
     }
 
     method->num_outArgs = 1;
     method->outArg = (EdgeArgument **) malloc(sizeof(EdgeArgument *) * method->num_outArgs);
+    if(IS_NULL(method->outArg))
+    {
+        FREE(methodNodeItem);
+        printf("Error :: malloc failed for method method->outArg  in Test create Nodes\n");
+        return;
+    }
     for (int idx = 0; idx < method->num_outArgs; idx++)
     {
         method->outArg[idx] = (EdgeArgument *) malloc(sizeof(EdgeArgument));
+        if(IS_NULL(method->outArg[idx]))
+        {
+            FREE(methodNodeItem);
+            printf("Error :: malloc failed for method method->outArg[%d]  in Test create Nodes\n", idx);
+            return;
+        }
         method->outArg[idx]->argType = Double;
         method->outArg[idx]->valType = SCALAR;
     }
@@ -769,30 +1050,67 @@ static void testCreateNodes()
 
     printf("\n[%d] Method Node with incrementInc32Array \n", ++index);
     EdgeNodeItem *methodNodeItem1 = (EdgeNodeItem *) malloc(sizeof(EdgeNodeItem));
+    VERIFY_NON_NULL_NR(methodNodeItem1);
     methodNodeItem1->browseName = "incrementInc32Array(x,delta)";
     methodNodeItem1->sourceNodeId = NULL;
 
     EdgeMethod *method1 = (EdgeMethod *) malloc(sizeof(EdgeMethod));
+    if(IS_NULL(method1))
+    {
+        FREE(methodNodeItem1);
+        printf("Error :: malloc failed for method incrementInc32Array  in Test create Nodes\n");
+        return;
+    }
     method1->description = "Increment int32 array by delta";
     method1->methodNodeName = "incrementInc32Array";
     method1->method_fn = test_method_increment_int32Array;
 
     method1->num_inpArgs = 2;
     method1->inpArg = (EdgeArgument **) malloc(sizeof(EdgeArgument *) * method1->num_inpArgs);
+    if(IS_NULL(method1->inpArg))
+    {
+        FREE(methodNodeItem1);
+        printf("Error :: malloc failed for methodmethod1->inpArg  in Test create Nodes\n");
+        return;
+    }
     method1->inpArg[0] = (EdgeArgument *) malloc(sizeof(EdgeArgument));
+    if(IS_NULL(method1->inpArg[0]))
+    {
+        FREE(methodNodeItem1);
+        printf("Error :: malloc failed for method method1->inpArg[0]  in Test create Nodes\n");
+        return;
+    }
     method1->inpArg[0]->argType = Int32;
     method1->inpArg[0]->valType = ARRAY_1D;
     method1->inpArg[0]->arrayLength = 5;
 
     method1->inpArg[1] = (EdgeArgument *) malloc(sizeof(EdgeArgument));
+    if(IS_NULL(method1->inpArg[1]))
+    {
+        FREE(methodNodeItem1);
+        printf("Error :: malloc failed for method method1->inpArg[1]  in Test create Nodes\n");
+        return;
+    }
     method1->inpArg[1]->argType = Int32;
     method1->inpArg[1]->valType = SCALAR;
 
     method1->num_outArgs = 1;
     method1->outArg = (EdgeArgument **) malloc(sizeof(EdgeArgument *) * method1->num_outArgs);
+    if(IS_NULL(method1->outArg))
+    {
+        FREE(methodNodeItem1);
+        printf("Error :: malloc failed for method1->outArg  in Test create Nodes\n");
+        return;
+    }
     for (int idx = 0; idx < method1->num_outArgs; idx++)
     {
         method1->outArg[idx] = (EdgeArgument *) malloc(sizeof(EdgeArgument));
+        if(IS_NULL(method1->outArg[idx]))
+        {
+            FREE(methodNodeItem1);
+            printf("Error :: malloc failed for method method1->outArg[%d]  in Test create Nodes\n", idx);
+            return;
+        }
         method1->outArg[idx]->argType = Int32;
         method1->outArg[idx]->valType = ARRAY_1D;
         method1->outArg[idx]->arrayLength = 5;
@@ -803,10 +1121,17 @@ static void testCreateNodes()
 
     printf("\n[%d] Method Node with noArgMethod \n", ++index);
     EdgeNodeItem *methodNodeItem2 = (EdgeNodeItem *) malloc(sizeof(EdgeNodeItem));
+    VERIFY_NON_NULL_NR(methodNodeItem2);
     methodNodeItem2->browseName = "shutdown()";
     methodNodeItem2->sourceNodeId = NULL;
 
     EdgeMethod *method2 = (EdgeMethod *) malloc(sizeof(EdgeMethod));
+    if(IS_NULL(method2))
+    {
+        FREE(methodNodeItem2);
+        printf("Error :: malloc failed for method shutdown in Test create Nodes\n");
+        return;
+    }
     method2->description = "shutdown method";
     method2->methodNodeName = "shutdown";
     method2->method_fn = test_method_shutdown;
@@ -823,17 +1148,36 @@ static void testCreateNodes()
 
     printf("\n[%d] Method Node with inArgMethod \n", ++index);
     EdgeNodeItem *methodNodeItem3 = (EdgeNodeItem *) malloc(sizeof(EdgeNodeItem));
+    VERIFY_NON_NULL_NR(methodNodeItem3);
     methodNodeItem3->browseName = "print(x)";
     methodNodeItem3->sourceNodeId = NULL;
 
     EdgeMethod *method3 = (EdgeMethod *) malloc(sizeof(EdgeMethod));
+    if(IS_NULL(method3))
+    {
+        FREE(methodNodeItem3);
+        printf("Error :: malloc failed for method printx  in Test create Nodes\n");
+        return;
+    }
     method3->description = "print x";
     method3->methodNodeName = "print";
     method3->method_fn = test_method_print;
 
     method3->num_inpArgs = 1;
     method3->inpArg = (EdgeArgument **) malloc(sizeof(EdgeArgument *) * method3->num_inpArgs);
+    if(IS_NULL(method3->inpArg))
+    {
+        FREE(methodNodeItem3);
+        printf("Error :: malloc failed for method method3->inpArg  in Test create Nodes\n");
+        return;
+    }
     method3->inpArg[0] = (EdgeArgument *) malloc(sizeof(EdgeArgument));
+    if(IS_NULL(method))
+    {
+        FREE(methodNodeItem3);
+        printf("Error :: malloc failed for method method3->inpArg[0]  in Test create Nodes\n");
+        return;
+    }
     method3->inpArg[0]->argType = Int32;
     method3->inpArg[0]->valType = SCALAR;
 
@@ -846,10 +1190,17 @@ static void testCreateNodes()
 
     printf("\n[%d] Method Node with outArgMethod \n", ++index);
     EdgeNodeItem *methodNodeItem4 = (EdgeNodeItem *) malloc(sizeof(EdgeNodeItem));
+    VERIFY_NON_NULL_NR(methodNodeItem4);
     methodNodeItem4->browseName = "version()";
     methodNodeItem4->sourceNodeId = NULL;
 
     EdgeMethod *method4 = (EdgeMethod *) malloc(sizeof(EdgeMethod));
+    if(IS_NULL(method4))
+    {
+        FREE(methodNodeItem4);
+        printf("Error :: malloc failed for method version  in Test create Nodes\n");
+        return;
+    }
     method4->description = "Get Version Info";
     method4->methodNodeName = "version";
     method4->method_fn = test_method_version;
@@ -859,7 +1210,19 @@ static void testCreateNodes()
 
     method4->num_outArgs = 1;
     method4->outArg = (EdgeArgument **) malloc(sizeof(EdgeArgument *) * method4->num_outArgs);
+    if(IS_NULL(method4->outArg))
+    {
+        FREE(methodNodeItem4);
+        printf("Error :: malloc failed for method method4->outArg  in Test create Nodes\n");
+        return;
+    }
     method4->outArg[0] = (EdgeArgument *) malloc(sizeof(EdgeArgument));
+    if(IS_NULL(method))
+    {
+        FREE(methodNodeItem4);
+        printf("Error :: malloc failed for method method4->outArg[0]  in Test create Nodes\n");
+        return;
+    }
     method4->outArg[0]->argType = String;
     method4->outArg[0]->valType = SCALAR;
 
@@ -872,17 +1235,23 @@ static void testCreateNodes()
     printf(COLOR_GREEN"\n[Create Reference]\n"COLOR_RESET);
     printf("\n[%d] Make Reference that ViewNode1 node Organizes with ObjectType1\n", ++index);
     EdgeReference *reference = (EdgeReference *) malloc(sizeof(EdgeReference));
+    if(IS_NOT_NULL(reference))
+    {
+        reference->forward =  true;
+        reference->sourceNamespace = DEFAULT_NAMESPACE_VALUE;
+        reference->sourcePath = "ViewNode1";
+        reference->targetNamespace = DEFAULT_NAMESPACE_VALUE;
+        reference->targetPath = "ObjectType1";
+        /* default reference ID : Organizes */
+        addReference(reference);
 
-    reference->forward =  true;
-    reference->sourceNamespace = DEFAULT_NAMESPACE_VALUE;
-    reference->sourcePath = "ViewNode1";
-    reference->targetNamespace = DEFAULT_NAMESPACE_VALUE;
-    reference->targetPath = "ObjectType1";
-    /* default reference ID : Organizes */
-    addReference(reference);
-
-    FREE(reference);
-
+        FREE(reference);
+    }
+    else
+    {
+        printf("Error :: malloc failed for EdgeReference in Test create Nodes\n");
+    }
+    
     printf("\n\n");
 }
 
@@ -958,46 +1327,64 @@ static void testModifyNode()
         strcpy(name, "UInt16");
         new_value = (void *) &u_value;
     } else if (option == 7) {
-        strcpy(name, "String1");
+        strncpy(name, "String1", strlen("String1"));
+        name[strlen("String1")] = '\0';
         for (int i = 0; i < MAX_TEST_NUMBER; i++) {
             if(i % 2 == 0) {
-                strcpy(s_value , SAMPLE_STRING_1);
+                strncpy(s_value , SAMPLE_STRING_1, strlen(SAMPLE_STRING_1));
+                s_value[strlen(SAMPLE_STRING_1)] = '\0';
             } else {
-                strcpy(s_value, SAMPLE_STRING_2);
+                strncpy(s_value, SAMPLE_STRING_2, strlen(SAMPLE_STRING_2));
+                s_value[strlen(SAMPLE_STRING_2)] = '\0';
             }
 
             new_value = (void *) s_value;
             EdgeVersatility *message = (EdgeVersatility *) malloc(sizeof(EdgeVersatility));
-            message->value = new_value;
-
-            modifyVariableNode(DEFAULT_NAMESPACE_VALUE, name, message);
-
-            FREE(message);
-            usleep(1000 * 1000);
+            if(IS_NOT_NULL(message))
+            {
+                message->value = new_value;
+                modifyVariableNode(DEFAULT_NAMESPACE_VALUE, name, message);
+                FREE(message);
+                usleep(1000 * 1000);
+            }
+            else
+            {
+                printf("Error :: malloc failed for String1 EdgeVersatility in Test Modify Nodes\n");
+            }
         }
         return;
     } else if (option == 8) {
-        strcpy(name, "Int32");
+        strncpy(name, "Int32", strlen("Int32"));
+        name[strlen("Int32")] = '\0';
         for (int i = 0; i < MAX_TEST_NUMBER; i++) {
             new_value = (void *) &i;
-
             EdgeVersatility *message = (EdgeVersatility *) malloc(sizeof(EdgeVersatility));
-            message->value = new_value;
-
-            modifyVariableNode(DEFAULT_NAMESPACE_VALUE, name, message);
-
-            FREE(message);
-            usleep(1000 * 1000);
+            if(IS_NOT_NULL(message))
+            {
+                message->value = new_value;
+                modifyVariableNode(DEFAULT_NAMESPACE_VALUE, name, message);
+                FREE(message);
+                usleep(1000 * 1000);
+            }
+            else
+            {
+                printf("Error :: malloc failed for Int32 EdgeVersatility in Test Modify Nodes\n");
+            }
         }
         return;
     }
 
     EdgeVersatility *message = (EdgeVersatility *) malloc(sizeof(EdgeVersatility));
-    message->value = new_value;
-
-    modifyVariableNode(DEFAULT_NAMESPACE_VALUE, name, message);
-
-    FREE(message);
+    if(IS_NOT_NULL(message))
+    {
+        message->value = new_value;
+        modifyVariableNode(DEFAULT_NAMESPACE_VALUE, name, message);
+        FREE(message);
+    }
+    else
+    {
+        printf("Error :: malloc failed for EdgeVersatility in Test Modify Nodes\n");
+    }
 }
 
 static void deinit()
@@ -1007,29 +1394,16 @@ static void deinit()
         stopServer();
         startFlag = false;
 
-        if (config)
+        if (IS_NOT_NULL(config))
         {
-            if (config->recvCallback)
-            {
-                free (config->recvCallback);
-                config->recvCallback = NULL;
-            }
-            if (config->statusCallback)
-            {
-                free (config->statusCallback);
-                config->statusCallback = NULL;
-            }
-            if (config->discoveryCallback)
-            {
-                free (config->discoveryCallback);
-                config->discoveryCallback = NULL;
-            }
+            FREE(config->recvCallback);
+            FREE(config->statusCallback);
+            FREE(config->discoveryCallback);
 
-            free (config); config = NULL;
+            FREE (config);
         }
 
-        if(epInfo)
-            FREE(epInfo);
+        FREE(epInfo);
     }
 }
 
@@ -1071,19 +1445,25 @@ int main()
 //            printf("[Please input server address] : ");
 //            scanf("%s", ipAddress);
 
-            strcpy(ipAddress, "localhost");
+            strncpy(ipAddress, "localhost", strlen("localhost"));
+            ipAddress[strlen("localhost")] = '\0';
 
             snprintf(endpointUri, sizeof(endpointUri), "opc:tcp://%s:12686/edge-opc-server", ipAddress);
 
             epInfo = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
-            epInfo->endpointUri = endpointUri;
+            if(IS_NOT_NULL(epInfo))
+            {
+                epInfo->endpointUri = endpointUri;
 
-            init();
-            startServer();
+                init();
+                startServer();
 
-            print_menu();
-            //startFlag = true;
-
+                print_menu();
+            }
+            else
+            {
+                printf("Error :: malloc failed for EdgeEndPointInfo in Test create Nodes\n");
+            }
         }
         else if (!strcmp(command, "modify_node"))
         {
