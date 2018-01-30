@@ -32,13 +32,14 @@ extern "C"
 {
 #endif
 
+#define DEFAULT_NODE_TYPE (VARIABLE_NODE)
 typedef enum
 {
     STRING = 1,
     INTEGER = 2,
     UUID = 3,
     BYTESTRING = 4
-} EdgeNodeTypeCommon;
+} EdgeNodeIdType;
 
 //  typedef enum
 //  {

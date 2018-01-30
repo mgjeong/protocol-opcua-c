@@ -201,8 +201,8 @@ typedef struct EdgeNodeId
     /** EdgeNodeIdentifier.*/
     EdgeNodeIdentifier nodeIdentifier;
 
-    /** EdgeNodeTypeCommon.*/
-    EdgeNodeTypeCommon type;
+    /** EdgeNodeIdType.*/
+    EdgeNodeIdType type;
 
     /** NodeId.*/
     char *nodeId;

@@ -75,6 +75,31 @@ EdgeResult addMethodNodeInServer(EdgeNodeItem *item, EdgeMethod *method)
     return result;
 }
 
+EdgeNodeItem* createNodeItemImpl(char* name, EdgeNodeIdentifier type, void* data)
+{
+    EdgeNodeItem* item = (EdgeNodeItem *) calloc(1, sizeof(EdgeNodeItem));
+    //VERIFY_NON_NULL_RET(item);
+    item->nodeType = DEFAULT_NODE_TYPE;
+    item->accessLevel = READ_WRITE;
+    item->userAccessLevel = READ_WRITE;
+    item->writeMask = 0;
+    item->userWriteMask = 0;
+    item->forward = true;
+    item->browseName = name;
+    item->variableIdentifier = type;
+    item->variableData = data;
+
+    return item;
+}
+
+EdgeResult deleteNodeItemImpl(EdgeNodeItem* item)
+{
+    EdgeResult result;
+    free(item);
+    result.code = STATUS_OK;
+    return result;
+}
+
 static void *server_loop(void *ptr)
 {
     while (b_running)

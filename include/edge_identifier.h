@@ -34,9 +34,9 @@ extern "C"
 
 typedef enum
 {
+    READ_WRITE = 0,
     READ = 1,
     WRITE = 2,
-    READ_WRITE = 3,
     HISTORY_READ = 4,
     HISTORY_WRITE = 8,
     SEMANTIC_CHANGE = 10,

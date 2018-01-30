@@ -43,6 +43,10 @@ extern "C"
     /* Stop the server */
     void stop_server(EdgeEndPointInfo *epInfo);
 
+    /* Create and delete node item */
+    EdgeNodeItem* createNodeItemImpl(char* name, EdgeNodeIdentifier type, void* data);
+    EdgeResult deleteNodeItemImpl(EdgeNodeItem* item);
+
 #ifdef __cplusplus
 }
 #endif

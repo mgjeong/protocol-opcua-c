@@ -78,6 +78,10 @@ __attribute__((visibility("default"))) EdgeResult createNamespace(char *name, ch
         char *rootBrowseName, char *rootDisplayName);
 __attribute__((visibility("default"))) EdgeResult createNode(char *namespaceUri,
         EdgeNodeItem *item);
+__attribute__((visibility("default"))) EdgeNodeItem* createNodeItem(char* name,
+        EdgeNodeIdentifier type, void* data);
+__attribute__((visibility("default"))) EdgeResult deleteNodeItem(EdgeNodeItem* item);
+
 __attribute__((visibility("default"))) EdgeResult modifyVariableNode(char *namespaceUri,
         char *nodeUri, EdgeVersatility *value);
 __attribute__((visibility("default"))) EdgeResult createMethodNode(char *namespaceUri,
