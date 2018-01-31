@@ -72,6 +72,7 @@ static void *server_sample_loop(void *ptr)
         if (IS_NOT_NULL(message))
         {
             message->value = (void *) s_value;
+            message->isArray = false;
             modifyVariableNode(DEFAULT_NAMESPACE_VALUE, "robot_id", message);
             FREE(message);
         }
@@ -90,6 +91,8 @@ static void *server_sample_loop(void *ptr)
                 posArray[1] = getRandom(rorot_pos_key);
                 posArray[2] = getRandom(rorot_pos_key);
                 message->value = (void *) posArray;
+                message->isArray = true;
+                message->arrayLength = 3;
                 modifyVariableNode(DEFAULT_NAMESPACE_VALUE, "robot_position", message);
                 printf("(%d %d %d)\n", posArray[0], posArray[1], posArray[2]);
             }
