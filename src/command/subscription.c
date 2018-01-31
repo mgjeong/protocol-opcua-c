@@ -112,14 +112,17 @@ static void* get_subscription_list(UA_Client *client)
 
 static keyValue getSubInfo(edgeMap* list, char *valueAlias)
 {
-    edgeMapNode *temp = list->head;
-    while (temp != NULL)
+    if(IS_NOT_NULL(list))
     {
-        if (!strcmp(temp->key, valueAlias))
+        edgeMapNode *temp = list->head;
+        while (temp != NULL)
         {
-            return temp->value;
+            if (!strcmp(temp->key, valueAlias))
+            {
+                return temp->value;
+            }
+            temp = temp->next;
         }
-        temp = temp->next;
     }
     return NULL;
 }
@@ -344,6 +347,41 @@ static UA_StatusCode createSub(UA_Client *client, EdgeMessage *msg)
     {
         EdgeRequest *req = msg->request;
         subReq = req->subMsg;
+    }
+
+    for (int i = 0; i < msg->requestLength; i++)
+    {
+        for(int j = 0; j < msg->requestLength-1; j++)
+        {
+            if(i != j)
+            {
+                if (!strcmp(msg->requests[i]->nodeInfo->valueAlias, msg->requests[j]->nodeInfo->valueAlias))
+                {
+                    EDGE_LOG_V(TAG, "Error :Message contains dublicate requests\n"
+                        "Item No : %d & %d\nItem Name : %s\nThis Subscription request was not processed to server.\n",
+                        i+1, j+1, msg->requests[i]->nodeInfo->valueAlias);
+                    return UA_STATUSCODE_BADREQUESTCANCELLEDBYCLIENT;
+                }
+            }
+        }
+    }
+
+    if(IS_NOT_NULL(clientSub))
+    {
+        subscriptionInfo *subInfo =  NULL;
+
+        for (int i = 0; i < msg->requestLength; i++)
+        {
+            subInfo = (subscriptionInfo *) getSubInfo(clientSub->subscriptionList, 
+                msg->requests[i]->nodeInfo->valueAlias);
+
+            if (IS_NOT_NULL(subInfo))
+            {
+                EDGE_LOG_V(TAG, "Error : Already subscribed Node %s\n"
+                    "This Subscription request was not processed to server.\n", msg->requests[i]->nodeInfo->valueAlias);
+                return UA_STATUSCODE_BADREQUESTCANCELLEDBYCLIENT;
+            }
+        }
     }
 
     UA_UInt32 subId = 0;

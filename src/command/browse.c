@@ -871,7 +871,7 @@ static unsigned char *getCurrentBrowsePath()
         {
             curSize += blockSize;
             unsigned char *newLoc = (unsigned char *)realloc(browsePath, curSize);
-            if(IS_NULL(browsePath))
+            if(IS_NULL(newLoc))
             {
                 EDGE_LOG(TAG, "Memory allocation failed.");
                 FREE(browsePath);
@@ -907,6 +907,7 @@ unsigned char *getCompleteBrowsePath(char *browseName)
     {
         memcpy(completePath, browsePath, pathLen);
     }
+
     if(browseNameLen > 0)
     {
         completePath[pathLen++] = '/';
@@ -934,6 +935,7 @@ unsigned char *convertNodeIdToString(UA_NodeId *nodeId)
     {
         int maxDigits = 10;
         browseName = (unsigned char *)calloc(maxDigits+1, sizeof(unsigned char));
+        VERIFY_NON_NULL(browseName, NULL);
         snprintf((char *)browseName, maxDigits, "%" PRIu32, nodeId->identifier.numeric);
     } */
     // TODO: Handle GUID and ByteString

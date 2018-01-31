@@ -895,7 +895,6 @@ static void testCreateNodes()
         VERIFY_NON_NULL_NR(item);
         createNode(DEFAULT_NAMESPACE_VALUE, item);
         FREE(edgeNodeId);
-        deleteNodeItem(item);
     }
     else
     {
@@ -913,7 +912,6 @@ static void testCreateNodes()
         createNode(DEFAULT_NAMESPACE_VALUE, item);
         printf("\n|------------[Added] %s\n", item->browseName);
         FREE(edgeNodeId);
-        deleteNodeItem(item);
     }
     else
     {
@@ -950,6 +948,7 @@ static void testCreateNodes()
     if (IS_NULL(method))
     {
         FREE(methodNodeItem);
+        FREE(method);
         printf("Error :: malloc failed for method square_root  in Test create Nodes\n");
         return;
     }
@@ -961,6 +960,7 @@ static void testCreateNodes()
     if (IS_NULL(method->inpArg))
     {
         FREE(methodNodeItem);
+        FREE(method);
         printf("Error :: malloc failed for method method->inpArg  in Test create Nodes\n");
         return;
     }
@@ -969,7 +969,16 @@ static void testCreateNodes()
         method->inpArg[idx] = (EdgeArgument *) malloc(sizeof(EdgeArgument));
         if (IS_NULL(method->inpArg[idx]))
         {
+            for (int j = 0; j < idx; j++)
+            {
+                if(IS_NOT_NULL(method->inpArg[j]))
+                {
+                    FREE(method->inpArg[j]);
+                }
+            }
+            FREE(method->inpArg);
             FREE(methodNodeItem);
+            FREE(method);
             printf("Error :: malloc failed for method method->inpArg[%d]  in Test create Nodes\n",
                     idx);
             return;
@@ -983,6 +992,7 @@ static void testCreateNodes()
     if (IS_NULL(method->outArg))
     {
         FREE(methodNodeItem);
+        FREE(method);
         printf("Error :: malloc failed for method method->outArg  in Test create Nodes\n");
         return;
     }
@@ -991,7 +1001,17 @@ static void testCreateNodes()
         method->outArg[idx] = (EdgeArgument *) malloc(sizeof(EdgeArgument));
         if (IS_NULL(method->outArg[idx]))
         {
+            for (int j = 0; j < idx; j++)
+            {
+                if(IS_NOT_NULL(method->outArg[j]))
+                {
+                    FREE(method->outArg[j]);
+                }
+            }
+            
+            FREE(method->outArg);
             FREE(methodNodeItem);
+            FREE(method);
             printf("Error :: malloc failed for method method->outArg[%d]  in Test create Nodes\n",
                     idx);
             return;
@@ -1013,6 +1033,7 @@ static void testCreateNodes()
     if (IS_NULL(method1))
     {
         FREE(methodNodeItem1);
+        FREE(method1);
         printf("Error :: malloc failed for method incrementInc32Array  in Test create Nodes\n");
         return;
     }
@@ -1025,13 +1046,16 @@ static void testCreateNodes()
     if (IS_NULL(method1->inpArg))
     {
         FREE(methodNodeItem1);
+        FREE(method1);
         printf("Error :: malloc failed for methodmethod1->inpArg  in Test create Nodes\n");
         return;
     }
     method1->inpArg[0] = (EdgeArgument *) malloc(sizeof(EdgeArgument));
     if (IS_NULL(method1->inpArg[0]))
     {
+        FREE(method1->inpArg);
         FREE(methodNodeItem1);
+        FREE(method1);
         printf("Error :: malloc failed for method method1->inpArg[0]  in Test create Nodes\n");
         return;
     }
@@ -1042,7 +1066,10 @@ static void testCreateNodes()
     method1->inpArg[1] = (EdgeArgument *) malloc(sizeof(EdgeArgument));
     if (IS_NULL(method1->inpArg[1]))
     {
+        FREE(method1->inpArg[0]);
+        FREE(method1->inpArg);
         FREE(methodNodeItem1);
+        FREE(method1);
         printf("Error :: malloc failed for method method1->inpArg[1]  in Test create Nodes\n");
         return;
     }
@@ -1053,7 +1080,11 @@ static void testCreateNodes()
     method1->outArg = (EdgeArgument **) malloc(sizeof(EdgeArgument *) * method1->num_outArgs);
     if (IS_NULL(method1->outArg))
     {
+        FREE(method1->inpArg[0]);
+        FREE(method1->inpArg[1]);
+        FREE(method1->inpArg);
         FREE(methodNodeItem1);
+        FREE(method1);
         printf("Error :: malloc failed for method1->outArg  in Test create Nodes\n");
         return;
     }
@@ -1062,7 +1093,20 @@ static void testCreateNodes()
         method1->outArg[idx] = (EdgeArgument *) malloc(sizeof(EdgeArgument));
         if (IS_NULL(method1->outArg[idx]))
         {
+            for (int j = 0; j < idx; j++)
+            {
+                if(IS_NOT_NULL(method->outArg[j]))
+                {
+                    FREE(method->outArg[j]);
+                }
+            }
+
+            FREE(method1->inpArg[0]);
+            FREE(method1->inpArg[1]);
+            FREE(method1->inpArg);
+            FREE(method1->outArg);
             FREE(methodNodeItem1);
+            FREE(method1);
             printf("Error :: malloc failed for method method1->outArg[%d]  in Test create Nodes\n",
                     idx);
             return;
@@ -1124,13 +1168,16 @@ static void testCreateNodes()
     if (IS_NULL(method3->inpArg))
     {
         FREE(methodNodeItem3);
+        FREE(method3);
         printf("Error :: malloc failed for method method3->inpArg  in Test create Nodes\n");
         return;
     }
     method3->inpArg[0] = (EdgeArgument *) malloc(sizeof(EdgeArgument));
     if (IS_NULL(method))
     {
+        FREE(method3->inpArg);
         FREE(methodNodeItem3);
+        FREE(method3);
         printf("Error :: malloc failed for method method3->inpArg[0]  in Test create Nodes\n");
         return;
     }
@@ -1169,13 +1216,16 @@ static void testCreateNodes()
     if (IS_NULL(method4->outArg))
     {
         FREE(methodNodeItem4);
+        FREE(method4);
         printf("Error :: malloc failed for method method4->outArg  in Test create Nodes\n");
         return;
     }
     method4->outArg[0] = (EdgeArgument *) malloc(sizeof(EdgeArgument));
     if (IS_NULL(method))
     {
+        FREE(method4->outArg);
         FREE(methodNodeItem4);
+        FREE(method4);
         printf("Error :: malloc failed for method method4->outArg[0]  in Test create Nodes\n");
         return;
     }

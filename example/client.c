@@ -212,9 +212,20 @@ BrowseNextData *cloneBrowseNextData(BrowseNextData *data)
     clone->count = browseNextData->count;
     clone->last_used = -1;
     clone->cp = (EdgeContinuationPoint *)calloc(clone->count, sizeof(EdgeContinuationPoint));
-    VERIFY_NON_NULL(clone->cp, NULL);
+    if(IS_NULL(clone->cp))
+    {
+        printf("Error :: Calloc Failed for lone->cp in cloneBrowseNextData \n");
+        FREE(clone);
+        return NULL;
+    }
     clone->srcNodeId = (EdgeNodeId **)calloc(clone->count, sizeof(EdgeNodeId *));
-    VERIFY_NON_NULL(clone->srcNodeId, NULL);
+    if(IS_NULL(clone->srcNodeId))
+    {
+        printf("Error :: Calloc Failed for clone->srcNodeId in cloneBrowseNextData \n");
+        FREE(clone->cp);
+        FREE(clone);
+        return NULL;
+    }
     for (int i = 0; i <= browseNextData->last_used; ++i)
     {
         addBrowseNextData(clone, &browseNextData->cp[i], browseNextData->srcNodeId[i]);
@@ -643,7 +654,12 @@ static EndPointList *create_endpoint_list(char *endpoint) {
     EndPointList *ep = (EndPointList*) malloc(sizeof(EndPointList));
     VERIFY_NON_NULL(ep, NULL);
     ep->endpoint = (char*) malloc(sizeof(char) * (strlen(endpoint) + 1));
-    VERIFY_NON_NULL(ep->endpoint, NULL);
+    if(IS_NULL(ep->endpoint))
+    {
+        printf("Error : Malloc failed for endpoint in create_endpoint_list\n");
+        FREE(ep);
+        return NULL;
+    }
     strncpy(ep->endpoint, endpoint, strlen(endpoint));
     ep->endpoint[strlen(endpoint)] = '\0';
     ep->next = NULL;
