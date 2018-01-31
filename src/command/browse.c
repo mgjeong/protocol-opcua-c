@@ -1376,11 +1376,14 @@ EdgeStatusCode browse(UA_Client *client, EdgeMessage *msg, bool browseNext,
                         }
                     }
 
-                    nextBrowseNodesInfo->nodeId[nextNodeListCount] = ref->nodeId.nodeId;
-                    nextBrowseNodesInfo->browseName[nextNodeListCount] = convertUAStringToUnsignedChar(&ref->browseName.name);
-                    nextMsgIdList[nextMsgListCount] = msgId;
-                    nextNodeListCount++;
-                    nextMsgListCount++;
+                    if(UA_NODECLASS_VARIABLE != ref->nodeClass)
+                    {
+                        nextBrowseNodesInfo->nodeId[nextNodeListCount] = ref->nodeId.nodeId;
+                        nextBrowseNodesInfo->browseName[nextNodeListCount] = convertUAStringToUnsignedChar(&ref->browseName.name);
+                        nextMsgIdList[nextMsgListCount] = msgId;
+                        nextNodeListCount++;
+                        nextMsgListCount++;
+                    }
                 }
                 else
                 {
