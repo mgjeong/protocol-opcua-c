@@ -20,6 +20,7 @@
 
 #include "edge_opcua_server.h"
 #include "edge_node.h"
+#include "edge_utils.h"
 #include "edge_logger.h"
 
 #include <stdio.h>
@@ -28,50 +29,122 @@
 
 #define TAG "session_server"
 
+
+typedef struct
+{
+    int ns_index;
+    char *rootNodeIdentifier;
+    char *rootNodeBrowseName;
+    char *rootNodeDisplayName;
+} EdgeNamespace;
+
+
 static UA_ServerConfig *m_serverConfig;
 static UA_Server *m_server;
 static UA_Boolean b_running = UA_FALSE;
 
 static pthread_t m_serverThread;
 
+/* Namespace Map */
+static edgeMap *namespaceMap = NULL;
+
 static int namespaceType = DEFAULT_TYPE;
+
+
+static void* getNamespaceIndex(char *namespaceUri)
+{
+    if (namespaceMap)
+    {
+        edgeMapNode *temp = namespaceMap->head;
+        while (temp != NULL)
+        {
+            char *uri = (char*) temp->key;
+            if (!strcmp(uri, namespaceUri))
+                return temp->value;
+
+            temp = temp->next;
+        }
+    }
+    return NULL;
+}
+
 
 void createNamespaceInServer(char *namespaceUri, char *rootNodeIdentifier, char *rootNodeBrowseName,
         char *rootNodeDisplayName)
 {
     if (namespaceType == URI_TYPE || namespaceType == DEFAULT_TYPE)
     {
+        if (getNamespaceIndex(namespaceUri))
+        {
+            EDGE_LOG(TAG, "Namespace already added\n");
+            return;
+        }
+
         int idx = UA_Server_addNamespace(m_server, namespaceUri);
         (void) idx;
         EDGE_LOG_V(TAG, "[SERVER] Namespace Index :: [%d]\n", idx);EDGE_LOG(TAG, "[SERVER] Namespace created\n");
 
-//    nameSpace = ((new EdgeNamespace::Builder(m_server, idx, namespaceUri))->setNodeId(rootNodeIdentifier)->
-//        setBrowseName(rootNodeBrowseName)->setDisplayName(rootNodeDisplayName))->build();
-//    EdgeNamespaceManager::getInstance()->addNamespace(namespaceUri, nameSpace);
+        EdgeNamespace *ns = (EdgeNamespace*) malloc(sizeof(EdgeNamespace));
+        ns->ns_index = idx;
+        ns->rootNodeIdentifier = (char*) malloc(sizeof(char) * strlen(rootNodeIdentifier));
+        strncpy(ns->rootNodeIdentifier, rootNodeIdentifier, strlen(rootNodeIdentifier));
+        ns->rootNodeBrowseName = (char*) malloc(sizeof(char) * strlen(rootNodeBrowseName));
+        strncpy(ns->rootNodeBrowseName, rootNodeBrowseName, strlen(rootNodeBrowseName));
+        ns->rootNodeDisplayName = (char*) malloc(sizeof(char) * strlen(rootNodeDisplayName));
+        strncpy(ns->rootNodeDisplayName, rootNodeDisplayName, strlen(rootNodeDisplayName));
+
+        if (namespaceMap == NULL)
+            namespaceMap = createMap();
+        insertMapElement(namespaceMap, (keyValue) namespaceUri, (keyValue) ns);
     }
 }
 
-EdgeResult addNodesInServer(EdgeNodeItem *item)
+EdgeResult addNodesInServer(char *namespaceUri, EdgeNodeItem *item)
 {
-    EdgeResult result = addNodes(m_server, item);
+    EdgeResult result;
+    result.code = STATUS_ERROR;
+    EdgeNamespace *ns = (EdgeNamespace*) getNamespaceIndex(namespaceUri);
+    if (ns)
+    {
+        result = addNodes(m_server, ns->ns_index, item);
+    }
     return result;
 }
 
-EdgeResult modifyNodeInServer(char *nodeUri, EdgeVersatility *value)
+EdgeResult modifyNodeInServer(char *namespaceUri, char *nodeUri, EdgeVersatility *value)
 {
-    EdgeResult result = modifyNode(m_server, nodeUri, value);
+    EdgeResult result;
+    result.code = STATUS_ERROR;
+    EdgeNamespace *ns = (EdgeNamespace*) getNamespaceIndex(namespaceUri);
+    if (ns)
+    {
+        result = modifyNode(m_server, ns->ns_index, nodeUri, value);
+    }
     return result;
 }
 
 EdgeResult addReferenceInServer(EdgeReference *reference)
 {
-    EdgeResult result = addReferences(m_server, reference);
+    EdgeNamespace *src_ns = (EdgeNamespace*) getNamespaceIndex(reference->sourceNamespace);
+    EdgeNamespace *target_ns = (EdgeNamespace*) getNamespaceIndex(reference->targetNamespace);
+    EdgeResult result;
+    result.code = STATUS_ERROR;
+    if (src_ns && target_ns)
+    {
+        addReferences(m_server, reference, src_ns->ns_index, target_ns->ns_index);
+    }
     return result;
 }
 
-EdgeResult addMethodNodeInServer(EdgeNodeItem *item, EdgeMethod *method)
+EdgeResult addMethodNodeInServer(char *namespaceUri, EdgeNodeItem *item, EdgeMethod *method)
 {
-    EdgeResult result = addMethodNode(m_server, item, method);
+    EdgeResult result;
+    result.code = STATUS_ERROR;
+    EdgeNamespace *ns = (EdgeNamespace*) getNamespaceIndex(namespaceUri);
+    if (ns)
+    {
+        result = addMethodNode(m_server, ns->ns_index, item, method);
+    }
     return result;
 }
 
