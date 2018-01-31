@@ -50,28 +50,60 @@ extern void test_method_increment_int32Array(int inpSize, void **input, int outS
 static bool b_running = false;
 static pthread_t m_serverThread;
 static int robot_data_idx = 0;
+static int rorot_pos_key = 256;
+
+static int getRandom(int key)
+{
+    return (rand() % key) + 1;
+}
 
 static void *server_sample_loop(void *ptr)
 {
-    char s_value[MAX_ENDPOINT_URI_SIZE] = {};
+    char s_value[MAX_ENDPOINT_URI_SIZE] =
+    { };
     char dataNum[1];
 
     while (b_running)
     {
-        sprintf(dataNum, "%d", robot_data_idx);
+        sprintf(dataNum, "%d", getRandom(5));
         strncpy(s_value, "robot data ", sizeof(s_value));
         strcat(s_value, dataNum);
-           EdgeVersatility *message = (EdgeVersatility *) malloc(sizeof(EdgeVersatility));
-           if (IS_NOT_NULL(message))
-           {
-               message->value = (void *) s_value;
-               modifyVariableNode(DEFAULT_NAMESPACE_VALUE, "String1", message);
-               FREE(message);
-           }
-           else
-           {
-               printf("Error :: malloc failed for EdgeVersatility in Test Modify Nodes\n");
-           }
+        EdgeVersatility *message = (EdgeVersatility *) malloc(sizeof(EdgeVersatility));
+        if (IS_NOT_NULL(message))
+        {
+            message->value = (void *) s_value;
+            modifyVariableNode(DEFAULT_NAMESPACE_VALUE, "robot_id", message);
+            FREE(message);
+        }
+        else
+        {
+            printf("Error :: malloc failed for EdgeVersatility in Test Modify Nodes\n");
+        }
+
+        message = (EdgeVersatility *) malloc(sizeof(EdgeVersatility));
+        if (IS_NOT_NULL(message))
+        {
+            int *posArray = (int *) malloc(sizeof(int) * 3);
+            if (IS_NOT_NULL(posArray))
+            {
+                posArray[0] = getRandom(rorot_pos_key);
+                posArray[1] = getRandom(rorot_pos_key);
+                posArray[2] = getRandom(rorot_pos_key);
+                message->value = (void *) posArray;
+                modifyVariableNode(DEFAULT_NAMESPACE_VALUE, "robot_position", message);
+                //printf("(%d %d %d)\n", posArray[0], posArray[1], posArray[2]);
+            }
+            else
+            {
+                printf("Error :: malloc failed for int Array in Test create Nodes\n");
+            }
+            FREE(message);
+        }
+        else
+        {
+            printf("Error :: malloc failed for EdgeVersatility in Test Modify Nodes\n");
+        }
+
         usleep(100000);
         robot_data_idx++;
     }
@@ -514,7 +546,7 @@ static void testCreateNodes()
         dataArray[3] = (UA_ByteString *) malloc(sizeof(UA_ByteString));
         dataArray[4] = (UA_ByteString *) malloc(sizeof(UA_ByteString));
         if (IS_NOT_NULL(dataArray[0]) && IS_NOT_NULL(dataArray[1]) && IS_NOT_NULL(dataArray[2])
-            && IS_NOT_NULL(dataArray[3]) && IS_NOT_NULL(dataArray[4]))
+        && IS_NOT_NULL(dataArray[3]) && IS_NOT_NULL(dataArray[4]))
         {
             *dataArray[0] = UA_BYTESTRING_ALLOC("abcde");
             *dataArray[1] = UA_BYTESTRING_ALLOC("fghij");
@@ -677,7 +709,7 @@ static void testCreateNodes()
         data1[4] = (char *) malloc(10);
 
         if (IS_NOT_NULL(data1[0]) && IS_NOT_NULL(data1[1]) && IS_NOT_NULL(data1[2])
-            && IS_NOT_NULL(data1[3]) && IS_NOT_NULL(data1[4]))
+        && IS_NOT_NULL(data1[3]) && IS_NOT_NULL(data1[4]))
         {
             strncpy(data1[0], "apple", strlen("apple"));
             data1[0][strlen("apple")] = '\0';
@@ -1273,6 +1305,39 @@ static void testCreateNodes()
     printf("\n|------------[Added] %s\n", methodNodeItem4->browseName);
     FREE(methodNodeItem4);
 
+    /******************* Robot Scenario Demo *********************/
+    item = createVariableNodeItem("robot_name", String, "test3", VARIABLE_NODE);
+    VERIFY_NON_NULL_NR(item);
+    createNode(DEFAULT_NAMESPACE_VALUE, item);
+    printf("\n|------------[Added] %s\n", item->browseName);
+    deleteNodeItem(item);
+
+    item = createVariableNodeItem("robot_id", String, "A31FR-23214-ASFF", VARIABLE_NODE);
+    VERIFY_NON_NULL_NR(item);
+    createNode(DEFAULT_NAMESPACE_VALUE, item);
+    printf("\n|------------[Added] %s\n", item->browseName);
+    deleteNodeItem(item);
+
+    int *posArray = (int *) malloc(sizeof(int) * 3);
+    if (IS_NOT_NULL(posArray))
+    {
+        posArray[0] = 123;
+        posArray[1] = 34;
+        posArray[2] = 20;
+        item = createVariableNodeItem("robot_position", Int32, (void *) posArray, VARIABLE_NODE);
+        VERIFY_NON_NULL_NR(item);
+        item->nodeType = ARRAY_NODE;
+        item->arrayLength = 3;
+        createNode(DEFAULT_NAMESPACE_VALUE, item);
+        printf("\n|------------[Added] %s\n", item->browseName);
+        FREE(posArray);
+        deleteNodeItem(item);
+    }
+    else
+    {
+        printf("Error :: malloc failed for int Array in Test create Nodes\n");
+    }
+
     /******************* Add Reference *********************/
     /************ Reference is not NODE CLASS ***************/
     printf(COLOR_GREEN"\n[Create Reference]\n"COLOR_RESET);
@@ -1285,7 +1350,7 @@ static void testCreateNodes()
         reference->sourceNamespace = DEFAULT_NAMESPACE_VALUE;
         reference->sourcePath = "ViewNode1";
         reference->targetNamespace = DEFAULT_NAMESPACE_VALUE;
-        reference->targetPath = "String1";
+        reference->targetPath = "robot_name";
         /* default reference ID : Organizes */
         addReference(reference);
 
@@ -1303,7 +1368,7 @@ static void testCreateNodes()
         reference->sourceNamespace = DEFAULT_NAMESPACE_VALUE;
         reference->sourcePath = "ViewNode1";
         reference->targetNamespace = DEFAULT_NAMESPACE_VALUE;
-        reference->targetPath = "Byte";
+        reference->targetPath = "robot_id";
         /* default reference ID : Organizes */
         addReference(reference);
 
@@ -1319,9 +1384,9 @@ static void testCreateNodes()
     {
         reference->forward = true;
         reference->sourceNamespace = DEFAULT_NAMESPACE_VALUE;
-        reference->sourcePath = "ViewNode2";
+        reference->sourcePath = "ViewNode1";
         reference->targetNamespace = DEFAULT_NAMESPACE_VALUE;
-        reference->targetPath = "String1";
+        reference->targetPath = "robot_position";
         /* default reference ID : Organizes */
         addReference(reference);
 
@@ -1332,25 +1397,41 @@ static void testCreateNodes()
         printf("Error :: malloc failed for EdgeReference in Test create Nodes\n");
     }
 
-    reference = (EdgeReference *) calloc(1, sizeof(EdgeReference));
-    if (IS_NOT_NULL(reference))
-    {
-        reference->forward = true;
-        reference->sourceNamespace = DEFAULT_NAMESPACE_VALUE;
-        reference->sourcePath = "ViewNode2";
-        reference->targetNamespace = DEFAULT_NAMESPACE_VALUE;
-        reference->targetPath = "Byte";
-        /* default reference ID : Organizes */
-        addReference(reference);
-
-        FREE(reference);
-    }
-    else
-    {
-        printf("Error :: malloc failed for EdgeReference in Test create Nodes\n");
-    }
-
-
+//    reference = (EdgeReference *) calloc(1, sizeof(EdgeReference));
+//    if (IS_NOT_NULL(reference))
+//    {
+//        reference->forward = true;
+//        reference->sourceNamespace = DEFAULT_NAMESPACE_VALUE;
+//        reference->sourcePath = "ViewNode2";
+//        reference->targetNamespace = DEFAULT_NAMESPACE_VALUE;
+//        reference->targetPath = "String1";
+//        /* default reference ID : Organizes */
+//        addReference(reference);
+//
+//        FREE(reference);
+//    }
+//    else
+//    {
+//        printf("Error :: malloc failed for EdgeReference in Test create Nodes\n");
+//    }
+//
+//    reference = (EdgeReference *) calloc(1, sizeof(EdgeReference));
+//    if (IS_NOT_NULL(reference))
+//    {
+//        reference->forward = true;
+//        reference->sourceNamespace = DEFAULT_NAMESPACE_VALUE;
+//        reference->sourcePath = "ViewNode2";
+//        reference->targetNamespace = DEFAULT_NAMESPACE_VALUE;
+//        reference->targetPath = "Byte";
+//        /* default reference ID : Organizes */
+//        addReference(reference);
+//
+//        FREE(reference);
+//    }
+//    else
+//    {
+//        printf("Error :: malloc failed for EdgeReference in Test create Nodes\n");
+//    }
 
     printf("\n\n");
 }
@@ -1588,6 +1669,7 @@ int main()
         else if (!strcmp(command, "update_robot"))
         {
             b_running = true;
+            srand((unsigned) time(NULL));
             pthread_create(&m_serverThread, NULL, &server_sample_loop, NULL);
         }
         else if (!strcmp(command, "quit"))
@@ -1597,8 +1679,10 @@ int main()
         else if (!strcmp(command, "help"))
         {
             print_menu();
-        }else if (!strcmp(command, "show_nodelist")){
-        	showNodeList();
+        }
+        else if (!strcmp(command, "show_nodelist"))
+        {
+            showNodeList();
         }
     }
     return 0;
