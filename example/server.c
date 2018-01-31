@@ -1472,6 +1472,7 @@ static void print_menu()
     printf("update_robot : update robot node automatically\n");
     printf("quit : terminate/stop opcua server/client and then quit\n");
     printf("help : print menu\n");
+    printf("show_nodelist : show the list of node in server");
 
     printf("\n=============== OPC UA =======================\n\n");
 }
@@ -1538,6 +1539,8 @@ int main()
         else if (!strcmp(command, "help"))
         {
             print_menu();
+        }else if (!strcmp(command, "show_nodelist")){
+        	showNodeList();
         }
     }
     return 0;

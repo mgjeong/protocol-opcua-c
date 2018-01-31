@@ -14,6 +14,10 @@ static DiscoveryCallback *discoveryCb;
 
 static bool b_serverInitialized = false;
 
+void showNodeList(void){
+	printNodeListInServer();
+}
+
 static void registerRecvCallback(ReceivedMessageCallback *callback)
 {
     receivedMsgCb = callback;

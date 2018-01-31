@@ -50,6 +50,15 @@ static edgeMap *namespaceMap = NULL;
 
 static int namespaceType = DEFAULT_TYPE;
 
+void printNode(void *visitorContext, const UA_Node *node){
+	UA_QualifiedName browseName = node->browseName;
+	printf("namespaceIndex : %d, browseName : %s\n",
+			node->nodeId.namespaceIndex, convertUAStringToString(&browseName.name));
+}
+
+void printNodeListInServer(){
+	m_serverConfig->nodestore.iterate(m_serverConfig->nodestore.context, NULL, printNode);
+}
 
 static void* getNamespaceIndex(char *namespaceUri)
 {
