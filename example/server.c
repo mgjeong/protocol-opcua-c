@@ -1277,14 +1277,15 @@ static void testCreateNodes()
     /************ Reference is not NODE CLASS ***************/
     printf(COLOR_GREEN"\n[Create Reference]\n"COLOR_RESET);
     printf("\n[%d] Make Reference that ViewNode1 node Organizes with ObjectType1\n", ++index);
-    EdgeReference *reference = (EdgeReference *) malloc(sizeof(EdgeReference));
+
+    EdgeReference *reference = (EdgeReference *) calloc(1, sizeof(EdgeReference));
     if (IS_NOT_NULL(reference))
     {
         reference->forward = true;
         reference->sourceNamespace = DEFAULT_NAMESPACE_VALUE;
         reference->sourcePath = "ViewNode1";
         reference->targetNamespace = DEFAULT_NAMESPACE_VALUE;
-        reference->targetPath = "ObjectType1";
+        reference->targetPath = "String1";
         /* default reference ID : Organizes */
         addReference(reference);
 
@@ -1294,6 +1295,62 @@ static void testCreateNodes()
     {
         printf("Error :: malloc failed for EdgeReference in Test create Nodes\n");
     }
+
+    reference = (EdgeReference *) calloc(1, sizeof(EdgeReference));
+    if (IS_NOT_NULL(reference))
+    {
+        reference->forward = true;
+        reference->sourceNamespace = DEFAULT_NAMESPACE_VALUE;
+        reference->sourcePath = "ViewNode1";
+        reference->targetNamespace = DEFAULT_NAMESPACE_VALUE;
+        reference->targetPath = "Byte";
+        /* default reference ID : Organizes */
+        addReference(reference);
+
+        FREE(reference);
+    }
+    else
+    {
+        printf("Error :: malloc failed for EdgeReference in Test create Nodes\n");
+    }
+
+    reference = (EdgeReference *) calloc(1, sizeof(EdgeReference));
+    if (IS_NOT_NULL(reference))
+    {
+        reference->forward = true;
+        reference->sourceNamespace = DEFAULT_NAMESPACE_VALUE;
+        reference->sourcePath = "ViewNode2";
+        reference->targetNamespace = DEFAULT_NAMESPACE_VALUE;
+        reference->targetPath = "String1";
+        /* default reference ID : Organizes */
+        addReference(reference);
+
+        FREE(reference);
+    }
+    else
+    {
+        printf("Error :: malloc failed for EdgeReference in Test create Nodes\n");
+    }
+
+    reference = (EdgeReference *) calloc(1, sizeof(EdgeReference));
+    if (IS_NOT_NULL(reference))
+    {
+        reference->forward = true;
+        reference->sourceNamespace = DEFAULT_NAMESPACE_VALUE;
+        reference->sourcePath = "ViewNode2";
+        reference->targetNamespace = DEFAULT_NAMESPACE_VALUE;
+        reference->targetPath = "Byte";
+        /* default reference ID : Organizes */
+        addReference(reference);
+
+        FREE(reference);
+    }
+    else
+    {
+        printf("Error :: malloc failed for EdgeReference in Test create Nodes\n");
+    }
+
+
 
     printf("\n\n");
 }
