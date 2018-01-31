@@ -48,6 +48,7 @@ extern "C"
     EdgeNodeItem* createVariableNodeItemImpl(char* name, EdgeNodeIdentifier type, void* data,
             EdgeIdentifier nodeType);
     EdgeResult deleteNodeItemImpl(EdgeNodeItem* item);
+    void printNodeListInServer();
 
 #ifdef __cplusplus
 }

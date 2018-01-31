@@ -97,7 +97,7 @@ __attribute__((visibility("default"))) EdgeResult browseNext(EdgeMessage *msg);
 __attribute__((visibility("default"))) EdgeResult callMethod(EdgeMessage *msg);
 __attribute__((visibility("default"))) EdgeResult handleSubscription(EdgeMessage *msg);
 
-
+__attribute__((visibility("default"))) void showNodeList(void);
 
 
 #ifdef __cplusplus
