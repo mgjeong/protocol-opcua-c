@@ -29,8 +29,7 @@ static int endpointCount = 0;
 
 static EdgeConfigure *config = NULL;
 
-#define TAG "CLIENT"
-#define TEST_WITH_REFERENCE_SERVER 0
+#define TAG "SAMPLE_CLIENT"
 
 typedef struct EndPointList {
     char *endpoint;
