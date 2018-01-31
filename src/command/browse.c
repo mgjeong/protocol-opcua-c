@@ -263,8 +263,7 @@ static bool hasNode(BrowseMap *map, int mapSize, int index, UA_NodeId nodeId)
     return false;
 }
 
-static const int BROWSE_NODECLASS_MASK = UA_NODECLASS_OBJECT | UA_NODECLASS_VARIABLE
-        | UA_NODECLASS_METHOD | UA_NODECLASS_VIEW | UA_NODECLASS_REFERENCETYPE;
+static const int BROWSE_NODECLASS_MASK = UA_NODECLASS_UNSPECIFIED;
 
 static const int VIEW_NODECLASS_MASK = UA_NODECLASS_OBJECT | UA_NODECLASS_VIEW;
 
@@ -477,7 +476,8 @@ bool checkNodeClass(UA_NodeClass nodeClass, EdgeNodeId *srcNodeId)
         invokeErrorCb(srcNodeId, STATUS_ERROR, NODECLASS_INVALID);
         retVal = false;
     }
-    else if ((nodeClass & BROWSE_NODECLASS_MASK) == 0)
+    else if (UA_NODECLASS_UNSPECIFIED != BROWSE_NODECLASS_MASK &&
+        (nodeClass & BROWSE_NODECLASS_MASK) == 0)
     {
         EDGE_LOG(TAG, "Error: " STATUS_VIEW_NOTINCLUDE_NODECLASS_VALUE);
         invokeErrorCb(srcNodeId, STATUS_ERROR, STATUS_VIEW_NOTINCLUDE_NODECLASS_VALUE);
