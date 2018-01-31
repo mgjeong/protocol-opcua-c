@@ -34,8 +34,8 @@ extern "C"
 
 #define FREE(arg) if(arg) {free(arg); arg=NULL; }
 
-#define IS_NULL(arg) (arg == NULL) ? true : false
-#define IS_NOT_NULL(arg) (arg != NULL) ? true : false
+#define IS_NULL(arg) ((arg == NULL) ? true : false)
+#define IS_NOT_NULL(arg) ((arg != NULL) ? true : false)
 
 #define VERIFY_NON_NULL(arg, retVal) { if (!(arg)) { EDGE_LOG(TAG, \
              #arg " is NULL"); return (retVal); } }
