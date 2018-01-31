@@ -11,14 +11,19 @@
 #include "edge_identifier.h"
 #include "open62541.h"
 
+#define TAG "SAMPLE_SERVER"
+
 #define COLOR_GREEN        "\x1b[32m"
 #define COLOR_YELLOW      "\x1b[33m"
 #define COLOR_PURPLE      "\x1b[35m"
 #define COLOR_RESET         "\x1b[0m"
 
-#define MAX_TEST_NUMBER 10000
+#define MAX_TEST_NUMBER (10000)
 #define SAMPLE_STRING_1 "test_1"
 #define SAMPLE_STRING_2 "test_2"
+#define DEFAULT_HOST_NAME "localhost"
+#define MAX_ENDPOINT_URI_SIZE (512)
+#define MAX_ADDRESS_SIZE (128)
 
 #define FREE(arg) if(arg) {free(arg); arg=NULL; }
 #define IS_NULL(arg) (arg == NULL) ? true : false
@@ -29,8 +34,8 @@
 static bool startFlag = false;
 static bool stopFlag = false;
 
-static char ipAddress[128];
-static char endpointUri[512];
+static char ipAddress[MAX_ADDRESS_SIZE];
+static char endpointUri[MAX_ENDPOINT_URI_SIZE];
 
 static EdgeEndPointInfo *epInfo;
 static EdgeConfigure *config = NULL;
@@ -44,6 +49,38 @@ extern void test_method_print(int inpSize, void **input, int outSize, void **out
 extern void test_method_version(int inpSize, void **input, int outSize, void **output);
 extern void test_method_sqrt(int inpSize, void **input, int outSize, void **output);
 extern void test_method_increment_int32Array(int inpSize, void **input, int outSize, void **output);
+
+/* update node automatically */
+static bool b_running = false;
+static pthread_t m_serverThread;
+static int robot_data_idx = 0;
+
+static void *server_sample_loop(void *ptr)
+{
+    char s_value[MAX_ENDPOINT_URI_SIZE] = {};
+    char dataNum[1];
+
+    while (b_running)
+    {
+        sprintf(dataNum, "%d", robot_data_idx);
+        strncpy(s_value, "robot data ", sizeof(s_value));
+        strcat(s_value, dataNum);
+           EdgeVersatility *message = (EdgeVersatility *) malloc(sizeof(EdgeVersatility));
+           if (IS_NOT_NULL(message))
+           {
+               message->value = (void *) s_value;
+               modifyVariableNode(DEFAULT_NAMESPACE_VALUE, "String1", message);
+               FREE(message);
+           }
+           else
+           {
+               printf("Error :: malloc failed for EdgeVersatility in Test Modify Nodes\n");
+           }
+        usleep(100000);
+        robot_data_idx++;
+    }
+    return NULL;
+}
 
 // TODO: Remove this function later when sdk expose it.
 
@@ -279,7 +316,8 @@ static void testCreateNodes()
     {
         lt_value->locale = UA_STRING_ALLOC("COUNTRY");
         lt_value->text = UA_STRING_ALLOC("INDIA");
-        item = createVariableNodeItem("LocalizedText", LocalizedText, (void *) lt_value, VARIABLE_NODE);
+        item = createVariableNodeItem("LocalizedText", LocalizedText, (void *) lt_value,
+                VARIABLE_NODE);
         VERIFY_NON_NULL_NR(item);
         createNode(DEFAULT_NAMESPACE_VALUE, item);
         printf("\n|------------[Added] %s\n", item->browseName);
@@ -446,7 +484,8 @@ static void testCreateNodes()
         UA_String str = UA_STRING_ALLOC("qualifiedName");
         qn_value->namespaceIndex = 2;
         qn_value->name = str;
-        item = createVariableNodeItem("QualifiedName", QualifiedName, (void *) qn_value, VARIABLE_NODE);
+        item = createVariableNodeItem("QualifiedName", QualifiedName, (void *) qn_value,
+                VARIABLE_NODE);
         VERIFY_NON_NULL_NR(item);
         createNode(DEFAULT_NAMESPACE_VALUE, item);
         printf("\n|------------[Added] %s\n", item->browseName);
@@ -486,7 +525,8 @@ static void testCreateNodes()
             *dataArray[2] = UA_BYTESTRING_ALLOC("klmno");
             *dataArray[3] = UA_BYTESTRING_ALLOC("pqrst");
             *dataArray[4] = UA_BYTESTRING_ALLOC("uvwxyz");
-            item = createVariableNodeItem("ByteStringArray", ByteString, (void *) dataArray, VARIABLE_NODE);
+            item = createVariableNodeItem("ByteStringArray", ByteString, (void *) dataArray,
+                    VARIABLE_NODE);
             VERIFY_NON_NULL_NR(item);
             item->nodeType = ARRAY_NODE;
             item->arrayLength = 5;
@@ -861,8 +901,9 @@ static void testCreateNodes()
     /******************* Variable Type Node *********************/
     printf(COLOR_GREEN"\n[Create Variable Type Node]\n"COLOR_RESET);
     printf("\n[%d] Variable Type Node with Double Variable Type \n", ++index);
-    double d[2] = { 10.2, 20.2 };
-    item = createVariableNodeItem("DoubleVariableType", Double, (void *)d, VARIABLE_TYPE_NODE);
+    double d[2] =
+    { 10.2, 20.2 };
+    item = createVariableNodeItem("DoubleVariableType", Double, (void *) d, VARIABLE_TYPE_NODE);
     VERIFY_NON_NULL_NR(item);
     item->arrayLength = 2;
     createNode(DEFAULT_NAMESPACE_VALUE, item);
@@ -971,7 +1012,7 @@ static void testCreateNodes()
         {
             for (int j = 0; j < idx; j++)
             {
-                if(IS_NOT_NULL(method->inpArg[j]))
+                if (IS_NOT_NULL(method->inpArg[j]))
                 {
                     FREE(method->inpArg[j]);
                 }
@@ -1003,12 +1044,12 @@ static void testCreateNodes()
         {
             for (int j = 0; j < idx; j++)
             {
-                if(IS_NOT_NULL(method->outArg[j]))
+                if (IS_NOT_NULL(method->outArg[j]))
                 {
                     FREE(method->outArg[j]);
                 }
             }
-            
+
             FREE(method->outArg);
             FREE(methodNodeItem);
             FREE(method);
@@ -1095,7 +1136,7 @@ static void testCreateNodes()
         {
             for (int j = 0; j < idx; j++)
             {
-                if(IS_NOT_NULL(method->outArg[j]))
+                if (IS_NOT_NULL(method->outArg[j]))
                 {
                     FREE(method->outArg[j]);
                 }
@@ -1268,13 +1309,13 @@ static void testModifyNode()
     printf("\n" COLOR_YELLOW "                  Modify Variable Node            "COLOR_RESET);
     printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET
     "\n\n");
-    char s_value[512];
+    char s_value[MAX_ENDPOINT_URI_SIZE];
     double d_value;
     unsigned int u_value;
     int i_value;
     int option;
     void *new_value = NULL;
-    char name[128];
+    char name[MAX_ADDRESS_SIZE];
 
     printf(
             "\n\n" COLOR_YELLOW
@@ -1407,6 +1448,9 @@ static void deinit()
 {
     if (startFlag)
     {
+        b_running = false;
+        pthread_join(m_serverThread, NULL);
+
         stopServer();
         startFlag = false;
 
@@ -1421,6 +1465,7 @@ static void deinit()
 
         FREE(epInfo);
     }
+
 }
 
 static void print_menu()
@@ -1428,7 +1473,8 @@ static void print_menu()
     printf("=============== OPC UA =======================\n\n");
 
     printf("start : start opcua server\n");
-    printf("modify_node : modify variable node\n");
+    printf("update_node : update variable node\n");
+    printf("update_robot : update robot node automatically\n");
     printf("quit : terminate/stop opcua server/client and then quit\n");
     printf("help : print menu\n");
 
@@ -1460,8 +1506,8 @@ int main()
                     "\n" COLOR_YELLOW " ------------------------------------------------------" COLOR_RESET
                     "\n\n");
 
-            strncpy(ipAddress, "localhost", strlen("localhost"));
-            ipAddress[strlen("localhost")] = '\0';
+            strncpy(ipAddress, DEFAULT_HOST_NAME, strlen(DEFAULT_HOST_NAME));
+            ipAddress[strlen(DEFAULT_HOST_NAME)] = '\0';
 
             snprintf(endpointUri, sizeof(endpointUri), "opc:tcp://%s:12686/edge-opc-server",
                     ipAddress);
@@ -1481,9 +1527,14 @@ int main()
                 printf("Error :: malloc failed for EdgeEndPointInfo in Test create Nodes\n");
             }
         }
-        else if (!strcmp(command, "modify_node"))
+        else if (!strcmp(command, "update_node"))
         {
             testModifyNode();
+        }
+        else if (!strcmp(command, "update_robot"))
+        {
+            b_running = true;
+            pthread_create(&m_serverThread, NULL, &server_sample_loop, NULL);
         }
         else if (!strcmp(command, "quit"))
         {
