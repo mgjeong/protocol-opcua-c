@@ -41,8 +41,8 @@ extern "C"
 #define VERIFY_NON_NULL_NR(arg) { if (!(arg)) { EDGE_LOG(TAG, \
              #arg " is NULL"); return; } }
 
-#define IS_NULL(arg) (arg == NULL) ? true : false
-#define IS_NOT_NULL(arg) (arg != NULL) ? true : false
+#define IS_NULL(arg) ((arg == NULL) ? true : false)
+#define IS_NOT_NULL(arg) ((arg != NULL) ? true : false)
 
 #define FREE(arg) if(arg) {free(arg); arg=NULL; }
 
@@ -106,11 +106,13 @@ extern "C"
      */
     void deleteMap(edgeMap *map);
 
-    void addListNode(List **head, void *data);
+    bool addListNode(List **head, void *data);
 
     void deleteListNode(List **head, void *data);
 
     void deleteList(List **head);
+
+    unsigned int getListSize(List *ptr);
 
     char *cloneString(const char *str);
 

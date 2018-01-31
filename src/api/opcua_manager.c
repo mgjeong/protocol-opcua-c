@@ -83,6 +83,12 @@ EdgeResult browseNode(EdgeMessage *msg)
     return result;
 }
 
+EdgeResult browseViews(EdgeMessage *msg)
+{
+    EdgeResult result = browseViewsInServer(msg);
+    return result;
+}
+
 EdgeResult browseNext(EdgeMessage *msg)
 {
     EdgeResult result = browseNextInServer(msg);

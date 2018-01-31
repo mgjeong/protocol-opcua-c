@@ -138,6 +138,12 @@ EdgeResult browseNodesInServer(EdgeMessage *msg)
     return result;
 }
 
+EdgeResult browseViewsInServer(EdgeMessage *msg)
+{
+    EdgeResult result = executeBrowseViews((UA_Client*) getSessionClient(msg->endpointInfo->endpointUri), msg);
+    return result;
+}
+
 EdgeResult browseNextInServer(EdgeMessage *msg)
 {
     EdgeResult result = executeBrowse((UA_Client*) getSessionClient(msg->endpointInfo->endpointUri), msg, true);
@@ -556,7 +562,11 @@ static bool parseEndpoints(size_t endpointArraySize, UA_EndpointDescription *end
             goto ERROR;
         }
 
-        addListNode(endpointList, epInfo);
+        if(!addListNode(endpointList, epInfo))
+        {
+            EDGE_LOG(TAG, "Failed to add endpoint in result list.");
+            goto ERROR;
+        }
         ++(*count);
         epInfo = NULL;
     }

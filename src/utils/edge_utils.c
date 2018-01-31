@@ -99,19 +99,38 @@ static List *createListNode(void *data)
     return node;
 }
 
-void addListNode(List **head, void *data)
+bool addListNode(List **head, void *data)
 {
-    if (!head || !data)
+    if (IS_NULL(head) || IS_NULL(data))
     {
-        return;
+        return false;
     }
 
     List *newnode = createListNode(data);
-    if (newnode)
+    if (IS_NULL(newnode))
     {
-        newnode->link = *head;
-        *head = newnode;
+        return false;
     }
+
+    newnode->link = *head;
+    *head = newnode;
+    return true;
+}
+
+unsigned int getListSize(List *ptr)
+{
+    if(IS_NULL(ptr))
+    {
+        return 0;
+    }
+
+    int size = 0;
+    while(ptr)
+    {
+        size++;
+        ptr=ptr->link;
+    }
+    return size;
 }
 
 void deleteListNode(List **head, void *data)

@@ -185,12 +185,13 @@ void destroyBrowseNextData(BrowseNextData *data)
     FREE(data);
 }
 
-void initBrowseNextData(EdgeBrowseParameter browseParam)
+void initBrowseNextData(EdgeBrowseParameter *browseParam)
 {
     destroyBrowseNextData(browseNextData);
     browseNextData = (BrowseNextData *)calloc(1, sizeof(BrowseNextData));
     VERIFY_NON_NULL_NR(browseNextData);
-    browseNextData->browseParam = browseParam;
+    if(browseParam)
+        browseNextData->browseParam = *browseParam;
     browseNextData->count = MAX_CP_LIST_COUNT;
     browseNextData->last_used = -1;
     browseNextData->cp = (EdgeContinuationPoint *)calloc(browseNextData->count,
@@ -947,7 +948,7 @@ static void testBrowseNext()
         return;
     }
 
-    initBrowseNextData(browseNextData->browseParam);
+    initBrowseNextData(&browseNextData->browseParam);
     printf("Total number of continuation points: %d.\n", clone->last_used + 1);
 
     EdgeEndPointInfo *ep = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
@@ -1045,6 +1046,44 @@ static void testBrowseNext()
     destroyBrowseNextData(clone);
 }
 
+static void testBrowseViews(char* endpointUri)
+{
+    printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET);
+    printf("\n" COLOR_YELLOW "                       Browse Views            "COLOR_RESET);
+    printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET
+           "\n\n");
+
+    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
+    if(IS_NULL(ep))
+    {
+        printf("Error : Malloc failed for EdgeEndPointInfo in test browse\n");
+        goto EXIT_BROWSE;
+    }
+    ep->endpointUri = endpointUri;
+
+    EdgeMessage *msg = (EdgeMessage *) calloc(1, sizeof(EdgeMessage));
+    if(IS_NULL(msg))
+    {
+        printf("Error : Malloc failed for EdgeMessage in test browse\n");
+        goto EXIT_BROWSE;
+    }
+    msg->type = SEND_REQUEST;
+    msg->endpointInfo = ep;
+    msg->command = CMD_BROWSE;
+
+    printf("\n\n" COLOR_YELLOW "********** Browse Views under RootFolder node in system namespace **********"
+           COLOR_RESET "\n");
+
+    initBrowseNextData(msg->browseParam);
+
+    browseViews(msg);
+
+    EXIT_BROWSE:
+    FREE(ep);
+    FREE(msg);
+}
+
+
 static void testBrowse(char* endpointUri)
 {
     printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET);
@@ -1129,7 +1168,7 @@ static void testBrowse(char* endpointUri)
     msg->browseParam->direction = DIRECTION_FORWARD;
     msg->browseParam->maxReferencesPerNode = maxReferencesPerNode;
 
-    initBrowseNextData(*msg->browseParam);
+    initBrowseNextData(msg->browseParam);
 
     browseNode(msg);
 
@@ -1325,7 +1364,7 @@ static void testBrowses()
     msg->browseParam->direction = DIRECTION_FORWARD;
     msg->browseParam->maxReferencesPerNode = maxReferencesPerNode;
 
-    initBrowseNextData(*msg->browseParam);
+    initBrowseNextData(msg->browseParam);
 
     browseNode(msg);
 
@@ -2737,6 +2776,7 @@ static void print_menu()
     printf("browse : browse nodes\n");
     printf("browse_m : browse multiple nodes\n");
     printf("browse_next : browse next nodes\n");
+    printf("browse_v : browse views\n");
     printf("method : method call\n");
     printf("create_sub : create subscription\n");
     printf("modify_sub : modify subscription\n");
@@ -2814,6 +2854,16 @@ int main()
         else if (!strcmp(command, "browse_next"))
         {
             testBrowseNext();
+        }
+        else if (!strcmp(command, "browse_v"))
+        {
+            char *ep = getEndPoint_input();
+            if (ep == NULL)
+            {
+                printf("Client not connected to any endpoints\n\n");
+                break;
+            }
+            testBrowseViews(ep);
         }
         else if (!strcmp(command, "method"))
         {
