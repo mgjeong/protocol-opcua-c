@@ -219,15 +219,15 @@ static void addObjectNode(UA_Server *server, int nsIndex, EdgeNodeItem *item)
     char *nodeId = item->sourceNodeId->nodeId;
     if (nodeId != NULL)
     {
-        sourceNodeId = UA_NODEID_STRING(1, nodeId);
+        sourceNodeId = UA_NODEID_STRING(nsIndex, nodeId);
     }
     else
     {
         sourceNodeId = UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER);
     }
 
-    UA_StatusCode status = UA_Server_addObjectNode(server, UA_NODEID_STRING(1, item->browseName),
-            sourceNodeId, UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES), UA_QUALIFIEDNAME(1, name),
+    UA_StatusCode status = UA_Server_addObjectNode(server, UA_NODEID_STRING(nsIndex, item->browseName),
+            sourceNodeId, UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES), UA_QUALIFIEDNAME(nsIndex, name),
             UA_NODEID_NUMERIC(0, UA_NS0ID_FOLDERTYPE), object_attr, NULL, NULL);
 
     if (status == UA_STATUSCODE_GOOD)
@@ -247,21 +247,21 @@ static void addObjectTypeNode(UA_Server *server, int nsIndex, EdgeNodeItem *item
     object_attr.description = UA_LOCALIZEDTEXT("en-US", name);
     object_attr.displayName = UA_LOCALIZEDTEXT("en-US", name);
 
-    UA_NodeId sourceNodeId = UA_NODEID_NUMERIC(0, UA_NS0ID_BASEOBJECTTYPE);
+    UA_NodeId sourceNodeId;
     char *nodeId = item->sourceNodeId->nodeId;
+    if (nodeId != NULL)
+    {
+        sourceNodeId = UA_NODEID_STRING(nsIndex, nodeId);
+    }
+    else
+    {
+        sourceNodeId = UA_NODEID_NUMERIC(0, UA_NS0ID_BASEOBJECTTYPE);
+    }
 
     UA_StatusCode status = UA_Server_addObjectTypeNode(server,
             UA_NODEID_STRING(nsIndex, item->browseName), sourceNodeId,
             UA_NODEID_NUMERIC(0, UA_NS0ID_HASSUBTYPE), UA_QUALIFIEDNAME(nsIndex, name), object_attr, NULL,
             NULL);
-
-    if (nodeId != NULL)
-    {
-        sourceNodeId = UA_NODEID_STRING(nsIndex, nodeId);
-        status = UA_Server_addReference(server, sourceNodeId,
-                UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES),
-                UA_EXPANDEDNODEID_STRING(nsIndex, item->browseName), true);
-    }
 
     if (status == UA_STATUSCODE_GOOD)
     {
@@ -363,12 +363,11 @@ static void addViewNode(UA_Server *server, int nsIndex, EdgeNodeItem *item)
     attr.description = UA_LOCALIZEDTEXT("en-US", name);
     attr.displayName = UA_LOCALIZEDTEXT("en-US", name);
 
-    UA_NodeId sourceNodeId;
-
+    UA_NodeId sourceNodeId; // = UA_NODEID_NUMERIC(0, UA_NS0ID_VIEWSFOLDER);
     char *nodeId = item->sourceNodeId->nodeId;
     if (nodeId != NULL)
     {
-        sourceNodeId = UA_NODEID_STRING(1, nodeId);
+        sourceNodeId = UA_NODEID_STRING(nsIndex, nodeId);
     }
     else
     {
@@ -378,14 +377,6 @@ static void addViewNode(UA_Server *server, int nsIndex, EdgeNodeItem *item)
     UA_StatusCode status = UA_Server_addViewNode(server, UA_NODEID_STRING(nsIndex, item->browseName),
             sourceNodeId, UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES), UA_QUALIFIEDNAME(nsIndex, name), attr,
             NULL, NULL);
-
-    if (nodeId != NULL)
-    {
-        sourceNodeId = UA_NODEID_STRING(nsIndex, nodeId);
-        status = UA_Server_addReference(server, sourceNodeId,
-                UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES),
-                UA_EXPANDEDNODEID_STRING(nsIndex, item->browseName), true);
-    }
 
     if (status == UA_STATUSCODE_GOOD)
     {

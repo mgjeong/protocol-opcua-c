@@ -1325,7 +1325,7 @@ static void testBrowses()
     }
     nodeInfo3->nodeId->type = STRING;
     nodeInfo3->nodeId->nodeId = "Object1";
-    nodeInfo3->nodeId->nameSpace = 1;
+    nodeInfo3->nodeId->nameSpace = 2;
 
     requests[0] = (EdgeRequest *) calloc(1, sizeof(EdgeRequest));
     if(IS_NULL(requests[0]))
