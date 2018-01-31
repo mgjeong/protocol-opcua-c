@@ -7,24 +7,25 @@
 #include <opcua_manager.h>
 #include <opcua_common.h>
 
+#define TEST_WITH_REFERENCE_SERVER 0
+
 #define COLOR_GREEN        "\x1b[32m"
 #define COLOR_YELLOW      "\x1b[33m"
 #define COLOR_PURPLE      "\x1b[35m"
 #define COLOR_RESET         "\x1b[0m"
 
-#define MAX_CHAR_SIZE   512
-#define NODE_COUNT  6
+#define MAX_CHAR_SIZE (512)
+#define MAX_ADDRESS_SIZE (128)
+#define NODE_COUNT (6)
 
 static bool startFlag = false;
 static bool stopFlag = false;
 
-static char ipAddress[MAX_CHAR_SIZE];
+static char ipAddress[MAX_ADDRESS_SIZE];
 static char endpointUri[MAX_CHAR_SIZE];
 static int endpointCount = 0;
 
 static EdgeConfigure *config = NULL;
-
-#define TEST_WITH_REFERENCE_SERVER 0
 
 #define FREE(arg) if(arg) {free(arg); arg=NULL; }
 #define IS_NULL(arg) (arg == NULL) ? true : false
