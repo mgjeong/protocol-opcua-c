@@ -91,7 +91,7 @@ static void *server_sample_loop(void *ptr)
                 posArray[2] = getRandom(rorot_pos_key);
                 message->value = (void *) posArray;
                 modifyVariableNode(DEFAULT_NAMESPACE_VALUE, "robot_position", message);
-                //printf("(%d %d %d)\n", posArray[0], posArray[1], posArray[2]);
+                printf("(%d %d %d)\n", posArray[0], posArray[1], posArray[2]);
             }
             else
             {
