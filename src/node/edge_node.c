@@ -47,33 +47,27 @@ static void addVariableNode(UA_Server *server, int nsIndex, EdgeNodeItem *item)
 
     if (accessLevel == READ)
     {
-        EDGE_LOG(TAG, "accessLevel :: UA_ACCESSLEVELMASK_READ\n");
         attr.accessLevel = UA_ACCESSLEVELMASK_READ;
     }
     else if (accessLevel == WRITE)
     {
-        EDGE_LOG(TAG, "accessLevel :: UA_ACCESSLEVELMASK_WRITE\n");
         attr.accessLevel = UA_ACCESSLEVELMASK_WRITE;
     }
     else
     {
-        EDGE_LOG(TAG, "accessLevel :: UA_ACCESSLEVELMASK\n");
         attr.accessLevel = UA_ACCESSLEVELMASK_READ | UA_ACCESSLEVELMASK_WRITE;
     }
 
     if (userAccessLevel == READ)
     {
-        EDGE_LOG(TAG, "userAccessLevel :: UA_ACCESSLEVELMASK_READ\n");
         attr.userAccessLevel = UA_ACCESSLEVELMASK_READ;
     }
     else if (userAccessLevel == WRITE)
     {
-        EDGE_LOG(TAG, "userAccessLevel :: UA_ACCESSLEVELMASK_WRITE\n");
         attr.userAccessLevel = UA_ACCESSLEVELMASK_WRITE;
     }
     else
     {
-        EDGE_LOG(TAG, "userAccessLevel :: UA_ACCESSLEVELMASK\n");
         attr.userAccessLevel = UA_ACCESSLEVELMASK_READ | UA_ACCESSLEVELMASK_WRITE;
     }
 

@@ -8,6 +8,7 @@ extern "C"
 #include "edge_identifier.h"
 #include "edge_utils.h"
 #include "edge_logger.h"
+#include "edge_malloc.h"
 #include "open62541.h"
 }
 
@@ -52,6 +53,17 @@ static char node_arr[10][11] =
 
 static int method_arr[5] =
 { 105, 205, 305, 405, 505 };
+
+typedef struct BrowseNextData
+{
+    EdgeBrowseParameter browseParam;
+    int count;
+    int last_used;
+    EdgeContinuationPoint *cp; // Continuation point List. Size of list = last_used.
+    EdgeNodeId **srcNodeId; // Id of source node of every continuation point. Size of list = last_used.
+} BrowseNextData;
+
+BrowseNextData *browseNextData = NULL;
 
 extern "C"
 {
@@ -384,24 +396,19 @@ extern "C"
     {
         PRINT_ARG("[error_msg_cb] EdgeStatusCode: ", data->result->code);
     }
-
-    static void browse_msg_cb(EdgeMessage *data)
+    static void browse_msg_cb (EdgeMessage *data)
     {
-        if (data->type == BROWSE_RESPONSE)
+        browseNodeFlag = true;
+        if (data->browseResult)
         {
-            EdgeBrowseResult *browseResult = data->browseResult;
-            int idx = 0;
-            PRINT_ARG("[Application browse response callback] Request ID :: ",
-                    data->responses[0]->requestId);
-            PRINT("BrowseName(s): ");
-            browseNodeFlag = true;
-            for (idx = 0; idx < data->browseResultLength; idx++)
+            //PRINT_ARG("\n", (unsigned char *)data->responses[0]->message->value);
+        }
+        else
+        {
+            if (data->cpList && data->cpList->count > 0)
             {
-                if (idx != 0)
-                    PRINT(", ");
-                PRINT(browseResult[idx].browseName);
+                // Do somethings
             }
-            PRINT("================================================");
         }
     }
 
@@ -771,6 +778,15 @@ static void browseNodes()
     msg->browseParam->direction = DIRECTION_FORWARD;
     msg->browseParam->maxReferencesPerNode = 0;
 
+    browseNextData = (BrowseNextData *)calloc(1, sizeof(BrowseNextData));
+    browseNextData->browseParam = *msg->browseParam;
+    browseNextData->count = 1000;
+    browseNextData->last_used = -1;
+    browseNextData->cp = (EdgeContinuationPoint *)calloc(browseNextData->count,
+                         sizeof(EdgeContinuationPoint));
+    browseNextData->srcNodeId = (EdgeNodeId **)calloc(browseNextData->count, sizeof(EdgeNodeId *));
+    
+
     EXPECT_EQ(browseNodeFlag, false);
     browseNode(msg);
     EXPECT_EQ(browseNodeFlag, true);
@@ -794,26 +810,6 @@ static void browseNodes()
     EXPECT_EQ(browseNodeFlag, true);
     browseNodeFlag = false;
 
-    // ------------------------------------------------- //
-    free(nodeInfo);
-    nodeInfo = NULL;
-
-    nodeInfo = (EdgeNodeInfo *) calloc(1, sizeof(EdgeNodeInfo));
-    nodeInfo->nodeId = (EdgeNodeId *) calloc(1, sizeof(EdgeNodeId));
-
-    nodeInfo->nodeId->type = STRING;
-    nodeInfo->nodeId->nodeId = "Object1";
-    nodeInfo->nodeId->nameSpace = 1;
-
-    request->nodeInfo = nodeInfo;
-    msg->request = request;
-
-    EXPECT_EQ(browseNodeFlag, false);
-    browseNode(msg);
-    EXPECT_EQ(browseNodeFlag, true);
-    browseNodeFlag = false;
-
-    // ------------------------------------------------- //
     free(nodeInfo);
     nodeInfo = NULL;
     free(ep);
@@ -828,7 +824,6 @@ static void writeNodes(bool defaultFlag)
 {
     PRINT("=============== Writting Nodes ==================");
 
-    EdgeNodeIdentifier type;
     void *new_value = NULL;
 
     int id;
@@ -1479,35 +1474,21 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
 
     EXPECT_EQ(startServerFlag, true);
 
-    //NULL NODE
-    EdgeResult result = createNode(DEFAULT_NAMESPACE_VALUE, NULL);
-    EXPECT_EQ(result.code, STATUS_PARAM_INVALID);
-
-    // NULL NODE->ITEM
-    EdgeNodeItem *item = (EdgeNodeItem *) malloc(sizeof(EdgeNodeItem));
-    item->nodeType = MILTI_FOLDER_NODE_TYPE; // NOT SUPPORTED YET
-    result = createNode(DEFAULT_NAMESPACE_VALUE, item);
-    EXPECT_EQ(result.code, STATUS_ERROR);
-
+    EdgeNodeItem *item = NULL;
+    
     // VARIABLE NODE with string variant:
-    item->nodeType = VARIABLE_NODE;
-    item->accessLevel = READ_WRITE;
-    item->userAccessLevel = READ_WRITE;
-    item->writeMask = 0;
-    item->userWriteMask = 0;
-    item->forward = true;
-    item->browseName = "String1";
-    item->variableIdentifier = String;
-    item->variableData = (void *) "test1";
-    result = createNode(DEFAULT_NAMESPACE_VALUE, item);
+    item = createVariableNodeItem("String1", String, (void *)"test1", VARIABLE_NODE);
+    EdgeResult result = createNode(DEFAULT_NAMESPACE_VALUE, item);
     EXPECT_EQ(result.code, STATUS_OK);
+    deleteNodeItem(item);
 
+    // VARIABLE NODE with UInt16 variant:
     int value = 30;
-    item->browseName = "UInt16";
-    item->variableIdentifier = UInt16;
-    item->variableData = (void *) &value;
+    item = createVariableNodeItem("UInt16", UInt16, (void *) &value, VARIABLE_NODE);
     result = createNode(DEFAULT_NAMESPACE_VALUE, item);
     EXPECT_EQ(result.code, STATUS_OK);
+    deleteNodeItem(item);
+    
     //modify value for this node
     value = 43;
     char *name = "UInt16";
@@ -1515,20 +1496,19 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     message->value = (void *) &value;
     result = modifyVariableNode(DEFAULT_NAMESPACE_VALUE, name, message);
     EXPECT_EQ(result.code, STATUS_OK);
-    free(message);
-    message = NULL;
+    FREE(message);
 
     //Array Nodes with double values
     double *data = (double *) malloc(sizeof(double) * 2);
     data[0] = 10.2;
     data[1] = 20.2;
-    item->browseName = "IntArray";
+    item = createVariableNodeItem("DoubleArray", Double, (void *) data, VARIABLE_NODE);
     item->nodeType = ARRAY_NODE;
-    item->variableIdentifier = Double;
     item->arrayLength = 2;
-    item->variableData = (void *) data;
     result = createNode(DEFAULT_NAMESPACE_VALUE, item);
     EXPECT_EQ(result.code, STATUS_OK);
+    FREE(data);
+    deleteNodeItem(item);
 
     //Array Nodes with ByteString values
     UA_ByteString **dataArray = (UA_ByteString **) malloc(sizeof(UA_ByteString *) * 5);
@@ -1542,13 +1522,12 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     *dataArray[3] = UA_BYTESTRING_ALLOC("pqrst");
     dataArray[4] = (UA_ByteString *) malloc(sizeof(UA_ByteString));
     *dataArray[4] = UA_BYTESTRING_ALLOC("uvwxyz");
-    item->browseName = "ByteStringArray";
+    item = createVariableNodeItem("ByteStringArray", ByteString, (void *) dataArray, VARIABLE_NODE);
     item->nodeType = ARRAY_NODE;
-    item->variableIdentifier = ByteString;
     item->arrayLength = 5;
-    item->variableData = (void *) dataArray;
     result = createNode(DEFAULT_NAMESPACE_VALUE, item);
     EXPECT_EQ(result.code, STATUS_OK);
+    deleteNodeItem(item);
 
     //Array Nodes with String values
     char **data1 = (char **) malloc(sizeof(char *) * 5);
@@ -1562,113 +1541,93 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     strcpy(data1[3], "dogs");
     data1[4] = (char *) malloc(10);
     strcpy(data1[4], "elephant");
-    item->browseName = "CharArray";
+    item = createVariableNodeItem("CharArray", String, (void *) data1, VARIABLE_NODE);
     item->nodeType = ARRAY_NODE;
-    item->variableIdentifier = String;
     item->arrayLength = 5;
-    item->variableData = (void *) (data1);
     result = createNode(DEFAULT_NAMESPACE_VALUE, item);
     EXPECT_EQ(result.code, STATUS_OK);
+    deleteNodeItem(item);
 
     //OBJECT NODE
-    item->nodeType = OBJECT_NODE;
-    item->browseName = "Object1";
-    item->sourceNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
-    item->sourceNodeId->nodeId = NULL; // no source node
+    EdgeNodeId *edgeNodeId = (EdgeNodeId *) calloc(1, sizeof(EdgeNodeId));
+    item = createNodeItem("Object1", OBJECT_NODE, edgeNodeId);
     result = createNode(DEFAULT_NAMESPACE_VALUE, item);
     EXPECT_EQ(result.code, STATUS_OK);
-    item->nodeType = OBJECT_NODE;
-    item->browseName = "Object2";
-    item->sourceNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
-    item->sourceNodeId->nodeId = "Object1";
+    FREE(edgeNodeId);
+    deleteNodeItem(item);
+
+    edgeNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
+    edgeNodeId->nodeId = "Object1";
+    item = createNodeItem("Object2", OBJECT_NODE, edgeNodeId);
     result = createNode(DEFAULT_NAMESPACE_VALUE, item);
     EXPECT_EQ(result.code, STATUS_OK);
+    FREE(edgeNodeId);
+    deleteNodeItem(item);
 
     //OBJECT TYPE NDOE
-    item->nodeType = OBJECT_TYPE_NODE;
-    item->browseName = "ObjectType1";
-    item->sourceNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
-    item->sourceNodeId->nodeId = NULL; // no source node
+    edgeNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
+    edgeNodeId->nodeId = NULL; // no source node
+    item = createNodeItem("ObjectType1", OBJECT_TYPE_NODE, edgeNodeId);
     result = createNode(DEFAULT_NAMESPACE_VALUE, item);
     EXPECT_EQ(result.code, STATUS_OK);
-    item->nodeType = OBJECT_TYPE_NODE;
-    item->browseName = "ObjectType2";
-    item->sourceNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
-    item->sourceNodeId->nodeId = "ObjectType1";
+    FREE(edgeNodeId);
+    deleteNodeItem(item);
+
+    edgeNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
+    edgeNodeId->nodeId = "ObjectType1";
+    item = createNodeItem("ObjectType2", OBJECT_TYPE_NODE, edgeNodeId);
     result = createNode(DEFAULT_NAMESPACE_VALUE, item);
     EXPECT_EQ(result.code, STATUS_OK);
+    FREE(edgeNodeId);
+    deleteNodeItem(item);
 
     //DATA TYPE NODE
-    item->nodeType = DATA_TYPE_NODE;
-    item->browseName = "DataType1";
-    item->sourceNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
-    item->sourceNodeId->nodeId = NULL; // no source node
+    edgeNodeId = (EdgeNodeId *) calloc(1, sizeof(EdgeNodeId));
+    item = createNodeItem("DataType1", DATA_TYPE_NODE, edgeNodeId);
     result = createNode(DEFAULT_NAMESPACE_VALUE, item);
     EXPECT_EQ(result.code, STATUS_OK);
+    FREE(edgeNodeId);
+    deleteNodeItem(item);
 
-    item->nodeType = DATA_TYPE_NODE;
-    item->browseName = "DataType2";
-    item->sourceNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
-    item->sourceNodeId->nodeId = "DataType1";
+    edgeNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
+    edgeNodeId->nodeId = "DataType1";
+    item = createNodeItem("DataType2", DATA_TYPE_NODE, edgeNodeId);
     result = createNode(DEFAULT_NAMESPACE_VALUE, item);
     EXPECT_EQ(result.code, STATUS_OK);
-
-    //VARIABLE TYPE NODE
-    double d[2] =
-    { 10.2, 20.2 };
-    item->browseName = "DoubleVariableType";
-    item->nodeType = VARIABLE_TYPE_NODE;
-    item->variableIdentifier = Double;
-    item->arrayLength = 2;
-    item->variableData = (void *) (d);
-    result = createNode(DEFAULT_NAMESPACE_VALUE, item);
-    EXPECT_EQ(result.code, STATUS_OK);
+    FREE(edgeNodeId);
+    deleteNodeItem(item);
 
     //VIEW NODE
-    item->nodeType = VIEW_NODE;
-    item->browseName = "ViewNode1";
-    item->sourceNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
-    item->sourceNodeId->nodeId = NULL; // no source node
+    edgeNodeId = (EdgeNodeId *) calloc(1, sizeof(EdgeNodeId));
+    item = createNodeItem("ViewNode1", VIEW_NODE, edgeNodeId);
     result = createNode(DEFAULT_NAMESPACE_VALUE, item);
     EXPECT_EQ(result.code, STATUS_OK);
-    item->nodeType = VIEW_NODE;
-    item->browseName = "ViewNode2";
-    item->sourceNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
-    item->sourceNodeId->nodeId = "ViewNode1"; // no source node
-    result = createNode(DEFAULT_NAMESPACE_VALUE, item);
-    EXPECT_EQ(result.code, STATUS_OK);
+    FREE(edgeNodeId);
+    deleteNodeItem(item);
 
-    //REFERENCE NODE
-    EdgeReference *reference = (EdgeReference *) malloc(sizeof(EdgeReference));
-    reference->forward = false;
-    reference->sourceNamespace = DEFAULT_NAMESPACE_VALUE;
-    reference->sourcePath = "ObjectType1";
-    reference->targetNamespace = DEFAULT_NAMESPACE_VALUE;
-    reference->targetPath = "ObjectType2";
-    result = addReference(reference);
+    edgeNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
+    edgeNodeId->nodeId = "ViewNode1";
+    item = createNodeItem("ViewNode2", VIEW_NODE, edgeNodeId);
+    result = createNode(DEFAULT_NAMESPACE_VALUE, item);
     EXPECT_EQ(result.code, STATUS_OK);
-    addReference(reference);
-    reference->forward = true;
-    reference->sourceNamespace = DEFAULT_NAMESPACE_VALUE;
-    reference->sourcePath = "ViewNode1";
-    reference->targetNamespace = DEFAULT_NAMESPACE_VALUE;
-    reference->targetPath = "ObjectType2";
-    result = addReference(reference);
-    EXPECT_EQ(result.code, STATUS_OK);
+    FREE(edgeNodeId);
+    deleteNodeItem(item);
 
     //REFERENCE TYPE NODE
-    item->nodeType = REFERENCE_TYPE_NODE;
-    item->browseName = "ReferenceTypeNode1";
-    item->sourceNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
-    item->sourceNodeId->nodeId = NULL; // no source node
+    edgeNodeId = (EdgeNodeId *) calloc(1, sizeof(EdgeNodeId));
+    item = createNodeItem("ReferenceTypeNode1", REFERENCE_TYPE_NODE, edgeNodeId);
     result = createNode(DEFAULT_NAMESPACE_VALUE, item);
     EXPECT_EQ(result.code, STATUS_OK);
-    item->nodeType = REFERENCE_TYPE_NODE;
-    item->browseName = "ReferenceTypeNode2";
-    item->sourceNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
-    item->sourceNodeId->nodeId = "ReferenceTypeNode1";
+    FREE(edgeNodeId);
+    
+    edgeNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
+    edgeNodeId->nodeId = "ReferenceTypeNode1";
+    item = createNodeItem("ReferenceTypeNode2", REFERENCE_TYPE_NODE, edgeNodeId);
     result = createNode(DEFAULT_NAMESPACE_VALUE, item);
     EXPECT_EQ(result.code, STATUS_OK);
+    FREE(edgeNodeId);
+
+    deleteNodeItem(item);
 
     //METHOD NODE
     EdgeNodeItem *methodNodeItem = (EdgeNodeItem *) malloc(sizeof(EdgeNodeItem));
@@ -1698,6 +1657,18 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     }
     result = createMethodNode(DEFAULT_NAMESPACE_VALUE, methodNodeItem, method);
     EXPECT_EQ(result.code, STATUS_OK);
+
+    
+    //REFERENCE NODE
+    /*EdgeReference *reference = (EdgeReference *) malloc(sizeof(EdgeReference));
+    reference->forward = true;
+    reference->sourceNamespace = DEFAULT_NAMESPACE_VALUE;
+    reference->sourcePath = "ViewNode1";
+    reference->targetNamespace = DEFAULT_NAMESPACE_VALUE;
+    reference->targetPath = "ObjectType1";
+    result = addReference(reference);
+    EXPECT_EQ(result.code, STATUS_OK);
+    FREE(reference);*/
 
     deleteMessage(msg, ep);
 

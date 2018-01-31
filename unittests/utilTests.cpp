@@ -173,6 +173,7 @@ TEST_F(OPC_util , cloneEdgeEndpoint_P)
     ep->endpointConfig = endpointConfig;
     ep->appConfig = appConfig;
     ep->securityPolicyUri = NULL;
+    ep->transportProfileUri = NULL;
 
     EXPECT_EQ(endpointConfig != NULL, true);
     EXPECT_EQ(appConfig != NULL, true);
