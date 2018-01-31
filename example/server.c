@@ -9,6 +9,7 @@
 #include <opcua_manager.h>
 #include "opcua_common.h"
 #include "edge_identifier.h"
+#include "edge_utils.h"
 #include "open62541.h"
 
 #define COLOR_GREEN        "\x1b[32m"
@@ -19,12 +20,6 @@
 #define MAX_TEST_NUMBER 10000
 #define SAMPLE_STRING_1 "test_1"
 #define SAMPLE_STRING_2 "test_2"
-
-#define FREE(arg) if(arg) {free(arg); arg=NULL; }
-#define IS_NULL(arg) (arg == NULL) ? true : false
-#define IS_NOT_NULL(arg) (arg != NULL) ? true : false
-#define VERIFY_NON_NULL(arg, retval) { if (!(arg)) { printf(#arg " is NULL"); return retval; } }
-#define VERIFY_NON_NULL_NR(arg) { if (!(arg)) { printf(#arg " is NULL"); return; } }
 
 static bool startFlag = false;
 static bool stopFlag = false;
