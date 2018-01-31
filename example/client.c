@@ -6,6 +6,8 @@
 
 #include <opcua_manager.h>
 #include <opcua_common.h>
+#include <edge_logger.h>
+#include <edge_malloc.h>
 
 #define TEST_WITH_REFERENCE_SERVER 0
 
@@ -27,11 +29,8 @@ static int endpointCount = 0;
 
 static EdgeConfigure *config = NULL;
 
-#define FREE(arg) if(arg) {free(arg); arg=NULL; }
-#define IS_NULL(arg) (arg == NULL) ? true : false
-#define IS_NOT_NULL(arg) (arg != NULL) ? true : false
-#define VERIFY_NON_NULL(arg, retval) { if (!(arg)) { printf(#arg " is NULL"); return retval; } }
-#define VERIFY_NON_NULL_NR(arg) { if (!(arg)) { printf(#arg " is NULL"); return; } }
+#define TAG "CLIENT"
+#define TEST_WITH_REFERENCE_SERVER 0
 
 typedef struct EndPointList {
     char *endpoint;

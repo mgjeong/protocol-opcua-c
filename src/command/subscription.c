@@ -20,8 +20,8 @@
 
 #include "subscription.h"
 #include "edge_logger.h"
+#include "edge_malloc.h"
 
-#include <stdio.h>
 #include <pthread.h>
 #include <unistd.h>
 

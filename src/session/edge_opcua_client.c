@@ -26,6 +26,7 @@
 #include "subscription.h"
 #include "edge_logger.h"
 #include "edge_utils.h"
+#include "edge_malloc.h"
 
 #include <stdio.h>
 #include <open62541.h>

@@ -9,7 +9,8 @@
 #include <opcua_manager.h>
 #include "opcua_common.h"
 #include "edge_identifier.h"
-#include "edge_utils.h"
+#include "edge_logger.h"
+#include "edge_malloc.h"
 #include "open62541.h"
 
 #define TAG "SAMPLE_SERVER"
@@ -19,7 +20,9 @@
 #define COLOR_PURPLE      "\x1b[35m"
 #define COLOR_RESET         "\x1b[0m"
 
-#define MAX_TEST_NUMBER (10000)
+#define TAG "SERVER"
+#define MAX_TEST_NUMBER 10000
+
 #define SAMPLE_STRING_1 "test_1"
 #define SAMPLE_STRING_2 "test_2"
 #define DEFAULT_HOST_NAME "localhost"
