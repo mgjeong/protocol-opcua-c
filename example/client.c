@@ -436,38 +436,153 @@ static void monitored_msg_cb (EdgeMessage *data)
         for (idx = 0; idx < len; idx++)
         {
             printf("[Node Name] : %s\n", data->responses[idx]->nodeInfo->valueAlias);
-            if (data->responses[idx]->message != NULL)
+            if (data->responses[idx]->message->isArray)
             {
-                if (data->responses[idx]->type == Int16)
-                    printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>> [%d]\n",
-                           *((int *)data->responses[idx]->message->value));
+                // Handle Output array
+                int arrayLen = data->responses[idx]->message->arrayLength;
+                if (data->responses[idx]->type == Boolean)
+                {
+                    /* Handle Boolean output array */
+                    for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
+                    {
+                        printf("%d  ", ((bool *) data->responses[idx]->message->value)[arrayIdx]);
+                    }
+                }
                 else if (data->responses[idx]->type == Byte)
-                    printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>> [%d]\n",
-                           *((uint8_t *)data->responses[idx]->message->value));
+                {
+                    /* Handle Byte output array */
+                    for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
+                    {
+                        printf("%" PRIu8 " ", ((uint8_t *) data->responses[idx]->message->value)[arrayIdx]);
+                    }
+                }
+                else if (data->responses[idx]->type == SByte)
+                {
+                    /* Handle SByte output array */
+                    for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
+                    {
+                        printf("%" PRId8 " ", ((int8_t *) data->responses[idx]->message->value)[arrayIdx]);
+                    }
+                }
+                else if (data->responses[idx]->type == Int16)
+                {
+                    /* Handle int16 output array */
+                    for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
+                    {
+                        printf("%" PRId16 "  ", ((int16_t *) data->responses[idx]->message->value)[arrayIdx]);
+                    }
+                }
                 else if (data->responses[idx]->type == UInt16)
-                    printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>> [%d]\n",
-                           *((int *)data->responses[idx]->message->value));
+                {
+                    /* Handle UInt16 output array */
+                    for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
+                    {
+                        printf("%" PRIu16 "  ", ((uint16_t *) data->responses[idx]->message->value)[arrayIdx]);
+                    }
+                }
                 else if (data->responses[idx]->type == Int32)
-                    printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>>  [%d]\n",
-                           *((int *)data->responses[idx]->message->value));
+                {
+                    /* Handle Int32 output array */
+                    for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
+                    {
+                        printf("%d  ", ((int32_t *) data->responses[idx]->message->value)[arrayIdx]);
+                    }
+                }
                 else if (data->responses[idx]->type == UInt32)
-                    printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>>  [%d]\n",
-                           *((int *)data->responses[idx]->message->value));
+                {
+                    /* Handle UInt32 output array */
+                    for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
+                    {
+                        printf("%u  ", ((uint *) data->responses[idx]->message->value)[arrayIdx]);
+                    }
+                }
                 else if (data->responses[idx]->type == Int64)
-                    printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>>  [%ld]\n",
-                           *((long *)data->responses[idx]->message->value));
+                {
+                    /* Handle Int64 output array */
+                    for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
+                    {
+                        printf("%ld  ", ((long int *) data->responses[idx]->message->value)[arrayIdx]);
+                    }
+                }
                 else if (data->responses[idx]->type == UInt64)
-                    printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>>  [%ld]\n",
-                           *((long *)data->responses[idx]->message->value));
+                {
+                    /* Handle UInt64 output array */
+                    for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
+                    {
+                        printf("%lu  ", ((ulong *) data->responses[idx]->message->value)[arrayIdx]);
+                    }
+                }
                 else if (data->responses[idx]->type == Float)
-                    printf("[MonitoredItem DataChange callback] Monitored Change Value read from node  ===>>  [%f]\n",
-                           *((float *)data->responses[idx]->message->value));
+                {
+                    /* Handle Float output array */
+                    for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
+                    {
+                        printf("%g  ", ((float *) data->responses[idx]->message->value)[arrayIdx]);
+                    }
+                }
                 else if (data->responses[idx]->type == Double)
-                    printf("[MonitoredItem DataChange callback] Monitored Change Value read from node  ===>>  [%f]\n",
-                           *((double *)data->responses[idx]->message->value));
-                else if (data->responses[idx]->type == String)
-                    printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>>  [%s]\n",
-                           ((char *)data->responses[idx]->message->value));
+                {
+                    /* Handle Double output array */
+                    for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
+                    {
+                        printf("%g  ", ((double *) data->responses[idx]->message->value)[arrayIdx]);
+                    }
+                }
+                else if (data->responses[idx]->type == String || data->responses[idx]->type == ByteString
+                         || data->responses[idx]->type == Guid)
+                {
+                    /* Handle String/ByteString/Guid output array */
+                    char **values = ((char **) data->responses[idx]->message->value);
+                    for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
+                    {
+                        printf("%s  ", values[arrayIdx]);
+                    }
+                }
+                else if (data->responses[idx]->type == DateTime)
+                {
+                    /* Handle DateTime output array */
+                    for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
+                    {
+                        printf("%" PRId64 "  ", ((int64_t *) data->responses[idx]->message->value)[arrayIdx]);
+                    }
+                }
+                printf("\n");
+            }
+            else
+            {
+                if (data->responses[idx]->message != NULL)
+                {
+                    if (data->responses[idx]->type == Int16)
+                        printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>> [%d]\n",
+                               *((int *)data->responses[idx]->message->value));
+                    else if (data->responses[idx]->type == Byte)
+                        printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>> [%d]\n",
+                               *((uint8_t *)data->responses[idx]->message->value));
+                    else if (data->responses[idx]->type == UInt16)
+                        printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>> [%d]\n",
+                               *((int *)data->responses[idx]->message->value));
+                    else if (data->responses[idx]->type == Int32)
+                        printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>>  [%d]\n",
+                               *((int *)data->responses[idx]->message->value));
+                    else if (data->responses[idx]->type == UInt32)
+                        printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>>  [%d]\n",
+                               *((int *)data->responses[idx]->message->value));
+                    else if (data->responses[idx]->type == Int64)
+                        printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>>  [%ld]\n",
+                               *((long *)data->responses[idx]->message->value));
+                    else if (data->responses[idx]->type == UInt64)
+                        printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>>  [%ld]\n",
+                               *((long *)data->responses[idx]->message->value));
+                    else if (data->responses[idx]->type == Float)
+                        printf("[MonitoredItem DataChange callback] Monitored Change Value read from node  ===>>  [%f]\n",
+                               *((float *)data->responses[idx]->message->value));
+                    else if (data->responses[idx]->type == Double)
+                        printf("[MonitoredItem DataChange callback] Monitored Change Value read from node  ===>>  [%f]\n",
+                               *((double *)data->responses[idx]->message->value));
+                    else if (data->responses[idx]->type == String)
+                        printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>>  [%s]\n",
+                               ((char *)data->responses[idx]->message->value));
+                }
             }
         }
         printf("\n\n");

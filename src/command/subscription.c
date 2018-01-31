@@ -213,8 +213,18 @@ static void monitoredItemHandler(UA_UInt32 monId, UA_DataValue *value, void *con
                 EDGE_LOG(TAG, "Error : Malloc failed for versatility in monitor item handler\n");
                 goto EXIT;
             }
-            versatility->arrayLength = 0;
-            versatility->isArray = false;
+
+            bool isScalar = UA_Variant_isScalar(&(value->value));
+            if (isScalar)
+            {
+                versatility->arrayLength = 0;
+                versatility->isArray = false;
+            }
+            else
+            {
+                versatility->arrayLength = value->value.arrayLength;
+                versatility->isArray = true;
+            }
             versatility->value = value->value.data;
 
             if (value->value.type == &UA_TYPES[UA_TYPES_BOOLEAN])
@@ -253,9 +263,43 @@ static void monitoredItemHandler(UA_UInt32 monId, UA_DataValue *value, void *con
             }
             else if (value->value.type == &UA_TYPES[UA_TYPES_STRING])
             {
-                UA_String str = *((UA_String *) value->value.data);
-                versatility->value = (void *) str.data;
+                if (isScalar)
+                {
+                    UA_String str = *((UA_String *) value->value.data);
+                    if ((int) str.length)
+                        versatility->value = (void *) str.data;
+                    else
+                        versatility->value = NULL;
+                }
+                else
+                {
+                    // String Array
+                    UA_Variant val = value->value;
+                    UA_String *str = ((UA_String *) val.data);
+                    char **values = (char **) malloc(sizeof(char *) * val.arrayLength);
+                    if(IS_NULL(values))
+                    {
+                        EDGE_LOG(TAG, "Error : Malloc failed for String Array values in Read Group\n");
+                        goto EXIT;
+                    }
+                    for (int i = 0; i < val.arrayLength; i++)
+                    {
+                        values[i] = (char *) malloc(str[i].length+1);
+                        if(IS_NULL(values[i]))
+                        {
+                            EDGE_LOG_V(TAG, "Error : Malloc failed for String Array value %d in Read Group\n", i);
+                            goto EXIT;
+                        }
+                        strncpy(values[i], (char *) str[i].data, strlen((char *) str[i].data));
+                        values[str[i].length] = "\0";
+                    }
+                    versatility->value = (void *) values;
+                }
                 response->type = String;
+            }
+            else if (value->value.type == &UA_TYPES[UA_TYPES_BYTESTRING])
+            {
+                response->type = ByteString;
             }
             else if (value->value.type == &UA_TYPES[UA_TYPES_BYTE])
             {
