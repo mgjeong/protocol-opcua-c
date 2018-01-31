@@ -32,10 +32,10 @@ extern "C"
     void createNamespaceInServer(char *namespaceUri, char *rootNodeIdentifier,
             char *rootNodeBrowseName, char *rootNodeDisplayName);
 
-    EdgeResult addNodesInServer(EdgeNodeItem *item);
-    EdgeResult modifyNodeInServer(char *nodeUri, EdgeVersatility *value);
+    EdgeResult addNodesInServer(char *namespaceUri, EdgeNodeItem *item);
+    EdgeResult modifyNodeInServer(char *namespaceUri, char *nodeUri, EdgeVersatility *value);
     EdgeResult addReferenceInServer(EdgeReference *reference);
-    EdgeResult addMethodNodeInServer(EdgeNodeItem *item, EdgeMethod *method);
+    EdgeResult addMethodNodeInServer(char *namespaceUri, EdgeNodeItem *item, EdgeMethod *method);
 
     /* Start the Server */
     EdgeResult start_server(EdgeEndPointInfo *epInfo);

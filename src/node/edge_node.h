@@ -30,12 +30,12 @@ extern "C"
 {
 #endif
 
-    EdgeResult addNodes(UA_Server *server, EdgeNodeItem *item);
-    EdgeResult addMethodNode(UA_Server *server, EdgeNodeItem *item, EdgeMethod *method);
+    EdgeResult addNodes(UA_Server *server, int nsIndex, EdgeNodeItem *item);
+    EdgeResult addMethodNode(UA_Server *server, int nsIndex, EdgeNodeItem *item, EdgeMethod *method);
     EdgeResult addDataAccessNode(EdgeNodeItem *item);
-    EdgeResult modifyNode(UA_Server *server, char *nodeUri, EdgeVersatility *value);
+    EdgeResult modifyNode(UA_Server *server, int nsIndex, char *nodeUri, EdgeVersatility *value);
     EdgeResult modifyNode2(EdgeNodeIdentifier nodeType);
-    EdgeResult addReferences(UA_Server *server, EdgeReference *reference);
+    EdgeResult addReferences(UA_Server *server, EdgeReference *reference, int src_nsIndex, int target_nsIndex);
 
 #ifdef __cplusplus
 }

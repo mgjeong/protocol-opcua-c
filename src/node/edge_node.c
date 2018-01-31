@@ -33,7 +33,7 @@ static int methodNodeCount = 0;
 
 /****************************** Static functions ***********************************/
 
-static void addVariableNode(UA_Server *server, EdgeNodeItem *item)
+static void addVariableNode(UA_Server *server, int nsIndex, EdgeNodeItem *item)
 {
     char *name = item->browseName;
     EdgeNodeIdentifier id = item->variableIdentifier;
@@ -92,9 +92,9 @@ static void addVariableNode(UA_Server *server, EdgeNodeItem *item)
         UA_Variant_setScalarCopy(&attr.value, item->variableData, &UA_TYPES[type]);
     }
 
-    UA_StatusCode status = UA_Server_addVariableNode(server, UA_NODEID_STRING(1, item->browseName),
+    UA_StatusCode status = UA_Server_addVariableNode(server, UA_NODEID_STRING(nsIndex, item->browseName),
             UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER), UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES),
-            UA_QUALIFIEDNAME(1, name), UA_NODEID_NUMERIC(0, 63), attr, NULL, NULL);
+            UA_QUALIFIEDNAME(nsIndex, name), UA_NODEID_NUMERIC(0, 63), attr, NULL, NULL);
 
     if (status == UA_STATUSCODE_GOOD)
     {
@@ -114,7 +114,7 @@ static void addVariableNode(UA_Server *server, EdgeNodeItem *item)
 //                                                    UA_EXPANDEDNODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER), !(item->forward));
 }
 
-static void addArrayNode(UA_Server *server, EdgeNodeItem *item)
+static void addArrayNode(UA_Server *server, int nsIndex, EdgeNodeItem *item)
 {
     char *name = item->browseName;
     EdgeNodeIdentifier id = item->variableIdentifier;
@@ -192,9 +192,9 @@ static void addArrayNode(UA_Server *server, EdgeNodeItem *item)
                 &UA_TYPES[type]);
     }
 
-    UA_StatusCode status = UA_Server_addVariableNode(server, UA_NODEID_STRING(1, item->browseName),
+    UA_StatusCode status = UA_Server_addVariableNode(server, UA_NODEID_STRING(nsIndex, item->browseName),
             UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER), UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES),
-            UA_QUALIFIEDNAME(1, name), UA_NODEID_NUMERIC(0, 63), attr, NULL, NULL);
+            UA_QUALIFIEDNAME(nsIndex, name), UA_NODEID_NUMERIC(0, 63), attr, NULL, NULL);
 
     if (status == UA_STATUSCODE_GOOD)
     {
@@ -207,7 +207,7 @@ static void addArrayNode(UA_Server *server, EdgeNodeItem *item)
     UA_Variant_deleteMembers(&attr.value);
 }
 
-static void addObjectNode(UA_Server *server, EdgeNodeItem *item)
+static void addObjectNode(UA_Server *server, int nsIndex, EdgeNodeItem *item)
 {
     char *name = item->browseName;
 
@@ -240,7 +240,7 @@ static void addObjectNode(UA_Server *server, EdgeNodeItem *item)
     }
 }
 
-static void addObjectTypeNode(UA_Server *server, EdgeNodeItem *item)
+static void addObjectTypeNode(UA_Server *server, int nsIndex, EdgeNodeItem *item)
 {
     char *name = item->browseName;
     UA_ObjectTypeAttributes object_attr = UA_ObjectTypeAttributes_default;
@@ -251,16 +251,16 @@ static void addObjectTypeNode(UA_Server *server, EdgeNodeItem *item)
     char *nodeId = item->sourceNodeId->nodeId;
 
     UA_StatusCode status = UA_Server_addObjectTypeNode(server,
-            UA_NODEID_STRING(1, item->browseName), sourceNodeId,
-            UA_NODEID_NUMERIC(0, UA_NS0ID_HASSUBTYPE), UA_QUALIFIEDNAME(1, name), object_attr, NULL,
+            UA_NODEID_STRING(nsIndex, item->browseName), sourceNodeId,
+            UA_NODEID_NUMERIC(0, UA_NS0ID_HASSUBTYPE), UA_QUALIFIEDNAME(nsIndex, name), object_attr, NULL,
             NULL);
 
     if (nodeId != NULL)
     {
-        sourceNodeId = UA_NODEID_STRING(1, nodeId);
+        sourceNodeId = UA_NODEID_STRING(nsIndex, nodeId);
         status = UA_Server_addReference(server, sourceNodeId,
                 UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES),
-                UA_EXPANDEDNODEID_STRING(1, item->browseName), true);
+                UA_EXPANDEDNODEID_STRING(nsIndex, item->browseName), true);
     }
 
     if (status == UA_STATUSCODE_GOOD)
@@ -273,7 +273,7 @@ static void addObjectTypeNode(UA_Server *server, EdgeNodeItem *item)
     }
 }
 
-static void addVariableTypeNode(UA_Server *server, EdgeNodeItem *item)
+static void addVariableTypeNode(UA_Server *server, int nsIndex, EdgeNodeItem *item)
 {
     char *name = item->browseName;
     EdgeNodeIdentifier id = item->variableIdentifier;
@@ -306,9 +306,9 @@ static void addVariableTypeNode(UA_Server *server, EdgeNodeItem *item)
     }
 
     UA_StatusCode status = UA_Server_addVariableTypeNode(server,
-            UA_NODEID_STRING(1, item->browseName),
+            UA_NODEID_STRING(nsIndex, item->browseName),
             UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE),
-            UA_NODEID_NUMERIC(0, UA_NS0ID_HASSUBTYPE), UA_QUALIFIEDNAME(1, name),
+            UA_NODEID_NUMERIC(0, UA_NS0ID_HASSUBTYPE), UA_QUALIFIEDNAME(nsIndex, name),
             UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE), attr, NULL, NULL);
 
     if (status == UA_STATUSCODE_GOOD)
@@ -322,7 +322,7 @@ static void addVariableTypeNode(UA_Server *server, EdgeNodeItem *item)
     //UA_Variant_deleteMembers(&attr.value);
 }
 
-static void addDataTypeNode(UA_Server *server, EdgeNodeItem *item)
+static void addDataTypeNode(UA_Server *server, int nsIndex, EdgeNodeItem *item)
 {
     char *name = item->browseName;
 
@@ -333,16 +333,16 @@ static void addDataTypeNode(UA_Server *server, EdgeNodeItem *item)
     UA_NodeId sourceNodeId = UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATATYPE);
     char *nodeId = item->sourceNodeId->nodeId;
 
-    UA_StatusCode status = UA_Server_addDataTypeNode(server, UA_NODEID_STRING(1, item->browseName),
-            sourceNodeId, UA_NODEID_NUMERIC(0, UA_NS0ID_HASSUBTYPE), UA_QUALIFIEDNAME(1, name),
+    UA_StatusCode status = UA_Server_addDataTypeNode(server, UA_NODEID_STRING(nsIndex, item->browseName),
+            sourceNodeId, UA_NODEID_NUMERIC(0, UA_NS0ID_HASSUBTYPE), UA_QUALIFIEDNAME(nsIndex, name),
             attr, NULL, NULL);
 
     if (nodeId != NULL)
     {
-        sourceNodeId = UA_NODEID_STRING(1, nodeId);
+        sourceNodeId = UA_NODEID_STRING(nsIndex, nodeId);
         status = UA_Server_addReference(server, sourceNodeId,
                 UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES),
-                UA_EXPANDEDNODEID_STRING(1, item->browseName), true);
+                UA_EXPANDEDNODEID_STRING(nsIndex, item->browseName), true);
     }
 
     if (status == UA_STATUSCODE_GOOD)
@@ -355,7 +355,7 @@ static void addDataTypeNode(UA_Server *server, EdgeNodeItem *item)
     }
 }
 
-static void addViewNode(UA_Server *server, EdgeNodeItem *item)
+static void addViewNode(UA_Server *server, int nsIndex, EdgeNodeItem *item)
 {
     char *name = item->browseName;
 
@@ -375,16 +375,16 @@ static void addViewNode(UA_Server *server, EdgeNodeItem *item)
         sourceNodeId = UA_NODEID_NUMERIC(0, UA_NS0ID_VIEWSFOLDER);
     }
 
-    UA_StatusCode status = UA_Server_addViewNode(server, UA_NODEID_STRING(1, item->browseName),
-            sourceNodeId, UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES), UA_QUALIFIEDNAME(1, name), attr,
+    UA_StatusCode status = UA_Server_addViewNode(server, UA_NODEID_STRING(nsIndex, item->browseName),
+            sourceNodeId, UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES), UA_QUALIFIEDNAME(nsIndex, name), attr,
             NULL, NULL);
 
     if (nodeId != NULL)
     {
-        sourceNodeId = UA_NODEID_STRING(1, nodeId);
+        sourceNodeId = UA_NODEID_STRING(nsIndex, nodeId);
         status = UA_Server_addReference(server, sourceNodeId,
                 UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES),
-                UA_EXPANDEDNODEID_STRING(1, item->browseName), true);
+                UA_EXPANDEDNODEID_STRING(nsIndex, item->browseName), true);
     }
 
     if (status == UA_STATUSCODE_GOOD)
@@ -397,7 +397,7 @@ static void addViewNode(UA_Server *server, EdgeNodeItem *item)
     }
 }
 
-EdgeResult addReferences(UA_Server *server, EdgeReference *reference)
+EdgeResult addReferences(UA_Server *server, EdgeReference *reference, int src_nsIndex, int target_nsIndex)
 {
 
     EdgeResult result;
@@ -415,9 +415,9 @@ EdgeResult addReferences(UA_Server *server, EdgeReference *reference)
         reference->referenceId = Organizes;
     }
 
-    UA_ExpandedNodeId expanded_nodeId = UA_EXPANDEDNODEID_STRING(1, reference->targetPath);
+    UA_ExpandedNodeId expanded_nodeId = UA_EXPANDEDNODEID_STRING(target_nsIndex, reference->targetPath);
     UA_StatusCode status = UA_Server_addReference(server,
-            UA_NODEID_STRING(1, reference->sourcePath),
+            UA_NODEID_STRING(src_nsIndex, reference->sourcePath),
             UA_NODEID_NUMERIC(0, reference->referenceId), expanded_nodeId, reference->forward);
     if (status == UA_STATUSCODE_GOOD)
     {
@@ -432,7 +432,7 @@ EdgeResult addReferences(UA_Server *server, EdgeReference *reference)
     return result;
 }
 
-static void addReferenceTypeNode(UA_Server *server, EdgeNodeItem *item)
+static void addReferenceTypeNode(UA_Server *server, int nsIndex, EdgeNodeItem *item)
 {
     char *name = item->browseName;
 
@@ -450,12 +450,12 @@ static void addReferenceTypeNode(UA_Server *server, EdgeNodeItem *item)
     }
     else
     {
-        sourceNodeId = UA_NODEID_STRING(1, nodeId);
-        expandedSourceNodeId = UA_EXPANDEDNODEID_STRING(1, nodeId);
+        sourceNodeId = UA_NODEID_STRING(nsIndex, nodeId);
+        expandedSourceNodeId = UA_EXPANDEDNODEID_STRING(nsIndex, nodeId);
     }
     UA_StatusCode status = UA_Server_addReferenceTypeNode(server,
-            UA_NODEID_STRING(1, item->browseName), sourceNodeId,
-            UA_NODEID_NUMERIC(0, UA_NS0ID_HASSUBTYPE), UA_QUALIFIEDNAME(1, name), attr, NULL, NULL);
+            UA_NODEID_STRING(nsIndex, item->browseName), sourceNodeId,
+            UA_NODEID_NUMERIC(0, UA_NS0ID_HASSUBTYPE), UA_QUALIFIEDNAME(nsIndex, name), attr, NULL, NULL);
 
     if (status == UA_STATUSCODE_GOOD)
     {
@@ -466,8 +466,8 @@ static void addReferenceTypeNode(UA_Server *server, EdgeNodeItem *item)
         EDGE_LOG(TAG, "+++ addReferenceTypeNode failed +++\n");
     }
     status = UA_Server_addReference(server, sourceNodeId, UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES),
-            UA_EXPANDEDNODEID_STRING(1, item->browseName), true);
-    status = UA_Server_addReference(server, UA_NODEID_STRING(1, item->browseName),
+            UA_EXPANDEDNODEID_STRING(nsIndex, item->browseName), true);
+    status = UA_Server_addReference(server, UA_NODEID_STRING(nsIndex, item->browseName),
             UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES), expandedSourceNodeId, false);
 }
 
@@ -588,9 +588,8 @@ static UA_StatusCode methodCallback(UA_Server *server, const UA_NodeId *sessionI
 
 /****************************** Member functions ***********************************/
 
-EdgeResult addNodes(UA_Server *server, EdgeNodeItem *item)
+EdgeResult addNodes(UA_Server *server, int nsIndex, EdgeNodeItem *item)
 {
-
     EdgeResult result;
     result.code = STATUS_OK;
 
@@ -602,41 +601,41 @@ EdgeResult addNodes(UA_Server *server, EdgeNodeItem *item)
 
     if (item->nodeType == ARRAY_NODE)
     {
-        addArrayNode(server, item);
+        addArrayNode(server, nsIndex, item);
     }
     else if (item->nodeType == OBJECT_NODE)
     {
-        addObjectNode(server, item);
+        addObjectNode(server, nsIndex, item);
     }
     else if (item->nodeType == OBJECT_TYPE_NODE)
     {
-        addObjectTypeNode(server, item);
+        addObjectTypeNode(server, nsIndex, item);
     }
     else if (item->nodeType == VARIABLE_TYPE_NODE)
     {
-        addVariableTypeNode(server, item);
+        addVariableTypeNode(server, nsIndex, item);
     }
     else if (item->nodeType == DATA_TYPE_NODE)
     {
-        addDataTypeNode(server, item);
+        addDataTypeNode(server, nsIndex, item);
     }
     else if (item->nodeType == VIEW_NODE)
     {
-        addViewNode(server, item);
+        addViewNode(server, nsIndex, item);
     }
     else if (item->nodeType == REFERENCE_TYPE_NODE)
     {
-        addReferenceTypeNode(server, item);
+        addReferenceTypeNode(server, nsIndex, item);
     }
     else
     {
-        addVariableNode(server, item);
+        addVariableNode(server, nsIndex, item);
     }
 
     return result;
 }
 
-EdgeResult addMethodNode(UA_Server *server, EdgeNodeItem *item, EdgeMethod *method)
+EdgeResult addMethodNode(UA_Server *server, int nsIndex, EdgeNodeItem *item, EdgeMethod *method)
 {
     EdgeResult result;
     result.code = STATUS_ERROR;
@@ -719,17 +718,17 @@ EdgeResult addMethodNode(UA_Server *server, EdgeNodeItem *item, EdgeMethod *meth
     if (sourceNode == NULL || sourceNode->nodeId == NULL)
     {
         sourceNodeId = UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER);
-        expandedSourceNodeId = UA_EXPANDEDNODEID_NUMERIC(1, UA_NS0ID_OBJECTSFOLDER);
+        expandedSourceNodeId = UA_EXPANDEDNODEID_NUMERIC(nsIndex, UA_NS0ID_OBJECTSFOLDER);
     }
     else
     {
-        sourceNodeId = UA_NODEID_STRING(1, sourceNode->nodeId);
-        expandedSourceNodeId = UA_EXPANDEDNODEID_STRING(1, sourceNode->nodeId);
+        sourceNodeId = UA_NODEID_STRING(nsIndex, sourceNode->nodeId);
+        expandedSourceNodeId = UA_EXPANDEDNODEID_STRING(nsIndex, sourceNode->nodeId);
     }
 
-    UA_StatusCode status = UA_Server_addMethodNode(server, UA_NODEID_STRING(1, item->browseName),
+    UA_StatusCode status = UA_Server_addMethodNode(server, UA_NODEID_STRING(nsIndex, item->browseName),
             sourceNodeId, UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT),
-            UA_QUALIFIEDNAME(1, item->browseName), methodAttr, &methodCallback, num_inpArgs,
+            UA_QUALIFIEDNAME(nsIndex, item->browseName), methodAttr, &methodCallback, num_inpArgs,
             inputArguments, num_outArgs, outputArguments, NULL, NULL);
     if (status == UA_STATUSCODE_GOOD)
     {
@@ -750,14 +749,14 @@ EdgeResult addMethodNode(UA_Server *server, EdgeNodeItem *item, EdgeMethod *meth
     }
 
     status = UA_Server_addReference(server, UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER),
-            UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES), UA_EXPANDEDNODEID_STRING(1, item->browseName),
+            UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES), UA_EXPANDEDNODEID_STRING(nsIndex, item->browseName),
             true);
     if (sourceNode != NULL && sourceNode->nodeId != NULL)
     {
         status = UA_Server_addReference(server, sourceNodeId,
                 UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES),
-                UA_EXPANDEDNODEID_STRING(1, item->browseName), true);
-        status = UA_Server_addReference(server, UA_NODEID_STRING(1, item->browseName),
+                UA_EXPANDEDNODEID_STRING(nsIndex, item->browseName), true);
+        status = UA_Server_addReference(server, UA_NODEID_STRING(nsIndex, item->browseName),
                 UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES), expandedSourceNodeId, false);
     }
 
@@ -788,7 +787,7 @@ EdgeResult addDataAccessNode(EdgeNodeItem *item)
     return result;
 }
 
-EdgeResult modifyNode(UA_Server *server, char *nodeUri, EdgeVersatility *value)
+EdgeResult modifyNode(UA_Server *server, int nsIndex, char *nodeUri, EdgeVersatility *value)
 {
     EdgeResult result;
     result.code = STATUS_ERROR;
@@ -796,7 +795,7 @@ EdgeResult modifyNode(UA_Server *server, char *nodeUri, EdgeVersatility *value)
     VERIFY_NON_NULL(server, result);
 
     // read the value;
-    UA_NodeId node = UA_NODEID_STRING(1, nodeUri);
+    UA_NodeId node = UA_NODEID_STRING(nsIndex, nodeUri);
     UA_Variant *readval = UA_Variant_new();
     VERIFY_NON_NULL(readval, result);
 
