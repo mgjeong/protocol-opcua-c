@@ -467,7 +467,7 @@ static UA_StatusCode createSub(UA_Client *client, EdgeMessage *msg)
             strlen(msg->requests[i]->nodeInfo->valueAlias));
         client_alias[i]->valueAlias[strlen(msg->requests[i]->nodeInfo->valueAlias)] = '\0';
         UA_MonitoredItemCreateRequest_init(&items[i]);
-        items[i].itemToMonitor.nodeId = UA_NODEID_STRING(1,
+        items[i].itemToMonitor.nodeId = UA_NODEID_STRING(2,
                 msg->requests[i]->nodeInfo->valueAlias);
         items[i].itemToMonitor.attributeId = UA_ATTRIBUTEID_VALUE;
         items[i].monitoringMode = UA_MONITORINGMODE_REPORTING;

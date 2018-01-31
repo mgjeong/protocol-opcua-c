@@ -48,20 +48,26 @@ EdgeResult createNamespace(char *name, char *rootNodeId, char *rootBrowseName,
 EdgeResult createNode(char *namespaceUri, EdgeNodeItem *item)
 {
     // add Nodes in server
-    EdgeResult result = addNodesInServer(item);
+    EdgeResult result = addNodesInServer(namespaceUri, item);
     return result;
 }
 
 EdgeResult modifyVariableNode(char *namespaceUri, char *nodeUri, EdgeVersatility *value)
 {
     // modify variable nodes
-    EdgeResult result = modifyNodeInServer(nodeUri, value);
+    EdgeResult result = modifyNodeInServer(namespaceUri, nodeUri, value);
     return result;
 }
 
 EdgeResult addReference(EdgeReference *reference)
 {
     EdgeResult result = addReferenceInServer(reference);
+    return result;
+}
+
+EdgeResult createMethodNode(char *namespaceUri, EdgeNodeItem *item, EdgeMethod *method)
+{
+    EdgeResult result = addMethodNodeInServer(namespaceUri, item, method);
     return result;
 }
 
@@ -104,12 +110,6 @@ EdgeResult callMethod(EdgeMessage *msg)
 EdgeResult handleSubscription(EdgeMessage *msg)
 {
     EdgeResult result = executeSubscriptionInServer(msg);
-    return result;
-}
-
-EdgeResult createMethodNode(char *namespaceUri, EdgeNodeItem *item, EdgeMethod *method)
-{
-    EdgeResult result = addMethodNodeInServer(item, method);
     return result;
 }
 
