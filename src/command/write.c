@@ -21,8 +21,8 @@
 #include "write.h"
 #include "common_client.h"
 #include "edge_logger.h"
+#include "edge_malloc.h"
 
-#include <stdio.h>
 #include <inttypes.h>
 
 #define TAG "write"

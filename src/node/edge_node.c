@@ -21,6 +21,7 @@
 #include "edge_node.h"
 #include "edge_utils.h"
 #include "edge_logger.h"
+#include "edge_malloc.h"
 
 #include <stdio.h>
 

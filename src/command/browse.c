@@ -21,8 +21,8 @@
 #include "browse.h"
 #include "edge_node_type.h"
 #include "edge_logger.h"
+#include "edge_malloc.h"
 
-#include <stdio.h>
 #include <inttypes.h>
 
 #define GUID_LENGTH 36
@@ -587,7 +587,7 @@ static void invokeResponseCb(EdgeMessage *msg, int msgId, EdgeNodeId *srcNodeId,
             return;
         }
         versatileVal->isArray = false;
-        versatileVal->value = (unsigned char *)clone(browsePath, strlen((char *)browsePath)+1);
+        versatileVal->value = (unsigned char *)cloneData(browsePath, strlen((char *)browsePath)+1);
         response->message = versatileVal;
     }
 
@@ -770,71 +770,71 @@ void printNodeId(UA_NodeId n1)
 }
 
 typedef struct _browsePathNode{
-	EdgeNodeId *edgeNodeId;
-	unsigned char *browseName;
-	struct _browsePathNode *pre;
-	struct _browsePathNode *next;
+    EdgeNodeId *edgeNodeId;
+    unsigned char *browseName;
+    struct _browsePathNode *pre;
+    struct _browsePathNode *next;
 }browsePathNode;
 
 browsePathNode *browsePathNodeListHead = NULL, *browsePathNodeListTail = NULL;
 
 void DestroyBrowsePathNodeList() {
-	browsePathNode *ptr = browsePathNodeListHead;
-	while(ptr != NULL){
-		browsePathNode *nextNode = ptr->next;
-		FREE(ptr);
-		ptr = nextNode;
-	}
-	browsePathNodeListHead = NULL;
-	browsePathNodeListTail = NULL;
+    browsePathNode *ptr = browsePathNodeListHead;
+    while(ptr != NULL){
+        browsePathNode *nextNode = ptr->next;
+        FREE(ptr);
+        ptr = nextNode;
+    }
+    browsePathNodeListHead = NULL;
+    browsePathNodeListTail = NULL;
 }
 
 browsePathNode *InitBrowsePathNodeList(){
-	if (browsePathNodeListHead != NULL){
-		DestroyBrowsePathNodeList();
-	}
-	browsePathNodeListHead = NULL;
-	browsePathNodeListHead = (browsePathNode*)malloc(sizeof(browsePathNode));
-	if(browsePathNodeListHead == NULL){
-		EDGE_LOG(TAG, "Memory allocation failed.");
-		return NULL;
-	}
-	browsePathNodeListHead->edgeNodeId = NULL;
-	browsePathNodeListHead->browseName = NULL;
-	browsePathNodeListHead->next = NULL;
-	browsePathNodeListHead->pre = NULL;
-	browsePathNodeListTail = browsePathNodeListHead;
-	return browsePathNodeListHead;
+    if (browsePathNodeListHead != NULL){
+        DestroyBrowsePathNodeList();
+    }
+    browsePathNodeListHead = NULL;
+    browsePathNodeListHead = (browsePathNode*)malloc(sizeof(browsePathNode));
+    if(browsePathNodeListHead == NULL){
+        EDGE_LOG(TAG, "Memory allocation failed.");
+        return NULL;
+    }
+    browsePathNodeListHead->edgeNodeId = NULL;
+    browsePathNodeListHead->browseName = NULL;
+    browsePathNodeListHead->next = NULL;
+    browsePathNodeListHead->pre = NULL;
+    browsePathNodeListTail = browsePathNodeListHead;
+    return browsePathNodeListHead;
 }
 
 browsePathNode* PushBrowsePathNode(EdgeNodeId *edgeNodeId, unsigned char *browseName){
-	if(browsePathNodeListTail == NULL || browsePathNodeListHead == NULL){
+    if(browsePathNodeListTail == NULL || browsePathNodeListHead == NULL){
             return NULL;
-	}
-	browsePathNode *newNode = (browsePathNode*)malloc(sizeof(browsePathNode));
-	if(newNode == NULL){
+    }
+    browsePathNode *newNode = (browsePathNode*)malloc(sizeof(browsePathNode));
+    if(newNode == NULL){
             EDGE_LOG(TAG, "Memory allocation failed.");
             return NULL;
-	}
-	newNode->browseName = browseName;
-	newNode->edgeNodeId = edgeNodeId;
-	newNode->pre = browsePathNodeListTail;
-	newNode->next = NULL;
-	browsePathNodeListTail->next = newNode;
-	browsePathNodeListTail = newNode;
-	return newNode;
+    }
+    newNode->browseName = browseName;
+    newNode->edgeNodeId = edgeNodeId;
+    newNode->pre = browsePathNodeListTail;
+    newNode->next = NULL;
+    browsePathNodeListTail->next = newNode;
+    browsePathNodeListTail = newNode;
+    return newNode;
 }
 
 void PopBrowsePathNode(){
-	if(browsePathNodeListTail == NULL || browsePathNodeListHead == NULL
-			|| browsePathNodeListTail == browsePathNodeListHead){
-		printf("Browse Path Node Pop Error");
-		return;
-	}
-	browsePathNode *deleteNode = browsePathNodeListTail;
-	browsePathNodeListTail = browsePathNodeListTail->pre;
-	browsePathNodeListTail->next = NULL;
-	FREE(deleteNode);
+    if(browsePathNodeListTail == NULL || browsePathNodeListHead == NULL
+            || browsePathNodeListTail == browsePathNodeListHead){
+        EDGE_LOG(TAG, "Browse Path Node Pop Error");
+        return;
+    }
+    browsePathNode *deleteNode = browsePathNodeListTail;
+    browsePathNodeListTail = browsePathNodeListTail->pre;
+    browsePathNodeListTail->next = NULL;
+    FREE(deleteNode);
 }
 
 static unsigned char *getCurrentBrowsePath()
@@ -947,16 +947,16 @@ static EdgeRequest *getEdgeRequestForViewBrowse()
     EdgeNodeInfo *nodeInfo = (EdgeNodeInfo *) calloc(1, sizeof(EdgeNodeInfo));
     if(IS_NULL(nodeInfo))
     {
-	EDGE_LOG(TAG, "Memory allocation failed.");
-	return NULL;
+    EDGE_LOG(TAG, "Memory allocation failed.");
+    return NULL;
     }
 
     nodeInfo->nodeId = (EdgeNodeId *) calloc(1, sizeof(EdgeNodeId));
     if(IS_NULL(nodeInfo->nodeId))
     {
-	EDGE_LOG(TAG, "Memory allocation failed.");
-	FREE(nodeInfo);
-	return NULL;
+    EDGE_LOG(TAG, "Memory allocation failed.");
+    FREE(nodeInfo);
+    return NULL;
     }
     nodeInfo->nodeId->type = INTEGER;
     nodeInfo->nodeId->integerNodeId = RootFolder;
@@ -965,10 +965,10 @@ static EdgeRequest *getEdgeRequestForViewBrowse()
     EdgeRequest *request = (EdgeRequest *) calloc(1, sizeof(EdgeRequest));
     if(IS_NULL(request))
     {
-	EDGE_LOG(TAG, "Memory allocation failed.");
-	FREE(nodeInfo->nodeId)
-	FREE(nodeInfo);
-	return NULL;
+    EDGE_LOG(TAG, "Memory allocation failed.");
+    FREE(nodeInfo->nodeId)
+    FREE(nodeInfo);
+    return NULL;
     }
     request->nodeInfo = nodeInfo;
     return request;

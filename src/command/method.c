@@ -20,8 +20,7 @@
 
 #include "method.h"
 #include "edge_logger.h"
-
-#include <stdio.h>
+#include "edge_malloc.h"
 
 #define TAG "method"
 

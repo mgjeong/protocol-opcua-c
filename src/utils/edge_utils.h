@@ -29,21 +29,11 @@
 
 #include "open62541.h"
 #include "opcua_common.h"
-#include "edge_logger.h"
-#include "edge_malloc.h"
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
-
-#define VERIFY_NON_NULL(arg, retVal) { if (!(arg)) { EDGE_LOG(TAG, \
-             #arg " is NULL"); return (retVal); } }
-#define VERIFY_NON_NULL_NR(arg) { if (!(arg)) { EDGE_LOG(TAG, \
-             #arg " is NULL"); return; } }
-
-#define IS_NULL(arg) ((arg == NULL) ? true : false)
-#define IS_NOT_NULL(arg) ((arg != NULL) ? true : false)
 
     typedef struct List
     {
@@ -115,7 +105,7 @@ extern "C"
 
     char *cloneString(const char *str);
 
-    void *clone(const void *src, int lenInbytes);
+    void *cloneData(const void *src, int lenInbytes);
 
     char *convertUAStringToString(UA_String *uaStr);
 

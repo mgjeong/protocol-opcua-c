@@ -21,6 +21,7 @@
 #include "edge_opcua_server.h"
 #include "edge_node.h"
 #include "edge_logger.h"
+#include "edge_malloc.h"
 
 #include <stdio.h>
 #include <pthread.h>
