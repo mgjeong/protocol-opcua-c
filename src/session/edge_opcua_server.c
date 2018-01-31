@@ -52,6 +52,10 @@ static edgeMap *namespaceMap = NULL;
 static int namespaceType = DEFAULT_TYPE;
 
 void printNode(void *visitorContext, const UA_Node *node){
+	if(node == NULL){
+		EDGE_LOG(TAG, "UA_Node is null\n");
+		return;
+	}
 	UA_NodeId nodeId = node->nodeId;
 	UA_QualifiedName browseName = node->browseName;
 	char *type = NULL;
