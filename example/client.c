@@ -1165,7 +1165,7 @@ static void testBrowseViews(char* endpointUri)
     printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET);
     printf("\n" COLOR_YELLOW "                       Browse Views            "COLOR_RESET);
     printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET
-           "\n\n");
+           "\n");
 
     EdgeEndPointInfo *ep = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
     if(IS_NULL(ep))
@@ -1185,7 +1185,7 @@ static void testBrowseViews(char* endpointUri)
     msg->endpointInfo = ep;
     msg->command = CMD_BROWSE;
 
-    printf("\n\n" COLOR_YELLOW "********** Browse Views under RootFolder node in system namespace **********"
+    printf("\n" COLOR_YELLOW "********** Browse Views under RootFolder node in system namespace **********"
            COLOR_RESET "\n");
 
     initBrowseNextData(msg->browseParam);
@@ -1528,7 +1528,7 @@ static void testRead()
     }
 
     // Get the list of browse names and display them to user.
-    testBrowse(ep);
+    testBrowseViews(ep);
 
     char nodeName[MAX_CHAR_SIZE];
     int num_requests = 1;
@@ -1633,9 +1633,12 @@ static void testReadGroup()
         return ;
     }
 
+    // Get the list of browse names and display them to user.
+    testBrowseViews(ep);
+
     char nodeName[MAX_CHAR_SIZE];
     int num_requests;
-    printf("Enter number of nodes to read (less than 10) :: ");
+    printf("\nEnter number of nodes to read (less than 10) :: ");
     scanf("%d", &num_requests);
     if(num_requests < 1 || num_requests > 9)
     {
@@ -1861,6 +1864,9 @@ static void testWrite()
         return ;
     }
 
+    // Get the list of browse names and display them to user.
+    testBrowseViews(ep);
+
     char nodeName[MAX_CHAR_SIZE];
     int num_requests = 1;
 
@@ -1968,6 +1974,9 @@ static void testWriteGroup()
         printf("Client not connected to any endpoints\n\n");
         return ;
     }
+
+    // Get the list of browse names and display them to user.
+    testBrowseViews(ep);
 
     char nodeName[MAX_CHAR_SIZE];
     int num_requests;
@@ -2486,7 +2495,6 @@ static void testMethod()
 
 static void testSub()
 {
-
     printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET);
     printf("\n" COLOR_YELLOW "                    Subscribe Node             "COLOR_RESET);
     printf("\n" COLOR_YELLOW "------------------------------------------------------\n" COLOR_RESET);
@@ -2499,10 +2507,10 @@ static void testSub()
     }
 
     // Get the list of browse names and display them to user.
-    testBrowse(ep);
+    testBrowseViews(ep);
     char nodeName[MAX_CHAR_SIZE];
     int num_requests;
-    printf("Enter number of nodes to Subscribe (less than 10) :: ");
+    printf("\nEnter number of nodes to Subscribe (less than 10) :: ");
     scanf("%d", &num_requests);
     if(num_requests > 10 || num_requests < 1)
     {
@@ -2624,7 +2632,7 @@ static void testSubModify()
         return ;
     }
 
-    testBrowse(ep);
+    testBrowseViews(ep);
     char nodeName[MAX_CHAR_SIZE];
 
     printf("\nEnter the node name to modify Subscribe :: ");
@@ -2803,9 +2811,10 @@ static void testSubDelete()
         return ;
     }
 
-    //testBrowse();
-    char nodeName[MAX_CHAR_SIZE];
+    // Get the list of browse names and display them to user.
+    testBrowseViews(ep);
 
+    char nodeName[MAX_CHAR_SIZE];
     printf("\nEnter the node name to delete Subscribe :: ");
     scanf("%s", nodeName);
 
