@@ -833,7 +833,8 @@ EdgeResult modifyNode(UA_Server *server, int nsIndex, char *nodeUri, EdgeVersati
         EDGE_LOG(TAG, "+++ write successful +++\n\n");
     }
     UA_Variant_delete(myVariant);
-
+    UA_Variant_delete(readval);
+    
     result.code = STATUS_OK;
     return result;
 }
