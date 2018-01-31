@@ -795,16 +795,60 @@ EdgeResult modifyNode(UA_Server *server, int nsIndex, char *nodeUri, EdgeVersati
 
     const UA_DataType *type = readval->type;
     UA_Variant *myVariant = UA_Variant_new();
-    if (type == &UA_TYPES[UA_TYPES_STRING])
+    if (UA_Variant_isScalar(readval))
     {
-        UA_String val = UA_STRING_ALLOC((char * ) value->value);
-        ret = UA_Variant_setScalarCopy(myVariant, &val, type);
-        UA_String_deleteMembers(&val);
-        FREE(val.data);
+
+        if (type == &UA_TYPES[UA_TYPES_STRING])
+        {
+            UA_String val = UA_STRING_ALLOC((char * ) value->value);
+            ret = UA_Variant_setScalarCopy(myVariant, &val, type);
+            UA_String_deleteMembers(&val);
+            FREE(val.data);
+        }
+        else
+        {
+            ret = UA_Variant_setScalarCopy(myVariant, value->value, type);
+        }
     }
     else
     {
-        ret = UA_Variant_setScalarCopy(myVariant, value->value, type);
+        if (type == &UA_TYPES[UA_TYPES_STRING])
+        {
+            int idx = 0;
+            char **data1 = (char **) value->value;
+            UA_String *array = (UA_String *) UA_Array_new(value->arrayLength, type);
+            for (idx = 0; idx < value->arrayLength; idx++)
+            {
+                array[idx] = UA_STRING_ALLOC(data1[idx]);
+            }
+            UA_Variant_setArrayCopy(myVariant, array, value->arrayLength, type);
+            for (idx = 0; idx < value->arrayLength; idx++)
+            {
+                UA_String_deleteMembers(&array[idx]);
+            }
+            UA_Array_delete(array, value->arrayLength, type);
+        }
+        else if (type == &UA_TYPES[UA_TYPES_BYTESTRING])
+        {
+            int idx = 0;
+            UA_ByteString **dataArray = (UA_ByteString **) value->value;
+            UA_ByteString *array = (UA_ByteString *) UA_Array_new(value->arrayLength, type);
+            for (idx = 0; idx < value->arrayLength; idx++)
+            {
+                char *itemData = (char *) dataArray[idx]->data;
+                array[idx] = UA_BYTESTRING_ALLOC(itemData);
+            }
+            UA_Variant_setArrayCopy(myVariant, array, value->arrayLength, type);
+            for (idx = 0; idx < value->arrayLength; idx++)
+            {
+                UA_ByteString_deleteMembers(&array[idx]);
+            }
+            UA_Array_delete(array, value->arrayLength, type);
+        }
+        else
+        {
+            UA_Variant_setArrayCopy(myVariant, value->value, value->arrayLength, type);
+        }
     }
 
     if (ret != UA_STATUSCODE_GOOD)
