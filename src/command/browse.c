@@ -895,7 +895,7 @@ static EdgeRequest *getEdgeRequestForViewBrowse()
     return NULL;
     }
     nodeInfo->nodeId->type = INTEGER;
-    nodeInfo->nodeId->integerNodeId = RootFolder;
+    nodeInfo->nodeId->integerNodeId = ViewsFolder;
     nodeInfo->nodeId->nameSpace = SYSTEM_NAMESPACE_INDEX;
 
     EdgeRequest *request = (EdgeRequest *) calloc(1, sizeof(EdgeRequest));
@@ -1108,7 +1108,7 @@ EdgeStatusCode browse(UA_Client *client, EdgeMessage *msg, bool browseNext,
     else
     {
         nodesToBrowse = getBrowseDescriptions(browseNodesInfo, msg,
-            (IS_NULL(viewList)) ? BROWSE_NODECLASS_MASK : VIEW_NODECLASS_MASK);
+            IS_NULL(viewList) ? BROWSE_NODECLASS_MASK : VIEW_NODECLASS_MASK);
         if (!nodesToBrowse)
         {
             EDGE_LOG(TAG, "Failed to create browse descriptions.");
