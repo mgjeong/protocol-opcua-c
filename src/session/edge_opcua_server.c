@@ -52,9 +52,31 @@ static edgeMap *namespaceMap = NULL;
 static int namespaceType = DEFAULT_TYPE;
 
 void printNode(void *visitorContext, const UA_Node *node){
+	if(node == NULL){
+		EDGE_LOG(TAG, "UA_Node is null\n");
+		return;
+	}
+	UA_NodeId nodeId = node->nodeId;
 	UA_QualifiedName browseName = node->browseName;
-	printf("namespaceIndex : %d, browseName : %s\n",
-			node->nodeId.namespaceIndex, convertUAStringToString(&browseName.name));
+	char *type = NULL;
+	switch(nodeId.identifierType){
+		case UA_NODEIDTYPE_NUMERIC:
+			type = "numeric";
+			break;
+		case UA_NODEIDTYPE_STRING:
+			type = "string";
+			break;
+		case UA_NODEIDTYPE_GUID:
+			type = "guid";
+			break;
+		case UA_NODEIDTYPE_BYTESTRING:
+			type = "byteString";
+			break;
+		default :
+			type = "unknown";
+	}
+	printf("namespaceIndex : %d, type : %s, browseName : %s\n",
+			nodeId.namespaceIndex, type, convertUAStringToString(&browseName.name));
 }
 
 void printNodeListInServer(){
