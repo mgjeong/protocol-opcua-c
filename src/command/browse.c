@@ -25,8 +25,11 @@
 
 #include <inttypes.h>
 
-#define GUID_LENGTH 36
 #define TAG "browse"
+#define GUID_LENGTH 36
+
+static const int BROWSE_NODECLASS_MASK = UA_NODECLASS_UNSPECIFIED;
+static const int VIEW_NODECLASS_MASK = UA_NODECLASS_OBJECT | UA_NODECLASS_VIEW;
 
 typedef struct ViewNodeInfo
 {
@@ -40,42 +43,6 @@ typedef struct NodesToBrowse
     unsigned char **browseName;
     int size;
 } NodesToBrowse;
-
-typedef struct BrowseMapListNode
-{
-    UA_NodeId nodeId;
-    char *browseName;
-    struct BrowseMapListNode *next;
-} BrowseMapListNode;
-
-typedef struct BrowseMap
-{
-    BrowseMapListNode *listHead;
-    int listSize;
-} BrowseMap;
-
-static BrowseMap *initMap(int size)
-{
-    return calloc(size, sizeof(BrowseMap));
-}
-
-static void destroyMap(BrowseMap *map, int mapSize)
-{
-    for (int i = 0; i < mapSize; ++i)
-    {
-        BrowseMapListNode *listPtr = map[i].listHead;
-        BrowseMapListNode *next = NULL;
-        while (listPtr)
-        {
-            next = listPtr->next;
-            FREE(listPtr->browseName);
-            UA_NodeId_deleteMembers(&listPtr->nodeId);
-            free(listPtr);
-            listPtr = next;
-        }
-    }
-    FREE(map);
-}
 
 static NodesToBrowse *initNodesToBrowse(int size)
 {
@@ -212,60 +179,6 @@ UA_ByteString *getUAStringFromEdgeContinuationPoint(EdgeContinuationPoint *cp)
 
     return byteStr;
 }
-
-static BrowseMapListNode *createBrowseMapListNode(UA_NodeId nodeId, UA_String *browseName)
-{
-    BrowseMapListNode *node = (BrowseMapListNode *) malloc(sizeof(BrowseMapListNode));
-    VERIFY_NON_NULL(node, NULL);
-
-    if (UA_STATUSCODE_GOOD != UA_NodeId_copy(&nodeId, &node->nodeId))
-    {
-        FREE(node);
-        return NULL;
-    }
-    node->browseName = convertUAStringToString(browseName);
-    node->next = NULL;
-    return node;
-}
-
-static bool addToMap(BrowseMap *map, int mapSize, int index, UA_NodeId nodeId,
-        UA_String *browseName)
-{
-    if (IS_NULL(map) || index >= mapSize)
-    {
-        return false;
-    }
-
-    BrowseMapListNode *newNode = createBrowseMapListNode(nodeId, browseName);
-    VERIFY_NON_NULL(newNode, false);
-
-    newNode->next = map[index].listHead;
-    map[index].listHead = newNode;
-    map[index].listSize++;
-    return true;
-}
-
-static bool hasNode(BrowseMap *map, int mapSize, int index, UA_NodeId nodeId)
-{
-    if (IS_NULL(map) || mapSize <= 0 || index >= mapSize)
-        return false;
-
-    BrowseMapListNode *ptr = map[index].listHead;
-    while (ptr)
-    {
-        if (UA_NodeId_equal(&nodeId, &ptr->nodeId))
-        {
-            return true;
-        }
-        ptr = ptr->next;
-    }
-
-    return false;
-}
-
-static const int BROWSE_NODECLASS_MASK = UA_NODECLASS_UNSPECIFIED;
-
-static const int VIEW_NODECLASS_MASK = UA_NODECLASS_OBJECT | UA_NODECLASS_VIEW;
 
 static UA_NodeId *getNodeId(EdgeRequest *req)
 {
@@ -919,6 +832,29 @@ unsigned char *getCompleteBrowsePath(char *browseName)
     return completePath;
 }
 
+bool hasNode(UA_String *browseName)
+{
+    unsigned char *browseNameCharStr = convertUAStringToUnsignedChar(browseName);
+    if(IS_NULL(browseNameCharStr))
+    {
+        return false;
+    }
+
+    bool found = false;
+    for(browsePathNode *ptr = browsePathNodeListHead->next; ptr != NULL ; ptr = ptr->next)
+    {
+        if(IS_NOT_NULL(ptr->browseName) &&
+            !memcmp(ptr->browseName, browseNameCharStr, strlen((char *)ptr->browseName)+1))
+        {
+            found = true;
+            break;
+        }
+    }
+
+    FREE(browseNameCharStr);
+    return found;
+}
+
 unsigned char *convertNodeIdToString(UA_NodeId *nodeId)
 {
     if(!nodeId)
@@ -1136,7 +1072,7 @@ ERROR:
 }
 
 EdgeStatusCode browse(UA_Client *client, EdgeMessage *msg, bool browseNext,
-        NodesToBrowse *browseNodesInfo, int *msgIdList, int msgCount, BrowseMap *map, int mapSize, List **viewList)
+        NodesToBrowse *browseNodesInfo, int *msgIdList, int msgCount, List **viewList)
 {
     UA_BrowseResponse *resp = NULL;
     UA_BrowseResponse browseResp =
@@ -1226,14 +1162,11 @@ EdgeStatusCode browse(UA_Client *client, EdgeMessage *msg, bool browseNext,
         freeEdgeNodeId(srcNodeId);
         srcNodeId = getEdgeNodeId(&browseNodesInfo->nodeId[i]);
         srcBrowseName = browseNodesInfo->browseName[i];
-        if(IS_NULL(viewList))
+        if(IS_NULL(PushBrowsePathNode(srcNodeId, srcBrowseName)))
         {
-            if(IS_NULL(PushBrowsePathNode(srcNodeId, srcBrowseName)))
-            {
-                EDGE_LOG(TAG, "Push Node of Browse Path Error.");
-                statusCode = STATUS_INTERNAL_ERROR;
-                goto EXIT;
-            }
+            EDGE_LOG(TAG, "Push Node of Browse Path Error.");
+            statusCode = STATUS_INTERNAL_ERROR;
+            goto EXIT;
         }
 
         UA_StatusCode status = resp->results[i].statusCode;
@@ -1321,15 +1254,8 @@ EdgeStatusCode browse(UA_Client *client, EdgeMessage *msg, bool browseNext,
 #if DEBUG
                 printNodeId(ref->nodeId.nodeId);
 #endif
-                if (!hasNode(map, mapSize, msgId, ref->nodeId.nodeId))
+                if (!hasNode(&ref->browseName.name))
                 {
-                    if (!addToMap(map, mapSize, msgId, ref->nodeId.nodeId, &ref->browseName.name))
-                    {
-                        EDGE_LOG(TAG, "Adding node to map failed.");
-                        statusCode = STATUS_INTERNAL_ERROR;
-                        goto EXIT;
-                    }
-
                     if(IS_NULL(viewList))
                     {
                         int size = 1;
@@ -1387,7 +1313,7 @@ EdgeStatusCode browse(UA_Client *client, EdgeMessage *msg, bool browseNext,
                 }
                 else
                 {
-                    EDGE_LOG(TAG, "Already added this NodeId in Map.");
+                    EDGE_LOG(TAG, "Already visited this node in the current browse path.");
                 }
             }
         }
@@ -1404,13 +1330,9 @@ EdgeStatusCode browse(UA_Client *client, EdgeMessage *msg, bool browseNext,
 
         if (nextNodeListCount > 0)
         {
-            browse(client, msg, false, nextBrowseNodesInfo, nextMsgIdList,
-                    nextMsgListCount, map, mapSize, viewList);
+            browse(client, msg, false, nextBrowseNodesInfo, nextMsgIdList, nextMsgListCount, viewList);
         }
-        if(IS_NULL(viewList))
-        {
-            PopBrowsePathNode();
-        }
+        PopBrowsePathNode();
         freeEdgeNodeId(srcNodeId);
         srcNodeId = NULL;
         FREE(nextMsgIdList);
@@ -1522,40 +1444,28 @@ EdgeResult executeBrowse(UA_Client *client, EdgeMessage *msg, bool browseNext)
         }
     }
 
-    int mapSize = nodesToBrowseSize;
-    BrowseMap *map = initMap(nodesToBrowseSize);
-    if (IS_NULL(map))
+    if(IS_NULL(InitBrowsePathNodeList()))
     {
-        EDGE_LOG(TAG, "Failed to initialize a Map.");
+        EDGE_LOG(TAG, "Init Browse Path List Error.");
         result.code = STATUS_INTERNAL_ERROR;
     }
     else
     {
-        if(IS_NULL(InitBrowsePathNodeList()))
+        EdgeStatusCode statusCode = browse(client, msg, browseNext, browseNodesInfo,
+        msgIdList, nodesToBrowseSize, NULL);
+        if (statusCode != STATUS_OK)
         {
-            EDGE_LOG(TAG, "Init Browse Path List Error.");
-            result.code = STATUS_INTERNAL_ERROR;
+            EDGE_LOG(TAG, "Browse failed.");
+            result.code = STATUS_ERROR;
         }
         else
         {
-            EdgeStatusCode statusCode = browse(client, msg, browseNext, browseNodesInfo,
-            msgIdList, nodesToBrowseSize, map, mapSize, NULL);
-            DestroyBrowsePathNodeList();
-            if (statusCode != STATUS_OK)
-            {
-                EDGE_LOG(TAG, "Browse failed.");
-                result.code = STATUS_ERROR;
-            }
-            else
-            {
-                result.code = STATUS_OK;
-            }
+            result.code = STATUS_OK;
         }
     }
 
     destroyNodesToBrowse(browseNodesInfo, true);
     FREE(msgIdList);
-    destroyMap(map, mapSize);
     return result;
 }
 
@@ -1633,18 +1543,16 @@ EdgeResult executeBrowseViews(UA_Client *client, EdgeMessage *msg)
     msgIdList[0] = 0;
     FREE(nodeId);
 
-    int mapSize = nodesToBrowseSize;
-    BrowseMap *map = initMap(nodesToBrowseSize);
-    if (IS_NULL(map))
+    if(IS_NULL(InitBrowsePathNodeList()))
     {
-        EDGE_LOG(TAG, "Failed to initialize a Map.");
+        EDGE_LOG(TAG, "Init Browse Path List Error.");
         result.code = STATUS_INTERNAL_ERROR;
     }
     else
     {
         List *viewList = NULL;
         EdgeStatusCode statusCode = browse(client, msg, false, browseNodesInfo,
-        msgIdList, nodesToBrowseSize, map, mapSize, &viewList);
+        msgIdList, nodesToBrowseSize, &viewList);
         if (statusCode != STATUS_OK)
         {
             EDGE_LOG(TAG, "Browse failed.");
@@ -1677,7 +1585,6 @@ EdgeResult executeBrowseViews(UA_Client *client, EdgeMessage *msg)
     FREE(msg->browseParam);
     destroyNodesToBrowse(browseNodesInfo, true);
     FREE(msgIdList);
-    destroyMap(map, mapSize);
     return result;
 }
 
