@@ -24,7 +24,7 @@
 
 #define TAG "method"
 
-EdgeResult executeMethod(UA_Client *client, EdgeMessage *msg)
+EdgeResult executeMethod(UA_Client *client, const EdgeMessage *msg)
 {
     EdgeResult result;
     result.code = STATUS_OK;

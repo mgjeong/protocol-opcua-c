@@ -75,7 +75,7 @@ static EdgeDiagnosticInfo *checkDiagnosticInfo(size_t nodesToProcess,
     return diagnostics;
 }
 
-static void writeGroup(UA_Client *client, EdgeMessage *msg)
+static void writeGroup(UA_Client *client, const EdgeMessage *msg)
 {
 
     size_t reqLen = msg->requestLength;
@@ -92,7 +92,8 @@ static void writeGroup(UA_Client *client, EdgeMessage *msg)
     for (size_t i = 0; i < reqLen; i++)
     {
         EDGE_LOG_V(TAG, "[WRITEGROUP] Node to write :: %s\n", msg->requests[i]->nodeInfo->valueAlias);
-        int type = (int) msg->requests[i]->type - 1;
+        EdgeNodeIdentifier Nodeid = msg->requests[i]->type;
+        uint32_t type = (uint32_t) Nodeid - 1;
         UA_WriteValue_init(&wv[i]);
         UA_Variant_init(&myVariant[i]);
         wv[i].attributeId = UA_ATTRIBUTEID_VALUE;
@@ -314,7 +315,7 @@ static void writeGroup(UA_Client *client, EdgeMessage *msg)
     UA_WriteResponse_deleteMembers(&writeResponse);
 }
 
-EdgeResult executeWrite(UA_Client *client, EdgeMessage *msg)
+EdgeResult executeWrite(UA_Client *client, const EdgeMessage *msg)
 {
     EdgeResult result;
     if (!client)

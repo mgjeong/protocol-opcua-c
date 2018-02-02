@@ -27,14 +27,14 @@
 
 #define TAG "read"
 
-#define GUID_LENGTH 36
+#define GUID_LENGTH (36)
 
 UA_Int64 DateTime_toUnixTime(UA_DateTime date)
 {
     return (date - UA_DATETIME_UNIX_EPOCH) / UA_DATETIME_MSEC;
 }
 
-static void sendErrorResponse(EdgeMessage *msg, char *err_desc)
+static void sendErrorResponse(const EdgeMessage *msg, char *err_desc)
 {
     EdgeMessage *resultMsg = (EdgeMessage *) EdgeMalloc(sizeof(EdgeMessage));
     VERIFY_NON_NULL_NR(resultMsg);
@@ -178,7 +178,7 @@ static bool checkInvalidTime(UA_DateTime serverTime, UA_DateTime sourceTime, int
     return ret;
 }
 
-static void *checkValidation(UA_DataValue *value, EdgeMessage *msg, UA_TimestampsToReturn stamp,
+static void *checkValidation(UA_DataValue *value, const EdgeMessage *msg, UA_TimestampsToReturn stamp,
         double maxAge)
 {
 
@@ -258,7 +258,7 @@ static EdgeDiagnosticInfo *checkDiagnosticInfo(int nodesToProcess,
     return diagnostics;
 }
 
-static void readGroup(UA_Client *client, EdgeMessage *msg)
+static void readGroup(UA_Client *client, const EdgeMessage *msg)
 {
     size_t reqLen = msg->requestLength;
     UA_ReadValueId *rv = (UA_ReadValueId *) EdgeMalloc(sizeof(UA_ReadValueId) * reqLen);
@@ -663,7 +663,7 @@ static void readGroup(UA_Client *client, EdgeMessage *msg)
     return;
 }
 
-EdgeResult executeRead(UA_Client *client, EdgeMessage *msg)
+EdgeResult executeRead(UA_Client *client, const EdgeMessage *msg)
 {
     EdgeResult result;
     if (!client)

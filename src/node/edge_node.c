@@ -26,7 +26,7 @@
 #include <stdio.h>
 
 #define TAG "edge_node"
-#define MAX_ARGS  10
+#define MAX_ARGS  (10)
 
 static edgeMap *methodNodeMap = NULL;
 static size_t methodNodeCount = 0;
@@ -34,7 +34,7 @@ static size_t methodNodeCount = 0;
 
 /****************************** Static functions ***********************************/
 
-static void addVariableNode(UA_Server *server, uint16_t nsIndex, EdgeNodeItem *item)
+static void addVariableNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem *item)
 {
     char *name = item->browseName;
     EdgeNodeIdentifier id = item->variableIdentifier;
@@ -109,7 +109,7 @@ static void addVariableNode(UA_Server *server, uint16_t nsIndex, EdgeNodeItem *i
 //                                                    UA_EXPANDEDNODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER), !(item->forward));
 }
 
-static void addArrayNode(UA_Server *server, uint16_t nsIndex, EdgeNodeItem *item)
+static void addArrayNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem *item)
 {
     char *name = item->browseName;
     EdgeNodeIdentifier id = item->variableIdentifier;
@@ -202,7 +202,7 @@ static void addArrayNode(UA_Server *server, uint16_t nsIndex, EdgeNodeItem *item
     UA_Variant_deleteMembers(&attr.value);
 }
 
-static void addObjectNode(UA_Server *server, uint16_t nsIndex, EdgeNodeItem *item)
+static void addObjectNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem *item)
 {
     char *name = item->browseName;
 
@@ -235,7 +235,7 @@ static void addObjectNode(UA_Server *server, uint16_t nsIndex, EdgeNodeItem *ite
     }
 }
 
-static void addObjectTypeNode(UA_Server *server, uint16_t nsIndex, EdgeNodeItem *item)
+static void addObjectTypeNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem *item)
 {
     char *name = item->browseName;
     UA_ObjectTypeAttributes object_attr = UA_ObjectTypeAttributes_default;
@@ -268,7 +268,7 @@ static void addObjectTypeNode(UA_Server *server, uint16_t nsIndex, EdgeNodeItem 
     }
 }
 
-static void addVariableTypeNode(UA_Server *server, uint16_t nsIndex, EdgeNodeItem *item)
+static void addVariableTypeNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem *item)
 {
     char *name = item->browseName;
     EdgeNodeIdentifier id = item->variableIdentifier;
@@ -317,7 +317,7 @@ static void addVariableTypeNode(UA_Server *server, uint16_t nsIndex, EdgeNodeIte
     //UA_Variant_deleteMembers(&attr.value);
 }
 
-static void addDataTypeNode(UA_Server *server, uint16_t nsIndex, EdgeNodeItem *item)
+static void addDataTypeNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem *item)
 {
     char *name = item->browseName;
 
@@ -350,7 +350,7 @@ static void addDataTypeNode(UA_Server *server, uint16_t nsIndex, EdgeNodeItem *i
     }
 }
 
-static void addViewNode(UA_Server *server, uint16_t nsIndex, EdgeNodeItem *item)
+static void addViewNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem *item)
 {
     char *name = item->browseName;
 
@@ -418,7 +418,7 @@ EdgeResult addReferences(UA_Server *server, EdgeReference *reference, uint16_t s
     return result;
 }
 
-static void addReferenceTypeNode(UA_Server *server, uint16_t nsIndex, EdgeNodeItem *item)
+static void addReferenceTypeNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem *item)
 {
     char *name = item->browseName;
 
@@ -457,7 +457,7 @@ static void addReferenceTypeNode(UA_Server *server, uint16_t nsIndex, EdgeNodeIt
             UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES), expandedSourceNodeId, false);
 }
 
-static keyValue getMethodMapElement(edgeMap *map, keyValue key)
+static keyValue getMethodMapElement(const edgeMap *map, keyValue key)
 {
     edgeMapNode *temp = map->head;
     while (temp != NULL)
@@ -574,7 +574,7 @@ static UA_StatusCode methodCallback(UA_Server *server, const UA_NodeId *sessionI
 
 /****************************** Member functions ***********************************/
 
-EdgeResult addNodes(UA_Server *server, uint16_t nsIndex, EdgeNodeItem *item)
+EdgeResult addNodes(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem *item)
 {
     EdgeResult result;
     result.code = STATUS_OK;
@@ -621,7 +621,7 @@ EdgeResult addNodes(UA_Server *server, uint16_t nsIndex, EdgeNodeItem *item)
     return result;
 }
 
-EdgeResult addMethodNode(UA_Server *server, uint16_t nsIndex, EdgeNodeItem *item, EdgeMethod *method)
+EdgeResult addMethodNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem *item, EdgeMethod *method)
 {
     EdgeResult result;
     result.code = STATUS_ERROR;
@@ -762,13 +762,6 @@ EdgeResult addMethodNode(UA_Server *server, uint16_t nsIndex, EdgeNodeItem *item
         }
     }
 
-    result.code = STATUS_OK;
-    return result;
-}
-
-EdgeResult addDataAccessNode(EdgeNodeItem *item)
-{
-    EdgeResult result;
     result.code = STATUS_OK;
     return result;
 }
