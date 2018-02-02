@@ -31,7 +31,7 @@ static EdgeDiagnosticInfo *checkDiagnosticInfo(int nodesToProcess,
         UA_DiagnosticInfo *diagnosticInfo, int diagnosticInfoLength, int returnDiagnostic)
 {
 
-    EdgeDiagnosticInfo *diagnostics = (EdgeDiagnosticInfo *) malloc(sizeof(EdgeDiagnosticInfo));
+    EdgeDiagnosticInfo *diagnostics = (EdgeDiagnosticInfo *) EdgeMalloc(sizeof(EdgeDiagnosticInfo));
     VERIFY_NON_NULL(diagnostics, NULL);
     diagnostics->symbolicId = 0;
     diagnostics->localizedText = 0;
@@ -48,7 +48,7 @@ static EdgeDiagnosticInfo *checkDiagnosticInfo(int nodesToProcess,
         diagnostics->locale = diagnosticInfo[0].locale;
         if (diagnosticInfo[0].hasAdditionalInfo)
         {
-            char *additional_info = (char *) malloc(diagnosticInfo[0].additionalInfo.length);
+            char *additional_info = (char *) EdgeMalloc(diagnosticInfo[0].additionalInfo.length);
              if(IS_NULL(additional_info))
             {
                 EDGE_LOG(TAG, "Error : Malloc failed for additional_info in checkDiagnosticInfo");
@@ -79,13 +79,13 @@ static void writeGroup(UA_Client *client, EdgeMessage *msg)
 {
 
     int reqLen = msg->requestLength;
-    UA_WriteValue *wv = (UA_WriteValue *) malloc(sizeof(UA_WriteValue) * reqLen);
+    UA_WriteValue *wv = (UA_WriteValue *) EdgeMalloc(sizeof(UA_WriteValue) * reqLen);
     VERIFY_NON_NULL_NR(wv);
-    UA_Variant *myVariant = (UA_Variant *) malloc(sizeof(UA_Variant) * reqLen);
+    UA_Variant *myVariant = (UA_Variant *) EdgeMalloc(sizeof(UA_Variant) * reqLen);
     if(IS_NULL(myVariant))
     {
         EDGE_LOG(TAG, "Error : Malloc failed for myVariant in write group.");
-        FREE(wv);
+        EdgeFree(wv);
         return;
     }
 
@@ -105,7 +105,7 @@ static void writeGroup(UA_Client *client, EdgeMessage *msg)
             UA_String val = UA_STRING_ALLOC((char * ) msg->requests[i]->value);
             UA_Variant_setScalarCopy(&myVariant[i], &val, &UA_TYPES[type]);
             UA_String_deleteMembers(&val);
-            FREE(val.data);
+            EdgeFree(val.data);
         }
         else
         {
@@ -126,10 +126,10 @@ static void writeGroup(UA_Client *client, EdgeMessage *msg)
         EDGE_LOG_V(TAG, "Error in write :: 0x%08x(%s)\n", writeResponse.responseHeader.serviceResult,
                 UA_StatusCode_name(writeResponse.responseHeader.serviceResult));
 
-        FREE(wv);
+        EdgeFree(wv);
         for (int i = 0; i < reqLen; i++)
             UA_Variant_deleteMembers(&myVariant[i]);
-        FREE(myVariant);
+        EdgeFree(myVariant);
 
         UA_WriteResponse_deleteMembers(&writeResponse);
         return;
@@ -139,13 +139,13 @@ static void writeGroup(UA_Client *client, EdgeMessage *msg)
     {
         EDGE_LOG_V(TAG, "Requested(%d) but received(%d) => %s\n", reqLen, (int)writeResponse.resultsSize,
                 (reqLen < writeResponse.resultsSize) ? "Received more results" : "Received less results");
-        EdgeMessage *resultMsg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
+        EdgeMessage *resultMsg = (EdgeMessage *) EdgeMalloc(sizeof(EdgeMessage));
         if(IS_NULL(resultMsg))
         {
             EDGE_LOG(TAG, "Error : Malloc failed for resultMsg in Write Group");
             goto EXIT_BADLENGTH;
         }
-        resultMsg->endpointInfo = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
+        resultMsg->endpointInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
         if(IS_NULL(resultMsg->endpointInfo))
         {
             EDGE_LOG(TAG, "Error : Malloc failed for resultMsg->endpointInfo in Write Group");
@@ -155,7 +155,7 @@ static void writeGroup(UA_Client *client, EdgeMessage *msg)
         resultMsg->type = ERROR;
         resultMsg->responseLength = 0;
 
-        EdgeResult *res = (EdgeResult *) malloc(sizeof(EdgeResult));
+        EdgeResult *res = (EdgeResult *) EdgeMalloc(sizeof(EdgeResult));
         if(IS_NULL(res))
         {
             EDGE_LOG(TAG, "Error : Malloc failed for EdgeResult in Write Group");
@@ -167,12 +167,12 @@ static void writeGroup(UA_Client *client, EdgeMessage *msg)
         onResponseMessage(resultMsg);
 
         EXIT_BADLENGTH:
-        FREE(resultMsg);
-        FREE(res);
-        FREE(wv);
+        EdgeFree(resultMsg);
+        EdgeFree(res);
+        EdgeFree(wv);
         for (int i = 0; i < reqLen; i++)
             UA_Variant_deleteMembers(&myVariant[i]);
-        FREE(myVariant);
+        EdgeFree(myVariant);
         UA_WriteResponse_deleteMembers(&writeResponse);
         return;
     }
@@ -184,13 +184,13 @@ static void writeGroup(UA_Client *client, EdgeMessage *msg)
         EDGE_LOG(TAG, "Error : Malloc Failed for responses in Write Group");
         goto EXIT;
     }
-    EdgeMessage *resultMsg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
+    EdgeMessage *resultMsg = (EdgeMessage *) EdgeMalloc(sizeof(EdgeMessage));
     if(IS_NULL(resultMsg ))
     {
         EDGE_LOG(TAG, "Error : Malloc Failed for resultMsg in Write Group");
         goto EXIT;
     }
-    resultMsg->endpointInfo = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
+    resultMsg->endpointInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
     if(IS_NULL(resultMsg->endpointInfo ))
     {
         EDGE_LOG(TAG, "Error : Malloc Failed for resultMsg->endpointInfo in Write Group");
@@ -210,13 +210,13 @@ static void writeGroup(UA_Client *client, EdgeMessage *msg)
         {
             EDGE_LOG_V(TAG, "Error in write response for a particular node :: 0x%08x(%s)\n", code,
                     UA_StatusCode_name(code));
-            EdgeMessage *resultMsg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
+            EdgeMessage *resultMsg = (EdgeMessage *) EdgeMalloc(sizeof(EdgeMessage));
             if(IS_NULL(resultMsg ))
             {
                 EDGE_LOG(TAG, "Error : Malloc Failed for resultMsg in Write Group");
                 goto EXIT1;
             }
-            resultMsg->endpointInfo = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
+            resultMsg->endpointInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
             if(IS_NULL(resultMsg->endpointInfo))
             {
                 EDGE_LOG(TAG, "Error : Malloc Failed for resultMsg->endpointInfo in Write Group");
@@ -226,7 +226,7 @@ static void writeGroup(UA_Client *client, EdgeMessage *msg)
             resultMsg->type = ERROR;
             resultMsg->responseLength = 0;
 
-            EdgeResult *res = (EdgeResult *) malloc(sizeof(EdgeResult));
+            EdgeResult *res = (EdgeResult *) EdgeMalloc(sizeof(EdgeResult));
             if(IS_NULL(res))
             {
                 EDGE_LOG(TAG, "Error : Malloc Failed for res in Write Group");
@@ -238,19 +238,19 @@ static void writeGroup(UA_Client *client, EdgeMessage *msg)
             onResponseMessage(resultMsg);
 
             EXIT1:
-            FREE(resultMsg->endpointInfo);
-            FREE(res);
-            FREE(resultMsg);
+            EdgeFree(resultMsg->endpointInfo);
+            EdgeFree(res);
+            EdgeFree(resultMsg);
 
             if (writeResponse.responseHeader.serviceResult != UA_STATUSCODE_GOOD)
                 continue;
         }
         else
         {
-            EdgeResponse *response = (EdgeResponse *) malloc(sizeof(EdgeResponse));
+            EdgeResponse *response = (EdgeResponse *) EdgeMalloc(sizeof(EdgeResponse));
             if (IS_NOT_NULL(response))
             {
-                response->nodeInfo = (EdgeNodeInfo *) malloc(sizeof(EdgeNodeInfo));
+                response->nodeInfo = (EdgeNodeInfo *) EdgeMalloc(sizeof(EdgeNodeInfo));
                 if(IS_NULL(response->nodeInfo))
                 {
                     EDGE_LOG(TAG, "Error : Malloc Failed for EdgeResponse.NodeInfo in Write Group");
@@ -265,7 +265,7 @@ static void writeGroup(UA_Client *client, EdgeMessage *msg)
                         writeRequest.requestHeader.returnDiagnostics);
                 response->m_diagnosticInfo = diagnosticInfo;
 
-                EdgeVersatility *message = (EdgeVersatility *) malloc(sizeof(EdgeVersatility));
+                EdgeVersatility *message = (EdgeVersatility *) EdgeMalloc(sizeof(EdgeVersatility));
                 if(IS_NULL(message))
                 {
                     EDGE_LOG(TAG, "Error : Malloc Failed for EdgeVersatility in Write Group");
@@ -294,25 +294,25 @@ static void writeGroup(UA_Client *client, EdgeMessage *msg)
             {
                 if (responses[i]->m_diagnosticInfo->additionalInfo)
                 {
-                    FREE(responses[i]->m_diagnosticInfo->additionalInfo);
+                    EdgeFree(responses[i]->m_diagnosticInfo->additionalInfo);
                 }
-                FREE(responses[i]->m_diagnosticInfo);
+                EdgeFree(responses[i]->m_diagnosticInfo);
             }
-            FREE(responses[i]->message);
-            FREE(responses[i]->nodeInfo);
-            FREE(responses[i]);
+            EdgeFree(responses[i]->message);
+            EdgeFree(responses[i]->nodeInfo);
+            EdgeFree(responses[i]);
         }
 
-        FREE(resultMsg->endpointInfo);
-        FREE(resultMsg->responses);
-        FREE(resultMsg);
+        EdgeFree(resultMsg->endpointInfo);
+        EdgeFree(resultMsg->responses);
+        EdgeFree(resultMsg);
     }
-    FREE(wv);
+    EdgeFree(wv);
     for (int i = 0; i < reqLen; i++)
     {
         UA_Variant_deleteMembers(&myVariant[i]);
     }
-    FREE(myVariant);
+    EdgeFree(myVariant);
     UA_WriteResponse_deleteMembers(&writeResponse);
 }
 

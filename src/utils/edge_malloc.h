@@ -27,6 +27,8 @@
 #ifndef EDGE_MALLOC_H_
 #define EDGE_MALLOC_H_
 
+#include <stdio.h>
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -41,6 +43,65 @@ extern "C"
              #arg " is NULL"); return (retVal); } }
 #define VERIFY_NON_NULL_NR(arg) { if (!(arg)) { EDGE_LOG(TAG, \
              #arg " is NULL"); return; } }
+
+/**
+ * Allocates a block of size bytes, returning a pointer to the beginning of
+ * the allocated block.
+ *
+ * NOTE: This function is intended to be used internally by the TB Stack.
+ *       It is not intended to be used by applications.
+ *
+ * @param size - Size of the memory block in bytes, where size > 0
+ *
+ * @return
+ *     on success, a pointer to the allocated memory block
+ *     on failure, a null pointer is returned
+ */
+__attribute__((visibility("default"))) void *EdgeMalloc(size_t size);
+
+/**
+ * Re-allocates a block of memory, pointed to by ptr to the size specified
+ * in size.  The returned value contains a pointer to the new location, with
+ * all data copied into it.  If the new size of the memory-object require movement,
+ * the previous space is freed.  If the new size is larger, the newly allocated
+ * area has non-deterministic content. If the space cannot be allocated, the value
+ * ptr is left unchanged.
+ *
+ * @param ptr - Pointer to a block of memory previously allocated by OICCalloc,
+ *              OICMalloc, or a previous call to this function.  If this value is
+ *              NULL, this function will work identically to a call to OICMalloc.
+ *
+ * @param size - Size of the new memory block in bytes, where size > 0
+ *
+ * @return
+ *      on success, a pointer to the newly sized memory block
+ *      on failure, a null pointer is returned, and the memory pointed to by *ptr is untouched
+ */
+__attribute__((visibility("default"))) void *EdgeRealloc(void *ptr, size_t size);
+
+/**
+ * Allocates a block of memory for an array of num elements, each of them
+ * size bytes long and initializes all its bits to zero.
+ *
+ * @param num - The number of elements
+ * @param size - Size of the element type in bytes, where size > 0
+ *
+ * @return
+ *     on success, a pointer to the allocated memory block
+ *     on failure, a null pointer is returned
+ */
+__attribute__((visibility("default"))) void *EdgeCalloc(size_t num, size_t size);
+
+/**
+ * Deallocate a block of memory previously allocated by a call to OICMalloc.
+ *
+ * NOTE: This function is intended to be used internally by the TB Stack.
+ *       It is not intended to be used by applications.
+ *
+ * @param ptr - Pointer to block of memory previously allocated by OICMalloc.
+ *              If ptr is a null pointer, the function does nothing.
+ */
+__attribute__((visibility("default"))) void EdgeFree(void *ptr);
 
 #ifdef __cplusplus
 }

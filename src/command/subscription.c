@@ -184,17 +184,17 @@ static void monitoredItemHandler(UA_UInt32 monId, UA_DataValue *value, void *con
         if (!subInfo)
             return;
 
-        EdgeResponse *response = (EdgeResponse *) malloc(sizeof(EdgeResponse));
+        EdgeResponse *response = (EdgeResponse *) EdgeMalloc(sizeof(EdgeResponse));
         if (IS_NOT_NULL(response))
         {
-            response->nodeInfo = (EdgeNodeInfo *) malloc(sizeof(EdgeNodeInfo));
+            response->nodeInfo = (EdgeNodeInfo *) EdgeMalloc(sizeof(EdgeNodeInfo));
             if(IS_NULL(response->nodeInfo))
             {
                 EDGE_LOG(TAG, "Error : Malloc failed for response->nodeInfo in monitor item handler\n");
                 goto EXIT;
             }
             //memcpy(response->nodeInfo, subInfo->msg->request->nodeInfo, sizeof(EdgeNodeInfo));
-            response->nodeInfo->valueAlias = (char *) malloc(strlen(valueAlias) + 1);
+            response->nodeInfo->valueAlias = (char *) EdgeMalloc(strlen(valueAlias) + 1);
             if(IS_NULL(response->nodeInfo->valueAlias))
             {
                 EDGE_LOG(TAG, "Error : Malloc failed for response->nodeInfo->valueAlias in monitor item handler\n");
@@ -207,7 +207,7 @@ static void monitoredItemHandler(UA_UInt32 monId, UA_DataValue *value, void *con
             //if (subInfo->msg != NULL && subInfo->msg->requests != NULL)
                 //response->requestId = subInfo->msg->request->requestId;
 
-            EdgeVersatility *versatility = (EdgeVersatility *) malloc(sizeof(EdgeVersatility));
+            EdgeVersatility *versatility = (EdgeVersatility *) EdgeMalloc(sizeof(EdgeVersatility));
             if(IS_NULL(versatility))
             {
                 EDGE_LOG(TAG, "Error : Malloc failed for versatility in monitor item handler\n");
@@ -284,7 +284,7 @@ static void monitoredItemHandler(UA_UInt32 monId, UA_DataValue *value, void *con
                     }
                     for (int i = 0; i < val.arrayLength; i++)
                     {
-                        values[i] = (char *) malloc(str[i].length+1);
+                        values[i] = (char *) EdgeMalloc(str[i].length+1);
                         if(IS_NULL(values[i]))
                         {
                             EDGE_LOG_V(TAG, "Error : Malloc failed for String Array value %d in Read Group\n", i);
@@ -311,16 +311,16 @@ static void monitoredItemHandler(UA_UInt32 monId, UA_DataValue *value, void *con
             }
             response->message = versatility;
 
-            EdgeMessage *resultMsg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
+            EdgeMessage *resultMsg = (EdgeMessage *) EdgeMalloc(sizeof(EdgeMessage));
             if(IS_NULL(resultMsg))
             {
                 EDGE_LOG(TAG, "Error : Malloc failed for resultMsg in monitor item handler\n");
                 goto EXIT;
             }
-            resultMsg->endpointInfo = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
+            resultMsg->endpointInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
             if(IS_NULL(resultMsg->endpointInfo))
             {
-                EDGE_LOG(TAG, "Error : Malloc failed for resultMsg.endpointInfo in monitor item handler\n");
+                EDGE_LOG(TAG, "Error : EdgeCalloc failed for resultMsg.endpointInfo in monitor item handler\n");
                 goto EXIT;
             }
             memcpy(resultMsg->endpointInfo, subInfo->msg->endpointInfo, sizeof(EdgeEndPointInfo));
@@ -343,17 +343,17 @@ static void monitoredItemHandler(UA_UInt32 monId, UA_DataValue *value, void *con
             {
                 if(IS_NOT_NULL(response->nodeInfo))
                 {
-                    FREE(response->nodeInfo->valueAlias);
+                    EdgeFree(response->nodeInfo->valueAlias);
                 }
-                FREE(response->nodeInfo);
-                FREE(response->message);
-                FREE(response);
+                EdgeFree(response->nodeInfo);
+                EdgeFree(response->message);
+                EdgeFree(response);
             }
             if(IS_NOT_NULL(resultMsg))
             {
-                FREE(resultMsg->responses);
-                FREE(resultMsg->endpointInfo);
-                FREE(resultMsg);
+                EdgeFree(resultMsg->responses);
+                EdgeFree(resultMsg->endpointInfo);
+                EdgeFree(resultMsg);
             }
         }
     }
@@ -457,33 +457,33 @@ static UA_StatusCode createSub(UA_Client *client, EdgeMessage *msg)
     }
 
     int itemSize = msg->requestLength;
-    UA_MonitoredItemCreateRequest *items = (UA_MonitoredItemCreateRequest *) malloc(
+    UA_MonitoredItemCreateRequest *items = (UA_MonitoredItemCreateRequest *) EdgeMalloc(
             sizeof(UA_MonitoredItemCreateRequest) * itemSize);
     if(IS_NULL(items))
     {
         EDGE_LOG(TAG, "Error : Malloc failed for items in create subscription");
         goto EXIT;
     }
-    UA_UInt32 *monId = (UA_UInt32 *) malloc(sizeof(UA_UInt32) * itemSize);
+    UA_UInt32 *monId = (UA_UInt32 *) EdgeMalloc(sizeof(UA_UInt32) * itemSize);
     if(IS_NULL(monId))
     {
         EDGE_LOG(TAG, "Error : Malloc failed for monId in create subscription");
         goto EXIT;
     }
-    UA_StatusCode *itemResults = (UA_StatusCode *) malloc(sizeof(UA_StatusCode) * itemSize);
+    UA_StatusCode *itemResults = (UA_StatusCode *) EdgeMalloc(sizeof(UA_StatusCode) * itemSize);
     if(IS_NULL(itemResults))
     {
         EDGE_LOG(TAG, "Error : Malloc failed for itemResults in create subscription");
         goto EXIT;
     }
-    UA_MonitoredItemHandlingFunction *hfs = (UA_MonitoredItemHandlingFunction *) malloc(
+    UA_MonitoredItemHandlingFunction *hfs = (UA_MonitoredItemHandlingFunction *) EdgeMalloc(
             sizeof(UA_MonitoredItemHandlingFunction) * itemSize);
     if(IS_NULL(hfs))
     {
         EDGE_LOG(TAG, "Error : Malloc failed for UA_MonitoredItemHandlingFunction in create subscription");
         goto EXIT;
     }
-    client_valueAlias **client_alias = (client_valueAlias**) malloc(sizeof(client_valueAlias*) * itemSize);
+    client_valueAlias **client_alias = (client_valueAlias**) EdgeMalloc(sizeof(client_valueAlias*) * itemSize);
     if(IS_NULL(client_alias))
     {
         EDGE_LOG(TAG, "Error : Malloc failed for client_alias in create subscription");
@@ -494,14 +494,14 @@ static UA_StatusCode createSub(UA_Client *client, EdgeMessage *msg)
     {
         monId[i] = 0;
         hfs[i] = &monitoredItemHandler;
-        client_alias[i] = (client_valueAlias*) malloc(sizeof(client_valueAlias));
+        client_alias[i] = (client_valueAlias*) EdgeMalloc(sizeof(client_valueAlias));
          if(IS_NULL(client_alias[i]))
         {
             EDGE_LOG_V(TAG, "Error : Malloc failed for client_alias id %d in create subscription\n", i);
             goto EXIT;
         }
         client_alias[i]->client = client;
-        client_alias[i]->valueAlias = (char *)malloc(EDGE_UA_SUBSCRIPTION_ITEM_SIZE);
+        client_alias[i]->valueAlias = (char *)EdgeMalloc(EDGE_UA_SUBSCRIPTION_ITEM_SIZE);
         if(IS_NULL(client_alias[i]->valueAlias))
         {
             EDGE_LOG_V(TAG, "Error : Malloc failed for client_alias.valuealias id %d in create subscription\n", i);
@@ -560,7 +560,7 @@ static UA_StatusCode createSub(UA_Client *client, EdgeMessage *msg)
         if (IS_NULL(clientSub))
         {
             EDGE_LOG(TAG, "subscription list for the client is empty\n");
-            clientSub = (clientSubscription*) malloc(sizeof(clientSubscription));
+            clientSub = (clientSubscription*) EdgeMalloc(sizeof(clientSubscription));
             if(IS_NULL(clientSub))
             {
                 EDGE_LOG(TAG, "Error : Malloc failed for clientSub in create subscription\n");
@@ -576,16 +576,16 @@ static UA_StatusCode createSub(UA_Client *client, EdgeMessage *msg)
         }
         if (clientSub->subscriptionList)
         {
-            subscriptionInfo *subInfo = (subscriptionInfo *) malloc(sizeof(subscriptionInfo));
+            subscriptionInfo *subInfo = (subscriptionInfo *) EdgeMalloc(sizeof(subscriptionInfo));
             if(IS_NULL(subInfo))
             {
                 EDGE_LOG(TAG, "Error : Malloc failed for subInfo in create subscription");
                 goto EXIT;
             }
-            EdgeMessage *msgCopy = (EdgeMessage *) malloc(sizeof(EdgeMessage));
+            EdgeMessage *msgCopy = (EdgeMessage *) EdgeMalloc(sizeof(EdgeMessage));
             if(IS_NULL(msgCopy))
             {
-                FREE(subInfo);
+                EdgeFree(subInfo);
                 EDGE_LOG(TAG, "Error : Malloc failed for msgCopy in create subscription");
                 goto EXIT;
             }
@@ -596,10 +596,10 @@ static UA_StatusCode createSub(UA_Client *client, EdgeMessage *msg)
             subInfo->hfContext = client_alias[i];
             EDGE_LOG_V(TAG, "Inserting MAP ELEMENT valueAlias :: %s \n",
                    msgCopy->requests[i]->nodeInfo->valueAlias);
-            char *valueAlias = (char *)malloc(sizeof(char) * (strlen(msgCopy->requests[i]->nodeInfo->valueAlias) + 1));
+            char *valueAlias = (char *)EdgeMalloc(sizeof(char) * (strlen(msgCopy->requests[i]->nodeInfo->valueAlias) + 1));
             if(IS_NULL(valueAlias))
             {
-                FREE(subInfo);
+                EdgeFree(subInfo);
                 EDGE_LOG(TAG, "Error : Malloc failed for valueAlias in create subscription");
                 goto EXIT;
             }
@@ -626,10 +626,10 @@ static UA_StatusCode createSub(UA_Client *client, EdgeMessage *msg)
     clientSub->subscriptionCount++;
 
     EXIT:
-    FREE(monId);
-    FREE(hfs);
-    FREE(itemResults);
-    FREE(items);
+    EdgeFree(monId);
+    EdgeFree(hfs);
+    EdgeFree(itemResults);
+    EdgeFree(items);
 
     return UA_STATUSCODE_GOOD;
 }
@@ -676,13 +676,13 @@ static UA_StatusCode deleteSub(UA_Client *client, EdgeMessage *msg)
             if (IS_NOT_NULL(info))
             {
                 client_valueAlias *alias = (client_valueAlias*) info->hfContext;
-                FREE(alias->valueAlias);
-                FREE(alias);
-                FREE(info->msg);
-                FREE(info);
+                EdgeFree(alias->valueAlias);
+                EdgeFree(alias);
+                EdgeFree(info->msg);
+                EdgeFree(info);
             }
-            FREE(removed->key);
-            FREE(removed);
+            EdgeFree(removed->key);
+            EdgeFree(removed);
         }
     }
 

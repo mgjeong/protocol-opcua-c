@@ -44,7 +44,7 @@ EdgeResult executeMethod(UA_Client *client, EdgeMessage *msg)
         num_inpArgs = params->num_inpArgs;
     }
     if (num_inpArgs > 0)
-        input = (UA_Variant *) malloc(sizeof(UA_Variant) * params->num_inpArgs);
+        input = (UA_Variant *) EdgeMalloc(sizeof(UA_Variant) * params->num_inpArgs);
 
     for (idx = 0; idx < num_inpArgs; idx++)
     {
@@ -56,7 +56,7 @@ EdgeResult executeMethod(UA_Client *client, EdgeMessage *msg)
             {
                 UA_String val = UA_STRING_ALLOC((char * ) params->inpArg[idx]->scalarValue);
                 UA_Variant_setScalarCopy(&input[idx], &val, &UA_TYPES[type]);
-                FREE(val.data);
+                EdgeFree(val.data);
                 UA_String_deleteMembers(&val);
             }
             else
@@ -105,7 +105,7 @@ EdgeResult executeMethod(UA_Client *client, EdgeMessage *msg)
         EdgeResponse **response = (EdgeResponse **) malloc(sizeof(EdgeResponse *) * outputSize);
         if(IS_NULL(response))
         {
-            EDGE_LOG(TAG, "ERROR : EdgeResponse malloc failed in executeMethod\n");
+            EDGE_LOG(TAG, "ERROR : EdgeResponse EdgeMalloc failed in executeMethod\n");
             result.code = STATUS_ERROR;
             goto EXIT;
         }
@@ -113,21 +113,21 @@ EdgeResult executeMethod(UA_Client *client, EdgeMessage *msg)
         {
             for (int i = 0; i < outputSize; i++)
             {
-                response[i] = (EdgeResponse *) malloc(sizeof(EdgeResponse));
+                response[i] = (EdgeResponse *) EdgeMalloc(sizeof(EdgeResponse));
                 if(IS_NULL(response[i]))
                 {
                     EDGE_LOG_V(TAG, "ERROR : EdgeResponse %d Malloc failed in executeMethod\n", i);
                     result.code = STATUS_ERROR;
                     goto EXIT;
                 }
-                response[i]->nodeInfo = (EdgeNodeInfo *) malloc(sizeof(EdgeNodeInfo));
+                response[i]->nodeInfo = (EdgeNodeInfo *) EdgeMalloc(sizeof(EdgeNodeInfo));
                 memcpy(response[i]->nodeInfo, msg->request->nodeInfo, sizeof(EdgeNodeInfo));
                 response[i]->requestId = msg->request->requestId;
 
-                EdgeVersatility *versatility = (EdgeVersatility *) malloc(sizeof(EdgeVersatility));
+                EdgeVersatility *versatility = (EdgeVersatility *) EdgeMalloc(sizeof(EdgeVersatility));
                 if(IS_NULL(versatility))
                 {
-                    EDGE_LOG(TAG, "ERROR : versatility malloc failed in executeMethod\n");
+                    EDGE_LOG(TAG, "ERROR : versatility EdgeMalloc failed in executeMethod\n");
                     result.code = STATUS_ERROR;
                     goto EXIT;
                 }
@@ -247,24 +247,24 @@ EdgeResult executeMethod(UA_Client *client, EdgeMessage *msg)
                 response[i]->m_diagnosticInfo = NULL;
             }
 
-            EdgeMessage *resultMsg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
+            EdgeMessage *resultMsg = (EdgeMessage *) EdgeMalloc(sizeof(EdgeMessage));
             if(IS_NULL(resultMsg))
             {
-                EDGE_LOG(TAG, "ERROR : ResultMsg malloc failed in executeMethod\n");
+                EDGE_LOG(TAG, "ERROR : ResultMsg EdgeMalloc failed in executeMethod\n");
                 result.code = STATUS_ERROR;
                 goto EXIT;
             }
-            resultMsg->endpointInfo = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
+            resultMsg->endpointInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
             if(IS_NULL(resultMsg->endpointInfo))
             {
-                EDGE_LOG(TAG, "ERROR : ResultMsg.endpointInfo malloc failed in executeMethod\n");
+                EDGE_LOG(TAG, "ERROR : ResultMsg.endpointInfo EdgeCalloc failed in executeMethod\n");
                 result.code = STATUS_ERROR;
                 goto EXIT;
             }
             memcpy(resultMsg->endpointInfo, msg->endpointInfo, sizeof(EdgeEndPointInfo));
             resultMsg->type = GENERAL_RESPONSE;
             resultMsg->responseLength = outputSize;
-            //resultMsg->responses = (EdgeResponse**) malloc(1 * sizeof(EdgeResponse));
+            //resultMsg->responses = (EdgeResponse**) EdgeMalloc(1 * sizeof(EdgeResponse));
             resultMsg->responses = response;
             resultMsg->command = CMD_METHOD;
 
@@ -275,22 +275,22 @@ EdgeResult executeMethod(UA_Client *client, EdgeMessage *msg)
             {
                 if(IS_NOT_NULL(response[i]->nodeInfo))
                 {
-                    FREE(response[i]->nodeInfo);
+                    EdgeFree(response[i]->nodeInfo);
                 }
                 if(IS_NOT_NULL(response[i]->message))
                 {
-                    FREE(response[i]->message);
+                    EdgeFree(response[i]->message);
                 }
                 if(IS_NOT_NULL(response[i]->message))
                 {
-                    FREE(response[i]);
+                    EdgeFree(response[i]);
                 }
             }
-            FREE(response);
+            EdgeFree(response);
             if(IS_NOT_NULL(resultMsg))
             {
-                FREE(resultMsg->endpointInfo);
-                FREE(resultMsg);
+                EdgeFree(resultMsg->endpointInfo);
+                EdgeFree(resultMsg);
             }
         }
     }
@@ -299,23 +299,23 @@ EdgeResult executeMethod(UA_Client *client, EdgeMessage *msg)
         EDGE_LOG_V(TAG, "method call failed 0x%08x\n", retVal);
         result.code = STATUS_ERROR;
 
-        EdgeMessage *resultMsg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
+        EdgeMessage *resultMsg = (EdgeMessage *) EdgeMalloc(sizeof(EdgeMessage));
         if(IS_NULL(resultMsg))
         {
             EDGE_LOG(TAG, "Error : Malloc failed for resultMsg in executeMethod\n");
             goto EXIT_ERROR;
         }
-        resultMsg->endpointInfo = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
+        resultMsg->endpointInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
         if(IS_NULL(resultMsg))
         {
-            EDGE_LOG(TAG, "Error : Malloc failed for resultMsg.endpointInfo in executeMethod\n");
+            EDGE_LOG(TAG, "Error : EdgeCalloc failed for resultMsg.endpointInfo in executeMethod\n");
             goto EXIT_ERROR;
         }
         memcpy(resultMsg->endpointInfo, msg->endpointInfo, sizeof(EdgeEndPointInfo));
         resultMsg->type = ERROR;
         resultMsg->responseLength = 0;
 
-        EdgeResult *res = (EdgeResult *) malloc(sizeof(EdgeResult));
+        EdgeResult *res = (EdgeResult *) EdgeMalloc(sizeof(EdgeResult));
         if(IS_NULL(res))
         {
             EDGE_LOG(TAG, "Error : Malloc failed for result in executeMethod\n");
@@ -329,10 +329,10 @@ EdgeResult executeMethod(UA_Client *client, EdgeMessage *msg)
         EXIT_ERROR:
         if(IS_NOT_NULL(resultMsg))
         {
-            FREE(resultMsg->endpointInfo);
-            FREE(resultMsg);
+            EdgeFree(resultMsg->endpointInfo);
+            EdgeFree(resultMsg);
         }
-        FREE(res);
+        EdgeFree(res);
     }
 
     for (idx = 0; idx < num_inpArgs; idx++)
@@ -340,6 +340,6 @@ EdgeResult executeMethod(UA_Client *client, EdgeMessage *msg)
         UA_Variant_deleteMembers(&input[idx]);
     }
 
-    FREE(input);
+    EdgeFree(input);
     return result;
 }

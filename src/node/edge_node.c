@@ -80,7 +80,7 @@ static void addVariableNode(UA_Server *server, int nsIndex, EdgeNodeItem *item)
         UA_Variant_setScalarCopy(&attr.value, &val, &UA_TYPES[type]);
         UA_String_deleteMembers(&val);
 
-        FREE(val.data);
+        EdgeFree(val.data);
     }
     else
     {
@@ -485,7 +485,7 @@ static UA_StatusCode methodCallback(UA_Server *server, const UA_NodeId *sessionI
         void **inp = NULL;
         if (inputSize > 0)
         {
-            inp = malloc(sizeof(void *) * inputSize);
+            inp = EdgeMalloc(sizeof(void *) * inputSize);
             VERIFY_NON_NULL(inp, STATUS_ERROR);
             for (int i = 0; i < inputSize; i++)
             {
@@ -495,11 +495,11 @@ static UA_StatusCode methodCallback(UA_Server *server, const UA_NodeId *sessionI
         void **out = NULL;
         if (outputSize > 0)
         {
-            out = malloc(sizeof(void *) * outputSize);
+            out = EdgeMalloc(sizeof(void *) * outputSize);
             if (IS_NULL(out))
             {
                 EDGE_LOG(TAG, "ERROR : out in methodCallback Malloc FAILED\n");
-                FREE(inp);
+                EdgeFree(inp);
                 return STATUS_ERROR;
             }
             for (int i = 0; i < outputSize; i++)
@@ -509,7 +509,7 @@ static UA_StatusCode methodCallback(UA_Server *server, const UA_NodeId *sessionI
         }
         method_to_call(inputSize, inp, outputSize, out);
 
-        FREE(inp);
+        EdgeFree(inp);
 
         for (int idx = 0; idx < method->num_outArgs; idx++)
         {
@@ -524,7 +524,7 @@ static UA_StatusCode methodCallback(UA_Server *server, const UA_NodeId *sessionI
                         UA_String val = UA_STRING_ALLOC((char * ) *out);
                         UA_Variant_setScalarCopy(&output[idx], &val, &UA_TYPES[type]);
                         UA_String_deleteMembers(&val);
-                        FREE(val.data);
+                        EdgeFree(val.data);
                     }
                     else
                     {
@@ -560,10 +560,10 @@ static UA_StatusCode methodCallback(UA_Server *server, const UA_NodeId *sessionI
                                 &UA_TYPES[type]);
                     }
                 }
-                FREE(out[idx]);
+                EdgeFree(out[idx]);
             }
         }
-        FREE(out);
+        EdgeFree(out);
         return UA_STATUSCODE_GOOD;
     }
     else
@@ -648,7 +648,7 @@ EdgeResult addMethodNode(UA_Server *server, int nsIndex, EdgeNodeItem *item, Edg
         else if (method->inpArg[idx]->valType == ARRAY_1D)
         {
             inputArguments[idx].valueRank = 1; /* Array with one dimensions */
-            UA_UInt32 *inputDimensions = (UA_UInt32 *) malloc(sizeof(UA_UInt32));
+            UA_UInt32 *inputDimensions = (UA_UInt32 *) EdgeMalloc(sizeof(UA_UInt32));
             VERIFY_NON_NULL(inputDimensions, result);
             inputDimensions[0] = method->inpArg[idx]->arrayLength;
             inputArguments[idx].arrayDimensionsSize = 1;
@@ -672,7 +672,7 @@ EdgeResult addMethodNode(UA_Server *server, int nsIndex, EdgeNodeItem *item, Edg
         else if (method->outArg[idx]->valType == ARRAY_1D)
         {
             outputArguments[idx].valueRank = 1; /* Array with one dimensions */
-            UA_UInt32 *outputDimensions = (UA_UInt32 *) malloc(sizeof(UA_UInt32));
+            UA_UInt32 *outputDimensions = (UA_UInt32 *) EdgeMalloc(sizeof(UA_UInt32));
             if (IS_NULL(outputDimensions))
             {
                 EDGE_LOG(TAG, "ERROR : outputDimensions MALLOC failed\n");
@@ -680,7 +680,7 @@ EdgeResult addMethodNode(UA_Server *server, int nsIndex, EdgeNodeItem *item, Edg
                 {
                     if (method->inpArg[idx]->valType == ARRAY_1D)
                     {
-                        FREE(inputArguments[idx].arrayDimensions);
+                        EdgeFree(inputArguments[idx].arrayDimensions);
                     }
                 }
                 result.code = STATUS_ERROR;
@@ -722,7 +722,7 @@ EdgeResult addMethodNode(UA_Server *server, int nsIndex, EdgeNodeItem *item, Edg
         if (NULL == methodNodeMap)
             methodNodeMap = createMap();
 
-        char *browseName = (char *) malloc(strlen(item->browseName) + 1);
+        char *browseName = (char *) EdgeMalloc(strlen(item->browseName) + 1);
         VERIFY_NON_NULL(browseName, result);
         strncpy(browseName, item->browseName, strlen(item->browseName));
         browseName[strlen(item->browseName)] = '\0';
@@ -750,7 +750,7 @@ EdgeResult addMethodNode(UA_Server *server, int nsIndex, EdgeNodeItem *item, Edg
     {
         if (method->outArg[idx]->valType == ARRAY_1D)
         {
-            FREE(outputArguments[idx].arrayDimensions);
+            EdgeFree(outputArguments[idx].arrayDimensions);
         }
     }
     for (idx = 0; idx < num_inpArgs; idx++)
@@ -758,7 +758,7 @@ EdgeResult addMethodNode(UA_Server *server, int nsIndex, EdgeNodeItem *item, Edg
 
         if (method->inpArg[idx]->valType == ARRAY_1D)
         {
-            FREE(inputArguments[idx].arrayDimensions);
+            EdgeFree(inputArguments[idx].arrayDimensions);
         }
     }
 
@@ -803,7 +803,7 @@ EdgeResult modifyNode(UA_Server *server, int nsIndex, char *nodeUri, EdgeVersati
             UA_String val = UA_STRING_ALLOC((char * ) value->value);
             ret = UA_Variant_setScalarCopy(myVariant, &val, type);
             UA_String_deleteMembers(&val);
-            FREE(val.data);
+            EdgeFree(val.data);
         }
         else
         {
