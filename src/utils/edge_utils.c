@@ -462,12 +462,18 @@ ERROR:
 void freeEdgeBrowseResult(EdgeBrowseResult *browseResult, int browseResultLength)
 {
     VERIFY_NON_NULL_NR(browseResult);
-    
+
     for (size_t i = 0; i < browseResultLength; ++i)
     {
         EdgeFree(browseResult[i].browseName);
     }
     EdgeFree(browseResult);
+}
+
+void freeEdgeResult(EdgeResult *res)
+{
+    VERIFY_NON_NULL_NR(res);
+    EdgeFree(res);
 }
 
 void freeEdgeNodeId(EdgeNodeId *nodeId)

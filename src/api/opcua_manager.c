@@ -22,6 +22,7 @@
 #include "edge_opcua_server.h"
 #include "edge_opcua_client.h"
 #include "edge_logger.h"
+#include "edge_utils.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -196,6 +197,76 @@ EdgeNodeItem* createNodeItem(char* name, EdgeIdentifier nodeType, EdgeNodeId *so
 EdgeResult deleteNodeItem(EdgeNodeItem* item)
 {
     return deleteNodeItemImpl(item);
+}
+
+void destroyEdgeResult(EdgeResult *res)
+{
+    freeEdgeResult(res);
+}
+
+void destroyEdgeEndpointConfig(EdgeEndpointConfig *epConfig)
+{
+    freeEdgeEndpointConfig(epConfig);
+}
+
+void destroyEdgeVersatility(EdgeVersatility *versatileValue)
+{
+    freeEdgeVersatility(versatileValue);
+}
+
+void destroyEdgeNodeId(EdgeNodeId *nodeId)
+{
+    freeEdgeNodeId(nodeId);
+}
+
+void destroyEdgeArgument(EdgeArgument *arg)
+{
+    freeEdgeArgument(arg);
+}
+
+void destroyEdgeMethodRequestParams(EdgeMethodRequestParams *reqParams)
+{
+    freeEdgeMethodRequestParams(reqParams);
+}
+
+void destroyEdgeNodeInfo(EdgeNodeInfo *nodeInfo)
+{
+    freeEdgeNodeInfo(nodeInfo);
+}
+
+void destroyEdgeContinuationPoint(EdgeContinuationPoint *cp)
+{
+    freeEdgeContinuationPoint(cp);
+}
+
+void destroyEdgeContinuationPointList(EdgeContinuationPointList *cpList)
+{
+    freeEdgeContinuationPointList(cpList);
+}
+
+void destroyEdgeEndpointInfo(EdgeEndPointInfo *endpointInfo)
+{
+    freeEdgeEndpointInfo(endpointInfo);
+}
+
+void destroyEdgeRequest(EdgeRequest *req)
+{
+    freeEdgeRequest(req);
+}
+
+void destroyEdgeResponse(EdgeResponse *resp)
+{
+    freeEdgeResponse(resp);
+}
+
+void destroyEdgeMessage(EdgeMessage *msg)
+{
+    freeEdgeMessage(msg);
+}
+
+char *copyString(const char *str)
+{
+    return cloneString(str);
 }
 
 //EdgeResult* send(EdgeMessage* msg) {

@@ -1400,7 +1400,7 @@ EdgeResult executeBrowse(UA_Client *client, EdgeMessage *msg, bool browseNext)
         result.code = STATUS_INTERNAL_ERROR;
         return result;
     }
-    
+
 
     browseNodesInfo = initNodesToBrowse(nodesToBrowseSize);
     if (IS_NULL(browseNodesInfo))
@@ -1522,6 +1522,7 @@ EdgeResult executeBrowseViews(UA_Client *client, EdgeMessage *msg)
         freeEdgeRequest(msg->request);
         msg->request = NULL;
         EdgeFree(msg->browseParam);
+        msg->browseParam = NULL;
         result.code = STATUS_INTERNAL_ERROR;
         return result;
     }
@@ -1534,6 +1535,7 @@ EdgeResult executeBrowseViews(UA_Client *client, EdgeMessage *msg)
         freeEdgeRequest(msg->request);
         msg->request = NULL;
         EdgeFree(msg->browseParam);
+        msg->browseParam = NULL;
         result.code = STATUS_INTERNAL_ERROR;
         return result;
     }
@@ -1584,6 +1586,7 @@ EdgeResult executeBrowseViews(UA_Client *client, EdgeMessage *msg)
     freeEdgeRequest(msg->request);
     msg->request = NULL;
     EdgeFree(msg->browseParam);
+    msg->browseParam = NULL;
     destroyNodesToBrowse(browseNodesInfo, true);
     EdgeFree(msgIdList);
     return result;
