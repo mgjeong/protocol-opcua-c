@@ -36,9 +36,9 @@ UA_Int64 DateTime_toUnixTime(UA_DateTime date)
 
 static void sendErrorResponse(EdgeMessage *msg, char *err_desc)
 {
-    EdgeMessage *resultMsg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
+    EdgeMessage *resultMsg = (EdgeMessage *) EdgeMalloc(sizeof(EdgeMessage));
     VERIFY_NON_NULL_NR(resultMsg);
-    resultMsg->endpointInfo = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
+    resultMsg->endpointInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
     if(IS_NULL(resultMsg->endpointInfo))
     {
         EDGE_LOG(TAG, "Error : Malloc failed for resultMessage.endpointfo sendErrorResponse\n");
@@ -48,7 +48,7 @@ static void sendErrorResponse(EdgeMessage *msg, char *err_desc)
     resultMsg->type = ERROR;
     resultMsg->responseLength = 0;
 
-    EdgeVersatility *message = (EdgeVersatility *) malloc(sizeof(EdgeVersatility));
+    EdgeVersatility *message = (EdgeVersatility *) EdgeMalloc(sizeof(EdgeVersatility));
     if(IS_NULL(message))
     {
         EDGE_LOG(TAG, "Error : Malloc failed for EdgeVersatility sendErrorResponse\n");
@@ -56,7 +56,7 @@ static void sendErrorResponse(EdgeMessage *msg, char *err_desc)
     }
     message->value = (void *) err_desc;
 
-    EdgeResult *res = (EdgeResult *) malloc(sizeof(EdgeResult));
+    EdgeResult *res = (EdgeResult *) EdgeMalloc(sizeof(EdgeResult));
     if(IS_NULL(res))
     {
         EDGE_LOG(TAG, "Error : Malloc failed for EdgeResult sendErrorResponse\n");
@@ -68,12 +68,12 @@ static void sendErrorResponse(EdgeMessage *msg, char *err_desc)
     onResponseMessage(resultMsg);
 
     EXIT:
-    FREE(res);
-    FREE(message);
+    EdgeFree(res);
+    EdgeFree(message);
     if(IS_NOT_NULL(resultMsg))
     {
-        FREE(resultMsg->endpointInfo);
-        FREE(resultMsg);
+        EdgeFree(resultMsg->endpointInfo);
+        EdgeFree(resultMsg);
     }
 }
 
@@ -214,7 +214,7 @@ static EdgeDiagnosticInfo *checkDiagnosticInfo(int nodesToProcess,
         UA_DiagnosticInfo *diagnosticInfo, int diagnosticInfoLength, int returnDiagnostic)
 {
 
-    EdgeDiagnosticInfo *diagnostics = (EdgeDiagnosticInfo *) malloc(sizeof(EdgeDiagnosticInfo));
+    EdgeDiagnosticInfo *diagnostics = (EdgeDiagnosticInfo *) EdgeMalloc(sizeof(EdgeDiagnosticInfo));
     VERIFY_NON_NULL(diagnostics, NULL);
     diagnostics->symbolicId = 0;
     diagnostics->localizedText = 0;
@@ -231,7 +231,7 @@ static EdgeDiagnosticInfo *checkDiagnosticInfo(int nodesToProcess,
         diagnostics->locale = diagnosticInfo[0].locale;
         if (diagnosticInfo[0].hasAdditionalInfo)
         {
-            char *additional_info = (char *) malloc(diagnosticInfo[0].additionalInfo.length + 1);
+            char *additional_info = (char *) EdgeMalloc(diagnosticInfo[0].additionalInfo.length + 1);
             if(IS_NULL(additional_info))
             {
                 EDGE_LOG(TAG, "Error : Malloc for additional_info failed in checkDiagnosticInfo");
@@ -261,7 +261,7 @@ static EdgeDiagnosticInfo *checkDiagnosticInfo(int nodesToProcess,
 static void readGroup(UA_Client *client, EdgeMessage *msg)
 {
     int reqLen = msg->requestLength;
-    UA_ReadValueId *rv = (UA_ReadValueId *) malloc(sizeof(UA_ReadValueId) * reqLen);
+    UA_ReadValueId *rv = (UA_ReadValueId *) EdgeMalloc(sizeof(UA_ReadValueId) * reqLen);
 
     for (int i = 0; i < reqLen; i++)
     {
@@ -369,16 +369,16 @@ static void readGroup(UA_Client *client, EdgeMessage *msg)
         EDGE_LOG(TAG, "Error : Malloc failed for responses in Read Group\n");
         goto EXIT;
     }
-    EdgeMessage *resultMsg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
+    EdgeMessage *resultMsg = (EdgeMessage *) EdgeMalloc(sizeof(EdgeMessage));
     if(IS_NULL(resultMsg))
     {
         EDGE_LOG(TAG, "Error : Malloc failed for resultMsg in Read Group\n");
         goto EXIT;
     }
-    resultMsg->endpointInfo = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
+    resultMsg->endpointInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
     if(IS_NULL(resultMsg->endpointInfo))
     {
-        EDGE_LOG(TAG, "Error : Malloc failed for resultMsg.endpointInfo in Read Group\n");
+        EDGE_LOG(TAG, "Error : EdgeCalloc failed for resultMsg.endpointInfo in Read Group\n");
         goto EXIT;
     }
     resultMsg->responseLength = 0;
@@ -393,10 +393,10 @@ static void readGroup(UA_Client *client, EdgeMessage *msg)
         {
             UA_Variant val = readResponse.results[i].value;
             bool isScalar = UA_Variant_isScalar(&val);
-            EdgeResponse *response = (EdgeResponse *) malloc(sizeof(EdgeResponse));
+            EdgeResponse *response = (EdgeResponse *) EdgeMalloc(sizeof(EdgeResponse));
             if (IS_NOT_NULL(response))
             {
-                response->nodeInfo = (EdgeNodeInfo *) malloc(sizeof(EdgeNodeInfo));
+                response->nodeInfo = (EdgeNodeInfo *) EdgeMalloc(sizeof(EdgeNodeInfo));
                 if(IS_NULL(response->nodeInfo))
                 {
                     EDGE_LOG(TAG, "Error : Malloc failed for response.Nodeinfo in Read Group\n");
@@ -405,7 +405,7 @@ static void readGroup(UA_Client *client, EdgeMessage *msg)
                 memcpy(response->nodeInfo, msg->requests[i]->nodeInfo, sizeof(EdgeNodeInfo));
                 response->requestId = msg->requests[i]->requestId;
 
-                EdgeVersatility *versatility = (EdgeVersatility *) malloc(sizeof(EdgeVersatility));
+                EdgeVersatility *versatility = (EdgeVersatility *) EdgeMalloc(sizeof(EdgeVersatility));
                 if(IS_NULL(versatility))
                 {
                     EDGE_LOG(TAG, "Error : Malloc failed for EdgeVersatility in Read Group\n");
@@ -481,7 +481,7 @@ static void readGroup(UA_Client *client, EdgeMessage *msg)
                         }
                         for (int i = 0; i < val.arrayLength; i++)
                         {
-                            values[i] = (char *) malloc(str[i].length+1);
+                            values[i] = (char *) EdgeMalloc(str[i].length+1);
                             if(IS_NULL(values[i]))
                             {
                                 EDGE_LOG_V(TAG, "Error : Malloc failed for String Array value %d in Read Group\n", i);
@@ -516,7 +516,7 @@ static void readGroup(UA_Client *client, EdgeMessage *msg)
                         }
                         for (int i = 0; i < val.arrayLength; i++)
                         {
-                            values[i] = (char *) malloc(str[i].length);
+                            values[i] = (char *) EdgeMalloc(str[i].length);
                             if(IS_NULL(values[i]))
                             {
                                 EDGE_LOG_V(TAG, "Error : Malloc failed for ByteString Array value %d in Read Group\n", i);
@@ -533,7 +533,7 @@ static void readGroup(UA_Client *client, EdgeMessage *msg)
                     if (isScalar)
                     {
                         UA_Guid str = *((UA_Guid *) val.data);
-                        char *value = (char *) malloc(GUID_LENGTH + 1);
+                        char *value = (char *) EdgeMalloc(GUID_LENGTH + 1);
                         if(IS_NULL(value))
                         {
                             EDGE_LOG(TAG, "Error : Malloc failed for Guid SCALAR value in Read Group\n");
@@ -562,7 +562,7 @@ static void readGroup(UA_Client *client, EdgeMessage *msg)
                         }
                         for (int i = 0; i < val.arrayLength; i++)
                         {
-                            values[i] = (char *) malloc(GUID_LENGTH + 1);
+                            values[i] = (char *) EdgeMalloc(GUID_LENGTH + 1);
                             if(IS_NULL(values[i]))
                             {
                                 EDGE_LOG_V(TAG, "Error : Malloc failed for Guid Array value %d in Read Group\n", i);
@@ -637,27 +637,27 @@ static void readGroup(UA_Client *client, EdgeMessage *msg)
                     {
                         for (int j = 0; j < responses[i]->message->arrayLength; j++)
                         {
-                            FREE(values[j]);
+                            EdgeFree(values[j]);
                         }
-                        FREE(values);
+                        EdgeFree(values);
                     }
                 }
             }
             if (IS_NOT_NULL(responses[i]->m_diagnosticInfo->additionalInfo))
             {
-                FREE(responses[i]->m_diagnosticInfo->additionalInfo);
+                EdgeFree(responses[i]->m_diagnosticInfo->additionalInfo);
             }
-            FREE(responses[i]->m_diagnosticInfo);
-            FREE(responses[i]->nodeInfo);
-            FREE(responses[i]->message);
-            FREE(responses[i]);
+            EdgeFree(responses[i]->m_diagnosticInfo);
+            EdgeFree(responses[i]->nodeInfo);
+            EdgeFree(responses[i]->message);
+            EdgeFree(responses[i]);
         }
-        FREE(resultMsg->endpointInfo);
-        FREE(resultMsg->responses);
-        FREE(resultMsg);
+        EdgeFree(resultMsg->endpointInfo);
+        EdgeFree(resultMsg->responses);
+        EdgeFree(resultMsg);
     }
 
-    FREE(rv);
+    EdgeFree(rv);
     UA_ReadResponse_deleteMembers(&readResponse);
 
     return;

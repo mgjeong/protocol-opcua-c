@@ -23,6 +23,8 @@
 #include <string.h>
 #include <math.h>
 
+#include "edge_malloc.h"
+
 #define CHAR_SIZE   128
 
 #define COLOR_GREEN        "\x1b[32m"
@@ -51,7 +53,7 @@ void test_method_print(int inpSize, void **input, int outSize, void **output)
 
 void test_method_version(int inpSize, void **input, int outSize, void **output)
 {
-    char *version = (char*) malloc(sizeof(char) * CHAR_SIZE);
+    char *version = (char*) EdgeMalloc(sizeof(char) * CHAR_SIZE);
     strcpy(version, "09131759");
     output[0] = version;
     printf(COLOR_GREEN "\n[version() method called] :: %s\n" COLOR_RESET, version);
@@ -60,7 +62,7 @@ void test_method_version(int inpSize, void **input, int outSize, void **output)
 void test_method_sqrt(int inpSize, void **input, int outSize, void **output)
 {
     double *inp = (double *) input[0];
-    double *sq_root = (double *) malloc(sizeof(double));
+    double *sq_root = (double *) EdgeMalloc(sizeof(double));
     *sq_root = sqrt(*inp);
     output[0] = (void *) sq_root;
     printf(COLOR_GREEN "\n[sqrt(%.2f) method called] :: %.2f\n" COLOR_RESET, *inp, *sq_root);
@@ -74,7 +76,7 @@ void test_method_increment_int32Array(int inpSize, void **input, int outSize, vo
     printf(COLOR_GREEN "\n[incrementInt32Array({%d %d %d %d %d}, %d) method called] :: ",
             inputArray[0], inputArray[1], inputArray[2], inputArray[3], inputArray[4], *delta);
 
-    int32_t *outputArray = (int32_t *) malloc(sizeof(int32_t) * 5);
+    int32_t *outputArray = (int32_t *) EdgeMalloc(sizeof(int32_t) * 5);
     for (int i = 0; i < 5; i++)
     {
         outputArray[i] = inputArray[i] + *delta;

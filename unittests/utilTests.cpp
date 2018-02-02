@@ -26,6 +26,7 @@ extern "C"
 #include "opcua_manager.h"
 #include "opcua_common.h"
 #include "edge_identifier.h"
+#include "edge_malloc.h"
 #include "edge_utils.h"
 }
 
@@ -158,22 +159,28 @@ TEST_F(OPC_util , cloneEdgeEndpoint_P)
 {
     EdgeEndPointInfo *retEndpoint = NULL;
 
-    EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) calloc(1, sizeof(EdgeEndpointConfig));
+    EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) EdgeCalloc(1, sizeof(EdgeEndpointConfig));
     endpointConfig->bindAddress = "100.100.100.100";
     endpointConfig->bindPort = 12686;
     endpointConfig->serverName = (char *) DEFAULT_SERVER_NAME_VALUE;
 
-    EdgeApplicationConfig *appConfig = (EdgeApplicationConfig *) calloc(1, sizeof(EdgeApplicationConfig));
+    EXPECT_EQ(endpointConfig  != NULL, true);
+
+    EdgeApplicationConfig *appConfig = (EdgeApplicationConfig *) EdgeCalloc(1, sizeof(EdgeApplicationConfig));
     appConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
     appConfig->applicationUri = (char *) DEFAULT_SERVER_URI_VALUE;
     appConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
 
-    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) malloc(sizeof(EdgeEndPointInfo));
+    EXPECT_EQ(appConfig  != NULL, true);
+
+    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) EdgeMalloc(sizeof(EdgeEndPointInfo));
     ep->endpointUri = "opc.tcp://107.108.81.116:12686/edge-opc-server";
     ep->endpointConfig = endpointConfig;
     ep->appConfig = appConfig;
     ep->securityPolicyUri = NULL;
     ep->transportProfileUri = NULL;
+
+    EXPECT_EQ(ep  != NULL, true);
 
     EXPECT_EQ(endpointConfig != NULL, true);
     EXPECT_EQ(appConfig != NULL, true);
@@ -209,10 +216,10 @@ TEST_F(OPC_util , cloneEdgeEndpoint_P)
 
 TEST_F(OPC_util , cloneNode_P)
 {
-    EdgeNodeInfo *nodeInfo = (EdgeNodeInfo *) calloc(1, sizeof(EdgeNodeInfo));
-    nodeInfo->nodeId = (EdgeNodeId *) calloc(1, sizeof(EdgeNodeId));
+    EdgeNodeInfo *nodeInfo = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
+    nodeInfo->nodeId = (EdgeNodeId *) EdgeCalloc(1, sizeof(EdgeNodeId));
     char* nodeName = "String";
-    nodeInfo->valueAlias = (char *) malloc(strlen(nodeName) + 1);
+    nodeInfo->valueAlias = (char *) EdgeMalloc(strlen(nodeName) + 1);
     strcpy(nodeInfo->valueAlias, nodeName);
     nodeInfo->valueAlias[strlen(nodeName)] = '\0';
     nodeInfo->methodName = "methodName";

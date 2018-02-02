@@ -68,23 +68,23 @@ static void *server_sample_loop(void *ptr)
         sprintf(dataNum, "%d", getRandom(5));
         strncpy(s_value, "robot data ", sizeof(s_value));
         strcat(s_value, dataNum);
-        EdgeVersatility *message = (EdgeVersatility *) malloc(sizeof(EdgeVersatility));
+        EdgeVersatility *message = (EdgeVersatility *) EdgeMalloc(sizeof(EdgeVersatility));
         if (IS_NOT_NULL(message))
         {
             message->value = (void *) s_value;
             message->isArray = false;
             modifyVariableNode(DEFAULT_NAMESPACE_VALUE, "robot_id", message);
-            FREE(message);
+            EdgeFree(message);
         }
         else
         {
-            printf("Error :: malloc failed for EdgeVersatility in Test Modify Nodes\n");
+            printf("Error :: EdgeMalloc failed for EdgeVersatility in Test Modify Nodes\n");
         }
 
-        message = (EdgeVersatility *) malloc(sizeof(EdgeVersatility));
+        message = (EdgeVersatility *) EdgeMalloc(sizeof(EdgeVersatility));
         if (IS_NOT_NULL(message))
         {
-            int *posArray = (int *) malloc(sizeof(int) * 3);
+            int *posArray = (int *) EdgeMalloc(sizeof(int) * 3);
             if (IS_NOT_NULL(posArray))
             {
                 posArray[0] = getRandom(rorot_pos_key);
@@ -98,13 +98,13 @@ static void *server_sample_loop(void *ptr)
             }
             else
             {
-                printf("Error :: malloc failed for int Array in Test create Nodes\n");
+                printf("Error :: EdgeMalloc failed for int Array in Test create Nodes\n");
             }
-            FREE(message);
+            EdgeFree(message);
         }
         else
         {
-            printf("Error :: malloc failed for EdgeVersatility in Test Modify Nodes\n");
+            printf("Error :: EdgeMalloc failed for EdgeVersatility in Test Modify Nodes\n");
         }
 
         usleep(100000);
@@ -175,13 +175,13 @@ static void device_found_cb(EdgeDevice *device)
 
 static void init()
 {
-    config = (EdgeConfigure *) malloc(sizeof(EdgeConfigure));
+    config = (EdgeConfigure *) EdgeMalloc(sizeof(EdgeConfigure));
     VERIFY_NON_NULL_NR(config);
-    config->recvCallback = (ReceivedMessageCallback *) malloc(sizeof(ReceivedMessageCallback));
+    config->recvCallback = (ReceivedMessageCallback *) EdgeMalloc(sizeof(ReceivedMessageCallback));
     if (IS_NULL(config->recvCallback))
     {
-        printf("Error :: calloc failed for config->recvCallback in init server\n");
-        FREE(config);
+        printf("Error :: EdgeCalloc failed for config->recvCallback in init server\n");
+        EdgeFree(config);
         return;
     }
     config->recvCallback->resp_msg_cb = response_msg_cb;
@@ -189,14 +189,14 @@ static void init()
     config->recvCallback->error_msg_cb = error_msg_cb;
     config->recvCallback->browse_msg_cb = browse_msg_cb;
 
-    config->statusCallback = (StatusCallback *) malloc(sizeof(StatusCallback));
+    config->statusCallback = (StatusCallback *) EdgeMalloc(sizeof(StatusCallback));
     if (IS_NULL(config->statusCallback))
     {
-        printf("Error :: calloc failed for config->statusCallback in init server\n");
+        printf("Error :: EdgeCalloc failed for config->statusCallback in init server\n");
         if (IS_NOT_NULL(config))
         {
-            FREE(config->recvCallback);
-            FREE(config);
+            EdgeFree(config->recvCallback);
+            EdgeFree(config);
         }
         return;
     }
@@ -204,15 +204,15 @@ static void init()
     config->statusCallback->stop_cb = status_stop_cb;
     config->statusCallback->network_cb = status_network_cb;
 
-    config->discoveryCallback = (DiscoveryCallback *) malloc(sizeof(DiscoveryCallback));
+    config->discoveryCallback = (DiscoveryCallback *) EdgeMalloc(sizeof(DiscoveryCallback));
     if (IS_NULL(config->recvCallback))
     {
-        printf("Error :: calloc failed for config->recvCallback in init server\n");
+        printf("Error :: EdgeCalloc failed for config->recvCallback in init server\n");
         if (IS_NOT_NULL(config))
         {
-            FREE(config->recvCallback);
-            FREE(config->statusCallback);
-            FREE(config);
+            EdgeFree(config->recvCallback);
+            EdgeFree(config->statusCallback);
+            EdgeFree(config);
         }
         return;
     }
@@ -224,7 +224,7 @@ static void init()
 
 static void startServer()
 {
-    EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) calloc(1,
+    EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) EdgeCalloc(1,
             sizeof(EdgeEndpointConfig));
     VERIFY_NON_NULL_NR(endpointConfig);
     endpointConfig->bindAddress = ipAddress;
@@ -236,12 +236,12 @@ static void startServer()
     printf("\nBind Address : %s", endpointConfig->bindAddress);
     printf("\nBind Port : %d\n", endpointConfig->bindPort);
 
-    EdgeApplicationConfig *appConfig = (EdgeApplicationConfig *) calloc(1,
+    EdgeApplicationConfig *appConfig = (EdgeApplicationConfig *) EdgeCalloc(1,
             sizeof(EdgeApplicationConfig));
     if (IS_NULL(appConfig))
     {
-        printf("Error :: calloc failed for appConfig in start server\n");
-        FREE(endpointConfig);
+        printf("Error :: EdgeCalloc failed for appConfig in start server\n");
+        EdgeFree(endpointConfig);
         return;
     }
     appConfig->applicationName = DEFAULT_SERVER_APP_NAME_VALUE;
@@ -258,7 +258,7 @@ static void startServer()
     epInfo->securityPolicyUri = NULL;
 
     // Commented - For future message queue handling
-    /*EdgeMessage *msg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
+    /*EdgeMessage *msg = (EdgeMessage *) EdgeMalloc(sizeof(EdgeMessage));
      msg->endpointInfo = ep;
      msg->command = CMD_START_SERVER;
      msg->type = SEND_REQUEST;*/
@@ -269,11 +269,11 @@ static void startServer()
 
 static void stopServer()
 {
-    FREE(epInfo->endpointConfig);
-    FREE(epInfo->appConfig);
+    EdgeFree(epInfo->endpointConfig);
+    EdgeFree(epInfo->appConfig);
 
     // Commented - For future message queue handling
-    /*EdgeMessage *msg = (EdgeMessage *) malloc(sizeof(EdgeMessage));
+    /*EdgeMessage *msg = (EdgeMessage *) EdgeMalloc(sizeof(EdgeMessage));
      msg->endpointInfo = ep;
      msg->command = CMD_STOP_SERVER;
      msg->type = SEND_REQUEST;*/
@@ -324,7 +324,7 @@ static void testCreateNodes()
 
     VERIFY_NON_NULL_NR(item);
     printf("\n[%d] Variable node with XML ELEMENT variant: \n", ++index);
-    UA_XmlElement *xml_value = (UA_XmlElement *) malloc(sizeof(UA_XmlElement));
+    UA_XmlElement *xml_value = (UA_XmlElement *) EdgeMalloc(sizeof(UA_XmlElement));
     if (IS_NOT_NULL(xml_value))
     {
         xml_value->length = 2;
@@ -333,16 +333,16 @@ static void testCreateNodes()
         VERIFY_NON_NULL_NR(item);
         createNode(DEFAULT_NAMESPACE_VALUE, item);
         printf("\n|------------[Added] %s\n", item->browseName);
-        FREE(xml_value);
+        EdgeFree(xml_value);
         deleteNodeItem(item);
     }
     else
     {
-        printf("Error :: malloc failed for UA_XmlElement in Test create Nodes\n");
+        printf("Error :: EdgeMalloc failed for UA_XmlElement in Test create Nodes\n");
     }
 
     printf("\n[%d] Variable node with localized text variant: \n", ++index);
-    UA_LocalizedText *lt_value = (UA_LocalizedText *) malloc(sizeof(UA_LocalizedText));
+    UA_LocalizedText *lt_value = (UA_LocalizedText *) EdgeMalloc(sizeof(UA_LocalizedText));
     if (IS_NOT_NULL(lt_value))
     {
         lt_value->locale = UA_STRING_ALLOC("COUNTRY");
@@ -352,18 +352,18 @@ static void testCreateNodes()
         VERIFY_NON_NULL_NR(item);
         createNode(DEFAULT_NAMESPACE_VALUE, item);
         printf("\n|------------[Added] %s\n", item->browseName);
-        FREE(lt_value->locale.data);
-        FREE(lt_value->text.data);
-        FREE(lt_value);
+        EdgeFree(lt_value->locale.data);
+        EdgeFree(lt_value->text.data);
+        EdgeFree(lt_value);
         deleteNodeItem(item);
     }
     else
     {
-        printf("Error :: malloc failed for UA_LocalizedText in Test create Nodes\n");
+        printf("Error :: EdgeMalloc failed for UA_LocalizedText in Test create Nodes\n");
     }
 
     printf("\n[%d] Variable node with byte string variant: \n", ++index);
-    UA_ByteString *bs_value = (UA_ByteString *) malloc(sizeof(UA_ByteString));
+    UA_ByteString *bs_value = (UA_ByteString *) EdgeMalloc(sizeof(UA_ByteString));
     if (IS_NOT_NULL(bs_value))
     {
         bs_value->length = 7;
@@ -372,12 +372,12 @@ static void testCreateNodes()
         VERIFY_NON_NULL_NR(item);
         createNode(DEFAULT_NAMESPACE_VALUE, item);
         printf("\n|------------[Added] %s\n", item->browseName);
-        FREE(bs_value);
+        EdgeFree(bs_value);
         deleteNodeItem(item);
     }
     else
     {
-        printf("Error :: malloc failed for UA_ByteString in Test create Nodes\n");
+        printf("Error :: EdgeMalloc failed for UA_ByteString in Test create Nodes\n");
     }
 
     printf("\n[%d] Variable node with byte variant: \n", ++index);
@@ -436,7 +436,7 @@ static void testCreateNodes()
     printf("\n|------------[Added] %s\n", item->browseName);
     deleteNodeItem(item);
 
-    item = (EdgeNodeItem *) calloc(1, sizeof(EdgeNodeItem));
+    item = (EdgeNodeItem *) EdgeCalloc(1, sizeof(EdgeNodeItem));
     VERIFY_NON_NULL_NR(item);
     printf("\n[%d] Variable node with Int64 variant: \n", ++index);
     value = 32700;
@@ -509,7 +509,7 @@ static void testCreateNodes()
     deleteNodeItem(item);
 
     printf("\n[%d] Variable node with qualified name variant: \n", ++index);
-    UA_QualifiedName *qn_value = (UA_QualifiedName *) malloc(sizeof(UA_QualifiedName));
+    UA_QualifiedName *qn_value = (UA_QualifiedName *) EdgeMalloc(sizeof(UA_QualifiedName));
     if (IS_NOT_NULL(qn_value))
     {
         UA_String str = UA_STRING_ALLOC("qualifiedName");
@@ -520,13 +520,13 @@ static void testCreateNodes()
         VERIFY_NON_NULL_NR(item);
         createNode(DEFAULT_NAMESPACE_VALUE, item);
         printf("\n|------------[Added] %s\n", item->browseName);
-        FREE(str.data);
-        FREE(qn_value);
+        EdgeFree(str.data);
+        EdgeFree(qn_value);
         deleteNodeItem(item);
     }
     else
     {
-        printf("Error :: malloc failed for UA_QualifiedName in Test create Nodes\n");
+        printf("Error :: EdgeMalloc failed for UA_QualifiedName in Test create Nodes\n");
     }
 
     printf("\n[%d] Variable node with NODEID variant: \n", ++index);
@@ -543,11 +543,11 @@ static void testCreateNodes()
     UA_ByteString **dataArray = (UA_ByteString **) malloc(sizeof(UA_ByteString *) * 5);
     if (IS_NOT_NULL(dataArray))
     {
-        dataArray[0] = (UA_ByteString *) malloc(sizeof(UA_ByteString));
-        dataArray[1] = (UA_ByteString *) malloc(sizeof(UA_ByteString));
-        dataArray[2] = (UA_ByteString *) malloc(sizeof(UA_ByteString));
-        dataArray[3] = (UA_ByteString *) malloc(sizeof(UA_ByteString));
-        dataArray[4] = (UA_ByteString *) malloc(sizeof(UA_ByteString));
+        dataArray[0] = (UA_ByteString *) EdgeMalloc(sizeof(UA_ByteString));
+        dataArray[1] = (UA_ByteString *) EdgeMalloc(sizeof(UA_ByteString));
+        dataArray[2] = (UA_ByteString *) EdgeMalloc(sizeof(UA_ByteString));
+        dataArray[3] = (UA_ByteString *) EdgeMalloc(sizeof(UA_ByteString));
+        dataArray[4] = (UA_ByteString *) EdgeMalloc(sizeof(UA_ByteString));
         if (IS_NOT_NULL(dataArray[0]) && IS_NOT_NULL(dataArray[1]) && IS_NOT_NULL(dataArray[2])
         && IS_NOT_NULL(dataArray[3]) && IS_NOT_NULL(dataArray[4]))
         {
@@ -567,25 +567,25 @@ static void testCreateNodes()
         else
         {
             printf(
-                    "Error :: malloc failed for UA_ByteString dataArray INDEX in Test create Nodes\n");
+                    "Error :: EdgeMalloc failed for UA_ByteString dataArray INDEX in Test create Nodes\n");
         }
 
         for (int i = 0; i < 5; i++)
         {
             UA_ByteString temp = *dataArray[i];
-            FREE(temp.data);
-            FREE(dataArray[i]);
+            EdgeFree(temp.data);
+            EdgeFree(dataArray[i]);
         }
-        FREE(dataArray);
+        EdgeFree(dataArray);
         deleteNodeItem(item);
     }
     else
     {
-        printf("Error :: malloc failed for UA_ByteString dataArray in Test create Nodes\n");
+        printf("Error :: EdgeMalloc failed for UA_ByteString dataArray in Test create Nodes\n");
     }
 
     printf("\n[%d] Array node with Boolean values: \n", ++index);
-    bool *arr = (bool *) malloc(sizeof(bool) * 5);
+    bool *arr = (bool *) EdgeMalloc(sizeof(bool) * 5);
     if (IS_NOT_NULL(arr))
     {
         arr[0] = true;
@@ -599,16 +599,16 @@ static void testCreateNodes()
         item->arrayLength = 5;
         createNode(DEFAULT_NAMESPACE_VALUE, item);
         printf("\n|------------[Added] %s\n", item->browseName);
-        FREE(arr);
+        EdgeFree(arr);
         deleteNodeItem(item);
     }
     else
     {
-        printf("Error :: malloc failed for bool array in Test create Nodes\n");
+        printf("Error :: EdgeMalloc failed for bool array in Test create Nodes\n");
     }
 
     printf("\n[%d] Array node with SByte values: \n", ++index);
-    UA_SByte *sbData = (UA_SByte *) malloc(sizeof(UA_SByte) * 5);
+    UA_SByte *sbData = (UA_SByte *) EdgeMalloc(sizeof(UA_SByte) * 5);
     if (IS_NOT_NULL(sbData))
     {
         sbData[0] = -128;
@@ -622,16 +622,16 @@ static void testCreateNodes()
         item->arrayLength = 5;
         createNode(DEFAULT_NAMESPACE_VALUE, item);
         printf("\n|------------[Added] %s\n", item->browseName);
-        FREE(sbData);
+        EdgeFree(sbData);
         deleteNodeItem(item);
     }
     else
     {
-        printf("Error :: malloc failed for UA_SByte array in Test create Nodes\n");
+        printf("Error :: EdgeMalloc failed for UA_SByte array in Test create Nodes\n");
     }
 
     printf("\n[%d] Array node with Int32 values: \n", ++index);
-    int *intData = (int *) malloc(sizeof(int) * 7);
+    int *intData = (int *) EdgeMalloc(sizeof(int) * 7);
     if (IS_NOT_NULL(intData))
     {
         intData[0] = 11;
@@ -647,16 +647,16 @@ static void testCreateNodes()
         item->arrayLength = 7;
         createNode(DEFAULT_NAMESPACE_VALUE, item);
         printf("\n|------------[Added] %s\n", item->browseName);
-        FREE(intData);
+        EdgeFree(intData);
         deleteNodeItem(item);
     }
     else
     {
-        printf("Error :: malloc failed for int Array in Test create Nodes\n");
+        printf("Error :: EdgeMalloc failed for int Array in Test create Nodes\n");
     }
 
     printf("\n[%d] Array node with Int64 values: \n", ++index);
-    int *int64Data = (int *) malloc(sizeof(int) * 5);
+    int *int64Data = (int *) EdgeMalloc(sizeof(int) * 5);
     if (IS_NOT_NULL(int64Data))
     {
         int64Data[0] = 11111;
@@ -670,16 +670,16 @@ static void testCreateNodes()
         item->arrayLength = 5;
         createNode(DEFAULT_NAMESPACE_VALUE, item);
         printf("\n|------------[Added] %s\n", item->browseName);
-        FREE(int64Data);
+        EdgeFree(int64Data);
         deleteNodeItem(item);
     }
     else
     {
-        printf("Error :: malloc failed for int64Data Array in Test create Nodes\n");
+        printf("Error :: EdgeMalloc failed for int64Data Array in Test create Nodes\n");
     }
 
     printf("\n[%d] Array node with double values: \n", ++index);
-    double *data = (double *) malloc(sizeof(double) * 5);
+    double *data = (double *) EdgeMalloc(sizeof(double) * 5);
     if (IS_NOT_NULL(data))
     {
         data[0] = 10.2;
@@ -693,23 +693,23 @@ static void testCreateNodes()
         item->arrayLength = 5;
         createNode(DEFAULT_NAMESPACE_VALUE, item);
         printf("\n|------------[Added] %s\n", item->browseName);
-        FREE(data);
+        EdgeFree(data);
         deleteNodeItem(item);
     }
     else
     {
-        printf("Error :: malloc failed for double Array in Test create Nodes\n");
+        printf("Error :: EdgeMalloc failed for double Array in Test create Nodes\n");
     }
 
     printf("\n[%d] Array node with string values: \n", ++index);
     char **data1 = (char **) malloc(sizeof(char *) * 5);
     if (IS_NOT_NULL(data1))
     {
-        data1[0] = (char *) malloc(10);
-        data1[1] = (char *) malloc(10);
-        data1[2] = (char *) malloc(10);
-        data1[3] = (char *) malloc(10);
-        data1[4] = (char *) malloc(10);
+        data1[0] = (char *) EdgeMalloc(10);
+        data1[1] = (char *) EdgeMalloc(10);
+        data1[2] = (char *) EdgeMalloc(10);
+        data1[3] = (char *) EdgeMalloc(10);
+        data1[4] = (char *) EdgeMalloc(10);
 
         if (IS_NOT_NULL(data1[0]) && IS_NOT_NULL(data1[1]) && IS_NOT_NULL(data1[2])
         && IS_NOT_NULL(data1[3]) && IS_NOT_NULL(data1[4]))
@@ -734,23 +734,23 @@ static void testCreateNodes()
 
             for (int i = 0; i < 5; i++)
             {
-                FREE(data1[i]);
+                EdgeFree(data1[i]);
             }
-            FREE(data1);
+            EdgeFree(data1);
             deleteNodeItem(item);
         }
         else
         {
-            printf("Error :: malloc failed for char dataArray in Test create Nodes\n");
+            printf("Error :: EdgeMalloc failed for char dataArray in Test create Nodes\n");
         }
     }
     else
     {
-        printf("Error :: malloc failed for char Array in Test create Nodes\n");
+        printf("Error :: EdgeMalloc failed for char Array in Test create Nodes\n");
     }
 
     printf("\n[%d] Variable node with byte array variant: \n", ++index);
-    UA_Byte *b_arrvalue = (UA_Byte *) calloc(1, sizeof(UA_Byte) * 5);
+    UA_Byte *b_arrvalue = (UA_Byte *) EdgeCalloc(1, sizeof(UA_Byte) * 5);
     if (IS_NOT_NULL(b_arrvalue))
     {
         b_arrvalue[0] = 0x11;
@@ -764,34 +764,34 @@ static void testCreateNodes()
         item->nodeType = ARRAY_NODE;
         createNode(DEFAULT_NAMESPACE_VALUE, item);
         printf("\n|------------[Added] %s\n", item->browseName);
-        FREE(b_arrvalue);
+        EdgeFree(b_arrvalue);
         deleteNodeItem(item);
     }
     else
     {
-        printf("Error :: malloc failed for UA_Byte Array in Test create Nodes\n");
+        printf("Error :: EdgeMalloc failed for UA_Byte Array in Test create Nodes\n");
     }
 
     /******************* Object Node *********************/
     printf(COLOR_GREEN"\n[Create Object Node]\n"COLOR_RESET);
     printf("\n[%d] Object node : \"Object1\"\n", ++index);
-    EdgeNodeId *edgeNodeId = (EdgeNodeId *) calloc(1, sizeof(EdgeNodeId));
+    EdgeNodeId *edgeNodeId = (EdgeNodeId *) EdgeCalloc(1, sizeof(EdgeNodeId));
     if (IS_NOT_NULL(edgeNodeId))
     {
         item = createNodeItem("Object1", OBJECT_NODE, edgeNodeId);
         VERIFY_NON_NULL_NR(item);
         createNode(DEFAULT_NAMESPACE_VALUE, item);
         printf("\n|------------[Added] %s\n", item->browseName);
-        FREE(item->sourceNodeId);
+        EdgeFree(item->sourceNodeId);
         deleteNodeItem(item);
     }
     else
     {
-        printf("Error :: malloc failed for Object1 in Test create Nodes\n");
+        printf("Error :: EdgeMalloc failed for Object1 in Test create Nodes\n");
     }
 
     printf("\n[%d] Object node : \"Object2\" with source Node \"Object1\"\n", ++index);
-    edgeNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
+    edgeNodeId = (EdgeNodeId *) EdgeMalloc(sizeof(EdgeNodeId));
     if (IS_NOT_NULL(edgeNodeId))
     {
         edgeNodeId->nodeId = "Object1";
@@ -799,34 +799,34 @@ static void testCreateNodes()
         VERIFY_NON_NULL_NR(item);
         createNode(DEFAULT_NAMESPACE_VALUE, item);
         printf("\n|------------[Added] %s\n", item->browseName);
-        FREE(edgeNodeId);
+        EdgeFree(edgeNodeId);
         deleteNodeItem(item);
     }
     else
     {
-        printf("Error :: malloc failed for Object2 in Test create Nodes\n");
+        printf("Error :: EdgeMalloc failed for Object2 in Test create Nodes\n");
     }
 
     /******************* View Node *********************/
     printf(COLOR_GREEN"\n[Create View Node]\n"COLOR_RESET);
     printf("\n[%d] View Node with ViewNode1\n", ++index);
-    edgeNodeId = (EdgeNodeId *) calloc(1, sizeof(EdgeNodeId));
+    edgeNodeId = (EdgeNodeId *) EdgeCalloc(1, sizeof(EdgeNodeId));
     if (IS_NOT_NULL(edgeNodeId))
     {
         item = createNodeItem("ViewNode1", VIEW_NODE, edgeNodeId);
         VERIFY_NON_NULL_NR(item);
         createNode(DEFAULT_NAMESPACE_VALUE, item);
         printf("\n|------------[Added] %s\n", item->browseName);
-        FREE(edgeNodeId);
+        EdgeFree(edgeNodeId);
         deleteNodeItem(item);
     }
     else
     {
-        printf("Error :: malloc failed for ViewNode1 in Test create Nodes\n");
+        printf("Error :: EdgeMalloc failed for ViewNode1 in Test create Nodes\n");
     }
 
     printf("\n[%d] View Node with ViewNode2\n", ++index);
-    edgeNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
+    edgeNodeId = (EdgeNodeId *) EdgeMalloc(sizeof(EdgeNodeId));
     if (IS_NOT_NULL(edgeNodeId))
     {
         edgeNodeId->nodeId = "ViewNode1";
@@ -834,18 +834,18 @@ static void testCreateNodes()
         VERIFY_NON_NULL_NR(item);
         createNode(DEFAULT_NAMESPACE_VALUE, item);
         printf("\n|------------[Added] %s\n", item->browseName);
-        FREE(edgeNodeId);
+        EdgeFree(edgeNodeId);
         deleteNodeItem(item);
     }
     else
     {
-        printf("Error :: malloc failed for ViewNode2 in Test create Nodes\n");
+        printf("Error :: EdgeMalloc failed for ViewNode2 in Test create Nodes\n");
     }
 
     /******************* Object Type Node *********************/
     printf(COLOR_GREEN"\n[Create Object Type Node]\n"COLOR_RESET);
     printf("\n[%d] Object Type node : \"ObjectType1\"\n", ++index);
-    edgeNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
+    edgeNodeId = (EdgeNodeId *) EdgeMalloc(sizeof(EdgeNodeId));
     if (IS_NOT_NULL(edgeNodeId))
     {
         edgeNodeId->nodeId = NULL; // no source node
@@ -853,16 +853,16 @@ static void testCreateNodes()
         VERIFY_NON_NULL_NR(item);
         createNode(DEFAULT_NAMESPACE_VALUE, item);
         printf("\n|------------[Added] %s\n", item->browseName);
-        FREE(edgeNodeId);
+        EdgeFree(edgeNodeId);
         deleteNodeItem(item);
     }
     else
     {
-        printf("Error :: malloc failed for ObjectType1 in Test create Nodes\n");
+        printf("Error :: EdgeMalloc failed for ObjectType1 in Test create Nodes\n");
     }
 
     printf("\n[%d] Object Type node : \"ObjectType2\" with source Node \"ObjectType1\"\n", ++index);
-    edgeNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
+    edgeNodeId = (EdgeNodeId *) EdgeMalloc(sizeof(EdgeNodeId));
     if (IS_NOT_NULL(edgeNodeId))
     {
         edgeNodeId->nodeId = "ObjectType1";
@@ -870,16 +870,16 @@ static void testCreateNodes()
         VERIFY_NON_NULL_NR(item);
         createNode(DEFAULT_NAMESPACE_VALUE, item);
         printf("\n|------------[Added] %s\n", item->browseName);
-        FREE(edgeNodeId);
+        EdgeFree(edgeNodeId);
         deleteNodeItem(item);
     }
     else
     {
-        printf("Error :: malloc failed for ObjectType2 in Test create Nodes\n");
+        printf("Error :: EdgeMalloc failed for ObjectType2 in Test create Nodes\n");
     }
 
     printf("\n[%d] Object Type node : \"ObjectType3\" with source Node \"ObjectType2\"\n", ++index);
-    edgeNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
+    edgeNodeId = (EdgeNodeId *) EdgeMalloc(sizeof(EdgeNodeId));
     if (IS_NOT_NULL(edgeNodeId))
     {
         edgeNodeId->nodeId = "ObjectType1";
@@ -887,16 +887,16 @@ static void testCreateNodes()
         VERIFY_NON_NULL_NR(item);
         createNode(DEFAULT_NAMESPACE_VALUE, item);
         printf("\n|------------[Added] %s\n", item->browseName);
-        FREE(edgeNodeId);
+        EdgeFree(edgeNodeId);
         deleteNodeItem(item);
     }
     else
     {
-        printf("Error :: malloc failed for ObjectType3 in Test create Nodes\n");
+        printf("Error :: EdgeMalloc failed for ObjectType3 in Test create Nodes\n");
     }
 
     printf("\n[%d] Object Type node : \"ObjectType4\" with source Node \"ObjectType3\"\n", ++index);
-    edgeNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
+    edgeNodeId = (EdgeNodeId *) EdgeMalloc(sizeof(EdgeNodeId));
     if (IS_NOT_NULL(edgeNodeId))
     {
         edgeNodeId->nodeId = "ObjectType1";
@@ -904,16 +904,16 @@ static void testCreateNodes()
         VERIFY_NON_NULL_NR(item);
         createNode(DEFAULT_NAMESPACE_VALUE, item);
         printf("\n|------------[Added] %s\n", item->browseName);
-        FREE(edgeNodeId);
+        EdgeFree(edgeNodeId);
         deleteNodeItem(item);
     }
     else
     {
-        printf("Error :: malloc failed for ObjectType4 in Test create Nodes\n");
+        printf("Error :: EdgeMalloc failed for ObjectType4 in Test create Nodes\n");
     }
 
     printf("\n[%d] Object Type node : \"ObjectType5\" with source Node \"ObjectType3\"\n", ++index);
-    edgeNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
+    edgeNodeId = (EdgeNodeId *) EdgeMalloc(sizeof(EdgeNodeId));
     if (IS_NOT_NULL(edgeNodeId))
     {
         edgeNodeId->nodeId = "ObjectType1";
@@ -921,12 +921,12 @@ static void testCreateNodes()
         VERIFY_NON_NULL_NR(item);
         createNode(DEFAULT_NAMESPACE_VALUE, item);
         printf("\n|------------[Added] %s\n", item->browseName);
-        FREE(edgeNodeId);
+        EdgeFree(edgeNodeId);
         deleteNodeItem(item);
     }
     else
     {
-        printf("Error :: malloc failed for ObjectType5 in Test create Nodes\n");
+        printf("Error :: EdgeMalloc failed for ObjectType5 in Test create Nodes\n");
     }
 
     /******************* Variable Type Node *********************/
@@ -943,55 +943,55 @@ static void testCreateNodes()
 
     /******************* Data Type Node *********************/
     printf("\n[%d] Data Type Node with DataType1\n", ++index);
-    edgeNodeId = (EdgeNodeId *) calloc(1, sizeof(EdgeNodeId));
+    edgeNodeId = (EdgeNodeId *) EdgeCalloc(1, sizeof(EdgeNodeId));
     if (IS_NOT_NULL(edgeNodeId))
     {
         item = createNodeItem("DataType1", DATA_TYPE_NODE, edgeNodeId);
         VERIFY_NON_NULL_NR(item);
         createNode(DEFAULT_NAMESPACE_VALUE, item);
         printf("\n|------------[Added] %s\n", item->browseName);
-        FREE(edgeNodeId);
+        EdgeFree(edgeNodeId);
         deleteNodeItem(item);
     }
     else
     {
-        printf("Error :: malloc failed for DataType1 in Test create Nodes\n");
+        printf("Error :: EdgeMalloc failed for DataType1 in Test create Nodes\n");
     }
 
     printf("\n[%d] Data Type Node with DataType2\n", ++index);
-    edgeNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
+    edgeNodeId = (EdgeNodeId *) EdgeMalloc(sizeof(EdgeNodeId));
     if (IS_NOT_NULL(edgeNodeId))
     {
         edgeNodeId->nodeId = "DataType1";
         item = createNodeItem("DataType2", DATA_TYPE_NODE, edgeNodeId);
         VERIFY_NON_NULL_NR(item);
         createNode(DEFAULT_NAMESPACE_VALUE, item);
-        FREE(edgeNodeId);
+        EdgeFree(edgeNodeId);
     }
     else
     {
-        printf("Error :: malloc failed for DataType2 in Test create Nodes\n");
+        printf("Error :: EdgeMalloc failed for DataType2 in Test create Nodes\n");
     }
 
     /******************* Reference Type Node *********************/
     printf(COLOR_GREEN"\n[Create Reference Type Node]\n"COLOR_RESET);
     printf("\n[%d] Reference Type Node with ReferenceTypeNode1", ++index);
-    edgeNodeId = (EdgeNodeId *) calloc(1, sizeof(EdgeNodeId));
+    edgeNodeId = (EdgeNodeId *) EdgeCalloc(1, sizeof(EdgeNodeId));
     if (IS_NOT_NULL(edgeNodeId))
     {
         item = createNodeItem("ReferenceTypeNode1", REFERENCE_TYPE_NODE, edgeNodeId);
         VERIFY_NON_NULL_NR(item);
         createNode(DEFAULT_NAMESPACE_VALUE, item);
         printf("\n|------------[Added] %s\n", item->browseName);
-        FREE(edgeNodeId);
+        EdgeFree(edgeNodeId);
     }
     else
     {
-        printf("Error :: malloc failed for ReferenceTypeNode1 in Test create Nodes\n");
+        printf("Error :: EdgeMalloc failed for ReferenceTypeNode1 in Test create Nodes\n");
     }
 
     printf("\n[%d] Reference Type Node with source node\"ReferenceTypeNode1\"\n", ++index);
-    edgeNodeId = (EdgeNodeId *) malloc(sizeof(EdgeNodeId));
+    edgeNodeId = (EdgeNodeId *) EdgeMalloc(sizeof(EdgeNodeId));
     if (IS_NOT_NULL(edgeNodeId))
     {
         edgeNodeId->nodeId = "ReferenceTypeNode1";
@@ -999,11 +999,11 @@ static void testCreateNodes()
         VERIFY_NON_NULL_NR(item);
         createNode(DEFAULT_NAMESPACE_VALUE, item);
         printf("\n|------------[Added] %s\n", item->browseName);
-        FREE(edgeNodeId);
+        EdgeFree(edgeNodeId);
     }
     else
     {
-        printf("Error :: malloc failed for ReferenceTypeNode2 in Test create Nodes\n");
+        printf("Error :: EdgeMalloc failed for ReferenceTypeNode2 in Test create Nodes\n");
     }
 
     deleteNodeItem(item);
@@ -1011,17 +1011,17 @@ static void testCreateNodes()
     /******************* Method Node *********************/
     printf(COLOR_GREEN"\n[Create Method Node]\n"COLOR_RESET);
     printf("\n[%d] Method Node with square_root \n", ++index);
-    EdgeNodeItem *methodNodeItem = (EdgeNodeItem *) malloc(sizeof(EdgeNodeItem));
+    EdgeNodeItem *methodNodeItem = (EdgeNodeItem *) EdgeMalloc(sizeof(EdgeNodeItem));
     VERIFY_NON_NULL_NR(methodNodeItem);
     methodNodeItem->browseName = "sqrt(x)";
     methodNodeItem->sourceNodeId = NULL;
 
-    EdgeMethod *method = (EdgeMethod *) malloc(sizeof(EdgeMethod));
+    EdgeMethod *method = (EdgeMethod *) EdgeMalloc(sizeof(EdgeMethod));
     if (IS_NULL(method))
     {
-        FREE(methodNodeItem);
-        FREE(method);
-        printf("Error :: malloc failed for method square_root  in Test create Nodes\n");
+        EdgeFree(methodNodeItem);
+        EdgeFree(method);
+        printf("Error :: EdgeMalloc failed for method square_root  in Test create Nodes\n");
         return;
     }
     method->description = "Calculate square root";
@@ -1031,27 +1031,27 @@ static void testCreateNodes()
     method->inpArg = (EdgeArgument **) malloc(sizeof(EdgeArgument *) * method->num_inpArgs);
     if (IS_NULL(method->inpArg))
     {
-        FREE(methodNodeItem);
-        FREE(method);
-        printf("Error :: malloc failed for method method->inpArg  in Test create Nodes\n");
+        EdgeFree(methodNodeItem);
+        EdgeFree(method);
+        printf("Error :: EdgeMalloc failed for method method->inpArg  in Test create Nodes\n");
         return;
     }
     for (int idx = 0; idx < method->num_inpArgs; idx++)
     {
-        method->inpArg[idx] = (EdgeArgument *) malloc(sizeof(EdgeArgument));
+        method->inpArg[idx] = (EdgeArgument *) EdgeMalloc(sizeof(EdgeArgument));
         if (IS_NULL(method->inpArg[idx]))
         {
             for (int j = 0; j < idx; j++)
             {
                 if (IS_NOT_NULL(method->inpArg[j]))
                 {
-                    FREE(method->inpArg[j]);
+                    EdgeFree(method->inpArg[j]);
                 }
             }
-            FREE(method->inpArg);
-            FREE(methodNodeItem);
-            FREE(method);
-            printf("Error :: malloc failed for method method->inpArg[%d]  in Test create Nodes\n",
+            EdgeFree(method->inpArg);
+            EdgeFree(methodNodeItem);
+            EdgeFree(method);
+            printf("Error :: EdgeMalloc failed for method method->inpArg[%d]  in Test create Nodes\n",
                     idx);
             return;
         }
@@ -1063,28 +1063,28 @@ static void testCreateNodes()
     method->outArg = (EdgeArgument **) malloc(sizeof(EdgeArgument *) * method->num_outArgs);
     if (IS_NULL(method->outArg))
     {
-        FREE(methodNodeItem);
-        FREE(method);
-        printf("Error :: malloc failed for method method->outArg  in Test create Nodes\n");
+        EdgeFree(methodNodeItem);
+        EdgeFree(method);
+        printf("Error :: EdgeMalloc failed for method method->outArg  in Test create Nodes\n");
         return;
     }
     for (int idx = 0; idx < method->num_outArgs; idx++)
     {
-        method->outArg[idx] = (EdgeArgument *) malloc(sizeof(EdgeArgument));
+        method->outArg[idx] = (EdgeArgument *) EdgeMalloc(sizeof(EdgeArgument));
         if (IS_NULL(method->outArg[idx]))
         {
             for (int j = 0; j < idx; j++)
             {
                 if (IS_NOT_NULL(method->outArg[j]))
                 {
-                    FREE(method->outArg[j]);
+                    EdgeFree(method->outArg[j]);
                 }
             }
 
-            FREE(method->outArg);
-            FREE(methodNodeItem);
-            FREE(method);
-            printf("Error :: malloc failed for method method->outArg[%d]  in Test create Nodes\n",
+            EdgeFree(method->outArg);
+            EdgeFree(methodNodeItem);
+            EdgeFree(method);
+            printf("Error :: EdgeMalloc failed for method method->outArg[%d]  in Test create Nodes\n",
                     idx);
             return;
         }
@@ -1093,20 +1093,20 @@ static void testCreateNodes()
     }
     createMethodNode(DEFAULT_NAMESPACE_VALUE, methodNodeItem, method);
     printf("\n|------------[Added] %s\n", methodNodeItem->browseName);
-    FREE(methodNodeItem);
+    EdgeFree(methodNodeItem);
 
     printf("\n[%d] Method Node with incrementInc32Array \n", ++index);
-    EdgeNodeItem *methodNodeItem1 = (EdgeNodeItem *) malloc(sizeof(EdgeNodeItem));
+    EdgeNodeItem *methodNodeItem1 = (EdgeNodeItem *) EdgeMalloc(sizeof(EdgeNodeItem));
     VERIFY_NON_NULL_NR(methodNodeItem1);
     methodNodeItem1->browseName = "incrementInc32Array(x,delta)";
     methodNodeItem1->sourceNodeId = NULL;
 
-    EdgeMethod *method1 = (EdgeMethod *) malloc(sizeof(EdgeMethod));
+    EdgeMethod *method1 = (EdgeMethod *) EdgeMalloc(sizeof(EdgeMethod));
     if (IS_NULL(method1))
     {
-        FREE(methodNodeItem1);
-        FREE(method1);
-        printf("Error :: malloc failed for method incrementInc32Array  in Test create Nodes\n");
+        EdgeFree(methodNodeItem1);
+        EdgeFree(method1);
+        printf("Error :: EdgeMalloc failed for method incrementInc32Array  in Test create Nodes\n");
         return;
     }
     method1->description = "Increment int32 array by delta";
@@ -1117,32 +1117,32 @@ static void testCreateNodes()
     method1->inpArg = (EdgeArgument **) malloc(sizeof(EdgeArgument *) * method1->num_inpArgs);
     if (IS_NULL(method1->inpArg))
     {
-        FREE(methodNodeItem1);
-        FREE(method1);
-        printf("Error :: malloc failed for methodmethod1->inpArg  in Test create Nodes\n");
+        EdgeFree(methodNodeItem1);
+        EdgeFree(method1);
+        printf("Error :: EdgeMalloc failed for methodmethod1->inpArg  in Test create Nodes\n");
         return;
     }
-    method1->inpArg[0] = (EdgeArgument *) malloc(sizeof(EdgeArgument));
+    method1->inpArg[0] = (EdgeArgument *) EdgeMalloc(sizeof(EdgeArgument));
     if (IS_NULL(method1->inpArg[0]))
     {
-        FREE(method1->inpArg);
-        FREE(methodNodeItem1);
-        FREE(method1);
-        printf("Error :: malloc failed for method method1->inpArg[0]  in Test create Nodes\n");
+        EdgeFree(method1->inpArg);
+        EdgeFree(methodNodeItem1);
+        EdgeFree(method1);
+        printf("Error :: EdgeMalloc failed for method method1->inpArg[0]  in Test create Nodes\n");
         return;
     }
     method1->inpArg[0]->argType = Int32;
     method1->inpArg[0]->valType = ARRAY_1D;
     method1->inpArg[0]->arrayLength = 5;
 
-    method1->inpArg[1] = (EdgeArgument *) malloc(sizeof(EdgeArgument));
+    method1->inpArg[1] = (EdgeArgument *) EdgeMalloc(sizeof(EdgeArgument));
     if (IS_NULL(method1->inpArg[1]))
     {
-        FREE(method1->inpArg[0]);
-        FREE(method1->inpArg);
-        FREE(methodNodeItem1);
-        FREE(method1);
-        printf("Error :: malloc failed for method method1->inpArg[1]  in Test create Nodes\n");
+        EdgeFree(method1->inpArg[0]);
+        EdgeFree(method1->inpArg);
+        EdgeFree(methodNodeItem1);
+        EdgeFree(method1);
+        printf("Error :: EdgeMalloc failed for method method1->inpArg[1]  in Test create Nodes\n");
         return;
     }
     method1->inpArg[1]->argType = Int32;
@@ -1152,34 +1152,34 @@ static void testCreateNodes()
     method1->outArg = (EdgeArgument **) malloc(sizeof(EdgeArgument *) * method1->num_outArgs);
     if (IS_NULL(method1->outArg))
     {
-        FREE(method1->inpArg[0]);
-        FREE(method1->inpArg[1]);
-        FREE(method1->inpArg);
-        FREE(methodNodeItem1);
-        FREE(method1);
-        printf("Error :: malloc failed for method1->outArg  in Test create Nodes\n");
+        EdgeFree(method1->inpArg[0]);
+        EdgeFree(method1->inpArg[1]);
+        EdgeFree(method1->inpArg);
+        EdgeFree(methodNodeItem1);
+        EdgeFree(method1);
+        printf("Error :: EdgeMalloc failed for method1->outArg  in Test create Nodes\n");
         return;
     }
     for (int idx = 0; idx < method1->num_outArgs; idx++)
     {
-        method1->outArg[idx] = (EdgeArgument *) malloc(sizeof(EdgeArgument));
+        method1->outArg[idx] = (EdgeArgument *) EdgeMalloc(sizeof(EdgeArgument));
         if (IS_NULL(method1->outArg[idx]))
         {
             for (int j = 0; j < idx; j++)
             {
                 if (IS_NOT_NULL(method->outArg[j]))
                 {
-                    FREE(method->outArg[j]);
+                    EdgeFree(method->outArg[j]);
                 }
             }
 
-            FREE(method1->inpArg[0]);
-            FREE(method1->inpArg[1]);
-            FREE(method1->inpArg);
-            FREE(method1->outArg);
-            FREE(methodNodeItem1);
-            FREE(method1);
-            printf("Error :: malloc failed for method method1->outArg[%d]  in Test create Nodes\n",
+            EdgeFree(method1->inpArg[0]);
+            EdgeFree(method1->inpArg[1]);
+            EdgeFree(method1->inpArg);
+            EdgeFree(method1->outArg);
+            EdgeFree(methodNodeItem1);
+            EdgeFree(method1);
+            printf("Error :: EdgeMalloc failed for method method1->outArg[%d]  in Test create Nodes\n",
                     idx);
             return;
         }
@@ -1189,19 +1189,19 @@ static void testCreateNodes()
     }
     createMethodNode(DEFAULT_NAMESPACE_VALUE, methodNodeItem1, method1);
     printf("\n|------------[Added] %s\n", methodNodeItem1->browseName);
-    FREE(methodNodeItem1);
+    EdgeFree(methodNodeItem1);
 
     printf("\n[%d] Method Node with noArgMethod \n", ++index);
-    EdgeNodeItem *methodNodeItem2 = (EdgeNodeItem *) malloc(sizeof(EdgeNodeItem));
+    EdgeNodeItem *methodNodeItem2 = (EdgeNodeItem *) EdgeMalloc(sizeof(EdgeNodeItem));
     VERIFY_NON_NULL_NR(methodNodeItem2);
     methodNodeItem2->browseName = "shutdown()";
     methodNodeItem2->sourceNodeId = NULL;
 
-    EdgeMethod *method2 = (EdgeMethod *) malloc(sizeof(EdgeMethod));
+    EdgeMethod *method2 = (EdgeMethod *) EdgeMalloc(sizeof(EdgeMethod));
     if (IS_NULL(method2))
     {
-        FREE(methodNodeItem2);
-        printf("Error :: malloc failed for method shutdown in Test create Nodes\n");
+        EdgeFree(methodNodeItem2);
+        printf("Error :: EdgeMalloc failed for method shutdown in Test create Nodes\n");
         return;
     }
     method2->description = "shutdown method";
@@ -1216,19 +1216,19 @@ static void testCreateNodes()
 
     createMethodNode(DEFAULT_NAMESPACE_VALUE, methodNodeItem2, method2);
     printf("\n|------------[Added] %s\n", methodNodeItem2->browseName);
-    FREE(methodNodeItem2);
+    EdgeFree(methodNodeItem2);
 
     printf("\n[%d] Method Node with inArgMethod \n", ++index);
-    EdgeNodeItem *methodNodeItem3 = (EdgeNodeItem *) malloc(sizeof(EdgeNodeItem));
+    EdgeNodeItem *methodNodeItem3 = (EdgeNodeItem *) EdgeMalloc(sizeof(EdgeNodeItem));
     VERIFY_NON_NULL_NR(methodNodeItem3);
     methodNodeItem3->browseName = "print(x)";
     methodNodeItem3->sourceNodeId = NULL;
 
-    EdgeMethod *method3 = (EdgeMethod *) malloc(sizeof(EdgeMethod));
+    EdgeMethod *method3 = (EdgeMethod *) EdgeMalloc(sizeof(EdgeMethod));
     if (IS_NULL(method3))
     {
-        FREE(methodNodeItem3);
-        printf("Error :: malloc failed for method printx  in Test create Nodes\n");
+        EdgeFree(methodNodeItem3);
+        printf("Error :: EdgeMalloc failed for method printx  in Test create Nodes\n");
         return;
     }
     method3->description = "print x";
@@ -1239,18 +1239,18 @@ static void testCreateNodes()
     method3->inpArg = (EdgeArgument **) malloc(sizeof(EdgeArgument *) * method3->num_inpArgs);
     if (IS_NULL(method3->inpArg))
     {
-        FREE(methodNodeItem3);
-        FREE(method3);
-        printf("Error :: malloc failed for method method3->inpArg  in Test create Nodes\n");
+        EdgeFree(methodNodeItem3);
+        EdgeFree(method3);
+        printf("Error :: EdgeMalloc failed for method method3->inpArg  in Test create Nodes\n");
         return;
     }
-    method3->inpArg[0] = (EdgeArgument *) malloc(sizeof(EdgeArgument));
+    method3->inpArg[0] = (EdgeArgument *) EdgeMalloc(sizeof(EdgeArgument));
     if (IS_NULL(method))
     {
-        FREE(method3->inpArg);
-        FREE(methodNodeItem3);
-        FREE(method3);
-        printf("Error :: malloc failed for method method3->inpArg[0]  in Test create Nodes\n");
+        EdgeFree(method3->inpArg);
+        EdgeFree(methodNodeItem3);
+        EdgeFree(method3);
+        printf("Error :: EdgeMalloc failed for method method3->inpArg[0]  in Test create Nodes\n");
         return;
     }
     method3->inpArg[0]->argType = Int32;
@@ -1261,19 +1261,19 @@ static void testCreateNodes()
 
     createMethodNode(DEFAULT_NAMESPACE_VALUE, methodNodeItem3, method3);
     printf("\n|------------[Added] %s\n", methodNodeItem3->browseName);
-    FREE(methodNodeItem3);
+    EdgeFree(methodNodeItem3);
 
     printf("\n[%d] Method Node with outArgMethod \n", ++index);
-    EdgeNodeItem *methodNodeItem4 = (EdgeNodeItem *) malloc(sizeof(EdgeNodeItem));
+    EdgeNodeItem *methodNodeItem4 = (EdgeNodeItem *) EdgeMalloc(sizeof(EdgeNodeItem));
     VERIFY_NON_NULL_NR(methodNodeItem4);
     methodNodeItem4->browseName = "version()";
     methodNodeItem4->sourceNodeId = NULL;
 
-    EdgeMethod *method4 = (EdgeMethod *) malloc(sizeof(EdgeMethod));
+    EdgeMethod *method4 = (EdgeMethod *) EdgeMalloc(sizeof(EdgeMethod));
     if (IS_NULL(method4))
     {
-        FREE(methodNodeItem4);
-        printf("Error :: malloc failed for method version  in Test create Nodes\n");
+        EdgeFree(methodNodeItem4);
+        printf("Error :: EdgeMalloc failed for method version  in Test create Nodes\n");
         return;
     }
     method4->description = "Get Version Info";
@@ -1287,18 +1287,18 @@ static void testCreateNodes()
     method4->outArg = (EdgeArgument **) malloc(sizeof(EdgeArgument *) * method4->num_outArgs);
     if (IS_NULL(method4->outArg))
     {
-        FREE(methodNodeItem4);
-        FREE(method4);
-        printf("Error :: malloc failed for method method4->outArg  in Test create Nodes\n");
+        EdgeFree(methodNodeItem4);
+        EdgeFree(method4);
+        printf("Error :: EdgeMalloc failed for method method4->outArg  in Test create Nodes\n");
         return;
     }
-    method4->outArg[0] = (EdgeArgument *) malloc(sizeof(EdgeArgument));
+    method4->outArg[0] = (EdgeArgument *) EdgeMalloc(sizeof(EdgeArgument));
     if (IS_NULL(method))
     {
-        FREE(method4->outArg);
-        FREE(methodNodeItem4);
-        FREE(method4);
-        printf("Error :: malloc failed for method method4->outArg[0]  in Test create Nodes\n");
+        EdgeFree(method4->outArg);
+        EdgeFree(methodNodeItem4);
+        EdgeFree(method4);
+        printf("Error :: EdgeMalloc failed for method method4->outArg[0]  in Test create Nodes\n");
         return;
     }
     method4->outArg[0]->argType = String;
@@ -1306,7 +1306,7 @@ static void testCreateNodes()
 
     createMethodNode(DEFAULT_NAMESPACE_VALUE, methodNodeItem4, method4);
     printf("\n|------------[Added] %s\n", methodNodeItem4->browseName);
-    FREE(methodNodeItem4);
+    EdgeFree(methodNodeItem4);
 
     /******************* Robot Scenario Demo *********************/
     item = createVariableNodeItem("robot_name", String, "test3", VARIABLE_NODE);
@@ -1321,7 +1321,7 @@ static void testCreateNodes()
     printf("\n|------------[Added] %s\n", item->browseName);
     deleteNodeItem(item);
 
-    int *posArray = (int *) malloc(sizeof(int) * 3);
+    int *posArray = (int *) EdgeMalloc(sizeof(int) * 3);
     if (IS_NOT_NULL(posArray))
     {
         posArray[0] = 123;
@@ -1333,12 +1333,12 @@ static void testCreateNodes()
         item->arrayLength = 3;
         createNode(DEFAULT_NAMESPACE_VALUE, item);
         printf("\n|------------[Added] %s\n", item->browseName);
-        FREE(posArray);
+        EdgeFree(posArray);
         deleteNodeItem(item);
     }
     else
     {
-        printf("Error :: malloc failed for int Array in Test create Nodes\n");
+        printf("Error :: EdgeMalloc failed for int Array in Test create Nodes\n");
     }
 
     /******************* Add Reference *********************/
@@ -1346,7 +1346,7 @@ static void testCreateNodes()
     printf(COLOR_GREEN"\n[Create Reference]\n"COLOR_RESET);
     printf("\n[%d] Make Reference that ViewNode1 node Organizes with ObjectType1\n", ++index);
 
-    EdgeReference *reference = (EdgeReference *) calloc(1, sizeof(EdgeReference));
+    EdgeReference *reference = (EdgeReference *) EdgeCalloc(1, sizeof(EdgeReference));
     if (IS_NOT_NULL(reference))
     {
         reference->forward = true;
@@ -1357,14 +1357,14 @@ static void testCreateNodes()
         /* default reference ID : Organizes */
         addReference(reference);
 
-        FREE(reference);
+        EdgeFree(reference);
     }
     else
     {
-        printf("Error :: malloc failed for EdgeReference in Test create Nodes\n");
+        printf("Error :: EdgeMalloc failed for EdgeReference in Test create Nodes\n");
     }
 
-    reference = (EdgeReference *) calloc(1, sizeof(EdgeReference));
+    reference = (EdgeReference *) EdgeCalloc(1, sizeof(EdgeReference));
     if (IS_NOT_NULL(reference))
     {
         reference->forward = true;
@@ -1375,14 +1375,14 @@ static void testCreateNodes()
         /* default reference ID : Organizes */
         addReference(reference);
 
-        FREE(reference);
+        EdgeFree(reference);
     }
     else
     {
-        printf("Error :: malloc failed for EdgeReference in Test create Nodes\n");
+        printf("Error :: EdgeMalloc failed for EdgeReference in Test create Nodes\n");
     }
 
-    reference = (EdgeReference *) calloc(1, sizeof(EdgeReference));
+    reference = (EdgeReference *) EdgeCalloc(1, sizeof(EdgeReference));
     if (IS_NOT_NULL(reference))
     {
         reference->forward = true;
@@ -1393,14 +1393,14 @@ static void testCreateNodes()
         /* default reference ID : Organizes */
         addReference(reference);
 
-        FREE(reference);
+        EdgeFree(reference);
     }
     else
     {
-        printf("Error :: malloc failed for EdgeReference in Test create Nodes\n");
+        printf("Error :: EdgeMalloc failed for EdgeReference in Test create Nodes\n");
     }
 
-//    reference = (EdgeReference *) calloc(1, sizeof(EdgeReference));
+//    reference = (EdgeReference *) EdgeCalloc(1, sizeof(EdgeReference));
 //    if (IS_NOT_NULL(reference))
 //    {
 //        reference->forward = true;
@@ -1411,14 +1411,14 @@ static void testCreateNodes()
 //        /* default reference ID : Organizes */
 //        addReference(reference);
 //
-//        FREE(reference);
+//        EdgeFree(reference);
 //    }
 //    else
 //    {
-//        printf("Error :: malloc failed for EdgeReference in Test create Nodes\n");
+//        printf("Error :: EdgeMalloc failed for EdgeReference in Test create Nodes\n");
 //    }
 //
-//    reference = (EdgeReference *) calloc(1, sizeof(EdgeReference));
+//    reference = (EdgeReference *) EdgeCalloc(1, sizeof(EdgeReference));
 //    if (IS_NOT_NULL(reference))
 //    {
 //        reference->forward = true;
@@ -1429,11 +1429,11 @@ static void testCreateNodes()
 //        /* default reference ID : Organizes */
 //        addReference(reference);
 //
-//        FREE(reference);
+//        EdgeFree(reference);
 //    }
 //    else
 //    {
-//        printf("Error :: malloc failed for EdgeReference in Test create Nodes\n");
+//        printf("Error :: EdgeMalloc failed for EdgeReference in Test create Nodes\n");
 //    }
 
     printf("\n\n");
@@ -1530,17 +1530,17 @@ static void testModifyNode()
             }
 
             new_value = (void *) s_value;
-            EdgeVersatility *message = (EdgeVersatility *) malloc(sizeof(EdgeVersatility));
+            EdgeVersatility *message = (EdgeVersatility *) EdgeMalloc(sizeof(EdgeVersatility));
             if (IS_NOT_NULL(message))
             {
                 message->value = new_value;
                 modifyVariableNode(DEFAULT_NAMESPACE_VALUE, name, message);
-                FREE(message);
+                EdgeFree(message);
                 usleep(1000 * 1000);
             }
             else
             {
-                printf("Error :: malloc failed for String1 EdgeVersatility in Test Modify Nodes\n");
+                printf("Error :: EdgeMalloc failed for String1 EdgeVersatility in Test Modify Nodes\n");
             }
         }
         return;
@@ -1552,32 +1552,32 @@ static void testModifyNode()
         for (int i = 0; i < MAX_TEST_NUMBER; i++)
         {
             new_value = (void *) &i;
-            EdgeVersatility *message = (EdgeVersatility *) malloc(sizeof(EdgeVersatility));
+            EdgeVersatility *message = (EdgeVersatility *) EdgeMalloc(sizeof(EdgeVersatility));
             if (IS_NOT_NULL(message))
             {
                 message->value = new_value;
                 modifyVariableNode(DEFAULT_NAMESPACE_VALUE, name, message);
-                FREE(message);
+                EdgeFree(message);
                 usleep(1000 * 1000);
             }
             else
             {
-                printf("Error :: malloc failed for Int32 EdgeVersatility in Test Modify Nodes\n");
+                printf("Error :: EdgeMalloc failed for Int32 EdgeVersatility in Test Modify Nodes\n");
             }
         }
         return;
     }
 
-    EdgeVersatility *message = (EdgeVersatility *) malloc(sizeof(EdgeVersatility));
+    EdgeVersatility *message = (EdgeVersatility *) EdgeMalloc(sizeof(EdgeVersatility));
     if (IS_NOT_NULL(message))
     {
         message->value = new_value;
         modifyVariableNode(DEFAULT_NAMESPACE_VALUE, name, message);
-        FREE(message);
+        EdgeFree(message);
     }
     else
     {
-        printf("Error :: malloc failed for EdgeVersatility in Test Modify Nodes\n");
+        printf("Error :: EdgeMalloc failed for EdgeVersatility in Test Modify Nodes\n");
     }
 }
 
@@ -1593,14 +1593,14 @@ static void deinit()
 
         if (IS_NOT_NULL(config))
         {
-            FREE(config->recvCallback);
-            FREE(config->statusCallback);
-            FREE(config->discoveryCallback);
+            EdgeFree(config->recvCallback);
+            EdgeFree(config->statusCallback);
+            EdgeFree(config->discoveryCallback);
 
-            FREE(config);
+            EdgeFree(config);
         }
 
-        FREE(epInfo);
+        EdgeFree(epInfo);
     }
 
 }
@@ -1650,7 +1650,7 @@ int main()
             snprintf(endpointUri, sizeof(endpointUri), "opc:tcp://%s:12686/edge-opc-server",
                     ipAddress);
 
-            epInfo = (EdgeEndPointInfo *) calloc(1, sizeof(EdgeEndPointInfo));
+            epInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
             if (IS_NOT_NULL(epInfo))
             {
                 epInfo->endpointUri = endpointUri;
@@ -1662,7 +1662,7 @@ int main()
             }
             else
             {
-                printf("Error :: malloc failed for EdgeEndPointInfo in Test create Nodes\n");
+                printf("Error :: EdgeCalloc failed for EdgeEndPointInfo in Test create Nodes\n");
             }
         }
         else if (!strcmp(command, "update_node"))

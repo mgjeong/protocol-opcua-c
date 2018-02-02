@@ -21,8 +21,6 @@
 #ifndef EDGE_LOGGER_H_
 #define EDGE_LOGGER_H_
 
-#include <stdio.h>
-
 #include "open62541.h"
 #include "opcua_common.h"
 

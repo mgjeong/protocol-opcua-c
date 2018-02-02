@@ -116,13 +116,13 @@ void createNamespaceInServer(char *namespaceUri, char *rootNodeIdentifier, char 
         (void) idx;
         EDGE_LOG_V(TAG, "[SERVER] Namespace Index :: [%d]\n", idx);EDGE_LOG(TAG, "[SERVER] Namespace created\n");
 
-        EdgeNamespace *ns = (EdgeNamespace*) malloc(sizeof(EdgeNamespace));
+        EdgeNamespace *ns = (EdgeNamespace*) EdgeMalloc(sizeof(EdgeNamespace));
         ns->ns_index = idx;
-        ns->rootNodeIdentifier = (char*) malloc(sizeof(char) * strlen(rootNodeIdentifier));
+        ns->rootNodeIdentifier = (char*) EdgeMalloc(sizeof(char) * strlen(rootNodeIdentifier));
         strncpy(ns->rootNodeIdentifier, rootNodeIdentifier, strlen(rootNodeIdentifier));
-        ns->rootNodeBrowseName = (char*) malloc(sizeof(char) * strlen(rootNodeBrowseName));
+        ns->rootNodeBrowseName = (char*) EdgeMalloc(sizeof(char) * strlen(rootNodeBrowseName));
         strncpy(ns->rootNodeBrowseName, rootNodeBrowseName, strlen(rootNodeBrowseName));
-        ns->rootNodeDisplayName = (char*) malloc(sizeof(char) * strlen(rootNodeDisplayName));
+        ns->rootNodeDisplayName = (char*) EdgeMalloc(sizeof(char) * strlen(rootNodeDisplayName));
         strncpy(ns->rootNodeDisplayName, rootNodeDisplayName, strlen(rootNodeDisplayName));
 
         if (namespaceMap == NULL)
@@ -183,7 +183,7 @@ EdgeResult addMethodNodeInServer(char *namespaceUri, EdgeNodeItem *item, EdgeMet
 EdgeNodeItem* createVariableNodeItemImpl(char* name, EdgeNodeIdentifier type, void* data,
         EdgeIdentifier nodeType)
 {
-    EdgeNodeItem* item = (EdgeNodeItem *) calloc(1, sizeof(EdgeNodeItem));
+    EdgeNodeItem* item = (EdgeNodeItem *) EdgeCalloc(1, sizeof(EdgeNodeItem));
     //VERIFY_NON_NULL_RET(item);
     item->nodeType = DEFAULT_NODE_TYPE;
     item->accessLevel = READ_WRITE;
@@ -201,7 +201,7 @@ EdgeNodeItem* createVariableNodeItemImpl(char* name, EdgeNodeIdentifier type, vo
 
 EdgeNodeItem* createNodeItemImpl(char* name, EdgeIdentifier nodeType, EdgeNodeId *sourceNodeId)
 {
-    EdgeNodeItem* item = (EdgeNodeItem *) calloc(1, sizeof(EdgeNodeItem));
+    EdgeNodeItem* item = (EdgeNodeItem *) EdgeCalloc(1, sizeof(EdgeNodeItem));
     //VERIFY_NON_NULL_RET(item);
     item->nodeType = DEFAULT_NODE_TYPE;
     item->accessLevel = READ_WRITE;
