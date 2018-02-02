@@ -27,8 +27,9 @@
 
 #define TAG "subscription"
 
-#define EDGE_UA_SUBSCRIPTION_ITEM_SIZE 20
-#define EDGE_UA_MINIMUM_PUBLISHING_TIME 100
+#define EDGE_UA_SUBSCRIPTION_ITEM_SIZE (20)
+#define EDGE_UA_MINIMUM_PUBLISHING_TIME (100)
+#define DEFAULT_RETRANSMIT_SEQUENCENUM (2)
 
 typedef struct subscriptionInfo
 {
@@ -110,7 +111,7 @@ static void* get_subscription_list(UA_Client *client)
     return NULL;
 }
 
-static keyValue getSubInfo(edgeMap* list, char *valueAlias)
+static keyValue getSubInfo(edgeMap* list, const char *valueAlias)
 {
     if(IS_NOT_NULL(list))
     {
@@ -127,7 +128,7 @@ static keyValue getSubInfo(edgeMap* list, char *valueAlias)
     return NULL;
 }
 
-static edgeMapNode *removeSubFromMap(edgeMap *list, char *valueAlias)
+static edgeMapNode *removeSubFromMap(edgeMap *list, const char *valueAlias)
 {
     edgeMapNode *temp = list->head;
     edgeMapNode *prev = NULL;
@@ -376,7 +377,7 @@ static void *subscription_thread_handler(void *ptr)
     return NULL;
 }
 
-static UA_StatusCode createSub(UA_Client *client, EdgeMessage *msg)
+static UA_StatusCode createSub(UA_Client *client, const EdgeMessage *msg)
 {
     clientSubscription *clientSub = NULL;
     clientSub = get_subscription_list(client);
@@ -456,7 +457,7 @@ static UA_StatusCode createSub(UA_Client *client, EdgeMessage *msg)
         return UA_STATUSCODE_BADSUBSCRIPTIONIDINVALID;
     }
 
-    int itemSize = msg->requestLength;
+    size_t itemSize = msg->requestLength;
     UA_MonitoredItemCreateRequest *items = (UA_MonitoredItemCreateRequest *) EdgeMalloc(
             sizeof(UA_MonitoredItemCreateRequest) * itemSize);
     if(IS_NULL(items))
@@ -634,7 +635,7 @@ static UA_StatusCode createSub(UA_Client *client, EdgeMessage *msg)
     return UA_STATUSCODE_GOOD;
 }
 
-static UA_StatusCode deleteSub(UA_Client *client, EdgeMessage *msg)
+static UA_StatusCode deleteSub(UA_Client *client, const EdgeMessage *msg)
 {
     subscriptionInfo *subInfo =  NULL;
     clientSubscription *clientSub = NULL;
@@ -709,7 +710,7 @@ static UA_StatusCode deleteSub(UA_Client *client, EdgeMessage *msg)
     return UA_STATUSCODE_GOOD;
 }
 
-static UA_StatusCode modifySub(UA_Client *client, EdgeMessage *msg)
+static UA_StatusCode modifySub(UA_Client *client, const EdgeMessage *msg)
 {
     subscriptionInfo *subInfo =  NULL;
     clientSubscription *clientSub = NULL;
@@ -894,7 +895,7 @@ static UA_StatusCode modifySub(UA_Client *client, EdgeMessage *msg)
     return UA_STATUSCODE_GOOD;
 }
 
-static UA_StatusCode rePublish(UA_Client *client, EdgeMessage *msg)
+static UA_StatusCode rePublish(UA_Client *client, const EdgeMessage *msg)
 {
     subscriptionInfo *subInfo =  NULL;
     clientSubscription *clientSub = NULL;
@@ -903,7 +904,7 @@ static UA_StatusCode rePublish(UA_Client *client, EdgeMessage *msg)
         return UA_STATUSCODE_BADNOSUBSCRIPTION;
 
     subInfo =  (subscriptionInfo *) getSubInfo(clientSub->subscriptionList,
-                                     msg->request->nodeInfo->valueAlias);
+            msg->request->nodeInfo->valueAlias);
     //EDGE_LOG(TAG, "subscription id retrieved from map :: %d \n\n", subInfo->subId);
 
     if (!subInfo)
@@ -915,7 +916,7 @@ static UA_StatusCode rePublish(UA_Client *client, EdgeMessage *msg)
     // re PublishingMode
     UA_RepublishRequest republishRequest;
     UA_RepublishRequest_init(&republishRequest);
-    republishRequest.retransmitSequenceNumber = 2;
+    republishRequest.retransmitSequenceNumber = DEFAULT_RETRANSMIT_SEQUENCENUM;
     republishRequest.subscriptionId = subInfo->subId;
 
     UA_RepublishResponse republishResponse;
@@ -950,7 +951,7 @@ static UA_StatusCode rePublish(UA_Client *client, EdgeMessage *msg)
     return UA_STATUSCODE_GOOD;
 }
 
-EdgeResult executeSub(UA_Client *client, EdgeMessage *msg)
+EdgeResult executeSub(UA_Client *client, const EdgeMessage *msg)
 {
     EdgeResult result;
     if (!client)

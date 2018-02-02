@@ -123,7 +123,7 @@ unsigned int getListSize(List *ptr)
         return 0;
     }
 
-    int size = 0;
+    size_t size = 0;
     while(ptr)
     {
         size++;
@@ -185,7 +185,7 @@ void deleteList(List **head)
 char *cloneString(const char *str)
 {
     VERIFY_NON_NULL(str, NULL);
-    int len = strlen(str);
+    size_t len = strlen(str);
     char *clone = (char *)EdgeMalloc(len + 1);
     VERIFY_NON_NULL(clone, NULL);
     memcpy(clone, str, len + 1);
@@ -235,7 +235,7 @@ void freeEdgeApplicationConfig(EdgeApplicationConfig *config)
     EdgeFree(config->applicationName);
     EdgeFree(config->gatewayServerUri);
     EdgeFree(config->discoveryProfileUri);
-    for(int i = 0; i < config->discoveryUrlsSize; ++i)
+    for(size_t i = 0; i < config->discoveryUrlsSize; ++i)
     {
         EdgeFree(config->discoveryUrls[i]);
     }
@@ -369,7 +369,7 @@ EdgeApplicationConfig *cloneEdgeApplicationConfig(EdgeApplicationConfig *config)
         goto ERROR;
     }
 
-    for(int i = 0; i < clone->discoveryUrlsSize; ++i)
+    for(size_t i = 0; i < clone->discoveryUrlsSize; ++i)
     {
         if (config->discoveryUrls[i])
         {
@@ -463,7 +463,7 @@ void freeEdgeBrowseResult(EdgeBrowseResult *browseResult, int browseResultLength
 {
     VERIFY_NON_NULL_NR(browseResult);
     
-    for (int i = 0; i < browseResultLength; ++i)
+    for (size_t i = 0; i < browseResultLength; ++i)
     {
         EdgeFree(browseResult[i].browseName);
     }
@@ -498,13 +498,13 @@ void freeEdgeArgument(EdgeArgument *arg)
 void freeEdgeMethodRequestParams(EdgeMethodRequestParams *methodParams)
 {
     VERIFY_NON_NULL_NR(methodParams);
-    for (int i = 0; i < methodParams->num_inpArgs; ++i)
+    for (size_t i = 0; i < methodParams->num_inpArgs; ++i)
     {
         freeEdgeArgument(methodParams->inpArg[i]);
     }
     EdgeFree(methodParams->inpArg);
 
-    for (int i = 0; i < methodParams->num_outArgs; ++i)
+    for (size_t i = 0; i < methodParams->num_outArgs; ++i)
     {
         freeEdgeArgument(methodParams->outArg[i]);
     }
@@ -525,7 +525,7 @@ void freeEdgeRequest(EdgeRequest *req)
 void freeEdgeRequests(EdgeRequest **requests, int requestLength)
 {
    VERIFY_NON_NULL_NR(requests);
-    for (int i = 0; i < requestLength; ++i)
+    for (size_t i = 0; i < requestLength; ++i)
     {
         freeEdgeRequest(requests[i]);
     }
@@ -562,7 +562,7 @@ void freeEdgeResponse(EdgeResponse *response)
 void freeEdgeResponses(EdgeResponse **responses, int responseLength)
 {
     VERIFY_NON_NULL_NR(responses);
-    for (int i = 0; i < responseLength; ++i)
+    for (size_t i = 0; i < responseLength; ++i)
     {
         freeEdgeResponse(responses[i]);
     }

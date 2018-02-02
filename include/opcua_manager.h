@@ -21,6 +21,7 @@
 #ifndef EDGE_OPCUA_MANAGER_H
 #define EDGE_OPCUA_MANAGER_H
 
+#include <stdio.h>
 #include "opcua_common.h"
 
 #ifdef __cplusplus

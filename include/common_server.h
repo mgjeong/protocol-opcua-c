@@ -72,7 +72,7 @@ typedef struct EdgeNodeItem
     void *variableData;
 
     /** array length **/
-    int arrayLength;
+    size_t arrayLength;
 
     /** EdgeNodeId.*/
     EdgeNodeId *sourceNodeId;
@@ -127,7 +127,7 @@ typedef struct EdgeArgument
     void *scalarValue;
 
     /* Number of elements if array */
-    int arrayLength;
+    size_t arrayLength;
 
     /** Argument array data */
     void *arrayData;
@@ -144,13 +144,13 @@ typedef struct EdgeMethod
     char *description;
 
     /** number of input arguments */
-    int num_inpArgs;
+    size_t num_inpArgs;
 
     /** Input arguments */
     EdgeArgument **inpArg;
 
     /** number of output arguments */
-    int num_outArgs;
+    size_t num_outArgs;
 
     /** Input arguments */
     EdgeArgument **outArg;

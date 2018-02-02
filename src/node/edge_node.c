@@ -26,15 +26,15 @@
 #include <stdio.h>
 
 #define TAG "edge_node"
-#define MAX_ARGS  10
+#define MAX_ARGS  (10)
 
 static edgeMap *methodNodeMap = NULL;
-static int methodNodeCount = 0;
+static size_t methodNodeCount = 0;
 //static int numeric_id = 1000;
 
 /****************************** Static functions ***********************************/
 
-static void addVariableNode(UA_Server *server, int nsIndex, EdgeNodeItem *item)
+static void addVariableNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem *item)
 {
     char *name = item->browseName;
     EdgeNodeIdentifier id = item->variableIdentifier;
@@ -109,7 +109,7 @@ static void addVariableNode(UA_Server *server, int nsIndex, EdgeNodeItem *item)
 //                                                    UA_EXPANDEDNODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER), !(item->forward));
 }
 
-static void addArrayNode(UA_Server *server, int nsIndex, EdgeNodeItem *item)
+static void addArrayNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem *item)
 {
     char *name = item->browseName;
     EdgeNodeIdentifier id = item->variableIdentifier;
@@ -150,7 +150,7 @@ static void addArrayNode(UA_Server *server, int nsIndex, EdgeNodeItem *item)
     int type = (int) id - 1;
     if (type == UA_TYPES_STRING)
     {
-        int idx = 0;
+        size_t idx = 0;
         char **data1 = (char **) item->variableData;
         UA_String *array = (UA_String *) UA_Array_new(item->arrayLength, &UA_TYPES[type]);
         for (idx = 0; idx < item->arrayLength; idx++)
@@ -166,7 +166,7 @@ static void addArrayNode(UA_Server *server, int nsIndex, EdgeNodeItem *item)
     }
     else if (type == UA_TYPES_BYTESTRING)
     {
-        int idx = 0;
+        size_t idx = 0;
         UA_ByteString **dataArray = (UA_ByteString **) item->variableData;
         UA_ByteString *array = (UA_ByteString *) UA_Array_new(item->arrayLength, &UA_TYPES[type]);
         for (idx = 0; idx < item->arrayLength; idx++)
@@ -202,7 +202,7 @@ static void addArrayNode(UA_Server *server, int nsIndex, EdgeNodeItem *item)
     UA_Variant_deleteMembers(&attr.value);
 }
 
-static void addObjectNode(UA_Server *server, int nsIndex, EdgeNodeItem *item)
+static void addObjectNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem *item)
 {
     char *name = item->browseName;
 
@@ -235,7 +235,7 @@ static void addObjectNode(UA_Server *server, int nsIndex, EdgeNodeItem *item)
     }
 }
 
-static void addObjectTypeNode(UA_Server *server, int nsIndex, EdgeNodeItem *item)
+static void addObjectTypeNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem *item)
 {
     char *name = item->browseName;
     UA_ObjectTypeAttributes object_attr = UA_ObjectTypeAttributes_default;
@@ -268,7 +268,7 @@ static void addObjectTypeNode(UA_Server *server, int nsIndex, EdgeNodeItem *item
     }
 }
 
-static void addVariableTypeNode(UA_Server *server, int nsIndex, EdgeNodeItem *item)
+static void addVariableTypeNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem *item)
 {
     char *name = item->browseName;
     EdgeNodeIdentifier id = item->variableIdentifier;
@@ -281,7 +281,7 @@ static void addVariableTypeNode(UA_Server *server, int nsIndex, EdgeNodeItem *it
     int type = (int) id - 1;
     if (type == UA_TYPES_STRING)
     {
-        int idx = 0;
+        size_t idx = 0;
         char **data1 = (char **) item->variableData;
         UA_String *array = (UA_String *) UA_Array_new(item->arrayLength, &UA_TYPES[type]);
         for (idx = 0; idx < item->arrayLength; idx++)
@@ -317,7 +317,7 @@ static void addVariableTypeNode(UA_Server *server, int nsIndex, EdgeNodeItem *it
     //UA_Variant_deleteMembers(&attr.value);
 }
 
-static void addDataTypeNode(UA_Server *server, int nsIndex, EdgeNodeItem *item)
+static void addDataTypeNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem *item)
 {
     char *name = item->browseName;
 
@@ -350,7 +350,7 @@ static void addDataTypeNode(UA_Server *server, int nsIndex, EdgeNodeItem *item)
     }
 }
 
-static void addViewNode(UA_Server *server, int nsIndex, EdgeNodeItem *item)
+static void addViewNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem *item)
 {
     char *name = item->browseName;
 
@@ -383,7 +383,7 @@ static void addViewNode(UA_Server *server, int nsIndex, EdgeNodeItem *item)
     }
 }
 
-EdgeResult addReferences(UA_Server *server, EdgeReference *reference, int src_nsIndex, int target_nsIndex)
+EdgeResult addReferences(UA_Server *server, EdgeReference *reference, uint16_t src_nsIndex, uint16_t target_nsIndex)
 {
 
     EdgeResult result;
@@ -418,7 +418,7 @@ EdgeResult addReferences(UA_Server *server, EdgeReference *reference, int src_ns
     return result;
 }
 
-static void addReferenceTypeNode(UA_Server *server, int nsIndex, EdgeNodeItem *item)
+static void addReferenceTypeNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem *item)
 {
     char *name = item->browseName;
 
@@ -457,7 +457,7 @@ static void addReferenceTypeNode(UA_Server *server, int nsIndex, EdgeNodeItem *i
             UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES), expandedSourceNodeId, false);
 }
 
-static keyValue getMethodMapElement(edgeMap *map, keyValue key)
+static keyValue getMethodMapElement(const edgeMap *map, keyValue key)
 {
     edgeMapNode *temp = map->head;
     while (temp != NULL)
@@ -487,7 +487,7 @@ static UA_StatusCode methodCallback(UA_Server *server, const UA_NodeId *sessionI
         {
             inp = EdgeMalloc(sizeof(void *) * inputSize);
             VERIFY_NON_NULL(inp, STATUS_ERROR);
-            for (int i = 0; i < inputSize; i++)
+            for (size_t i = 0; i < inputSize; i++)
             {
                 inp[i] = input[i].data;
             }
@@ -502,7 +502,7 @@ static UA_StatusCode methodCallback(UA_Server *server, const UA_NodeId *sessionI
                 EdgeFree(inp);
                 return STATUS_ERROR;
             }
-            for (int i = 0; i < outputSize; i++)
+            for (size_t i = 0; i < outputSize; i++)
             {
                 out[i] = NULL;
             }
@@ -511,7 +511,7 @@ static UA_StatusCode methodCallback(UA_Server *server, const UA_NodeId *sessionI
 
         EdgeFree(inp);
 
-        for (int idx = 0; idx < method->num_outArgs; idx++)
+        for (size_t idx = 0; idx < method->num_outArgs; idx++)
         {
             if (out[idx] != NULL)
             {
@@ -540,14 +540,14 @@ static UA_StatusCode methodCallback(UA_Server *server, const UA_NodeId *sessionI
                         char **data = (char **) out;
                         UA_String *array = (UA_String *) UA_Array_new(
                                 method->outArg[idx]->arrayLength, &UA_TYPES[type]);
-                        for (int idx1 = 0; idx1 < method->outArg[idx]->arrayLength; idx1++)
+                        for (size_t idx1 = 0; idx1 < method->outArg[idx]->arrayLength; idx1++)
                         {
                             array[idx1] = UA_STRING_ALLOC(data[idx1]);
                         }
                         UA_Variant *variant = &output[idx];
                         UA_Variant_setArrayCopy(variant, array, method->outArg[idx]->arrayLength,
                                 &UA_TYPES[type]);
-                        for (int idx1 = 0; idx1 < method->outArg[idx]->arrayLength; idx1++)
+                        for (size_t idx1 = 0; idx1 < method->outArg[idx]->arrayLength; idx1++)
                         {
                             UA_String_deleteMembers(&array[idx1]);
                         }
@@ -574,7 +574,7 @@ static UA_StatusCode methodCallback(UA_Server *server, const UA_NodeId *sessionI
 
 /****************************** Member functions ***********************************/
 
-EdgeResult addNodes(UA_Server *server, int nsIndex, EdgeNodeItem *item)
+EdgeResult addNodes(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem *item)
 {
     EdgeResult result;
     result.code = STATUS_OK;
@@ -621,7 +621,7 @@ EdgeResult addNodes(UA_Server *server, int nsIndex, EdgeNodeItem *item)
     return result;
 }
 
-EdgeResult addMethodNode(UA_Server *server, int nsIndex, EdgeNodeItem *item, EdgeMethod *method)
+EdgeResult addMethodNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem *item, EdgeMethod *method)
 {
     EdgeResult result;
     result.code = STATUS_ERROR;
@@ -630,7 +630,7 @@ EdgeResult addMethodNode(UA_Server *server, int nsIndex, EdgeNodeItem *item, Edg
 
     int num_inpArgs = method->num_inpArgs;
     int num_outArgs = method->num_outArgs;
-    int idx = 0;
+    size_t idx = 0;
 
     /* Input Arguments */
     UA_Argument inputArguments[MAX_ARGS];
@@ -663,7 +663,7 @@ EdgeResult addMethodNode(UA_Server *server, int nsIndex, EdgeNodeItem *item, Edg
         UA_Argument_init(&outputArguments[idx]);
         outputArguments[idx].description = UA_LOCALIZEDTEXT("en-US", method->description);
         outputArguments[idx].name = UA_STRING(method->description);
-        outputArguments[idx].dataType = UA_TYPES[(int) method->outArg[idx]->argType - 1].typeId;
+        outputArguments[idx].dataType = UA_TYPES[(size_t) method->outArg[idx]->argType - 1].typeId;
 
         if (method->outArg[idx]->valType == SCALAR)
         {
@@ -766,14 +766,7 @@ EdgeResult addMethodNode(UA_Server *server, int nsIndex, EdgeNodeItem *item, Edg
     return result;
 }
 
-EdgeResult addDataAccessNode(EdgeNodeItem *item)
-{
-    EdgeResult result;
-    result.code = STATUS_OK;
-    return result;
-}
-
-EdgeResult modifyNode(UA_Server *server, int nsIndex, char *nodeUri, EdgeVersatility *value)
+EdgeResult modifyNode(UA_Server *server, uint16_t nsIndex, char *nodeUri, EdgeVersatility *value)
 {
     EdgeResult result;
     result.code = STATUS_ERROR;
@@ -814,7 +807,7 @@ EdgeResult modifyNode(UA_Server *server, int nsIndex, char *nodeUri, EdgeVersati
     {
         if (type == &UA_TYPES[UA_TYPES_STRING])
         {
-            int idx = 0;
+            size_t idx = 0;
             char **data1 = (char **) value->value;
             UA_String *array = (UA_String *) UA_Array_new(value->arrayLength, type);
             for (idx = 0; idx < value->arrayLength; idx++)
@@ -830,7 +823,7 @@ EdgeResult modifyNode(UA_Server *server, int nsIndex, char *nodeUri, EdgeVersati
         }
         else if (type == &UA_TYPES[UA_TYPES_BYTESTRING])
         {
-            int idx = 0;
+            size_t idx = 0;
             UA_ByteString **dataArray = (UA_ByteString **) value->value;
             UA_ByteString *array = (UA_ByteString *) UA_Array_new(value->arrayLength, type);
             for (idx = 0; idx < value->arrayLength; idx++)
