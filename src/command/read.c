@@ -260,10 +260,10 @@ static EdgeDiagnosticInfo *checkDiagnosticInfo(int nodesToProcess,
 
 static void readGroup(UA_Client *client, EdgeMessage *msg)
 {
-    int reqLen = msg->requestLength;
+    size_t reqLen = msg->requestLength;
     UA_ReadValueId *rv = (UA_ReadValueId *) EdgeMalloc(sizeof(UA_ReadValueId) * reqLen);
 
-    for (int i = 0; i < reqLen; i++)
+    for (size_t i = 0; i < reqLen; i++)
     {
         EDGE_LOG_V(TAG, "[READGROUP] Node to read :: %s\n", msg->requests[i]->nodeInfo->valueAlias);
         UA_ReadValueId_init(&rv[i]);

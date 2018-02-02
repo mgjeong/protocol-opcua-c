@@ -41,10 +41,10 @@ typedef struct NodesToBrowse
 {
     UA_NodeId *nodeId;
     unsigned char **browseName;
-    int size;
+    size_t size;
 } NodesToBrowse;
 
-static NodesToBrowse *initNodesToBrowse(int size)
+static NodesToBrowse *initNodesToBrowse(size_t size)
 {
     NodesToBrowse *browseNodesInfo = (NodesToBrowse *) EdgeCalloc(1, sizeof(NodesToBrowse));
     if (IS_NULL(browseNodesInfo))
@@ -246,7 +246,7 @@ static UA_BrowseDescription *getBrowseDescriptions(NodesToBrowse *browseNodesInf
             sizeof(UA_BrowseDescription));
     VERIFY_NON_NULL(browseDesc, NULL);
 
-    for (int idx = 0; idx < browseNodesInfo->size; ++idx)
+    for (size_t idx = 0; idx < browseNodesInfo->size; ++idx)
     {
         browseDesc[idx].nodeId = browseNodesInfo->nodeId[idx];
         browseDesc[idx].browseDirection = directionParam;
@@ -462,7 +462,7 @@ bool checkTypeDefinition(UA_ReferenceDescription *ref, EdgeNodeId *srcNodeId)
 }
 
 static void invokeResponseCb(EdgeMessage *msg, int msgId, EdgeNodeId *srcNodeId,
-        EdgeBrowseResult *browseResult, int size, const unsigned char *browsePath)
+        EdgeBrowseResult *browseResult, size_t size, const unsigned char *browsePath)
 {
     EdgeMessage *resultMsg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
     if (IS_NULL(resultMsg))
@@ -618,7 +618,7 @@ static EdgeNodeId *getEdgeNodeId(UA_NodeId *node)
     EdgeNodeId *edgeNodeId = (EdgeNodeId *) EdgeCalloc(1, sizeof(EdgeNodeId));
     VERIFY_NON_NULL(edgeNodeId, NULL);
 
-    edgeNodeId->nameSpace = (int) node->namespaceIndex;
+    edgeNodeId->nameSpace = node->namespaceIndex;
     switch (node->identifierType)
     {
         case UA_NODEIDTYPE_NUMERIC:
@@ -757,8 +757,8 @@ static unsigned char *getCurrentBrowsePath()
         return NULL;
     }
 
-    const int blockSize = 100;
-    int curSize = blockSize;
+    const size_t blockSize = 100;
+    size_t curSize = blockSize;
     int lastUsed = -1;
     unsigned char *browsePath = (unsigned char *)EdgeMalloc(curSize * sizeof(unsigned char));
     if(IS_NULL(browsePath))
@@ -779,7 +779,7 @@ static unsigned char *getCurrentBrowsePath()
         {
             continue;
         }
-        int strLen = strlen((char *)ptr->browseName);
+        size_t strLen = strlen((char *)ptr->browseName);
         if(lastUsed+strLen+2 >= curSize)
         {
             curSize += blockSize;
@@ -995,7 +995,7 @@ static EdgeMessage *prepareEdgeMessageForBrowseView(EdgeMessage *msg, List *view
     browseViewMsg->type = SEND_REQUESTS;
     browseViewMsg->command = CMD_BROWSE;
 
-    int size = getListSize(viewNodeList);
+    size_t size = getListSize(viewNodeList);
 
     EdgeRequest **request = (EdgeRequest **)calloc(size, sizeof(EdgeRequest *));
     if(IS_NULL(request))
@@ -1258,7 +1258,7 @@ EdgeStatusCode browse(UA_Client *client, EdgeMessage *msg, bool browseNext,
                 {
                     if(IS_NULL(viewList))
                     {
-                        int size = 1;
+                        size_t size = 1;
                         EdgeBrowseResult *browseResult = (EdgeBrowseResult *) EdgeCalloc(size,
                                 sizeof(EdgeBrowseResult));
                         if (IS_NULL(browseResult))

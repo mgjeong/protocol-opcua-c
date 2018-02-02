@@ -27,7 +27,10 @@
 #ifndef EDGE_COMMON_H
 #define EDGE_COMMON_H
 
-//#include <open62541.h>
+/* C99 */
+#include <string.h>
+#include <stddef.h>
+#include <stdio.h>
 
 #include "edge_command_type.h"
 #include "edge_identifier.h"
@@ -46,8 +49,8 @@ extern "C"
 {
 #endif
 
-#define REQUEST_TIMEOUT     60000
-#define BIND_PORT                12686
+#define REQUEST_TIMEOUT     (60000)
+#define BIND_PORT           (12686)
 
 typedef struct ReceivedMessageCallback ReceivedMessageCallback;
 typedef struct StatusCallback StatusCallback;
@@ -98,7 +101,7 @@ typedef struct EdgeEndpointConfig
     char *bindAddress;
 
     /** bindPort.*/
-    int bindPort;
+    uint16_t bindPort;
 } EdgeEndpointConfig;
 
 /** The types of applications. */
@@ -134,7 +137,7 @@ typedef struct EdgeApplicationConfig
     char **discoveryUrls;
 
     /** Number of discovery endpoint URLs.*/
-    int discoveryUrlsSize;
+    size_t discoveryUrlsSize;
 } EdgeApplicationConfig;
 
 /** The type of security to use on a message.*/
@@ -177,7 +180,7 @@ typedef struct EdgeDevice
     char *address;
 
     /** port.*/
-    int port;
+    uint16_t port;
 
     /** serverName.*/
     char *serverName;
@@ -186,14 +189,14 @@ typedef struct EdgeDevice
     EdgeEndPointInfo **endpointsInfo;
 
     /** Number of Endpoints */
-    int num_endpoints;
+    size_t num_endpoints;
 
 } EdgeDevice;
 
 typedef struct EdgeNodeId
 {
     /** nameSpace.*/
-    int nameSpace;
+    uint16_t nameSpace;
 
     /** nodeUri.*/
     char *nodeUri;
@@ -228,13 +231,13 @@ typedef struct EdgeNodeInfo
 typedef struct EdgeMethodRequestParams
 {
     /** number of input arguments */
-    int num_inpArgs;
+    size_t num_inpArgs;
 
     /** Input arguments */
     EdgeArgument **inpArg;
 
     /** number of output arguments */
-    int num_outArgs;
+    size_t num_outArgs;
 
     /** Input arguments */
     EdgeArgument **outArg;
@@ -313,13 +316,13 @@ typedef struct EdgeMessage
     EdgeRequest **requests;
 
     /** Number of requests */
-    int requestLength;
+    size_t requestLength;
 
     /** EdgeResponse.*/
     EdgeResponse **responses;
 
     /** Response length */
-    int responseLength;
+    size_t responseLength;
 
     /** EdgeResult.*/
     EdgeResult *result;
@@ -331,7 +334,7 @@ typedef struct EdgeMessage
     EdgeBrowseResult *browseResult;
 
     /** Total number of browse result objects **/
-    int browseResultLength;
+    size_t browseResultLength;
 
     /** List of continuation point **/
     EdgeContinuationPointList *cpList;

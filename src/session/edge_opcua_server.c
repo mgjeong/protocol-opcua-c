@@ -33,7 +33,7 @@
 
 typedef struct
 {
-    int ns_index;
+    uint16_t ns_index;
     char *rootNodeIdentifier;
     char *rootNodeBrowseName;
     char *rootNodeDisplayName;
@@ -112,7 +112,7 @@ void createNamespaceInServer(char *namespaceUri, char *rootNodeIdentifier, char 
             return;
         }
 
-        int idx = UA_Server_addNamespace(m_server, namespaceUri);
+        uint16_t idx = UA_Server_addNamespace(m_server, namespaceUri);
         (void) idx;
         EDGE_LOG_V(TAG, "[SERVER] Namespace Index :: [%d]\n", idx);EDGE_LOG(TAG, "[SERVER] Namespace created\n");
 

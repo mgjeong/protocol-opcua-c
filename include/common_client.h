@@ -31,6 +31,7 @@
 #include "edge_node_identifier.h"
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -49,7 +50,7 @@ typedef struct EdgeVersatility
     bool isArray;
 
     /** Array Size */
-    int arrayLength;
+    size_t arrayLength;
 
 } EdgeVersatility;
 
@@ -130,7 +131,7 @@ typedef struct EdgeSubRequest
     int priority;
 
     /** Queue Size */
-    int queueSize;
+    uint32_t queueSize;
 } EdgeSubRequest;
 
 #ifdef __cplusplus

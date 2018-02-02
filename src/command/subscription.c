@@ -27,8 +27,8 @@
 
 #define TAG "subscription"
 
-#define EDGE_UA_SUBSCRIPTION_ITEM_SIZE 20
-#define EDGE_UA_MINIMUM_PUBLISHING_TIME 100
+#define EDGE_UA_SUBSCRIPTION_ITEM_SIZE (20)
+#define EDGE_UA_MINIMUM_PUBLISHING_TIME (100)
 
 typedef struct subscriptionInfo
 {
@@ -456,7 +456,7 @@ static UA_StatusCode createSub(UA_Client *client, EdgeMessage *msg)
         return UA_STATUSCODE_BADSUBSCRIPTIONIDINVALID;
     }
 
-    int itemSize = msg->requestLength;
+    size_t itemSize = msg->requestLength;
     UA_MonitoredItemCreateRequest *items = (UA_MonitoredItemCreateRequest *) EdgeMalloc(
             sizeof(UA_MonitoredItemCreateRequest) * itemSize);
     if(IS_NULL(items))
