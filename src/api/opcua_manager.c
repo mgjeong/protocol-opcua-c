@@ -169,6 +169,13 @@ EdgeResult getEndpointInfo(EdgeEndPointInfo *epInfo)
     return getClientEndpoints(epInfo->endpointUri);
 }
 
+EdgeResult findServers(const char *endpointUri, size_t serverUrisSize, unsigned char **serverUris,
+    size_t localeIdsSize, unsigned char **localeIds, size_t *registeredServersSize, EdgeApplicationConfig **registeredServers)
+{
+    return findServersInternal(endpointUri, serverUrisSize, serverUris, localeIdsSize, localeIds,
+        registeredServersSize, registeredServers);
+}
+
 void connectClient(EdgeEndPointInfo *epInfo)
 {
     EDGE_LOG(TAG, "[Received command] :: Client connect.");
@@ -207,6 +214,11 @@ void destroyEdgeResult(EdgeResult *res)
 void destroyEdgeEndpointConfig(EdgeEndpointConfig *epConfig)
 {
     freeEdgeEndpointConfig(epConfig);
+}
+
+void destroyEdgeApplicationConfigMembers(EdgeApplicationConfig *config)
+{
+    freeEdgeApplicationConfigMembers(config);
 }
 
 void destroyEdgeVersatility(EdgeVersatility *versatileValue)

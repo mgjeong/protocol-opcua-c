@@ -39,6 +39,7 @@ typedef struct EdgeContinuationPoint EdgeContinuationPoint;
 typedef struct EdgeContinuationPointList EdgeContinuationPointList;
 typedef struct EdgeRequest EdgeRequest;
 typedef struct EdgeEndpointConfig EdgeEndpointConfig;
+typedef struct EdgeApplicationConfig EdgeApplicationConfig;
 
 /* Recevied Message callbacks */
 typedef void (*response_msg_cb_t) (EdgeMessage *data);
@@ -94,6 +95,11 @@ __attribute__((visibility("default"))) void createServer(EdgeEndPointInfo *epInf
 __attribute__((visibility("default"))) void closeServer(EdgeEndPointInfo *epInfo);
 
 // Client
+/* To get a list of all registered servers at the given server. Application has to free the memory
+allocated for the resultant array of EdgeApplicationConfig objects and its members. */
+__attribute__((visibility("default"))) EdgeResult findServers(const char *endpointUri, size_t serverUrisSize,
+        unsigned char **serverUris, size_t localeIdsSize, unsigned char **localeIds,
+        size_t *registeredServersSize, EdgeApplicationConfig **registeredServers);
 __attribute__((visibility("default"))) EdgeResult getEndpointInfo(EdgeEndPointInfo *epInfo);
 __attribute__((visibility("default"))) void connectClient(EdgeEndPointInfo *epInfo);
 __attribute__((visibility("default"))) void disconnectClient(EdgeEndPointInfo *epInfo);
@@ -158,6 +164,10 @@ __attribute__((visibility("default"))) void destroyEdgeNodeInfo(EdgeNodeInfo *no
 /* Deallocates the dynamic memory for EdgeEndpointInfo and its members.
 Behaviour is undefined if EdgeEndpointInfo or any of its members are not dynamically allocated. */
 __attribute__((visibility("default"))) void destroyEdgeEndpointInfo(EdgeEndPointInfo *endpointInfo);
+
+/* Deallocates the dynamic memory for EdgeApplicationConfig's members.
+Behaviour is undefined if any its members are not dynamically allocated. */
+__attribute__((visibility("default"))) void destroyEdgeApplicationConfigMembers(EdgeApplicationConfig *config);
 
 /* Deallocates the dynamic memory for EdgeContinuationPoint and its members.
 Behaviour is undefined if EdgeContinuationPoint or any of its members are not dynamically allocated. */
