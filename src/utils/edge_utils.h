@@ -117,6 +117,8 @@ extern "C"
 
     void freeEdgeBrowseResult(EdgeBrowseResult *browseResult, int browseResultLength);
 
+    void freeEdgeResult(EdgeResult *res);
+
     void freeEdgeNodeId(EdgeNodeId *nodeId);
 
     void freeEdgeNodeInfo(EdgeNodeInfo *nodeInfo);

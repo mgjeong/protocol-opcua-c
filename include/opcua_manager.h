@@ -17,7 +17,7 @@
  * limitations under the License.
  *
  ******************************************************************/
- 
+
 #ifndef EDGE_OPCUA_MANAGER_H
 #define EDGE_OPCUA_MANAGER_H
 
@@ -34,6 +34,11 @@ typedef struct EdgeMessage EdgeMessage;
 typedef struct EdgeDevice EdgeDevice;
 typedef struct EdgeEndPointInfo EdgeEndPointInfo;
 typedef struct EdgeReference EdgeReference;
+typedef struct EdgeMethodRequestParams EdgeMethodRequestParams;
+typedef struct EdgeContinuationPoint EdgeContinuationPoint;
+typedef struct EdgeContinuationPointList EdgeContinuationPointList;
+typedef struct EdgeRequest EdgeRequest;
+typedef struct EdgeEndpointConfig EdgeEndpointConfig;
 
 /* Recevied Message callbacks */
 typedef void (*response_msg_cb_t) (EdgeMessage *data);
@@ -120,6 +125,64 @@ __attribute__((visibility("default"))) EdgeResult handleSubscription(EdgeMessage
 
 __attribute__((visibility("default"))) void showNodeList(void);
 
+// Common
+
+/* Deallocates the dynamic memory for EdgeResult.
+Behaviour is undefined if EdgeResult is not dynamically allocated. */
+__attribute__((visibility("default"))) void destroyEdgeResult(EdgeResult *res);
+
+/* Deallocates the dynamic memory for EdgeVersatility.
+Behaviour is undefined if EdgeVersatility or any of its members not dynamically allocated. */
+__attribute__((visibility("default"))) void destroyEdgeVersatility(EdgeVersatility *versatileValue);
+
+/* Deallocates the dynamic memory for EdgeArgument.
+Behaviour is undefined if EdgeArgument or any of its members are not dynamically allocated. */
+__attribute__((visibility("default"))) void destroyEdgeArgument(EdgeArgument *res);
+
+/* Deallocates the dynamic memory for EdgeMethodRequestParams.
+Behaviour is undefined if EdgeMethodRequestParams or any of its members are not dynamically allocated. */
+__attribute__((visibility("default"))) void destroyEdgeMethodRequestParams(EdgeMethodRequestParams *res);
+
+/* Deallocates the dynamic memory for EdgeNodeId.
+Behaviour is undefined if EdgeNodeId is not dynamically allocated. */
+__attribute__((visibility("default"))) void destroyEdgeNodeId(EdgeNodeId *nodeId);
+
+/* Deallocates the dynamic memory for EdgeEndpointConfig.
+Behaviour is undefined if EdgeEndpointConfig or any of its members are not dynamically allocated. */
+__attribute__((visibility("default"))) void destroyEdgeEndpointConfig(EdgeEndpointConfig *epConfig);
+
+/* Deallocates the dynamic memory for EdgeNodeInfo.
+Behaviour is undefined if EdgeNodeInfo is not dynamically allocated. */
+__attribute__((visibility("default"))) void destroyEdgeNodeInfo(EdgeNodeInfo *nodeInfo);
+
+/* Deallocates the dynamic memory for EdgeEndpointInfo and its members.
+Behaviour is undefined if EdgeEndpointInfo or any of its members are not dynamically allocated. */
+__attribute__((visibility("default"))) void destroyEdgeEndpointInfo(EdgeEndPointInfo *endpointInfo);
+
+/* Deallocates the dynamic memory for EdgeContinuationPoint and its members.
+Behaviour is undefined if EdgeContinuationPoint or any of its members are not dynamically allocated. */
+__attribute__((visibility("default"))) void destroyEdgeContinuationPoint(EdgeContinuationPoint *cp);
+
+/* Deallocates the dynamic memory for EdgeContinuationPointList and its members.
+EdgeContinuationPointList has an array of dynamically allocated EdgeContinuationPoint objects.
+Array is also dynamically allocated.
+Behaviour is undefined if EdgeContinuationPointList or any of its members are not dynamically allocated. */
+__attribute__((visibility("default"))) void destroyEdgeContinuationPointList(EdgeContinuationPointList *cpList);
+
+/* Deallocates the dynamic memory for EdgeResponse and its members.
+Behaviour is undefined if EdgeResponse or any of its members are not dynamically allocated. */
+__attribute__((visibility("default"))) void destroyEdgeResponse(EdgeResponse *resp);
+
+/* Deallocates the dynamic memory for EdgeRequest and its members.
+Behaviour is undefined if EdgeRequest or any of its members are not dynamically allocated. */
+__attribute__((visibility("default"))) void destroyEdgeRequest(EdgeRequest *req);
+
+/* Deallocates the dynamic memory for EdgeMessage and its members.
+Behaviour is undefined if EdgeMessage or any of its members are not dynamically allocated. */
+__attribute__((visibility("default"))) void destroyEdgeMessage(EdgeMessage *msg);
+
+/* Allocates memory and copies the string. Application has to free the memory. */
+__attribute__((visibility("default"))) char *copyString(const char *str);
 
 #ifdef __cplusplus
 }
