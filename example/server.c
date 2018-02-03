@@ -717,13 +717,13 @@ static void testCreateNodes()
             strncpy(data1[0], "apple", strlen("apple"));
             data1[0][strlen("apple")] = '\0';
             strncpy(data1[1], "ball", strlen("ball"));
-            data1[0][strlen("ball")] = '\0';
+            data1[1][strlen("ball")] = '\0';
             strncpy(data1[2], "cats", strlen("cats"));
-            data1[0][strlen("cats")] = '\0';
+            data1[2][strlen("cats")] = '\0';
             strncpy(data1[3], "dogs", strlen("dogs"));
-            data1[0][strlen("dogs")] = '\0';
+            data1[3][strlen("dogs")] = '\0';
             strncpy(data1[4], "elephant", strlen("elephant"));
-            data1[0][strlen("elephant")] = '\0';
+            data1[4][strlen("elephant")] = '\0';
 
             item = createVariableNodeItem("CharArray", String, (void *) data1, VARIABLE_NODE);
             VERIFY_NON_NULL_NR(item);
@@ -1464,18 +1464,21 @@ static void testModifyNode()
     printf("[4] Double\n");
     printf("[5] Int32\n");
     printf("[6] UInt16\n");
-    printf("[7] String1 Changing Thread\n");
-    printf("[8] Int32 Increasing Thread\n");
+    printf("[7] ByteString\n");
+    printf("[8] CharArray\n");
+    printf("[9] String1 Changing Thread\n");
+    printf("[10] Int32 Increasing Thread\n");
     printf("\nEnter any of the above option :: ");
     scanf("%d", &option);
 
-    if (option < 1 || option > 8)
+    if (option < 1 || option > 10)
     {
         printf("Invalid Option!!! \n\n");
         return;
     }
 
-    printf("\nEnter the new value :: ");
+    if (option < 8)
+        printf("\nEnter the new value :: ");
     if (option == 1)
     {
         scanf("%s", s_value);
@@ -1514,6 +1517,50 @@ static void testModifyNode()
     }
     else if (option == 7)
     {
+        scanf("%s", s_value);
+        strcpy(name, "ByteString");
+        new_value = (void *) s_value;
+    }
+    else if (option == 8)
+    {
+        strncpy(name, "CharArray", strlen("CharArray"));
+        name[strlen("CharArray")] = '\0';
+
+        int num_values;
+        printf("Enter number of string elements :  ");
+        scanf("%d", &num_values);
+
+        char **new_str = (char**) malloc(sizeof(char*) * num_values);
+        int len;
+        char val[MAX_ADDRESS_SIZE];
+        for (int i = 0; i < num_values; i++)
+        {
+            printf("Enter string #%d :  ", (i+1));
+            scanf("%s", val);
+            len  = strlen(val);
+            new_str[i] = (char *) EdgeMalloc(len + 1);
+            strncpy(new_str[i], val, len);
+            new_str[i][len] = '\0';
+        }
+        new_value = (void*) new_str;
+        EdgeVersatility *message = (EdgeVersatility *) EdgeMalloc(sizeof(EdgeVersatility));
+        if (IS_NOT_NULL(message))
+        {
+            message->arrayLength = num_values;
+            message->isArray = true;
+            message->value = new_value;
+            modifyVariableNode(DEFAULT_NAMESPACE_VALUE, name, message);
+            EdgeFree(message);
+            usleep(1000 * 1000);
+        }
+        else
+        {
+            printf("Error :: EdgeMalloc failed for CharArray EdgeVersatility in Test Modify Nodes\n");
+        }
+        return ;
+    }
+    else if (option == 9)
+    {
         strncpy(name, "String1", strlen("String1"));
         name[strlen("String1")] = '\0';
         for (int i = 0; i < MAX_TEST_NUMBER; i++)
@@ -1545,7 +1592,7 @@ static void testModifyNode()
         }
         return;
     }
-    else if (option == 8)
+    else if (option == 10)
     {
         strncpy(name, "Int32", strlen("Int32"));
         name[strlen("Int32")] = '\0';

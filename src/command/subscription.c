@@ -292,7 +292,7 @@ static void monitoredItemHandler(UA_UInt32 monId, UA_DataValue *value, void *con
                             goto EXIT;
                         }
                         strncpy(values[i], (char *) str[i].data, strlen((char *) str[i].data));
-                        values[str[i].length] = "\0";
+                        values[i][str[i].length] = '\0';
                     }
                     versatility->value = (void *) values;
                 }
@@ -300,6 +300,38 @@ static void monitoredItemHandler(UA_UInt32 monId, UA_DataValue *value, void *con
             }
             else if (value->value.type == &UA_TYPES[UA_TYPES_BYTESTRING])
             {
+                if (isScalar)
+                {
+                    UA_ByteString byteStr = *((UA_ByteString *) value->value.data);
+                    if ((int) byteStr.length)
+                        versatility->value = (void *) byteStr.data;
+                    else
+                        versatility->value = NULL;
+                }
+                else
+                {
+                    // ByteString Array
+                    UA_Variant val = value->value;
+                    UA_ByteString *str = ((UA_ByteString *) val.data);
+                    char **values = (char **) malloc(sizeof(char *) * val.arrayLength);
+                    if(IS_NULL(values))
+                    {
+                        EDGE_LOG(TAG, "Error : Malloc failed for ByteString Array value in Read Group\n");
+                        goto EXIT;
+                    }
+                    for (int i = 0; i < val.arrayLength; i++)
+                    {
+                        values[i] = (char *) EdgeMalloc(str[i].length + 1);
+                        if(IS_NULL(values[i]))
+                        {
+                            EDGE_LOG_V(TAG, "Error : Malloc failed for ByteString Array value %d in Read Group\n", i);
+                            goto EXIT;
+                        }
+                        strncpy(values[i], (char *) str[i].data, str[i].length);
+                        values[i][str[i].length] = '\0';
+                    }
+                    versatility->value = (void *) values;
+                }
                 response->type = ByteString;
             }
             else if (value->value.type == &UA_TYPES[UA_TYPES_BYTE])
@@ -342,6 +374,22 @@ static void monitoredItemHandler(UA_UInt32 monId, UA_DataValue *value, void *con
             EXIT:
             if(IS_NOT_NULL(response))
             {
+                if (response->type == String || response->type == ByteString)
+                {
+                    if (response->message->isArray)
+                    {
+                        // Free String array
+                        char **values = response->message->value;
+                        if (values)
+                        {
+                            for (int j = 0; j < response->message->arrayLength; j++)
+                            {
+                                EdgeFree(values[j]);
+                            }
+                            EdgeFree(values);
+                        }
+                    }
+                }
                 if(IS_NOT_NULL(response->nodeInfo))
                 {
                     EdgeFree(response->nodeInfo->valueAlias);

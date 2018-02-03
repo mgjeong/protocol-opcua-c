@@ -524,6 +524,9 @@ static void monitored_msg_cb (EdgeMessage *data)
                     else if (data->responses[idx]->type == Byte)
                         printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>> [%d]\n",
                                *((uint8_t *)data->responses[idx]->message->value));
+                    else if (data->responses[idx]->type == ByteString)
+                        printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>> [%s]\n",
+                               (char *)data->responses[idx]->message->value);
                     else if (data->responses[idx]->type == UInt16)
                         printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>> [%d]\n",
                                *((int *)data->responses[idx]->message->value));
@@ -1529,93 +1532,110 @@ static int getInputType()
     return type;
 }
 
-static void *getNewValuetoWrite(EdgeNodeIdentifier type)
+static void *getNewValuetoWrite(EdgeNodeIdentifier type, int num_values)
 {
     printf("Enter the new value to write :: ");
     switch (type)
     {
         case Boolean:
             {
-                int *val = (int *) EdgeMalloc(sizeof(int));
-                scanf("%d", val);
+                int *val = (int *) EdgeMalloc(sizeof(int) * num_values);
+                for (int i = 0; i < num_values; i++)
+                    scanf("%d", &val[i]);
                 return (void *) val;
             }
             break;
         case SByte:
             {
-                int8_t *val = (int8_t *) EdgeMalloc(sizeof(int8_t));
-                scanf("%" SCNd8, val);
+                int8_t *val = (int8_t *) EdgeMalloc(sizeof(int8_t) * num_values);
+                for (int i = 0; i < num_values; i++)
+                    scanf("%" SCNd8, &val[i]);
                 return (void *) val;
             }
         case Byte:
             {
-                uint8_t *val = (uint8_t *) EdgeMalloc(sizeof(uint8_t));
-                scanf("%" SCNu8, val);
+                uint8_t *val = (uint8_t *) EdgeMalloc(sizeof(uint8_t) * num_values);
+                for (int i = 0; i < num_values; i++)
+                    scanf("%" SCNu8, &val[i]);
                 return (void *) val;
             }
             break;
         case Int16:
             {
-                int16_t *val = (int16_t *) EdgeMalloc(sizeof(int16_t));
-                scanf("%" SCNd16, val);
+                int16_t *val = (int16_t *) EdgeMalloc(sizeof(int16_t) * num_values);
+                for (int i = 0; i < num_values; i++)
+                    scanf("%" SCNd16, &val[i]);
                 return (void *) val;
             }
         case UInt16:
             {
-                uint16_t *val = (uint16_t *) EdgeMalloc(sizeof(uint16_t));
-                scanf("%" SCNu16, val);
+                uint16_t *val = (uint16_t *) EdgeMalloc(sizeof(uint16_t) * num_values);
+                for (int i = 0; i < num_values; i++)
+                    scanf("%" SCNu16, &val[i]);
                 return (void *) val;
             }
             break;
         case Int32:
             {
-                int32_t *val = (int32_t *) EdgeMalloc(sizeof(int32_t));
-                scanf("%" SCNd32, val);
+                int32_t *val = (int32_t *) EdgeMalloc(sizeof(int32_t) * num_values);
+                for (int i = 0; i < num_values; i++)
+                    scanf("%" SCNd32, &val[i]);
                 return (void *) val;
             }
             break;
         case UInt32:
             {
-                uint32_t *val = (uint32_t *) EdgeMalloc(sizeof(uint32_t));
-                scanf("%" SCNu32, val);
+                uint32_t *val = (uint32_t *) EdgeMalloc(sizeof(uint32_t) * num_values);
+                for (int i = 0; i < num_values; i++)
+                    scanf("%" SCNu32, &val[i]);
                 return (void *) val;
             }
             break;
         case Int64:
             {
-                int64_t *val = (int64_t *) EdgeMalloc(sizeof(int64_t));
-                scanf("%" SCNd64, val);
+                int64_t *val = (int64_t *) EdgeMalloc(sizeof(int64_t) * num_values);
+                for (int i = 0; i < num_values; i++)
+                    scanf("%" SCNd64, &val[i]);
                 return (void *) val;
             }
             break;
         case UInt64:
             {
-                uint64_t *val = (uint64_t *) EdgeMalloc(sizeof(uint64_t));
-                scanf("%" SCNu64, val);
+                uint64_t *val = (uint64_t *) EdgeMalloc(sizeof(uint64_t) * num_values);
+                for (int i = 0; i < num_values; i++)
+                    scanf("%" SCNu64, &val[i]);
                 return (void *) val;
             }
             break;
         case Float:
             {
-                float *val = (float *) EdgeMalloc(sizeof(float));
-                scanf("%g", val);
+                float *val = (float *) EdgeMalloc(sizeof(float) * num_values);
+                for (int i = 0; i < num_values; i++)
+                    scanf("%g", &val[i]);
                 return (void *) val;
             }
             break;
         case Double:
             {
-                double *val = (double *) EdgeMalloc(sizeof(double));
-                scanf("%lf", val);
+                double *val = (double *) EdgeMalloc(sizeof(double) * num_values);
+                for (int i = 0; i < num_values; i++)
+                scanf("%lf", &val[i]);
                 return (void *) val;
             }
             break;
         case String:
             {
+                char **retStr = (char**) malloc(sizeof(char*) * num_values);
+                int len;
                 char val[MAX_CHAR_SIZE];
-                scanf("%s", val);
-                char *retStr = (char *) EdgeMalloc(strlen(val) + 1);
-                strncpy(retStr, val, strlen(val));
-                retStr[strlen(val)] = '\0';
+                for (int i = 0; i < num_values; i++)
+                {
+                    scanf("%s", val);
+                    len  = strlen(val);
+                    retStr[i] = (char *) EdgeMalloc(len + 1);
+                    strncpy(retStr[i], val, len);
+                    retStr[i][len] = '\0';
+                }
                 return (void *) retStr;
             }
             break;
@@ -1629,6 +1649,7 @@ static void *getNewValuetoWrite(EdgeNodeIdentifier type)
 static void writeHelper(int num_requests, char *ep)
 {
     char nodeName[MAX_CHAR_SIZE];
+    int num_values;
     EdgeMessage *msg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
     if(IS_NULL(msg))
     {
@@ -1676,7 +1697,22 @@ static void writeHelper(int num_requests, char *ep)
         strncpy(msg->requests[i]->nodeInfo->valueAlias, nodeName, strlen(nodeName));
         msg->requests[i]->nodeInfo->valueAlias[strlen(nodeName)] = '\0';
         msg->requests[i]->type = getInputType();
-        msg->requests[i]->value = getNewValuetoWrite(msg->requests[i]->type);
+        printf("Enter number of elements to write (1 for scalar, > 1 for Array) : ");
+        scanf("%d", &num_values);
+
+        EdgeVersatility* message = (EdgeVersatility*) malloc(sizeof(EdgeVersatility));
+        message->value = getNewValuetoWrite(msg->requests[i]->type, num_values);
+        message->arrayLength = 0;
+        if (num_values > 1)
+        {
+            message->isArray = true;
+            message->arrayLength = num_values;
+        }
+        else
+        {
+            message->isArray = false;
+        }
+        msg->requests[i]->value = message;
     }
 
     msg->command = CMD_WRITE;
@@ -1688,6 +1724,32 @@ static void writeHelper(int num_requests, char *ep)
     printf("write node call success \n");
 
     EXIT_WRITE:
+    if (IS_NOT_NULL(msg->requests))
+    {
+        for (int i = 0; i < num_requests; i++)
+        {
+            if(IS_NOT_NULL(msg->requests[i]))
+            {
+                EdgeVersatility *message = (EdgeVersatility*) msg->requests[i]->value;
+                if (IS_NOT_NULL(message))
+                {
+                    if (msg->requests[i]->type == (int) String)
+                    {
+                        char **data = (char**) message->value;
+                        for (int j = 0; j < message->arrayLength; j++)
+                        {
+                            EdgeFree(data[j]);
+                        }
+                        EdgeFree(data);
+                    }
+                    else
+                    {
+                        EdgeFree(message->value);
+                    }
+                }
+            }
+        }
+    }
     destroyEdgeMessage(msg);
 
 }

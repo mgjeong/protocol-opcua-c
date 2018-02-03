@@ -798,6 +798,13 @@ EdgeResult modifyNode(UA_Server *server, uint16_t nsIndex, char *nodeUri, EdgeVe
             UA_String_deleteMembers(&val);
             EdgeFree(val.data);
         }
+        else if (type == &UA_TYPES[UA_TYPES_BYTESTRING])
+        {
+            UA_ByteString val = UA_BYTESTRING_ALLOC((char * ) value->value);
+            ret = UA_Variant_setScalarCopy(myVariant, &val, type);
+            UA_String_deleteMembers(&val);
+            EdgeFree(val.data);
+        }
         else
         {
             ret = UA_Variant_setScalarCopy(myVariant, value->value, type);

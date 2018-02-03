@@ -101,16 +101,74 @@ static void writeGroup(UA_Client *client, const EdgeMessage *msg)
         wv[i].value.hasValue = true;
         wv[i].value.value.type = &UA_TYPES[type];
         wv[i].value.value.storageType = UA_VARIANT_DATA_NODELETE; /* do not free the integer on deletion */
-        if (type == UA_TYPES_STRING)
+
+        EdgeVersatility *message = (EdgeVersatility * ) msg->requests[i]->value;
+        if (message->isArray == 0)
         {
-            UA_String val = UA_STRING_ALLOC((char * ) msg->requests[i]->value);
-            UA_Variant_setScalarCopy(&myVariant[i], &val, &UA_TYPES[type]);
-            UA_String_deleteMembers(&val);
-            EdgeFree(val.data);
+            // scalar value to write
+            if (type == UA_TYPES_STRING)
+            {
+                char **value_to_write = (char**) message->value;
+                UA_String val = UA_STRING_ALLOC((char * ) value_to_write[0]);
+                UA_Variant_setScalarCopy(&myVariant[i], &val, &UA_TYPES[type]);
+                UA_String_deleteMembers(&val);
+                EdgeFree(val.data);
+            }
+            else if (type == UA_TYPES_BYTESTRING)
+            {
+                char **value_to_write = (char**) message->value;
+                UA_ByteString val = UA_BYTESTRING_ALLOC((char * ) value_to_write[0]);
+                UA_Variant_setScalarCopy(&myVariant[i], &val, &UA_TYPES[type]);
+                UA_String_deleteMembers(&val);
+                EdgeFree(val.data);
+            }
+            else
+            {
+                UA_Variant_setScalarCopy(&myVariant[i], message->value, &UA_TYPES[type]);
+            }
         }
         else
         {
-            UA_Variant_setScalarCopy(&myVariant[i], msg->requests[i]->value, &UA_TYPES[type]);
+            // array value to write
+            if (type == UA_TYPES_STRING)
+            {
+                printf("writing string\n");
+                int idx = 0;
+                char **data = (char **) message->value;
+                UA_String *array = (UA_String *) UA_Array_new(message->arrayLength, &UA_TYPES[type]);
+                for (idx = 0; idx < message->arrayLength; idx++)
+                {
+                    array[idx] = UA_STRING_ALLOC(data[idx]);
+                }
+                UA_Variant_setArrayCopy(&myVariant[i], array, message->arrayLength, &UA_TYPES[type]);
+                for (idx = 0; idx < message->arrayLength; idx++)
+                {
+                    UA_String_deleteMembers(&array[idx]);
+                }
+                UA_Array_delete(array, message->arrayLength, &UA_TYPES[type]);
+            }
+            else if (type == UA_TYPES_BYTESTRING)
+            {
+                printf("writing bytestring\n");
+                int idx = 0;
+                UA_ByteString **dataArray = (UA_ByteString **) message->value;
+                UA_ByteString *array = (UA_ByteString *) UA_Array_new(message->arrayLength, &UA_TYPES[type]);
+                for (idx = 0; idx < message->arrayLength; idx++)
+                {
+                    char *data = (char *) dataArray[idx]->data;
+                    array[idx] = UA_BYTESTRING_ALLOC(data);
+                }
+                UA_Variant_setArrayCopy(&myVariant[i], array, message->arrayLength, &UA_TYPES[type]);
+                for (idx = 0; idx < message->arrayLength; idx++)
+                {
+                    UA_ByteString_deleteMembers(&array[idx]);
+                }
+                UA_Array_delete(array, message->arrayLength, &UA_TYPES[type]);
+            }
+            else
+            {
+                UA_Variant_setArrayCopy(&myVariant[i], message->value, message->arrayLength, &UA_TYPES[type]);
+            }
         }
         wv[i].value.value = myVariant[i];
     }
@@ -138,7 +196,7 @@ static void writeGroup(UA_Client *client, const EdgeMessage *msg)
 
     if (reqLen != writeResponse.resultsSize)
     {
-        EDGE_LOG_V(TAG, "Requested(%d) but received(%d) => %s\n", reqLen, (int)writeResponse.resultsSize,
+        EDGE_LOG_V(TAG, "Requested(%d) but received(%d) => %s\n", (int) reqLen, (int)writeResponse.resultsSize,
                 (reqLen < writeResponse.resultsSize) ? "Received more results" : "Received less results");
         EdgeMessage *resultMsg = (EdgeMessage *) EdgeMalloc(sizeof(EdgeMessage));
         if (IS_NULL(resultMsg))

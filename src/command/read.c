@@ -487,8 +487,8 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg)
                                 EDGE_LOG_V(TAG, "Error : Malloc failed for String Array value %d in Read Group\n", i);
                                 goto EXIT;
                             }
-                            strncpy(values[i], (char *) str[i].data, strlen((char *) str[i].data));
-                            values[str[i].length] = "\0";
+                            strncpy(values[i], (char *) str[i].data, str[i].length);
+                            values[i][str[i].length] = '\0';
                         }
                         versatility->value = (void *) values;
                     }
@@ -516,13 +516,14 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg)
                         }
                         for (int i = 0; i < val.arrayLength; i++)
                         {
-                            values[i] = (char *) EdgeMalloc(str[i].length);
+                            values[i] = (char *) EdgeMalloc(str[i].length + 1);
                             if(IS_NULL(values[i]))
                             {
                                 EDGE_LOG_V(TAG, "Error : Malloc failed for ByteString Array value %d in Read Group\n", i);
                                 goto EXIT;
                             }
-                            strcpy(values[i], (char *) str[i].data);
+                            strncpy(values[i], (char *) str[i].data, str[i].length);
+                            values[i][str[i].length] = '\0';
                         }
                         versatility->value = (void *) values;
                     }

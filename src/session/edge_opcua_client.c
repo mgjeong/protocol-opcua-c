@@ -271,7 +271,7 @@ static void logEndpointDescription(UA_EndpointDescription *ep)
     EDGE_LOG_V(TAG, "Endpoint security mode: %d.\n", ep->securityMode);
     EDGE_LOG_V(TAG, "Endpoint security policy URI: %s.\n", (str = convertUAStringToString(&ep->securityPolicyUri)));
     free(str);
-    EDGE_LOG_V(TAG, "Endpoint user identity token count: %d\n", (size_t) ep->userIdentityTokensSize);
+    EDGE_LOG_V(TAG, "Endpoint user identity token count: %d\n", (int) ep->userIdentityTokensSize);
     EDGE_LOG_V(TAG, "Endpoint transport profile URI: %s.\n", (str = convertUAStringToString(&ep->transportProfileUri)));
     free(str);
     EDGE_LOG_V(TAG, "Endpoint security level: %u.\n", ep->securityLevel);
@@ -286,10 +286,10 @@ static void logEndpointDescription(UA_EndpointDescription *ep)
     free(str);
     EDGE_LOG_V(TAG, "Endpoint discovery profile URI: %s.\n", (str = convertUAStringToString(&ep->server.discoveryProfileUri)));
     free(str);
-    EDGE_LOG_V(TAG, "Endpoint discovery URL count: %d\n", (size_t) ep->server.discoveryUrlsSize);
+    EDGE_LOG_V(TAG, "Endpoint discovery URL count: %d\n", (int) ep->server.discoveryUrlsSize);
     for(size_t i = 0; i < ep->server.discoveryUrlsSize; ++i)
     {
-        EDGE_LOG_V(TAG, "Endpoint discovery URL(%d): %s.\n", i+1, (str = convertUAStringToString(&ep->server.discoveryUrls[i])));
+        EDGE_LOG_V(TAG, "Endpoint discovery URL(%d): %s.\n", (int) i+1, (str = convertUAStringToString(&ep->server.discoveryUrls[i])));
         free(str);
     }
 #else
