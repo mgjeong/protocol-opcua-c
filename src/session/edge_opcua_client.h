@@ -32,6 +32,9 @@ extern "C"
 
     bool connect_client(char *endpoint);
     void disconnect_client(EdgeEndPointInfo *epInfo);
+    EdgeResult findServersInternal(const char *endpointUri, size_t serverUrisSize,
+        unsigned char **serverUris, size_t localeIdsSize, unsigned char **localeIds,
+        size_t *registeredServersSize, EdgeApplicationConfig **registeredServers);
     EdgeResult getClientEndpoints(char *endpointUri);
     EdgeResult readNodesFromServer(EdgeMessage *msg);
     EdgeResult writeNodesInServer(EdgeMessage *msg);

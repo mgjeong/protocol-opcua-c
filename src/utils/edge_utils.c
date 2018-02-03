@@ -227,9 +227,9 @@ void freeEdgeEndpointConfig(EdgeEndpointConfig *config)
     EdgeFree(config);
 }
 
-void freeEdgeApplicationConfig(EdgeApplicationConfig *config)
+void freeEdgeApplicationConfigMembers(EdgeApplicationConfig *config)
 {
-    VERIFY_NON_NULL_NR(config);
+   VERIFY_NON_NULL_NR(config);
     EdgeFree(config->applicationUri);
     EdgeFree(config->productUri);
     EdgeFree(config->applicationName);
@@ -240,6 +240,12 @@ void freeEdgeApplicationConfig(EdgeApplicationConfig *config)
         EdgeFree(config->discoveryUrls[i]);
     }
     EdgeFree(config->discoveryUrls);
+}
+
+void freeEdgeApplicationConfig(EdgeApplicationConfig *config)
+{
+    VERIFY_NON_NULL_NR(config);
+    freeEdgeApplicationConfigMembers(config);
     EdgeFree(config);
 }
 

@@ -876,6 +876,48 @@ static void init()
     registerCallbacks(config);
 }
 
+static void testFindServers()
+{
+    char endpointUri[MAX_ADDRESS_SIZE];
+    printf("[Please input server endpoint uri (Ex: opc.tcp://localhost:12686)] : ");
+    scanf("%s", endpointUri);
+
+    size_t serverUrisSize = 0, localeIdsSize = 0;
+    unsigned char **serverUris = NULL, **localeIds = NULL;
+
+    EdgeApplicationConfig *registeredServers = NULL;
+    size_t registeredServersSize = 0;
+    EdgeResult res = findServers(endpointUri, serverUrisSize, serverUris, localeIdsSize, localeIds, &registeredServersSize, &registeredServers);
+    if(res.code != STATUS_OK)
+    {
+        printf("findServers() failed.\n");
+    }
+    else
+    {
+        printf("\nTotal number of registered servers at the given server: %zu\n", registeredServersSize);
+        for(size_t idx = 0; idx < registeredServersSize ; ++idx)
+        {
+            printf("Server[%zu] -> Application URI: %s\n", idx+1, registeredServers[idx].applicationUri);
+            printf("Server[%zu] -> Product URI: %s\n", idx+1, registeredServers[idx].productUri);
+            printf("Server[%zu] -> Application Name: %s\n", idx+1, registeredServers[idx].applicationName);
+            printf("Server[%zu] -> Application Type: %u\n", idx+1, registeredServers[idx].applicationType);
+            printf("Server[%zu] -> Gateway Server URI: %s\n", idx+1, registeredServers[idx].gatewayServerUri);
+            printf("Server[%zu] -> Discovery Profile URI: %s\n", idx+1, registeredServers[idx].discoveryProfileUri);
+            for(size_t i = 0; i < registeredServers[idx].discoveryUrlsSize; ++i)
+            {
+                printf("Server[%zu] -> Discovery URL[%zu]: %s\n", idx+1, i+1, registeredServers[idx].discoveryUrls[i]);
+            }
+        }
+
+        // Application has to deallocate the memory for EdgeApplicationConfig array and its members.
+        for(size_t idx = 0; idx < registeredServersSize ; ++idx)
+        {
+            destroyEdgeApplicationConfigMembers(&registeredServers[idx]);
+        }
+        EdgeFree(registeredServers);
+    }
+}
+
 static void testGetEndpoints()
 {
     EdgeMessage *msg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
@@ -2220,7 +2262,7 @@ static void testSub()
     subReq = NULL;
 
     EXIT_SUB:
-    for (int i = 0; i < num_requests; i++)
+    for (int i = 1; i < num_requests; i++)
     {
         msg->requests[i]->subMsg = NULL;
     }
@@ -2457,6 +2499,7 @@ static void print_menu()
 {
     printf("\n=============== OPC UA =======================\n\n");
 
+    printf("find_servers : Gets a list of all registered servers at the given server. \n");
     printf("start : Get endpoints and start opcua client \n");
     printf("read : read attribute for target node\n");
     printf("read_group : group read attributes from nodes\n");
@@ -2493,6 +2536,10 @@ int main()
         {
             break;
         }
+        else if (!strcmp(command, "find_servers"))
+        {
+            testFindServers();
+        }
         else if (!strcmp(command, "start"))
         {
 
@@ -2501,7 +2548,7 @@ int main()
             printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET
                    "\n\n");
 
-            printf("[Please input server endpoint uri] : ");
+            printf("[Please input server endpoint uri (Ex: opc.tcp://localhost:12686)] : ");
             scanf("%s", ipAddress);
             strncpy(endpointUri, ipAddress, strlen(ipAddress));
             endpointUri[strlen(ipAddress)] = '\0';
@@ -2573,7 +2620,7 @@ int main()
         else if (!strcmp(command, "quit"))
         {
             deinit();
-            //stopFlag = true;
+            stopFlag = true;
         }
         else if (!strcmp(command, "help"))
         {

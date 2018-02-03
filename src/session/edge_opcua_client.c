@@ -452,6 +452,97 @@ static EdgeEndPointInfo *convertToEdgeEndpointInfo(UA_EndpointDescription *endpo
     return NULL;
 }
 
+static bool convertUnsignedCharStringToUAString(const unsigned char *str, UA_String *uaStr)
+{
+    if(IS_NULL(str) || IS_NULL(uaStr))
+    {
+        EDGE_LOG(TAG, "NULL parameter.");
+        return false;
+    }
+
+    uaStr->length = strlen((const char *)str);
+    uaStr->data = (UA_Byte *) EdgeMalloc(uaStr->length);
+    if(IS_NULL(uaStr->data))
+    {
+        EDGE_LOG(TAG, "Memory allocation failed");
+        return false;
+    }
+
+    for(int i = 0; i < uaStr->length; ++i)
+    {
+        uaStr->data[i] = str[i];
+    }
+
+    return true;
+}
+
+static bool convertUnsignedCharStringsToUAStrings(size_t strArrSize,
+    unsigned char **strArr, UA_String **uaStrArr)
+{
+    if(0 == strArrSize)
+    {
+        EDGE_LOG(TAG, "Size is 0. There is nothing to convert.");
+        return true;
+    }
+
+    if(IS_NULL(strArr) || IS_NULL(uaStrArr))
+    {
+        EDGE_LOG(TAG, "Invalid parameter(s).");
+        return false;
+    }
+
+    UA_String *uaStrArrLocal = (UA_String *) EdgeCalloc(strArrSize, sizeof(UA_String));
+    if(IS_NULL(uaStrArrLocal))
+    {
+        EDGE_LOG(TAG, "Memory allocation failed.");
+        return false;
+    }
+
+    for(size_t i = 0; i < strArrSize; ++i)
+    {
+        if(!convertUnsignedCharStringToUAString(strArr[i], &uaStrArrLocal[i]))
+        {
+            EDGE_LOG(TAG, "Failed to convert 'unsigned char string' to 'UA_String'.");
+            for(int j = i-1; j >=0; --j)
+            {
+                EdgeFree(uaStrArrLocal[j].data);
+            }
+            EdgeFree(uaStrArrLocal);
+            return false;
+        }
+    }
+
+    *uaStrArr = uaStrArrLocal;
+    return true;
+}
+
+void destroyUAStringArrayContents(UA_String *uaStr, size_t uaStrSize)
+{
+    if(IS_NULL(uaStr) || 0 == uaStrSize)
+    {
+        return;
+    }
+
+    for(size_t i = 0; i < uaStrSize; ++i)
+    {
+        EdgeFree(uaStr[i].data);
+    }
+}
+
+static void destroyUAStringArray(UA_String *uaStr, size_t uaStrSize)
+{
+    if(IS_NULL(uaStr))
+    {
+        return;
+    }
+
+    if(uaStrSize > 0)
+    {
+        destroyUAStringArrayContents(uaStr, uaStrSize);
+    }
+    EdgeFree(uaStr);
+}
+
 static bool parseEndpoints(size_t endpointArraySize, UA_EndpointDescription *endpointArray,
         size_t *count, List **endpointList)
 {
@@ -609,6 +700,132 @@ static bool parseEndpoints(size_t endpointArraySize, UA_EndpointDescription *end
     return false;
 }
 
+EdgeResult findServersInternal(const char *endpointUri, size_t serverUrisSize,
+    unsigned char **serverUris, size_t localeIdsSize, unsigned char **localeIds,
+    size_t *registeredServersSize, EdgeApplicationConfig **registeredServers)
+{
+    EdgeResult res;
+    if(IS_NULL(endpointUri))
+    {
+        EDGE_LOG(TAG, "endpointUri is NULL.");
+        res.code = STATUS_PARAM_INVALID;
+        return res;
+    }
+
+    if(serverUrisSize > 0 && IS_NULL(serverUris))
+    {
+        EDGE_LOG(TAG, "serverUrisSize is > 0 but serverUris is NULL.");
+        res.code = STATUS_PARAM_INVALID;
+        return res;
+    }
+
+    if(localeIdsSize > 0 && IS_NULL(localeIds))
+    {
+        EDGE_LOG(TAG, "localeIdsSize is > 0 but localeIds is NULL.");
+        res.code = STATUS_PARAM_INVALID;
+        return res;
+    }
+
+    if(IS_NULL(registeredServersSize) || IS_NULL(registeredServers))
+    {
+        EDGE_LOG(TAG, "NULL registeredServersSize/registeredServers.");
+        res.code = STATUS_PARAM_INVALID;
+        return res;
+    }
+
+    UA_String hostName = UA_STRING_NULL, path = UA_STRING_NULL;
+    UA_UInt16 port = 0;
+    UA_String endpointUrlString = UA_STRING((char *) (uintptr_t) endpointUri);
+    UA_StatusCode parse_retval = UA_parseEndpointUrl(&endpointUrlString, &hostName, &port, &path);
+    if (parse_retval != UA_STATUSCODE_GOOD)
+    {
+        EDGE_LOG_V(TAG, "Endpoint URL is invalid. Error Code: %s.", UA_StatusCode_name(parse_retval));
+        res.code = STATUS_PARAM_INVALID;
+        return res;
+    }
+
+    // Convert Server URIs.
+    UA_String *serverUrisUA = NULL;
+    if(!convertUnsignedCharStringsToUAStrings(serverUrisSize, serverUris, &serverUrisUA))
+    {
+        EDGE_LOG(TAG, "Failed to convert the serverUris from 'unsigned char string' to 'UA_String'.");
+        res.code = STATUS_ERROR;
+        return res;
+    }
+
+    // Convert Locale Ids.
+    UA_String *localeIdsUA = NULL;
+    if(!convertUnsignedCharStringsToUAStrings(localeIdsSize, localeIds, &localeIdsUA))
+    {
+        EDGE_LOG(TAG, "Failed to convert the localeIds from 'unsigned char string' to 'UA_String'.");
+        // Free serverUrisUA.
+        destroyUAStringArray(serverUrisUA, serverUrisSize);
+        res.code = STATUS_ERROR;
+        return res;
+    }
+
+    UA_Client *client = UA_Client_new(UA_ClientConfig_default);
+    if (!client)
+    {
+        EDGE_LOG(TAG, "UA_Client_new() failed.");
+        destroyUAStringArray(serverUrisUA, serverUrisSize);
+        destroyUAStringArray(localeIdsUA, localeIdsSize);
+        res.code = STATUS_ERROR;
+        return res;
+    }
+
+    UA_ApplicationDescription *regServers = NULL;
+    UA_StatusCode retVal = UA_Client_findServers(client, endpointUri, serverUrisSize,
+            serverUrisUA, localeIdsSize, localeIdsUA, registeredServersSize, &regServers);
+    if (retVal != UA_STATUSCODE_GOOD)
+    {
+        EDGE_LOG_V(TAG, "Failed to find the servers. Error Code: %s.\n", UA_StatusCode_name(retVal));
+        UA_Client_delete(client);
+        destroyUAStringArray(serverUrisUA, serverUrisSize);
+        destroyUAStringArray(localeIdsUA, localeIdsSize);
+        res.code = STATUS_ERROR;
+        return res;
+    }
+
+    EdgeApplicationConfig *appConfig = (EdgeApplicationConfig *)
+            EdgeCalloc(*registeredServersSize, sizeof(EdgeApplicationConfig));
+    for(int i = 0; i < *registeredServersSize; ++i)
+    {
+        EdgeApplicationConfig *config = convertToEdgeApplicationConfig(&regServers[i]);
+        if(IS_NULL(config))
+        {
+            EDGE_LOG_V(TAG, "Failed to convert UA_ApplicationDescription");
+            for(int j = i-1; j >=0; --j)
+            {
+                freeEdgeApplicationConfigMembers(&appConfig[j]);
+            }
+            EdgeFree(appConfig);
+            UA_Client_delete(client);
+            destroyUAStringArray(serverUrisUA, serverUrisSize);
+            destroyUAStringArray(localeIdsUA, localeIdsSize);
+            res.code = STATUS_ERROR;
+            return res;
+        }
+        appConfig[i] = *config;
+        EdgeFree(config);
+    }
+
+    *registeredServers = appConfig;
+    res.code = STATUS_OK;
+
+    /* Free memory */
+    for(size_t idx = 0; idx < *registeredServersSize ; ++idx)
+    {
+        UA_ApplicationDescription_deleteMembers(&regServers[idx]);
+    }
+    EdgeFree(regServers);
+
+    destroyUAStringArray(serverUrisUA, serverUrisSize);
+    destroyUAStringArray(localeIdsUA, localeIdsSize);
+    UA_Client_delete(client);
+    return res;
+}
+
 EdgeResult getClientEndpoints(char *endpointUri)
 {
     EdgeResult result;
@@ -625,7 +842,7 @@ EdgeResult getClientEndpoints(char *endpointUri)
     if (parse_retval != UA_STATUSCODE_GOOD)
     {
         EDGE_LOG_V(TAG, "Endpoint URL is invalid. Error Code: %s.", UA_StatusCode_name(parse_retval));
-        result.code = STATUS_ERROR;
+        result.code = STATUS_PARAM_INVALID;
         return result;
     }
 

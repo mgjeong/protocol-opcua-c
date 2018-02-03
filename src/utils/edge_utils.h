@@ -111,6 +111,8 @@ extern "C"
 
     void freeEdgeEndpointConfig(EdgeEndpointConfig *config);
 
+    void freeEdgeApplicationConfigMembers(EdgeApplicationConfig *config);
+
     void freeEdgeApplicationConfig(EdgeApplicationConfig *config);
 
     void freeEdgeEndpointInfo(EdgeEndPointInfo *endpointInfo);
