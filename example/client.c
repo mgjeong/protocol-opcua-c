@@ -882,15 +882,31 @@ static void testFindServers()
     printf("[Please input server endpoint uri (Ex: opc.tcp://localhost:12686)] : ");
     scanf("%s", endpointUri);
 
-    size_t serverUrisSize = 0, localeIdsSize = 0;
-    unsigned char **serverUris = NULL, **localeIds = NULL;
+#if 0
+    size_t serverUrisSize = 2;
+    unsigned char *serverUris[2] = {NULL};
+    serverUris[0] = (unsigned char *)"urn:digitalpetri:opcua:client";
+    serverUris[1] = (unsigned char *)"urn:digitalpetri:opcua:invalid_client";
+#else
+    size_t serverUrisSize = 0;
+    unsigned char **serverUris = NULL;
+#endif
+
+#if 0
+    size_t localeIdsSize = 1;
+    unsigned char *localeIds[1] = {NULL};
+    localeIds[0] = (unsigned char *)"en-US";
+#else
+    size_t localeIdsSize = 0;
+    unsigned char **localeIds = NULL;
+#endif
 
     EdgeApplicationConfig *registeredServers = NULL;
     size_t registeredServersSize = 0;
     EdgeResult res = findServers(endpointUri, serverUrisSize, serverUris, localeIdsSize, localeIds, &registeredServersSize, &registeredServers);
     if(res.code != STATUS_OK)
     {
-        printf("findServers() failed.\n");
+        printf("findServers() failed. Status Code: %d\n", res.code);
     }
     else
     {

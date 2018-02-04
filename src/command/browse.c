@@ -665,21 +665,25 @@ static EdgeNodeId *getEdgeNodeId(UA_NodeId *node)
 
 void printNodeId(UA_NodeId n1)
 {
+    char *str = NULL;
     switch (n1.identifierType)
     {
         case UA_NODEIDTYPE_NUMERIC:
             EDGE_LOG_V(TAG, "Numeric: %d\t", n1.identifier.numeric);
             break;
         case UA_NODEIDTYPE_STRING:
-            EDGE_LOG_V(TAG, "String: %s\t", convertUAStringToString(&n1.identifier.string));
+            str = convertUAStringToString(&n1.identifier.string);
+            EDGE_LOG_V(TAG, "String: %s\t", str);
             break;
         case UA_NODEIDTYPE_BYTESTRING:
-            EDGE_LOG_V(TAG, "Byte String: %s\t", convertUAStringToString(&n1.identifier.byteString));
+            str = convertUAStringToString(&n1.identifier.byteString);
+            EDGE_LOG_V(TAG, "Byte String: %s\t", str);
             break;
         case UA_NODEIDTYPE_GUID:
             EDGE_LOG(TAG, "GUID\n");
             break;
     }
+    EdgeFree(str);
 }
 
 typedef struct _browsePathNode{

@@ -700,6 +700,180 @@ static bool parseEndpoints(size_t endpointArraySize, UA_EndpointDescription *end
     return false;
 }
 
+// Behaviour is undefined if any of the parameters are NULL.
+static bool isReceivedServerUriValid(UA_String *rcvdServerUri, size_t serverUrisSize, unsigned char **serverUris)
+{
+    for(size_t i = 0; i < serverUrisSize; ++i)
+    {
+        if(0 == memcmp(serverUris[i], rcvdServerUri->data, rcvdServerUri->length) &&
+                '\0' == serverUris[i][rcvdServerUri->length])
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+// Behaviour is undefined if any of the parameters are NULL.
+static bool isReceivedApplicationNameLocaleValid(UA_String *rcvdLocale,
+    size_t localeIdsSize, unsigned char **localeIds)
+{
+    for(size_t i = 0; i < localeIdsSize; ++i)
+    {
+        if(0 == memcmp(localeIds[i], rcvdLocale->data, rcvdLocale->length) &&
+                '\0' == localeIds[i][rcvdLocale->length])
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+// Behaviour is undefined if hostName is NULL
+static bool isIPv4AddressValid(UA_String *ipv4Address)
+{
+    size_t len = ipv4Address->length;
+    if(len < 7 || len > 15)
+        return false;
+    unsigned int value = 0;
+    unsigned int numOfDigitsInSegment = 0, numOfDots = 0;
+    UA_Byte *data = ipv4Address->data;
+    for(int i = 0; i < len; ++i)
+    {
+        if(data[i] == '.')
+        {
+            if(numOfDigitsInSegment < 1 || numOfDigitsInSegment > 3 || value < 0 || value > 255)
+            {
+                return false;
+            }
+            value = numOfDigitsInSegment = 0;
+            numOfDots++;
+        }
+        else if(data[i] < '0' || data[i] > '9')
+        {
+            return false;
+        }
+        else
+        {
+            value = (value * 10) + (data[i] - '0');
+            numOfDigitsInSegment++;
+        }
+    }
+    if(numOfDots != 3 || numOfDigitsInSegment < 1 || numOfDigitsInSegment > 3 || value < 0 || value > 255)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+static bool isServerAppDescriptionValid(UA_ApplicationDescription *regServer, size_t serverUrisSize,
+    unsigned char **serverUris, size_t localeIdsSize, unsigned char **localeIds)
+{
+    // Application Name check.
+    if(regServer->applicationName.text.length < 1)
+    {
+        EDGE_LOG(TAG, "Application Name is empty.");
+        return false;
+    }
+
+    // Product URI check.
+    if(regServer->productUri.length < 1)
+    {
+        // Product URI is a required field. If it's missing, then it has to be treated as an error.
+        EDGE_LOG(TAG, "Product URI is empty.");
+        return false;
+    }
+
+    // Application Type and DiscoveryUrls check.
+    switch(regServer->applicationType)
+    {
+        case UA_APPLICATIONTYPE_CLIENTANDSERVER:
+        case UA_APPLICATIONTYPE_SERVER:
+            if(regServer->discoveryUrlsSize < 1)
+            {
+                EDGE_LOG(TAG, "No discovery endpoints available for the server.");
+                return false;
+            }
+            break;
+        case UA_APPLICATIONTYPE_CLIENT:
+            EDGE_LOG(TAG, "Found a client type application in the server.");
+            return false;
+        default:
+            break;
+    }
+
+    // Application URI check.
+    if(0 == regServer->applicationUri.length)
+    {
+        EDGE_LOG(TAG, "Application URI is empty.");
+        return false;
+    }
+
+    if(regServer->applicationUri.length < 5)
+    {
+        EDGE_LOG_V(TAG, "Application URI is invalid. Its length is %zu.\n", regServer->applicationUri.length);
+        return false;
+    }
+
+    // For those application uri which doesn't start with 'urn:', the uri is assumed to start with 'opc.tcp://'.
+    if(strncmp((char*)regServer->applicationUri.data, "urn:", 4) != 0)
+    {
+        UA_String hostName = UA_STRING_NULL, path = UA_STRING_NULL;
+        UA_UInt16 port = 0;
+        UA_StatusCode parse_retval = UA_parseEndpointUrl(&regServer->applicationUri, &hostName, &port, &path);
+        if (parse_retval != UA_STATUSCODE_GOOD)
+        {
+            EDGE_LOG_V(TAG, "Application URI is invalid. Error Code: %s.\n", UA_StatusCode_name(parse_retval));
+            return false;
+        }
+        if(0 == hostName.length)
+        {
+            EDGE_LOG(TAG, "Hostname in application URI is empty.");
+            return false;
+        }
+
+        // Validate IPv4 address
+        if(hostName.data[0] != '[' && (hostName.data[0] == '1' || hostName.data[0] == '2'))
+        {
+            if(!isIPv4AddressValid(&hostName))
+            {
+                EDGE_LOG(TAG, "IPv4 address in application URI is invalid.");
+                return false;
+            }
+        }
+    }
+
+    // Check whether the received application uri matches with the requested list of serverUris.
+    if(serverUrisSize > 0)
+    {
+        if(!isReceivedServerUriValid(&regServer->applicationUri, serverUrisSize, serverUris))
+        {
+            EDGE_LOG(TAG, "Application URI doesn't match with the requested list of serverUris.");
+            return false;
+        }
+    }
+
+    // Application Name Locale check.
+    // Check whether the received application name's locale matches with the requested list of locales.
+    if(localeIdsSize > 0)
+    {
+        if(0 == regServer->applicationName.locale.length)
+        {
+            EDGE_LOG(TAG, "Application Name's locale is empty.");
+            return false;
+        }
+
+        if(!isReceivedApplicationNameLocaleValid(&regServer->applicationName.locale, localeIdsSize, localeIds))
+        {
+            EDGE_LOG(TAG, "Locale of Application Name doesn't match with the requested list of locales.");
+            return false;
+        }
+    }
+
+    return true;
+}
+
 EdgeResult findServersInternal(const char *endpointUri, size_t serverUrisSize,
     unsigned char **serverUris, size_t localeIdsSize, unsigned char **localeIds,
     size_t *registeredServersSize, EdgeApplicationConfig **registeredServers)
@@ -719,11 +893,31 @@ EdgeResult findServersInternal(const char *endpointUri, size_t serverUrisSize,
         return res;
     }
 
+    for(size_t i = 0; i < serverUrisSize; ++i)
+    {
+        if(IS_NULL(serverUris[i]))
+        {
+            EDGE_LOG_V(TAG, "serverUris[%zu] is NULL.", i);
+            res.code = STATUS_PARAM_INVALID;
+            return res;
+        }
+    }
+
     if(localeIdsSize > 0 && IS_NULL(localeIds))
     {
         EDGE_LOG(TAG, "localeIdsSize is > 0 but localeIds is NULL.");
         res.code = STATUS_PARAM_INVALID;
         return res;
+    }
+
+    for(size_t i = 0; i < localeIdsSize; ++i)
+    {
+        if(IS_NULL(localeIds[i]))
+        {
+            EDGE_LOG_V(TAG, "localeIds[%zu] is NULL.", i);
+            res.code = STATUS_PARAM_INVALID;
+            return res;
+        }
     }
 
     if(IS_NULL(registeredServersSize) || IS_NULL(registeredServers))
@@ -746,7 +940,7 @@ EdgeResult findServersInternal(const char *endpointUri, size_t serverUrisSize,
 
     // Convert Server URIs.
     UA_String *serverUrisUA = NULL;
-    if(!convertUnsignedCharStringsToUAStrings(serverUrisSize, serverUris, &serverUrisUA))
+    if(serverUrisSize >0 && !convertUnsignedCharStringsToUAStrings(serverUrisSize, serverUris, &serverUrisUA))
     {
         EDGE_LOG(TAG, "Failed to convert the serverUris from 'unsigned char string' to 'UA_String'.");
         res.code = STATUS_ERROR;
@@ -755,7 +949,7 @@ EdgeResult findServersInternal(const char *endpointUri, size_t serverUrisSize,
 
     // Convert Locale Ids.
     UA_String *localeIdsUA = NULL;
-    if(!convertUnsignedCharStringsToUAStrings(localeIdsSize, localeIds, &localeIdsUA))
+    if(localeIdsSize >0 && !convertUnsignedCharStringsToUAStrings(localeIdsSize, localeIds, &localeIdsUA))
     {
         EDGE_LOG(TAG, "Failed to convert the localeIds from 'unsigned char string' to 'UA_String'.");
         // Free serverUrisUA.
@@ -774,47 +968,106 @@ EdgeResult findServersInternal(const char *endpointUri, size_t serverUrisSize,
         return res;
     }
 
+    size_t regServersCount = 0;
     UA_ApplicationDescription *regServers = NULL;
     UA_StatusCode retVal = UA_Client_findServers(client, endpointUri, serverUrisSize,
-            serverUrisUA, localeIdsSize, localeIdsUA, registeredServersSize, &regServers);
+            serverUrisUA, localeIdsSize, localeIdsUA, &regServersCount, &regServers);
     if (retVal != UA_STATUSCODE_GOOD)
     {
         EDGE_LOG_V(TAG, "Failed to find the servers. Error Code: %s.\n", UA_StatusCode_name(retVal));
         UA_Client_delete(client);
         destroyUAStringArray(serverUrisUA, serverUrisSize);
         destroyUAStringArray(localeIdsUA, localeIdsSize);
-        res.code = STATUS_ERROR;
+        res.code = STATUS_SERVICE_RESULT_BAD;
         return res;
     }
 
-    EdgeApplicationConfig *appConfig = (EdgeApplicationConfig *)
-            EdgeCalloc(*registeredServersSize, sizeof(EdgeApplicationConfig));
-    for(int i = 0; i < *registeredServersSize; ++i)
+    size_t validServerCount = 0;
+    EdgeApplicationConfig **appConfigAll = (EdgeApplicationConfig **)
+            EdgeCalloc(regServersCount, sizeof(EdgeApplicationConfig *));
+    for(size_t i = 0; i < regServersCount; ++i)
     {
-        EdgeApplicationConfig *config = convertToEdgeApplicationConfig(&regServers[i]);
-        if(IS_NULL(config))
+        // Add validation and filtering logic here.
+        if(!isServerAppDescriptionValid(&regServers[i], serverUrisSize, serverUris, localeIdsSize, localeIds))
         {
-            EDGE_LOG_V(TAG, "Failed to convert UA_ApplicationDescription");
+            EDGE_LOG(TAG, "Excluding the invalid server application information.");
+            continue;
+        }
+
+        appConfigAll[i] = convertToEdgeApplicationConfig(&regServers[i]);
+        if(IS_NULL(appConfigAll[i]))
+        {
+            EDGE_LOG(TAG, "Failed to convert UA_ApplicationDescription");
             for(int j = i-1; j >=0; --j)
             {
-                freeEdgeApplicationConfigMembers(&appConfig[j]);
+                freeEdgeApplicationConfigMembers(appConfigAll[j]);
             }
-            EdgeFree(appConfig);
+            EdgeFree(appConfigAll);
+
+            for(size_t idx = 0; idx < regServersCount ; ++idx)
+            {
+                UA_ApplicationDescription_deleteMembers(&regServers[idx]);
+            }
+            EdgeFree(regServers);
+
             UA_Client_delete(client);
             destroyUAStringArray(serverUrisUA, serverUrisSize);
             destroyUAStringArray(localeIdsUA, localeIdsSize);
-            res.code = STATUS_ERROR;
+            res.code = STATUS_INTERNAL_ERROR;
             return res;
         }
-        appConfig[i] = *config;
-        EdgeFree(config);
+
+        // If gatewayServerUri is same as the server endpoint, then set the gatewayServerUri to NULL to prevent infinite loop.
+        if(regServers[i].gatewayServerUri.length > 0)
+        {
+            if(0 == strncmp(endpointUri, (char *)regServers[i].gatewayServerUri.data, regServers[i].gatewayServerUri.length)
+                && '\0' == endpointUri[regServers[i].gatewayServerUri.length])
+            {
+                EDGE_LOG(TAG, "Found a discovery server type application with gatewayServerUri same as the server endpoint.");
+                EDGE_LOG(TAG, "Setting gatewayServerUri to NULL");
+                EdgeFree(appConfigAll[i]->gatewayServerUri);
+                appConfigAll[i]->gatewayServerUri = NULL;
+            }
+        }
+
+        validServerCount++;
     }
 
-    *registeredServers = appConfig;
+    if(validServerCount > 0)
+    {
+        EdgeApplicationConfig *appConfigFiltered = (EdgeApplicationConfig *)
+                EdgeCalloc(validServerCount, sizeof(EdgeApplicationConfig));
+
+        for(size_t i = 0, j = 0; i < validServerCount; ++i)
+        {
+            if(IS_NOT_NULL(appConfigAll[i]))
+            {
+                appConfigFiltered[j++] = *appConfigAll[i];
+                EdgeFree(appConfigAll[i]);
+            }
+        }
+        *registeredServers = appConfigFiltered;
+    }
+    else
+    {
+        if(regServersCount > 0)
+        {
+            EDGE_LOG(TAG, "All received server applications are invalid.");
+        }
+        else
+        {
+            EDGE_LOG(TAG, "No server applications received.");
+        }
+        *registeredServers = NULL;
+    }
+
+    *registeredServersSize = validServerCount;
     res.code = STATUS_OK;
 
     /* Free memory */
-    for(size_t idx = 0; idx < *registeredServersSize ; ++idx)
+    EdgeFree(appConfigAll);
+
+    for(size_t idx = 0; idx < regServersCount ; ++idx)
     {
         UA_ApplicationDescription_deleteMembers(&regServers[idx]);
     }
