@@ -54,11 +54,13 @@ static void registerDiscoveryCallback(DiscoveryCallback *callback)
     discoveryCb = callback;
 }
 
-void registerCallbacks(EdgeConfigure *config)
+void configure(EdgeConfigure *config)
 {
     registerRecvCallback(config->recvCallback);
     registerStatusCallback(config->statusCallback);
     registerDiscoveryCallback(config->discoveryCallback);
+
+    setSupportedApplicationTypes(config->supportedApplicationTypes);
 }
 
 EdgeResult createNamespace(char *name, char *rootNodeId, char *rootBrowseName,

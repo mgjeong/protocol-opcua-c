@@ -27,6 +27,8 @@ static char endpointUri[MAX_CHAR_SIZE];
 static int endpointCount = 0;
 static bool connect = false;
 
+static uint8_t supportedApplicationTypes = EDGE_APPLICATIONTYPE_SERVER | EDGE_APPLICATIONTYPE_DISCOVERYSERVER |
+    EDGE_APPLICATIONTYPE_CLIENTANDSERVER;
 static EdgeConfigure *config = NULL;
 
 #define TAG "SAMPLE_CLIENT"
@@ -876,13 +878,15 @@ static void init()
     config->discoveryCallback->endpoint_found_cb = endpoint_found_cb;
     config->discoveryCallback->device_found_cb = device_found_cb;
 
-    registerCallbacks(config);
+    config->supportedApplicationTypes = supportedApplicationTypes;
+
+    configure(config);
 }
 
 static void testFindServers()
 {
     char endpointUri[MAX_ADDRESS_SIZE];
-    printf("[Please input server endpoint uri (Ex: opc.tcp://localhost:12686)] : ");
+    printf("[Please input server endpoint uri (Ex: opc.tcp://hostname:port/path)] : ");
     scanf("%s", endpointUri);
 
 #if 0
@@ -2568,7 +2572,7 @@ int main()
         else if (!strcmp(command, "get_endpoints"))
         {
             char endpointUri[MAX_ADDRESS_SIZE];
-            printf("[Please input server endpoint uri (Ex: opc.tcp://localhost:12686)] : ");
+            printf("[Please input server endpoint uri (Ex: opc.tcp://hostname:port/path)]: ");
             scanf("%s", endpointUri);
 
             connect = false;
@@ -2577,7 +2581,7 @@ int main()
         else if (!strcmp(command, "start"))
         {
             static char ipAddress[MAX_ADDRESS_SIZE];
-            printf("[Please input server endpoint uri (Ex: opc.tcp://localhost:12686)] : ");
+            printf("[Please input server endpoint uri (Ex: opc.tcp://hostname:port/path)] : ");
             scanf("%s", ipAddress);
             strncpy(endpointUri, ipAddress, strlen(ipAddress)+1);
 

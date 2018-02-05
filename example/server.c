@@ -175,7 +175,7 @@ static void device_found_cb(EdgeDevice *device)
 
 static void init()
 {
-    config = (EdgeConfigure *) EdgeMalloc(sizeof(EdgeConfigure));
+    config = (EdgeConfigure *) EdgeCalloc(1, sizeof(EdgeConfigure));
     VERIFY_NON_NULL_NR(config);
     config->recvCallback = (ReceivedMessageCallback *) EdgeMalloc(sizeof(ReceivedMessageCallback));
     if (IS_NULL(config->recvCallback))
@@ -219,7 +219,7 @@ static void init()
     config->discoveryCallback->endpoint_found_cb = endpoint_found_cb;
     config->discoveryCallback->device_found_cb = device_found_cb;
 
-    registerCallbacks(config);
+    configure(config);
 }
 
 static void startServer()

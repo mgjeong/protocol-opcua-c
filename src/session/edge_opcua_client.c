@@ -38,6 +38,7 @@
 
 static edgeMap *sessionClientMap = NULL;
 static size_t clientCount = 0;
+static uint8_t supportedApplicationTypes;
 
 static void getAddressPort(char *endpoint, char **out)
 {
@@ -125,6 +126,11 @@ static edgeMapNode *removeClientFromSessionMap(char *endpoint)
     free(ep);
     ep = NULL;
     return NULL;
+}
+
+void setSupportedApplicationTypes(uint8_t supportedTypes)
+{
+    supportedApplicationTypes = supportedTypes;
 }
 
 EdgeResult readNodesFromServer(EdgeMessage *msg)
@@ -281,7 +287,7 @@ static void logEndpointDescription(UA_EndpointDescription *ep)
     free(str);
     EDGE_LOG_V(TAG, "Endpoint application name: %s.\n", (str = convertUAStringToString(&ep->server.applicationName.text)));
     free(str);
-    EDGE_LOG_V(TAG, "Endpoint application type: %d.\n", ep->server.applicationType);
+    EDGE_LOG_V(TAG, "Endpoint application type: %u.\n", ep->server.applicationType);
     EDGE_LOG_V(TAG, "Endpoint gateway server URI: %s.\n", (str = convertUAStringToString(&ep->server.gatewayServerUri)));
     free(str);
     EDGE_LOG_V(TAG, "Endpoint discovery profile URI: %s.\n", (str = convertUAStringToString(&ep->server.discoveryProfileUri)));
@@ -295,6 +301,33 @@ static void logEndpointDescription(UA_EndpointDescription *ep)
 #else
     (void) ep;
 #endif
+}
+
+static EdgeApplicationType convertApplicationType(UA_ApplicationType appType)
+{
+    EdgeApplicationType edgeAppType;
+    switch(appType)
+    {
+        case UA_APPLICATIONTYPE_SERVER:
+            edgeAppType = EDGE_APPLICATIONTYPE_SERVER;
+            break;
+        case UA_APPLICATIONTYPE_CLIENT:
+            edgeAppType = EDGE_APPLICATIONTYPE_CLIENT;
+            break;
+        case UA_APPLICATIONTYPE_CLIENTANDSERVER:
+            edgeAppType = EDGE_APPLICATIONTYPE_CLIENTANDSERVER;
+            break;
+        case UA_APPLICATIONTYPE_DISCOVERYSERVER:
+            edgeAppType = EDGE_APPLICATIONTYPE_DISCOVERYSERVER;
+            break;
+        default:
+            // Setting SERVER as default application type.
+            // Ideally this API is not supposed to be called with types other than those checked above.
+            // Adding this logic for completion of this function.
+            edgeAppType = EDGE_APPLICATIONTYPE_SERVER;
+            break;
+    }
+    return edgeAppType;
 }
 
 static EdgeApplicationConfig *convertToEdgeApplicationConfig(UA_ApplicationDescription *appDesc)
@@ -362,7 +395,7 @@ static EdgeApplicationConfig *convertToEdgeApplicationConfig(UA_ApplicationDescr
         }
     }
 
-    appConfig->applicationType = appDesc->applicationType;
+    appConfig->applicationType = convertApplicationType(appDesc->applicationType);
     appConfig->discoveryUrlsSize = appDesc->discoveryUrlsSize;
     appConfig->discoveryUrls = (char **) calloc(appDesc->discoveryUrlsSize, sizeof(char *));
     if (!appConfig->discoveryUrls)
@@ -764,6 +797,37 @@ static bool isIPv4AddressValid(UA_String *ipv4Address)
     return true;
 }
 
+static bool isApplicationTypeSupported(UA_ApplicationType appType)
+{
+    if(appType == __UA_APPLICATIONTYPE_FORCE32BIT)
+    {
+        EDGE_LOG(TAG, "Application type is invalid.");
+        return false;
+    }
+
+    bool supported = false;
+    switch(appType)
+    {
+        case UA_APPLICATIONTYPE_SERVER:
+            supported = (supportedApplicationTypes & EDGE_APPLICATIONTYPE_SERVER) ? true: false;
+            break;
+        case UA_APPLICATIONTYPE_CLIENT:
+            supported = (supportedApplicationTypes & EDGE_APPLICATIONTYPE_CLIENT) ? true: false;
+            break;
+        case UA_APPLICATIONTYPE_CLIENTANDSERVER:
+            supported = (supportedApplicationTypes & EDGE_APPLICATIONTYPE_CLIENTANDSERVER) ? true: false;
+            break;
+        case UA_APPLICATIONTYPE_DISCOVERYSERVER:
+            supported = (supportedApplicationTypes & EDGE_APPLICATIONTYPE_DISCOVERYSERVER) ? true: false;
+            break;
+        default:
+            supported = false;
+            break;
+    }
+
+    return supported;
+}
+
 static bool isServerAppDescriptionValid(UA_ApplicationDescription *regServer, size_t serverUrisSize,
     unsigned char **serverUris, size_t localeIdsSize, unsigned char **localeIds)
 {
@@ -783,21 +847,20 @@ static bool isServerAppDescriptionValid(UA_ApplicationDescription *regServer, si
     }
 
     // Application Type and DiscoveryUrls check.
-    switch(regServer->applicationType)
+    if(!isApplicationTypeSupported(regServer->applicationType))
     {
-        case UA_APPLICATIONTYPE_CLIENTANDSERVER:
-        case UA_APPLICATIONTYPE_SERVER:
-            if(regServer->discoveryUrlsSize < 1)
-            {
-                EDGE_LOG(TAG, "No discovery endpoints available for the server.");
-                return false;
-            }
-            break;
-        case UA_APPLICATIONTYPE_CLIENT:
-            EDGE_LOG(TAG, "Found a client type application in the server.");
+        EDGE_LOG(TAG, "Application type is not supported.");
+        return false;
+    }
+
+    if(UA_APPLICATIONTYPE_CLIENTANDSERVER == regServer->applicationType ||
+        UA_APPLICATIONTYPE_SERVER == regServer->applicationType)
+    {
+        if(regServer->discoveryUrlsSize < 1)
+        {
+            EDGE_LOG(TAG, "No discovery endpoints available for the server.");
             return false;
-        default:
-            break;
+        }
     }
 
     // Application URI check.
@@ -997,7 +1060,7 @@ EdgeResult findServersInternal(const char *endpointUri, size_t serverUrisSize,
             EDGE_LOG(TAG, "Failed to convert UA_ApplicationDescription");
             for(int j = i-1; j >=0; --j)
             {
-                freeEdgeApplicationConfigMembers(appConfigAll[j]);
+                freeEdgeApplicationConfig(appConfigAll[j]);
             }
             EdgeFree(appConfigAll);
 
@@ -1035,7 +1098,7 @@ EdgeResult findServersInternal(const char *endpointUri, size_t serverUrisSize,
         EdgeApplicationConfig *appConfigFiltered = (EdgeApplicationConfig *)
                 EdgeCalloc(validServerCount, sizeof(EdgeApplicationConfig));
 
-        for(size_t i = 0, j = 0; i < validServerCount; ++i)
+        for(size_t i = 0, j = 0; i < regServersCount; ++i)
         {
             if(IS_NOT_NULL(appConfigAll[i]))
             {
