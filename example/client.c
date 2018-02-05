@@ -2568,9 +2568,8 @@ int main()
         else if (!strcmp(command, "get_endpoints"))
         {
             char endpointUri[MAX_ADDRESS_SIZE];
-            //printf("[Please input server endpoint uri (Ex: opc.tcp://localhost:12686)] : ");
-            //scanf("%s", endpointUri);
-            strcpy(endpointUri, "opc.tcp://107.110.6.95:4842");
+            printf("[Please input server endpoint uri (Ex: opc.tcp://localhost:12686)] : ");
+            scanf("%s", endpointUri);
 
             connect = false;
             testGetEndpoints(endpointUri);
