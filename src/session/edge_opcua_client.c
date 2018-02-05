@@ -392,13 +392,10 @@ static EdgeApplicationConfig *convertToEdgeApplicationConfig(UA_ApplicationDescr
 
 static EdgeEndPointInfo *convertToEdgeEndpointInfo(UA_EndpointDescription *endpoint)
 {
-    EDGE_LOG(TAG, "INSIDE convertToEdgeEndpointInfo \n");
     if (!endpoint)
     {
         return NULL;
     }
-
-    EDGE_LOG(TAG, "INSIDE convertToEdgeEndpointInfo 2\n");
 
     EdgeEndPointInfo *epInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
     if (!epInfo)
