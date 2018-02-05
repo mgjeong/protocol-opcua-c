@@ -58,6 +58,12 @@ typedef struct DiscoveryCallback DiscoveryCallback;
 
 typedef struct EdgeConfigure
 {
+    /** Supported Server Application Types.
+    EdgeApplicationType represents the application types.
+    More than one application type can be set by doing bitwise-or.
+    Ex: EDGE_APPLICATIONTYPE_SERVER | EDGE_APPLICATIONTYPE_DISCOVERYSERVER */
+    uint8_t supportedApplicationTypes;
+
     /** ReceivedMessageCallback.*/
     ReceivedMessageCallback *recvCallback;
 
@@ -106,11 +112,10 @@ typedef struct EdgeEndpointConfig
 
 /** The types of applications. */
 typedef enum {
-    EDGE_APPLICATIONTYPE_SERVER = 0,
-    EDGE_APPLICATIONTYPE_CLIENT = 1,
-    EDGE_APPLICATIONTYPE_CLIENTANDSERVER = 2,
-    EDGE_APPLICATIONTYPE_DISCOVERYSERVER = 3,
-    EDGE_APPLICATIONTYPE_UNKNOWN = 0x7fffffff
+    EDGE_APPLICATIONTYPE_SERVER = 1,
+    EDGE_APPLICATIONTYPE_CLIENT = 2,
+    EDGE_APPLICATIONTYPE_CLIENTANDSERVER = 4,
+    EDGE_APPLICATIONTYPE_DISCOVERYSERVER = 8
 } EdgeApplicationType;
 
 typedef struct EdgeApplicationConfig

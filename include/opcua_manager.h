@@ -104,7 +104,7 @@ __attribute__((visibility("default"))) EdgeResult getEndpointInfo(EdgeEndPointIn
 __attribute__((visibility("default"))) void connectClient(EdgeEndPointInfo *epInfo);
 __attribute__((visibility("default"))) void disconnectClient(EdgeEndPointInfo *epInfo);
 
-__attribute__((visibility("default"))) void registerCallbacks(EdgeConfigure *config);
+__attribute__((visibility("default"))) void configure(EdgeConfigure *config);
 //__attribute__((visibility("default"))) EdgeResult* send(EdgeMessage* msg);
 __attribute__((visibility("default"))) EdgeResult createNamespace(char *name, char *rootNodeId,
         char *rootBrowseName, char *rootDisplayName);

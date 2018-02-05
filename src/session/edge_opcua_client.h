@@ -30,6 +30,7 @@ extern "C"
 {
 #endif
 
+    void setSupportedApplicationTypes(uint8_t supportedTypes);
     bool connect_client(char *endpoint);
     void disconnect_client(EdgeEndPointInfo *epInfo);
     EdgeResult findServersInternal(const char *endpointUri, size_t serverUrisSize,

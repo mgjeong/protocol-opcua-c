@@ -41,6 +41,9 @@ static char endpointUri[512];
 static EdgeEndPointInfo *epInfo = NULL;
 static EdgeConfigure *config = NULL;
 
+static uint8_t supportedApplicationTypes = EDGE_APPLICATIONTYPE_SERVER | EDGE_APPLICATIONTYPE_DISCOVERYSERVER |
+    EDGE_APPLICATIONTYPE_CLIENTANDSERVER;
+
 static bool startServerFlag = false;
 static bool startClientFlag = false;
 static bool readNodeFlag = true;
@@ -502,7 +505,9 @@ static void configureCallbacks()
     config->discoveryCallback->endpoint_found_cb = endpoint_found_cb;
     config->discoveryCallback->device_found_cb = device_found_cb;
 
-    registerCallbacks(config);
+    config->supportedApplicationTypes = supportedApplicationTypes;
+
+    configure(config);
 }
 
 static void cleanCallbacks()
@@ -785,7 +790,7 @@ static void browseNodes()
     browseNextData->cp = (EdgeContinuationPoint *)EdgeCalloc(browseNextData->count,
                          sizeof(EdgeContinuationPoint));
     browseNextData->srcNodeId = (EdgeNodeId **)calloc(browseNextData->count, sizeof(EdgeNodeId *));
-    
+
 
     EXPECT_EQ(browseNodeFlag, false);
     browseNode(msg);
@@ -1475,7 +1480,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     EXPECT_EQ(startServerFlag, true);
 
     EdgeNodeItem *item = NULL;
-    
+
     // VARIABLE NODE with string variant:
     item = createVariableNodeItem("String1", String, (void *)"test1", VARIABLE_NODE);
     EdgeResult result = createNode(DEFAULT_NAMESPACE_VALUE, item);
@@ -1488,7 +1493,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     result = createNode(DEFAULT_NAMESPACE_VALUE, item);
     EXPECT_EQ(result.code, STATUS_OK);
     deleteNodeItem(item);
-    
+
     //modify value for this node
     value = 43;
     char *name = "UInt16";
@@ -1619,7 +1624,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     result = createNode(DEFAULT_NAMESPACE_VALUE, item);
     EXPECT_EQ(result.code, STATUS_OK);
     EdgeFree(edgeNodeId);
-    
+
     edgeNodeId = (EdgeNodeId *) EdgeMalloc(sizeof(EdgeNodeId));
     edgeNodeId->nodeId = "ReferenceTypeNode1";
     item = createNodeItem("ReferenceTypeNode2", REFERENCE_TYPE_NODE, edgeNodeId);
@@ -1658,7 +1663,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     result = createMethodNode(DEFAULT_NAMESPACE_VALUE, methodNodeItem, method);
     EXPECT_EQ(result.code, STATUS_OK);
 
-    
+
     //REFERENCE NODE
     /*EdgeReference *reference = (EdgeReference *) EdgeMalloc(sizeof(EdgeReference));
     reference->forward = true;
