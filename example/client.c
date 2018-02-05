@@ -23,9 +23,9 @@
 static bool startFlag = false;
 static bool stopFlag = false;
 
-static char ipAddress[MAX_ADDRESS_SIZE];
 static char endpointUri[MAX_CHAR_SIZE];
 static int endpointCount = 0;
+static bool connect = false;
 
 static EdgeConfigure *config = NULL;
 
@@ -721,7 +721,10 @@ static void endpoint_found_cb (EdgeDevice *device)
             printf("[Application Callback] SecurityPolicyUri :: %s\n\n",
                    device->endpointsInfo[idx]->securityPolicyUri);
 
-            startClient(device->address, device->port, device->endpointsInfo[idx]->securityPolicyUri, device->endpointsInfo[idx]->endpointUri);
+            if(connect)
+            {
+                startClient(device->address, device->port, device->endpointsInfo[idx]->securityPolicyUri, device->endpointsInfo[idx]->endpointUri);
+            }
         }
     }
 }
@@ -934,8 +937,13 @@ static void testFindServers()
     }
 }
 
-static void testGetEndpoints()
+static void testGetEndpoints(const char *endpointUri)
 {
+    printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET);
+    printf("\n" COLOR_YELLOW "                  Client get endpoints             " COLOR_RESET);
+    printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET
+           "\n\n");
+
     EdgeMessage *msg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
     if(IS_NULL(msg))
     {
@@ -1283,7 +1291,7 @@ static void testBrowse(char* endpointUri)
     destroyEdgeMessage(msg);
 }
 
-static void testBrowses()
+static void testBrowses(char* endpointUri)
 {
     printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET);
     printf("\n" COLOR_YELLOW "                       Browse Multiple Nodes            "COLOR_RESET);
@@ -2515,7 +2523,8 @@ static void print_menu()
 {
     printf("\n=============== OPC UA =======================\n\n");
 
-    printf("find_servers : Gets a list of all registered servers at the given server. \n");
+    printf("find_servers : Get a list of all registered servers at the given server. \n");
+    printf("get_endpoints : Get a list of all endpoints supported by a server. \n");
     printf("start : Get endpoints and start opcua client \n");
     printf("read : read attribute for target node\n");
     printf("read_group : group read attributes from nodes\n");
@@ -2556,20 +2565,26 @@ int main()
         {
             testFindServers();
         }
+        else if (!strcmp(command, "get_endpoints"))
+        {
+            char endpointUri[MAX_ADDRESS_SIZE];
+            //printf("[Please input server endpoint uri (Ex: opc.tcp://localhost:12686)] : ");
+            //scanf("%s", endpointUri);
+            strcpy(endpointUri, "opc.tcp://107.110.6.95:4842");
+
+            connect = false;
+            testGetEndpoints(endpointUri);
+        }
         else if (!strcmp(command, "start"))
         {
-
-            printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET);
-            printf("\n" COLOR_YELLOW "                  Client get endpoints             " COLOR_RESET);
-            printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET
-                   "\n\n");
-
+            static char ipAddress[MAX_ADDRESS_SIZE];
             printf("[Please input server endpoint uri (Ex: opc.tcp://localhost:12686)] : ");
             scanf("%s", ipAddress);
-            strncpy(endpointUri, ipAddress, strlen(ipAddress));
-            endpointUri[strlen(ipAddress)] = '\0';
+            strncpy(endpointUri, ipAddress, strlen(ipAddress)+1);
 
-            testGetEndpoints();
+            connect = true;
+            testGetEndpoints(endpointUri);
+
             //startFlag = true;
             print_menu();
         }
@@ -2601,7 +2616,13 @@ int main()
         }
         else if (!strcmp(command, "browse_m"))
         {
-            testBrowses();
+            char *ep = getEndPoint_input();
+            if (ep == NULL)
+            {
+                printf("Client not connected to any endpoints\n\n");
+                break;
+            }
+            testBrowses(ep);
         }
         else if (!strcmp(command, "browse_next"))
         {
