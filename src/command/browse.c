@@ -24,6 +24,7 @@
 #include "edge_malloc.h"
 
 #include <inttypes.h>
+#include <string.h>
 
 #define TAG "browse"
 #define GUID_LENGTH 36
@@ -815,27 +816,41 @@ unsigned char *getCompleteBrowsePath(char *browseName, UA_NodeId* nodeId, UA_Loc
     char *nodeIdInfo = NULL;
     int browseNameLen = 0;
     int nodeIdInfoLen = 0;
+    char nodeType[4] = {'N','S','B','G'};
     if(IS_NOT_NULL(browseName))
     {
         const int bufferSize = 20;
         browseNameLen = strlen(browseName);
         nodeIdInfo = (char *)EdgeCalloc(bufferSize, sizeof(char));
 
+        char curType = nodeType[0];
         switch (nodeId->identifierType)
         {
             case UA_NODEIDTYPE_NUMERIC:
-                snprintf(nodeIdInfo, bufferSize*sizeof(char), "{%d;N}", nodeId->namespaceIndex);
+                curType = nodeType[0];
                 break;
             case UA_NODEIDTYPE_STRING:
-                snprintf(nodeIdInfo, bufferSize*sizeof(char), "{%d;S;%s}", nodeId->namespaceIndex, convertUAStringToUnsignedChar(&description.text));
+                curType = nodeType[1];
                 break;
             case UA_NODEIDTYPE_BYTESTRING:
-                snprintf(nodeIdInfo, bufferSize*sizeof(char), "{%d;B}", nodeId->namespaceIndex);
+                curType = nodeType[2];
                 break;
             case UA_NODEIDTYPE_GUID:
-                snprintf(nodeIdInfo, bufferSize*sizeof(char), "{%d;G}", nodeId->namespaceIndex);
+                curType = nodeType[3];
                 break;
         }
+
+        if (UA_NODEIDTYPE_STRING == nodeId->identifierType) {
+            unsigned char *valueType = convertUAStringToUnsignedChar(&description.text);
+            if (0 == strncmp((const char*)valueType, "v=", 2)) {
+                snprintf(nodeIdInfo, bufferSize*sizeof(char), "{%d;%c;%s}", nodeId->namespaceIndex, curType, valueType);
+            } else {
+                snprintf(nodeIdInfo, bufferSize*sizeof(char), "{%d;%c}", nodeId->namespaceIndex, curType);
+            }
+        } else {
+            snprintf(nodeIdInfo, bufferSize*sizeof(char), "{%d;%c}", nodeId->namespaceIndex, curType);
+        }
+
         if(IS_NOT_NULL(nodeIdInfo))
         {
                 nodeIdInfoLen = strlen(nodeIdInfo);

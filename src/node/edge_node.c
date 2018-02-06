@@ -27,7 +27,7 @@
 
 #define TAG "edge_node"
 #define MAX_ARGS  (10)
-#define MAX_DISPLAY_SIZE (30)
+#define MAX_DISPLAY_SIZE (1000)  // this size is depends on CTT Err-011
 
 static edgeMap *methodNodeMap = NULL;
 static size_t methodNodeCount = 0;
@@ -35,10 +35,10 @@ static size_t methodNodeCount = 0;
 
 /****************************** Static functions ***********************************/
 static void getDisplayInfo(const EdgeNodeItem *item, char* displayInfo) {
-    if (item->variableIdentifier > 0) {
-        sprintf(displayInfo, "v=%d", item->variableIdentifier);
+    if (NULL != item->displayName) {
+        sprintf(displayInfo, "v=%d,n=%s", item->variableIdentifier, item->displayName);
     } else {
-        sprintf(displayInfo, "v=%s", "obj");
+        sprintf(displayInfo, "v=%d", item->variableIdentifier);
     }
 }
 

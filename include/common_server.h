@@ -41,6 +41,9 @@ typedef struct EdgeNodeItem
     /** browseName.*/
     char *browseName;
 
+    /** displayName.*/
+    char *displayName;
+
     /** EdgeIdentifier.*/
     EdgeIdentifier nodeType;
 
