@@ -35,8 +35,9 @@ static DiscoveryCallback *discoveryCb;
 
 static bool b_serverInitialized = false;
 
-void showNodeList(void){
-	printNodeListInServer();
+void showNodeList(void)
+{
+    printNodeListInServer();
 }
 
 static void registerRecvCallback(ReceivedMessageCallback *callback)
@@ -172,10 +173,11 @@ EdgeResult getEndpointInfo(EdgeEndPointInfo *epInfo)
 }
 
 EdgeResult findServers(const char *endpointUri, size_t serverUrisSize, unsigned char **serverUris,
-    size_t localeIdsSize, unsigned char **localeIds, size_t *registeredServersSize, EdgeApplicationConfig **registeredServers)
+        size_t localeIdsSize, unsigned char **localeIds, size_t *registeredServersSize,
+        EdgeApplicationConfig **registeredServers)
 {
     return findServersInternal(endpointUri, serverUrisSize, serverUris, localeIdsSize, localeIds,
-        registeredServersSize, registeredServers);
+            registeredServersSize, registeredServers);
 }
 
 void connectClient(EdgeEndPointInfo *epInfo)

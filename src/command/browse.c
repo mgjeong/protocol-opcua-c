@@ -810,7 +810,7 @@ static unsigned char *getCurrentBrowsePath()
     return browsePath;
 }
 
-unsigned char *getCompleteBrowsePath(char *browseName, UA_NodeId* nodeId)
+unsigned char *getCompleteBrowsePath(char *browseName, UA_NodeId* nodeId, UA_LocalizedText description)
 {
     char *nodeIdInfo = NULL;
     int browseNameLen = 0;
@@ -820,13 +820,14 @@ unsigned char *getCompleteBrowsePath(char *browseName, UA_NodeId* nodeId)
         const int bufferSize = 20;
         browseNameLen = strlen(browseName);
         nodeIdInfo = (char *)EdgeCalloc(bufferSize, sizeof(char));
+
         switch (nodeId->identifierType)
         {
             case UA_NODEIDTYPE_NUMERIC:
                 snprintf(nodeIdInfo, bufferSize*sizeof(char), "{%d;N}", nodeId->namespaceIndex);
                 break;
             case UA_NODEIDTYPE_STRING:
-                snprintf(nodeIdInfo, bufferSize*sizeof(char), "{%d;S}", nodeId->namespaceIndex);
+                snprintf(nodeIdInfo, bufferSize*sizeof(char), "{%d;S;%s}", nodeId->namespaceIndex, convertUAStringToUnsignedChar(&description.text));
                 break;
             case UA_NODEIDTYPE_BYTESTRING:
                 snprintf(nodeIdInfo, bufferSize*sizeof(char), "{%d;B}", nodeId->namespaceIndex);
@@ -1313,8 +1314,9 @@ EdgeStatusCode browse(UA_Client *client, EdgeMessage *msg, bool browseNext,
                         // EdgeVersatility in EdgeResponse will have the complete path to browse name (Including the browse name).
                         unsigned char *completePath = NULL;
                         if((!BROWSE_SHOW_ONLY_VARIABLE) || (ref->nodeClass & UA_NODECLASS_VARIABLE)){
-                            completePath = getCompleteBrowsePath(browseResult->browseName, &(ref->nodeId.nodeId));
+                            completePath = getCompleteBrowsePath(browseResult->browseName, &(ref->nodeId.nodeId), ref->displayName);
                         }
+
                         invokeResponseCb(msg, msgId, srcNodeId, browseResult, size, completePath);
                         EdgeFree(completePath);
                         EdgeFree(browseResult->browseName);
