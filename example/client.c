@@ -1869,13 +1869,7 @@ static void testMethod()
         goto EXIT_METHOD;
     }
 
-    msg->request->nodeInfo = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
-    if(IS_NULL(msg->request->nodeInfo))
-    {
-        printf("Error : Malloc failed for nodeInfo in test Method\n");
-        goto EXIT_METHOD;
-    }
-    msg->request->nodeInfo->valueAlias = copyString("sqrt(x)");
+    msg->request->nodeInfo = createEdgeNodeInfo("{2;S;v=0}sqrt(x)");
     msg->request->methodParams = (EdgeMethodRequestParams *) EdgeCalloc(1, sizeof(
             EdgeMethodRequestParams));
     if(IS_NULL(msg->request->methodParams))
@@ -1934,14 +1928,7 @@ static void testMethod()
         goto EXIT_METHOD1;
     }
 
-    msg->request->nodeInfo = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
-    if(IS_NULL(msg->request->nodeInfo))
-    {
-        printf("Error : Malloc failed for EdgeNodeInfo in test Method1\n");
-        goto EXIT_METHOD1;
-    }
-    msg->request->nodeInfo->valueAlias = copyString("incrementInc32Array(x,delta)");
-
+    msg->request->nodeInfo = createEdgeNodeInfo("{2;S;v=0}incrementInc32Array(x,delta)");
     msg->request->methodParams = (EdgeMethodRequestParams *) EdgeCalloc(1, sizeof(EdgeMethodRequestParams));
     if(IS_NULL(msg->request->methodParams))
     {
@@ -2014,14 +2001,7 @@ static void testMethod()
         goto EXIT_METHOD2;
     }
 
-    msg->request->nodeInfo = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
-    if(IS_NULL(msg->request->nodeInfo))
-    {
-        printf("Error : Malloc failed for EdgeNodeInfo in test Method1\n");
-        goto EXIT_METHOD2;
-    }
-    msg->request->nodeInfo->valueAlias = copyString("print(x)");
-
+    msg->request->nodeInfo = createEdgeNodeInfo("{2;S;v=0}print(x)");
     msg->request->methodParams = (EdgeMethodRequestParams *) EdgeCalloc(1, sizeof(EdgeMethodRequestParams));
     if(IS_NULL(msg->request->methodParams))
     {
@@ -2080,13 +2060,7 @@ static void testMethod()
         goto EXIT_METHOD3;
     }
 
-    msg->request->nodeInfo = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
-    if(IS_NULL(msg->request->nodeInfo))
-    {
-        printf("Error : Malloc failed for EdgeNodeInfo in test Method1\n");
-        goto EXIT_METHOD3;
-    }
-    msg->request->nodeInfo->valueAlias = copyString("shutdown()");
+    msg->request->nodeInfo = createEdgeNodeInfo("{2;S;v=0}shutdown()");
     msg->request->methodParams = (EdgeMethodRequestParams *) EdgeCalloc(1, sizeof(EdgeMethodRequestParams));
     if(IS_NULL(msg->request->methodParams))
     {
@@ -2125,13 +2099,7 @@ static void testMethod()
         goto EXIT_METHOD4;
     }
 
-    msg->request->nodeInfo = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
-    if(IS_NULL(msg->request->nodeInfo))
-    {
-        printf("Error : Malloc failed for EdgeNodeInfo in test Method1\n");
-        goto EXIT_METHOD4;
-    }
-    msg->request->nodeInfo->valueAlias = copyString("version()");
+    msg->request->nodeInfo = createEdgeNodeInfo("{2;S;v=0}version()");
 
     msg->request->methodParams = (EdgeMethodRequestParams *) EdgeCalloc(1, sizeof(EdgeMethodRequestParams));
     if(IS_NULL(msg->request->methodParams))
@@ -2299,20 +2267,13 @@ static void testSubModify()
         printf("Error : Malloc failed for request in test subscription modify\n");
         goto EXIT_SUBMODIFY;
     }
-    msg->request->nodeInfo = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
+    msg->request->nodeInfo = createEdgeNodeInfo(nodeName);
     if(IS_NULL(msg->request->nodeInfo))
     {
         printf("Error : Malloc failed for nodeInfo in test subscription modify\n");
         goto EXIT_SUBMODIFY;
     }
-    msg->request->nodeInfo->valueAlias = (char *) EdgeMalloc(strlen(nodeName) + 1);
-    if(IS_NULL(msg->request->nodeInfo->valueAlias))
-    {
-        printf("Error : Malloc failed for nodeInfo->valueAlias in test subscription modify\n");
-        goto EXIT_SUBMODIFY;
-    }
-    strncpy(msg->request->nodeInfo->valueAlias, nodeName, strlen(nodeName));
-    msg->request->nodeInfo->valueAlias[strlen(nodeName)] = '\0';
+
     msg->request->subMsg = (EdgeSubRequest *) EdgeCalloc(1, sizeof(EdgeSubRequest));
     if(IS_NULL(msg->request->subMsg))
     {
@@ -2378,21 +2339,12 @@ static void testRePublish()
         goto EXIT_REPUBLISH;
     }
 
-    msg->request->nodeInfo = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
+    msg->request->nodeInfo = createEdgeNodeInfo(nodeName);
     if(IS_NULL(msg->request->nodeInfo))
     {
         printf("Error : Malloc failed for nodeInfo in test republish\n");
         goto EXIT_REPUBLISH;
     }
-
-    msg->request->nodeInfo->valueAlias = (char *) EdgeMalloc(strlen(nodeName) + 1);
-    if(IS_NULL(msg->request->nodeInfo->valueAlias))
-    {
-        printf("Error : Malloc failed for nodeInfo->valueAlias in test republish \n");
-        goto EXIT_REPUBLISH;
-    }
-    strncpy(msg->request->nodeInfo->valueAlias, nodeName, strlen(nodeName));
-    msg->request->nodeInfo->valueAlias[strlen(nodeName)] = '\0';
 
     msg->request->subMsg = (EdgeSubRequest *) EdgeCalloc(1, sizeof(EdgeSubRequest));
     if(IS_NULL(msg->request->subMsg))
@@ -2452,21 +2404,12 @@ static void testSubDelete()
         goto EXIT_SUBDELETE;
     }
 
-    msg->request->nodeInfo = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
+    msg->request->nodeInfo = createEdgeNodeInfo(nodeName);
     if(IS_NULL(msg->request->nodeInfo))
     {
         printf("Error : Malloc failed for nodeInfo in test subscription delete\n");
         goto EXIT_SUBDELETE;
     }
-
-    msg->request->nodeInfo->valueAlias = (char *) EdgeMalloc(strlen(nodeName) + 1);
-    if(IS_NULL(msg->request->nodeInfo->valueAlias))
-    {
-        printf("Error : Malloc failed for nodeInfo->valueAlias in test subscription delete\n");
-        goto EXIT_SUBDELETE;
-    }
-    strncpy(msg->request->nodeInfo->valueAlias, nodeName, strlen(nodeName));
-    msg->request->nodeInfo->valueAlias[strlen(nodeName)] = '\0';
 
     msg->request->subMsg = (EdgeSubRequest *) EdgeCalloc(1, sizeof(EdgeSubRequest));
     if(IS_NULL(msg->request->subMsg))

@@ -96,8 +96,8 @@ EdgeResult executeMethod(UA_Client *client, const EdgeMessage *msg)
     size_t outputSize;
     UA_Variant *output;
     UA_StatusCode retVal = UA_Client_call(client, UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER),
-            UA_NODEID_STRING(2, request->nodeInfo->valueAlias), num_inpArgs, input,
-            &outputSize, &output);
+            UA_NODEID_STRING(request->nodeInfo->nodeId->nameSpace, request->nodeInfo->valueAlias),
+            num_inpArgs, input, &outputSize, &output);
     if (retVal == UA_STATUSCODE_GOOD)
     {
         EDGE_LOG(TAG, "method call was success\n\n");
