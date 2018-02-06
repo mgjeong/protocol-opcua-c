@@ -113,24 +113,7 @@ static void *server_sample_loop(void *ptr)
     return NULL;
 }
 
-// TODO: Remove this function later when sdk expose it.
-
-static void response_msg_cb(EdgeMessage *data)
-{
-
-}
-
-static void monitored_msg_cb(EdgeMessage *data)
-{
-
-}
-
-static void error_msg_cb(EdgeMessage *data)
-{
-    printf("[error_msg_cb] EdgeStatusCode: %d\n", data->result->code);
-}
-
-static void browse_msg_cb(EdgeMessage *data)
+static void status_network_cb(EdgeEndPointInfo *epInfo, EdgeStatusCode status)
 {
 
 }
@@ -157,37 +140,10 @@ static void status_stop_cb(EdgeEndPointInfo *epInfo, EdgeStatusCode status)
     }
 }
 
-static void status_network_cb(EdgeEndPointInfo *epInfo, EdgeStatusCode status)
-{
-
-}
-
-/* discovery callback */
-static void endpoint_found_cb(EdgeDevice *device)
-{
-
-}
-
-static void device_found_cb(EdgeDevice *device)
-{
-
-}
-
 static void init()
 {
     config = (EdgeConfigure *) EdgeMalloc(sizeof(EdgeConfigure));
     VERIFY_NON_NULL_NR(config);
-    config->recvCallback = (ReceivedMessageCallback *) EdgeMalloc(sizeof(ReceivedMessageCallback));
-    if (IS_NULL(config->recvCallback))
-    {
-        printf("Error :: EdgeCalloc failed for config->recvCallback in init server\n");
-        EdgeFree(config);
-        return;
-    }
-    config->recvCallback->resp_msg_cb = response_msg_cb;
-    config->recvCallback->monitored_msg_cb = monitored_msg_cb;
-    config->recvCallback->error_msg_cb = error_msg_cb;
-    config->recvCallback->browse_msg_cb = browse_msg_cb;
 
     config->statusCallback = (StatusCallback *) EdgeMalloc(sizeof(StatusCallback));
     if (IS_NULL(config->statusCallback))
@@ -195,7 +151,6 @@ static void init()
         printf("Error :: EdgeCalloc failed for config->statusCallback in init server\n");
         if (IS_NOT_NULL(config))
         {
-            EdgeFree(config->recvCallback);
             EdgeFree(config);
         }
         return;
@@ -205,19 +160,16 @@ static void init()
     config->statusCallback->network_cb = status_network_cb;
 
     config->discoveryCallback = (DiscoveryCallback *) EdgeMalloc(sizeof(DiscoveryCallback));
-    if (IS_NULL(config->recvCallback))
+    if (IS_NULL(config->discoveryCallback))
     {
-        printf("Error :: EdgeCalloc failed for config->recvCallback in init server\n");
+        printf("Error :: EdgeCalloc failed for config->discoveryCallback in init server\n");
         if (IS_NOT_NULL(config))
         {
-            EdgeFree(config->recvCallback);
             EdgeFree(config->statusCallback);
             EdgeFree(config);
         }
         return;
     }
-    config->discoveryCallback->endpoint_found_cb = endpoint_found_cb;
-    config->discoveryCallback->device_found_cb = device_found_cb;
 
     registerCallbacks(config);
 }
@@ -1458,6 +1410,7 @@ static void testModifyNode()
             "\n\n" COLOR_YELLOW
             "********************** Available nodes to test the 'modifyVariableNode' service **********************"
             COLOR_RESET "\n");
+
     printf("[1] String1\n");
     printf("[2] String2\n");
     printf("[3] String3\n");
@@ -1477,8 +1430,7 @@ static void testModifyNode()
         return;
     }
 
-    if (option < 8)
-        printf("\nEnter the new value :: ");
+    printf("\nEnter the new value :: ");
     if (option == 1)
     {
         scanf("%s", s_value);
