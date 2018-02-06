@@ -18,8 +18,28 @@
 #
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-import os 
+import os
+
 env = Environment()
+architecture = ARGUMENTS.get('TARGET_ARCH')
+if architecture == 'linux' :
+    env_options = {
+        "CC"    : "gcc",
+        "CXX"   : "g++",
+        "LD"    : "ld",
+        "AR"    : "ar",
+        "STRIP" : "strip"
+    }
+    env = Environment(**env_options)
+if architecture == 'arm' :
+    env_options = {
+        "CC"    : "arm-linux-gnueabihf-gcc",
+        "CXX"   : "arm-linux-gnueabihf-g++",
+        "LD"    : "arm-linux-gnueabihf-ld",
+        "AR"    : "arm-linux-gnueabihf-ar",
+        "STRIP" : "arm-linux-gnueabihf-strip"
+    }
+    env = Environment(**env_options)
 
 def do__(self, arg):
 	Execute(arg)
