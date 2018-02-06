@@ -27,7 +27,6 @@
 
 #define TAG "edge_node"
 #define MAX_ARGS  (10)
-#define MAX_DISPLAY_SIZE (1000)  // this size is depends on CTT Err-011
 
 static edgeMap *methodNodeMap = NULL;
 static size_t methodNodeCount = 0;
@@ -49,7 +48,7 @@ static void addVariableNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeI
     int accessLevel = item->accessLevel;
     int userAccessLevel = item->userAccessLevel;
 
-    char displayInfo[MAX_DISPLAY_SIZE] = {};
+    char displayInfo[MAX_DISPLAYNAME_SIZE] = {};
     getDisplayInfo(item, displayInfo);
     UA_VariableAttributes attr = UA_VariableAttributes_default;
     attr.description = UA_LOCALIZEDTEXT("en-US", name);
@@ -125,7 +124,7 @@ static void addArrayNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem
     EdgeNodeIdentifier id = item->variableIdentifier;
 
     UA_VariableAttributes attr = UA_VariableAttributes_default;
-    char displayInfo[MAX_DISPLAY_SIZE] = {};
+    char displayInfo[MAX_DISPLAYNAME_SIZE] = {};
     getDisplayInfo(item, displayInfo);
     attr.description = UA_LOCALIZEDTEXT("en-US", name);
     attr.displayName = UA_LOCALIZEDTEXT("en-US", displayInfo);
@@ -219,7 +218,7 @@ static void addObjectNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeIte
     char *name = item->browseName;
 
     UA_ObjectAttributes object_attr = UA_ObjectAttributes_default;
-    char displayInfo[MAX_DISPLAY_SIZE] = {};
+    char displayInfo[MAX_DISPLAYNAME_SIZE] = {};
     getDisplayInfo(item, displayInfo);
     object_attr.description = UA_LOCALIZEDTEXT("en-US", name);
     object_attr.displayName = UA_LOCALIZEDTEXT("en-US", displayInfo);
@@ -253,7 +252,7 @@ static void addObjectTypeNode(UA_Server *server, uint16_t nsIndex, const EdgeNod
 {
     char *name = item->browseName;
     UA_ObjectTypeAttributes object_attr = UA_ObjectTypeAttributes_default;
-    char displayInfo[MAX_DISPLAY_SIZE] = {};
+    char displayInfo[MAX_DISPLAYNAME_SIZE] = {};
     getDisplayInfo(item, displayInfo);
     object_attr.description = UA_LOCALIZEDTEXT("en-US", name);
     object_attr.displayName = UA_LOCALIZEDTEXT("en-US", displayInfo);
@@ -290,7 +289,7 @@ static void addVariableTypeNode(UA_Server *server, uint16_t nsIndex, const EdgeN
     EdgeNodeIdentifier id = item->variableIdentifier;
 
     UA_VariableTypeAttributes attr = UA_VariableTypeAttributes_default;
-    char displayInfo[MAX_DISPLAY_SIZE] = {};
+    char displayInfo[MAX_DISPLAYNAME_SIZE] = {};
     getDisplayInfo(item, displayInfo);
     attr.description = UA_LOCALIZEDTEXT("en-US", name);
     attr.displayName = UA_LOCALIZEDTEXT("en-US", displayInfo);
@@ -340,7 +339,7 @@ static void addDataTypeNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeI
     char *name = item->browseName;
 
     UA_DataTypeAttributes attr = UA_DataTypeAttributes_default;
-    char displayInfo[MAX_DISPLAY_SIZE] = {};
+    char displayInfo[MAX_DISPLAYNAME_SIZE] = {};
     getDisplayInfo(item, displayInfo);
     attr.description = UA_LOCALIZEDTEXT("en-US", name);
     attr.displayName = UA_LOCALIZEDTEXT("en-US", displayInfo);
@@ -375,7 +374,7 @@ static void addViewNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem 
     char *name = item->browseName;
 
     UA_ViewAttributes attr = UA_ViewAttributes_default;
-    char displayInfo[MAX_DISPLAY_SIZE] = {};
+    char displayInfo[MAX_DISPLAYNAME_SIZE] = {};
     getDisplayInfo(item, displayInfo);
     attr.description = UA_LOCALIZEDTEXT("en-US", name);
     attr.displayName = UA_LOCALIZEDTEXT("en-US", displayInfo);
@@ -445,7 +444,7 @@ static void addReferenceTypeNode(UA_Server *server, uint16_t nsIndex, const Edge
     char *name = item->browseName;
 
     UA_ReferenceTypeAttributes attr = UA_ReferenceTypeAttributes_default;
-    char displayInfo[MAX_DISPLAY_SIZE] = {};
+    char displayInfo[MAX_DISPLAYNAME_SIZE] = {};
     getDisplayInfo(item, displayInfo);
     attr.description = UA_LOCALIZEDTEXT("en-US", name);
     attr.displayName = UA_LOCALIZEDTEXT("en-US", displayInfo);
@@ -717,7 +716,7 @@ EdgeResult addMethodNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem
     }
 
     UA_MethodAttributes methodAttr = UA_MethodAttributes_default;
-    char displayInfo[MAX_DISPLAY_SIZE] = {};
+    char displayInfo[MAX_DISPLAYNAME_SIZE] = {};
     getDisplayInfo(item, displayInfo);
     methodAttr.description = UA_LOCALIZEDTEXT("en-US", method->methodNodeName);
     methodAttr.displayName = UA_LOCALIZEDTEXT("en-US", displayInfo);

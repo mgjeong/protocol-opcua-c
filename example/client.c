@@ -1509,24 +1509,9 @@ static void readHelper(int num_requests, char *ep)
             printf("Error : Malloc failed for requests[%d] in test read\n", i);
             goto EXIT_READ;
         }
-
-        msg->requests[i]->nodeInfo = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
-        if(IS_NULL(msg->requests[i]->nodeInfo))
-        {
-            printf("Error : Malloc failed for request[%d] in test read\n", i);
-            goto EXIT_READ;
-        }
         scanf("%s", nodeName);
-        msg->requests[i]->nodeInfo->valueAlias = (char *) EdgeMalloc(strlen(nodeName) + 1);
-        if(IS_NULL(msg->requests[i]->nodeInfo->valueAlias))
-        {
-            printf("Error : Malloc failed for nodeInfo for request[%d]->valueAlias in test read\n", i);
-            goto EXIT_READ;
-        }
-        strncpy(msg->requests[i]->nodeInfo->valueAlias, nodeName, strlen(nodeName));
-        msg->requests[i]->nodeInfo->valueAlias[strlen(nodeName)] = '\0';
+        msg->requests[i]->nodeInfo = createEdgeNodeInfo(nodeName);
     }
-
     msg->command = CMD_READ;
     msg->type = SEND_REQUESTS;
     msg->requestLength = num_requests;
@@ -1752,21 +1737,8 @@ static void writeHelper(int num_requests, char *ep)
             goto EXIT_WRITE;
         }
 
-        msg->requests[i]->nodeInfo = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
-        if(IS_NULL(msg->requests[i]->nodeInfo))
-        {
-            printf("Error : Malloc failed for nodeInfo for request[%d] in test write\n", i);
-            goto EXIT_WRITE;
-        }
         scanf("%s", nodeName);
-        msg->requests[i]->nodeInfo->valueAlias = (char *) EdgeMalloc(strlen(nodeName) + 1);
-        if(IS_NULL(msg->requests[i]->nodeInfo->valueAlias))
-        {
-            printf("Error : Malloc failed for nodeInfo for request[%d]->valueAlias in test write\n", i);
-            goto EXIT_WRITE;
-        }
-        strncpy(msg->requests[i]->nodeInfo->valueAlias, nodeName, strlen(nodeName));
-        msg->requests[i]->nodeInfo->valueAlias[strlen(nodeName)] = '\0';
+        msg->requests[i]->nodeInfo = createEdgeNodeInfo(nodeName);
         msg->requests[i]->type = getInputType();
         printf("Enter number of elements to write (1 for scalar, > 1 for Array) : ");
         scanf("%d", &num_values);
@@ -2217,7 +2189,7 @@ static void testSub()
     }
 
     msg->endpointInfo->endpointUri = copyString(ep);
-    msg->requests = (EdgeRequest **) calloc(num_requests, sizeof(EdgeRequest *));
+    msg->requests = (EdgeRequest **) EdgeCalloc(num_requests, sizeof(EdgeRequest *));
     if(IS_NULL(msg->requests))
     {
         printf("Error : Malloc failed for requests in test subscription\n");
@@ -2255,24 +2227,16 @@ static void testSub()
             goto EXIT_SUB;
         }
 
-        msg->requests[i]->nodeInfo = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
+
+
+        printf("\nEnter the node #%d name to subscribe :: ", (i + 1));
+        scanf("%s", nodeName);
+        msg->requests[i]->nodeInfo = createEdgeNodeInfo(nodeName);
         if(IS_NULL(msg->requests[i]->nodeInfo))
         {
             printf("Error : Malloc failed for nodeInfo in test subscription\n");
             goto EXIT_SUB;
         }
-
-        printf("\nEnter the node #%d name to subscribe :: ", (i + 1));
-        scanf("%s", nodeName);
-
-        msg->requests[i]->nodeInfo->valueAlias = (char *) EdgeMalloc(strlen(nodeName) + 1);
-        if(IS_NULL(msg->requests[i]->nodeInfo->valueAlias))
-        {
-            printf("Error : Malloc failed for nodeInfo->valueAlias in test subscription\n");
-            goto EXIT_SUB;
-        }
-        strncpy(msg->requests[i]->nodeInfo->valueAlias, nodeName, strlen(nodeName));
-        msg->requests[i]->nodeInfo->valueAlias[strlen(nodeName)] = '\0';
         msg->requests[i]->subMsg = subReq;
     }
 

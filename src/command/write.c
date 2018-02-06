@@ -97,7 +97,8 @@ static void writeGroup(UA_Client *client, const EdgeMessage *msg)
         UA_WriteValue_init(&wv[i]);
         UA_Variant_init(&myVariant[i]);
         wv[i].attributeId = UA_ATTRIBUTEID_VALUE;
-        wv[i].nodeId = UA_NODEID_STRING(2, msg->requests[i]->nodeInfo->valueAlias);
+        wv[i].nodeId = UA_NODEID_STRING(msg->requests[i]->nodeInfo->nodeId->nameSpace,
+                msg->requests[i]->nodeInfo->valueAlias);
         wv[i].value.hasValue = true;
         wv[i].value.value.type = &UA_TYPES[type];
         wv[i].value.value.storageType = UA_VARIANT_DATA_NODELETE; /* do not free the integer on deletion */

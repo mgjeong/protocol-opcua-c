@@ -23,6 +23,7 @@
 #include "edge_opcua_client.h"
 #include "edge_logger.h"
 #include "edge_utils.h"
+#include "edge_malloc.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -387,4 +388,43 @@ void onStatusCallback(EdgeEndPointInfo *epInfo, EdgeStatusCode status)
     {
         statusCb->network_cb(epInfo, status);
     }
+}
+
+EdgeNodeInfo* createEdgeNodeInfo(const char* nodeName)
+{
+    EdgeNodeInfo* nodeInfo = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
+    if (IS_NULL(nodeInfo))
+    {
+        return NULL;
+    }
+
+    int nsIdx = 0, valueType = 0;
+    char nodeType;
+    char browseName[MAX_BROWSENAME_SIZE];
+    sscanf(nodeName, UNIQUE_NODE_PATH, &nsIdx, &nodeType, &valueType, browseName);
+
+    int browseNameSize = strlen(browseName);
+    nodeInfo->valueAlias = (char *) EdgeCalloc(1, browseNameSize + 1);
+    if (IS_NULL(nodeInfo->valueAlias))
+    {
+        printf("Error : Malloc failed for nodeInfo->valueAlias in test subscription\n");
+        freeEdgeNodeInfo(nodeInfo);
+        return NULL;
+    }
+    strncpy(nodeInfo->valueAlias, browseName, browseNameSize);
+    nodeInfo->valueAlias[browseNameSize] = '\0';
+
+    nodeInfo->nodeId = (EdgeNodeId *) EdgeCalloc(1, sizeof(EdgeNodeId));
+    if (IS_NULL(nodeInfo->nodeId))
+        {
+            printf("Error : Malloc failed for nodeInfo->valueAlias in test subscription\n");
+            freeEdgeNodeInfo(nodeInfo);
+            return NULL;
+        }
+    int nodeNameSize = strlen(nodeName);
+    nodeInfo->nodeId->nodeUri = (char *) EdgeCalloc(1, nodeNameSize + 1);
+    strncpy(nodeInfo->nodeId->nodeUri, nodeName, nodeNameSize);
+    nodeInfo->nodeId->nodeUri[nodeNameSize] = '\0';
+    nodeInfo->nodeId->nameSpace = (uint16_t)nsIdx;
+    return nodeInfo;
 }

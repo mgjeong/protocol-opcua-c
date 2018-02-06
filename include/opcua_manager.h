@@ -194,6 +194,9 @@ __attribute__((visibility("default"))) void destroyEdgeMessage(EdgeMessage *msg)
 /* Allocates memory and copies the string. Application has to free the memory. */
 __attribute__((visibility("default"))) char *copyString(const char *str);
 
+/* Create EdgeNodeInfo object */
+__attribute__((visibility("default"))) EdgeNodeInfo* createEdgeNodeInfo(const char* nodeName);
+
 #ifdef __cplusplus
 }
 #endif

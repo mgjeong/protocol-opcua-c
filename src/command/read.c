@@ -268,7 +268,8 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg)
         EDGE_LOG_V(TAG, "[READGROUP] Node to read :: %s\n", msg->requests[i]->nodeInfo->valueAlias);
         UA_ReadValueId_init(&rv[i]);
         rv[i].attributeId = UA_ATTRIBUTEID_VALUE;
-        rv[i].nodeId = UA_NODEID_STRING(2, msg->requests[i]->nodeInfo->valueAlias);
+        rv[i].nodeId = UA_NODEID_STRING(msg->requests[i]->nodeInfo->nodeId->nameSpace,
+                msg->requests[i]->nodeInfo->valueAlias);
     }
 
     UA_ReadRequest readRequest;

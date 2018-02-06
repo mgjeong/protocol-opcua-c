@@ -559,8 +559,11 @@ static UA_StatusCode createSub(UA_Client *client, const EdgeMessage *msg)
         strncpy(client_alias[i]->valueAlias, msg->requests[i]->nodeInfo->valueAlias,
             strlen(msg->requests[i]->nodeInfo->valueAlias));
         client_alias[i]->valueAlias[strlen(msg->requests[i]->nodeInfo->valueAlias)] = '\0';
+
+        EDGE_LOG_V(TAG, "%s, %s, %d", msg->requests[i]->nodeInfo->valueAlias,
+                msg->requests[i]->nodeInfo->nodeId->nodeUri, msg->requests[i]->nodeInfo->nodeId->nameSpace);
         UA_MonitoredItemCreateRequest_init(&items[i]);
-        items[i].itemToMonitor.nodeId = UA_NODEID_STRING(2,
+        items[i].itemToMonitor.nodeId = UA_NODEID_STRING(msg->requests[i]->nodeInfo->nodeId->nameSpace,
                 msg->requests[i]->nodeInfo->valueAlias);
         items[i].itemToMonitor.attributeId = UA_ATTRIBUTEID_VALUE;
         items[i].monitoringMode = UA_MONITORINGMODE_REPORTING;

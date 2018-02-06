@@ -49,9 +49,11 @@ extern "C"
 {
 #endif
 
-#define REQUEST_TIMEOUT     (60000)
-#define BIND_PORT           (12686)
-
+#define REQUEST_TIMEOUT      (60000)
+#define BIND_PORT            (12686)
+#define MAX_BROWSENAME_SIZE  (1000)
+#define MAX_DISPLAYNAME_SIZE (1000)
+#define UNIQUE_NODE_PATH     "{%d;%c;v=%d}%s"
 typedef struct ReceivedMessageCallback ReceivedMessageCallback;
 typedef struct StatusCallback StatusCallback;
 typedef struct DiscoveryCallback DiscoveryCallback;
