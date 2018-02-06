@@ -844,10 +844,10 @@ unsigned char *getCompleteBrowsePath(char *browseName, UA_NodeId* nodeId, UA_Loc
             unsigned char *valueType = convertUAStringToUnsignedChar(&description.text);
             if (0 == strncmp((const char*)valueType, "v=", 2)) {
                 snprintf(nodeIdInfo, bufferSize*sizeof(char), "{%d;%c;%s}", nodeId->namespaceIndex, curType, valueType);
-                EdgeFree(valueType);
             } else {
                 snprintf(nodeIdInfo, bufferSize*sizeof(char), "{%d;%c}", nodeId->namespaceIndex, curType);
             }
+            EdgeFree(valueType);
         } else {
             snprintf(nodeIdInfo, bufferSize*sizeof(char), "{%d;%c}", nodeId->namespaceIndex, curType);
         }
