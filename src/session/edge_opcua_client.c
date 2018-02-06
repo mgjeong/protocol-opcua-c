@@ -573,6 +573,37 @@ static void destroyUAStringArray(UA_String *uaStr, size_t uaStrSize)
     EdgeFree(uaStr);
 }
 
+static bool isApplicationTypeSupported(UA_ApplicationType appType)
+{
+    if(appType == __UA_APPLICATIONTYPE_FORCE32BIT)
+    {
+        EDGE_LOG(TAG, "Application type is invalid.");
+        return false;
+    }
+
+    bool supported = false;
+    switch(appType)
+    {
+        case UA_APPLICATIONTYPE_SERVER:
+            supported = (supportedApplicationTypes & EDGE_APPLICATIONTYPE_SERVER) ? true: false;
+            break;
+        case UA_APPLICATIONTYPE_CLIENT:
+            supported = (supportedApplicationTypes & EDGE_APPLICATIONTYPE_CLIENT) ? true: false;
+            break;
+        case UA_APPLICATIONTYPE_CLIENTANDSERVER:
+            supported = (supportedApplicationTypes & EDGE_APPLICATIONTYPE_CLIENTANDSERVER) ? true: false;
+            break;
+        case UA_APPLICATIONTYPE_DISCOVERYSERVER:
+            supported = (supportedApplicationTypes & EDGE_APPLICATIONTYPE_DISCOVERYSERVER) ? true: false;
+            break;
+        default:
+            supported = false;
+            break;
+    }
+
+    return supported;
+}
+
 static bool parseEndpoints(size_t endpointArraySize, UA_EndpointDescription *endpointArray,
         size_t *count, List **endpointList)
 {
@@ -581,11 +612,11 @@ static bool parseEndpoints(size_t endpointArraySize, UA_EndpointDescription *end
     {
         logEndpointDescription(&endpointArray[i]);
 
-        /*if (UA_APPLICATIONTYPE_CLIENT == endpointArray[i].server.applicationType)
-         {
-         EDGE_LOG(TAG, "Found client type endpoint. Skipping it.");
-         continue;
-         }*/
+        if(!isApplicationTypeSupported(endpointArray[i].server.applicationType))
+        {
+             EDGE_LOG(TAG, "Found an endpoint with unsupported application type. Excluding it.");
+             continue;
+        }
 
         if (endpointArray[i].endpointUrl.length <= 0)
         {
@@ -634,7 +665,7 @@ static bool parseEndpoints(size_t endpointArraySize, UA_EndpointDescription *end
             EDGE_LOG(TAG, "Application URI is empty. Endpoint is invalid.");
             continue;
         }
-#if 0
+#if 0 // Uncomment this part of code after checking why opc ua c server sent an empty list.
         if(endpointArray[i].server.discoveryUrlsSize <= 0)
         {
             EDGE_LOG(TAG, "Discovery URL is empty. Endpoint is invalid.");
@@ -795,37 +826,6 @@ static bool isIPv4AddressValid(UA_String *ipv4Address)
     }
 
     return true;
-}
-
-static bool isApplicationTypeSupported(UA_ApplicationType appType)
-{
-    if(appType == __UA_APPLICATIONTYPE_FORCE32BIT)
-    {
-        EDGE_LOG(TAG, "Application type is invalid.");
-        return false;
-    }
-
-    bool supported = false;
-    switch(appType)
-    {
-        case UA_APPLICATIONTYPE_SERVER:
-            supported = (supportedApplicationTypes & EDGE_APPLICATIONTYPE_SERVER) ? true: false;
-            break;
-        case UA_APPLICATIONTYPE_CLIENT:
-            supported = (supportedApplicationTypes & EDGE_APPLICATIONTYPE_CLIENT) ? true: false;
-            break;
-        case UA_APPLICATIONTYPE_CLIENTANDSERVER:
-            supported = (supportedApplicationTypes & EDGE_APPLICATIONTYPE_CLIENTANDSERVER) ? true: false;
-            break;
-        case UA_APPLICATIONTYPE_DISCOVERYSERVER:
-            supported = (supportedApplicationTypes & EDGE_APPLICATIONTYPE_DISCOVERYSERVER) ? true: false;
-            break;
-        default:
-            supported = false;
-            break;
-    }
-
-    return supported;
 }
 
 static bool isServerAppDescriptionValid(UA_ApplicationDescription *regServer, size_t serverUrisSize,
@@ -1201,13 +1201,15 @@ EdgeResult getClientEndpoints(char *endpointUri)
     if (retVal != UA_STATUSCODE_GOOD)
     {
         EDGE_LOG_V(TAG, "Failed to get the endpoints. Error Code: %s.\n", UA_StatusCode_name(retVal));
-        result.code = STATUS_INTERNAL_ERROR;
+        result.code = STATUS_SERVICE_RESULT_BAD;
         goto EXIT;
     }
 
     if (endpointArraySize <= 0)
     {
         EDGE_LOG(TAG, "No endpoints found.");
+        device->num_endpoints = 0;
+        onDiscoveryCallback(device);
         result.code = STATUS_OK;
         goto EXIT;
     }

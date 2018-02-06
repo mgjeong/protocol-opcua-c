@@ -969,7 +969,7 @@ static void testGetEndpoints(const char *endpointUri)
     EdgeResult res = getEndpointInfo(msg->endpointInfo);
     if(res.code != STATUS_OK)
     {
-        printf("getEndpointInfo() failed.\n");
+        printf("getEndpointInfo() failed. Status Code: %d\n", res.code);
     }
 
     EXIT_EP:
