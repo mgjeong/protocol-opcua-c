@@ -626,7 +626,9 @@ static void browse_msg_cb (EdgeMessage *data)
 {
     if (data->browseResult)
     {
-        printf("%s\n", (unsigned char *)data->responses[0]->message->value);
+        if(data->responses[0]->message != NULL){
+            printf("%s\n", (unsigned char *)data->responses[0]->message->value);
+        }
         /*EdgeBrowseResult *browseResult = data->browseResult;
         //EdgeNodeId *nodeId = data->responses[0]->nodeInfo->nodeId;
         //printf("Source Node ID: ");
