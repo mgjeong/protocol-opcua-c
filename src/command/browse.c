@@ -31,7 +31,8 @@
 
 static const int BROWSE_NODECLASS_MASK = UA_NODECLASS_UNSPECIFIED;
 static const int VIEW_NODECLASS_MASK = UA_NODECLASS_OBJECT | UA_NODECLASS_VIEW;
-static const int BROWSE_SHOW_ONLY_VARIABLE = false;
+static const int SHOW_SPECIFIC_NODECLASS_MASK = UA_NODECLASS_VARIABLE | UA_NODECLASS_VIEW | UA_NODECLASS_METHOD;
+static const int SHOW_SPECIFIC_NODECLASS = false;
 
 typedef struct ViewNodeInfo
 {
@@ -1329,7 +1330,7 @@ EdgeStatusCode browse(UA_Client *client, EdgeMessage *msg, bool browseNext,
 
                         // EdgeVersatility in EdgeResponse will have the complete path to browse name (Including the browse name).
                         unsigned char *completePath = NULL;
-                        if((!BROWSE_SHOW_ONLY_VARIABLE) || (ref->nodeClass & UA_NODECLASS_VARIABLE)){
+                        if((!SHOW_SPECIFIC_NODECLASS) || (ref->nodeClass & SHOW_SPECIFIC_NODECLASS_MASK)){
                             completePath = getCompleteBrowsePath(browseResult->browseName, &(ref->nodeId.nodeId), ref->displayName);
                         }
 
