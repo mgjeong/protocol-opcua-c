@@ -30,6 +30,7 @@
 
 static const int BROWSE_NODECLASS_MASK = UA_NODECLASS_UNSPECIFIED;
 static const int VIEW_NODECLASS_MASK = UA_NODECLASS_OBJECT | UA_NODECLASS_VIEW;
+static const int BROWSE_SHOW_ONLY_VARIABLE = false;
 
 typedef struct ViewNodeInfo
 {
@@ -809,17 +810,40 @@ static unsigned char *getCurrentBrowsePath()
     return browsePath;
 }
 
-unsigned char *getCompleteBrowsePath(char *browseName)
+unsigned char *getCompleteBrowsePath(char *browseName, UA_NodeId* nodeId)
 {
+    char *nodeIdInfo = NULL;
     int browseNameLen = 0;
+    int nodeIdInfoLen = 0;
     if(IS_NOT_NULL(browseName))
     {
+        const int bufferSize = 20;
         browseNameLen = strlen(browseName);
+        nodeIdInfo = (char *)EdgeCalloc(bufferSize, sizeof(char));
+        switch (nodeId->identifierType)
+        {
+            case UA_NODEIDTYPE_NUMERIC:
+                snprintf(nodeIdInfo, bufferSize*sizeof(char), "{%d;N}", nodeId->namespaceIndex);
+                break;
+            case UA_NODEIDTYPE_STRING:
+                snprintf(nodeIdInfo, bufferSize*sizeof(char), "{%d;S}", nodeId->namespaceIndex);
+                break;
+            case UA_NODEIDTYPE_BYTESTRING:
+                snprintf(nodeIdInfo, bufferSize*sizeof(char), "{%d;B}", nodeId->namespaceIndex);
+                break;
+            case UA_NODEIDTYPE_GUID:
+                snprintf(nodeIdInfo, bufferSize*sizeof(char), "{%d;G}", nodeId->namespaceIndex);
+                break;
+        }
+        if(IS_NOT_NULL(nodeIdInfo))
+        {
+                nodeIdInfoLen = strlen(nodeIdInfo);
+        }
     }
 
     unsigned char *browsePath = getCurrentBrowsePath();
     int pathLen = IS_NOT_NULL(browsePath) ? strlen((char *)browsePath) : 0;
-    unsigned char *completePath = (unsigned char *)EdgeCalloc(pathLen+browseNameLen + 2, sizeof(unsigned char));
+    unsigned char *completePath = (unsigned char *)EdgeCalloc(pathLen+nodeIdInfoLen+browseNameLen + 2, sizeof(unsigned char));
     if(pathLen > 0)
     {
         memcpy(completePath, browsePath, pathLen);
@@ -828,11 +852,17 @@ unsigned char *getCompleteBrowsePath(char *browseName)
     if(browseNameLen > 0)
     {
         completePath[pathLen++] = '/';
+        if(nodeIdInfoLen > 0)
+        {
+            memcpy(completePath + pathLen, nodeIdInfo, nodeIdInfoLen);
+            pathLen += nodeIdInfoLen;
+        }
         memcpy(completePath + pathLen, browseName, browseNameLen);
         pathLen += browseNameLen;
     }
     completePath[pathLen] = '\0';
     EdgeFree(browsePath);
+    EdgeFree(nodeIdInfo);
     return completePath;
 }
 
@@ -1281,7 +1311,10 @@ EdgeStatusCode browse(UA_Client *client, EdgeMessage *msg, bool browseNext,
                         }
 
                         // EdgeVersatility in EdgeResponse will have the complete path to browse name (Including the browse name).
-                        unsigned char *completePath = getCompleteBrowsePath(browseResult->browseName);
+                        unsigned char *completePath = NULL;
+                        if((!BROWSE_SHOW_ONLY_VARIABLE) || (ref->nodeClass & UA_NODECLASS_VARIABLE)){
+                            completePath = getCompleteBrowsePath(browseResult->browseName, &(ref->nodeId.nodeId));
+                        }
                         invokeResponseCb(msg, msgId, srcNodeId, browseResult, size, completePath);
                         EdgeFree(completePath);
                         EdgeFree(browseResult->browseName);
