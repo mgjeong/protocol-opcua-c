@@ -27,7 +27,7 @@
 #include <string.h>
 
 #define TAG "browse"
-#define GUID_LENGTH 36
+#define GUID_LENGTH (36)
 
 static const int BROWSE_NODECLASS_MASK = UA_NODECLASS_UNSPECIFIED;
 static const int VIEW_NODECLASS_MASK = UA_NODECLASS_OBJECT | UA_NODECLASS_VIEW;
