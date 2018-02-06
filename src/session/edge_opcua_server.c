@@ -30,7 +30,6 @@
 
 #define TAG "session_server"
 
-
 typedef struct
 {
     uint16_t ns_index;
@@ -38,7 +37,6 @@ typedef struct
     char *rootNodeBrowseName;
     char *rootNodeDisplayName;
 } EdgeNamespace;
-
 
 static UA_ServerConfig *m_serverConfig;
 static UA_Server *m_server;
@@ -51,36 +49,41 @@ static edgeMap *namespaceMap = NULL;
 
 static int namespaceType = DEFAULT_TYPE;
 
-void printNode(void *visitorContext, const UA_Node *node){
-	if(node == NULL){
-		EDGE_LOG(TAG, "UA_Node is null\n");
-		return;
-	}
-	UA_NodeId nodeId = node->nodeId;
-	UA_QualifiedName browseName = node->browseName;
-	char *type = NULL;
-	switch(nodeId.identifierType){
-		case UA_NODEIDTYPE_NUMERIC:
-			type = "numeric";
-			break;
-		case UA_NODEIDTYPE_STRING:
-			type = "string";
-			break;
-		case UA_NODEIDTYPE_GUID:
-			type = "guid";
-			break;
-		case UA_NODEIDTYPE_BYTESTRING:
-			type = "byteString";
-			break;
-		default :
-			type = "unknown";
-	}
-	printf("namespaceIndex : %d, type : %s, browseName : %s\n",
-			nodeId.namespaceIndex, type, convertUAStringToString(&browseName.name));
+void printNode(void *visitorContext, const UA_Node *node)
+{
+    if (node == NULL)
+    {
+        EDGE_LOG(TAG, "UA_Node is null\n");
+        return;
+    }
+
+    UA_NodeId nodeId = node->nodeId;
+    UA_QualifiedName browseName = node->browseName;
+    char *type = NULL;
+    switch (nodeId.identifierType)
+    {
+        case UA_NODEIDTYPE_NUMERIC:
+            type = "numeric";
+            break;
+        case UA_NODEIDTYPE_STRING:
+            type = "string";
+            break;
+        case UA_NODEIDTYPE_GUID:
+            type = "guid";
+            break;
+        case UA_NODEIDTYPE_BYTESTRING:
+            type = "byteString";
+            break;
+        default:
+            type = "unknown";
+    }
+    printf("namespaceIndex : %d, type : %s, browseName : %s\n", nodeId.namespaceIndex, type,
+            convertUAStringToString(&browseName.name));
 }
 
-void printNodeListInServer(){
-	m_serverConfig->nodestore.iterate(m_serverConfig->nodestore.context, NULL, printNode);
+void printNodeListInServer()
+{
+    m_serverConfig->nodestore.iterate(m_serverConfig->nodestore.context, NULL, printNode);
 }
 
 static void* getNamespaceIndex(char *namespaceUri)
@@ -99,7 +102,6 @@ static void* getNamespaceIndex(char *namespaceUri)
     }
     return NULL;
 }
-
 
 void createNamespaceInServer(char *namespaceUri, char *rootNodeIdentifier, char *rootNodeBrowseName,
         char *rootNodeDisplayName)

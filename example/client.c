@@ -9,6 +9,8 @@
 #include <edge_logger.h>
 #include <edge_malloc.h>
 
+#define TAG "SAMPLE_CLIENT"
+
 #define TEST_WITH_REFERENCE_SERVER 0
 
 #define COLOR_GREEN        "\x1b[32m"
@@ -18,6 +20,7 @@
 
 #define MAX_CHAR_SIZE (512)
 #define MAX_ADDRESS_SIZE (128)
+#define MAX_CP_LIST_COUNT (1000)
 #define NODE_COUNT (6)
 
 static bool startFlag = false;
@@ -30,8 +33,6 @@ static bool connect = false;
 static uint8_t supportedApplicationTypes = EDGE_APPLICATIONTYPE_SERVER | EDGE_APPLICATIONTYPE_DISCOVERYSERVER |
     EDGE_APPLICATIONTYPE_CLIENTANDSERVER;
 static EdgeConfigure *config = NULL;
-
-#define TAG "SAMPLE_CLIENT"
 
 typedef struct EndPointList {
     char *endpoint;
@@ -50,8 +51,6 @@ typedef struct BrowseNextData
 } BrowseNextData;
 
 BrowseNextData *browseNextData = NULL;
-
-#define MAX_CP_LIST_COUNT 1000
 
 int maxReferencesPerNode = 0;
 
