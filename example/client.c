@@ -968,7 +968,7 @@ static void testGetEndpoints(const char *endpointUri)
     EdgeResult res = getEndpointInfo(msg->endpointInfo);
     if(res.code != STATUS_OK)
     {
-        printf("getEndpointInfo() failed.\n");
+        printf("getEndpointInfo() failed. Status Code: %d\n", res.code);
     }
 
     EXIT_EP:
@@ -2572,8 +2572,9 @@ int main()
         else if (!strcmp(command, "get_endpoints"))
         {
             char endpointUri[MAX_ADDRESS_SIZE];
-            printf("[Please input server endpoint uri (Ex: opc.tcp://hostname:port/path)]: ");
-            scanf("%s", endpointUri);
+            //printf("[Please input server endpoint uri (Ex: opc.tcp://hostname:port/path)]: ");
+            //scanf("%s", endpointUri);
+            strcpy(endpointUri, "opc.tcp://107.110.6.95:4842");
 
             connect = false;
             testGetEndpoints(endpointUri);
