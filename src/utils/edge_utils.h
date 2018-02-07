@@ -161,6 +161,10 @@ extern "C"
 
     EdgeNodeInfo *cloneEdgeNodeInfo(EdgeNodeInfo *nodeInfo);
 
+    EdgeNodeIdType getEdgeNodeIdType(char type);
+
+    char getCharacterNodeIdType(uint32_t type);
+
 #ifdef __cplusplus
 }
 #endif

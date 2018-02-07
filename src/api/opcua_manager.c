@@ -390,41 +390,53 @@ void onStatusCallback(EdgeEndPointInfo *epInfo, EdgeStatusCode status)
     }
 }
 
-EdgeNodeInfo* createEdgeNodeInfo(const char* nodeName)
+EdgeNodeInfo* createEdgeNodeInfoForNodeId(EdgeNodeIdType type, int nodeId, uint16_t nameSpace)
 {
     EdgeNodeInfo* nodeInfo = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
     if (IS_NULL(nodeInfo))
     {
+        EDGE_LOG(TAG, "Error : Malloc failed for nodeInfo in test browse");
         return NULL;
     }
+    nodeInfo->nodeId = (EdgeNodeId *) EdgeCalloc(1, sizeof(EdgeNodeId));
+    if (IS_NULL(nodeInfo->nodeId))
+    {
+        EDGE_LOG(TAG, "Error : Malloc failed for nodeInfo->nodeId in test browse");
+        freeEdgeNodeInfo(nodeInfo);
+        return NULL;
+    }
+    nodeInfo->nodeId->type = type;
+    nodeInfo->nodeId->integerNodeId = nodeId;
+    nodeInfo->nodeId->nameSpace = nameSpace;
 
+    return nodeInfo;
+}
+
+EdgeNodeInfo* createEdgeNodeInfo(const char* nodeName)
+{
     int nsIdx = 0, valueType = 0;
     char nodeType;
     char browseName[MAX_BROWSENAME_SIZE];
     sscanf(nodeName, UNIQUE_NODE_PATH, &nsIdx, &nodeType, &valueType, browseName);
 
-    int browseNameSize = strlen(browseName);
-    nodeInfo->valueAlias = (char *) EdgeCalloc(1, browseNameSize + 1);
-    if (IS_NULL(nodeInfo->valueAlias))
+    EdgeNodeInfo* nodeInfo = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
+    if (IS_NULL(nodeInfo))
     {
-        printf("Error : Malloc failed for nodeInfo->valueAlias in test subscription\n");
-        freeEdgeNodeInfo(nodeInfo);
         return NULL;
     }
-    strncpy(nodeInfo->valueAlias, browseName, browseNameSize);
-    nodeInfo->valueAlias[browseNameSize] = '\0';
+    nodeInfo->valueAlias = copyString(browseName);
 
     nodeInfo->nodeId = (EdgeNodeId *) EdgeCalloc(1, sizeof(EdgeNodeId));
     if (IS_NULL(nodeInfo->nodeId))
-        {
-            printf("Error : Malloc failed for nodeInfo->valueAlias in test subscription\n");
-            freeEdgeNodeInfo(nodeInfo);
-            return NULL;
-        }
-    int nodeNameSize = strlen(nodeName);
-    nodeInfo->nodeId->nodeUri = (char *) EdgeCalloc(1, nodeNameSize + 1);
-    strncpy(nodeInfo->nodeId->nodeUri, nodeName, nodeNameSize);
-    nodeInfo->nodeId->nodeUri[nodeNameSize] = '\0';
-    nodeInfo->nodeId->nameSpace = (uint16_t)nsIdx;
+    {
+        EDGE_LOG(TAG, "Error : Malloc failed for nodeInfo->valueAlias in test subscription");
+        freeEdgeNodeInfo(nodeInfo);
+        return NULL;
+    }
+    nodeInfo->nodeId->nodeUri = copyString(nodeName);
+    nodeInfo->nodeId->nodeId = copyString(browseName);
+    nodeInfo->nodeId->nameSpace = (uint16_t) nsIdx;
+    nodeInfo->nodeId->type = getEdgeNodeIdType(nodeType);
+
     return nodeInfo;
 }

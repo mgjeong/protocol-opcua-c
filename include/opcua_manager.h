@@ -196,6 +196,8 @@ __attribute__((visibility("default"))) char *copyString(const char *str);
 
 /* Create EdgeNodeInfo object */
 __attribute__((visibility("default"))) EdgeNodeInfo* createEdgeNodeInfo(const char* nodeName);
+__attribute__((visibility("default"))) EdgeNodeInfo* createEdgeNodeInfoForNodeId(EdgeNodeIdType type,
+        int nodeId, uint16_t nameSpace);
 
 #ifdef __cplusplus
 }
