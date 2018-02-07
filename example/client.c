@@ -2089,76 +2089,25 @@ static void testSub()
         return;
     }
 
-    EdgeSubRequest *subReq = NULL; // Declaring here to make the handling in EXIT_SUBMODIFY proper.
-    EdgeMessage *msg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
+    EdgeMessage* msg = createEdgeSubMessage(ep, num_requests);
     if(IS_NULL(msg))
     {
         printf("Error : EdgeMalloc failed for msg in test subscription\n");
-        goto EXIT_SUB;
+        return;
     }
-
-    msg->endpointInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    if(IS_NULL(msg->endpointInfo))
-    {
-        printf("Error : Malloc failed for epInfo in test subscription\n");
-        goto EXIT_SUB;
-    }
-
-    msg->endpointInfo->endpointUri = copyString(ep);
-    msg->requests = (EdgeRequest **) EdgeCalloc(num_requests, sizeof(EdgeRequest *));
-    if(IS_NULL(msg->requests))
-    {
-        printf("Error : Malloc failed for requests in test subscription\n");
-        goto EXIT_SUB;
-    }
-
-    subReq = (EdgeSubRequest *) EdgeCalloc(1, sizeof(EdgeSubRequest));
-    if(IS_NULL(subReq))
-    {
-        printf("Error : Malloc failed for subReq in test subscription\n");
-        goto EXIT_SUB;
-    }
-
-    double samplingInterval;
-    printf("\nEnter number of sampling interval[millisecond] (minimum : 100ms) :: ");
-    scanf("%lf", &samplingInterval);
-
-    subReq->subType = Edge_Create_Sub;
-    subReq->samplingInterval = samplingInterval;
-    subReq->publishingInterval = 0.0;
-    subReq->maxKeepAliveCount = (1 > (int) (
-                                     ceil(10000.0 / subReq->publishingInterval))) ? 1 : (int) ceil(10000.0 / subReq->publishingInterval);
-    subReq->lifetimeCount = 10000;  //subReq->maxKeepAliveCount * 6;
-    subReq->maxNotificationsPerPublish = 1;
-    subReq->publishingEnabled = true;
-    subReq->priority = 0;
-    subReq->queueSize = 50;
 
     for (int i = 0; i < num_requests; i++)
     {
-        msg->requests[i] = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
-        if(IS_NULL(msg->requests[i]))
-        {
-            printf("Error : EdgeMalloc failed for requests[%d] in test subscription\n", i);
-            goto EXIT_SUB;
-        }
-
-
-
         printf("\nEnter the node #%d name to subscribe :: ", (i + 1));
         scanf("%s", nodeName);
-        msg->requests[i]->nodeInfo = createEdgeNodeInfo(nodeName);
-        if(IS_NULL(msg->requests[i]->nodeInfo))
-        {
-            printf("Error : Malloc failed for nodeInfo in test subscription\n");
-            goto EXIT_SUB;
-        }
-        msg->requests[i]->subMsg = subReq;
+
+        double samplingInterval;
+        printf("\nEnter number of sampling interval[millisecond] (minimum : 100ms) :: ");
+        scanf("%lf", &samplingInterval);
+
+        insertSubParameter(&msg, nodeName, Edge_Create_Sub, samplingInterval, 0.0, 10000, 1, true, 0, 50);
     }
 
-    msg->command = CMD_SUB;
-    msg->type = SEND_REQUESTS;
-    msg->requestLength = num_requests;
 
     EdgeResult result = handleSubscription(msg);
     if (result.code == STATUS_OK)
@@ -2168,14 +2117,6 @@ static void testSub()
         printf("CREATE RESULT : %d\n",  result.code);
     }
 
-    subReq = NULL;
-
-    EXIT_SUB:
-    for (int i = 1; i < num_requests; i++)
-    {
-        msg->requests[i]->subMsg = NULL;
-    }
-    EdgeFree(subReq);
     destroyEdgeMessage (msg);
 }
 
