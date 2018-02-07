@@ -1681,18 +1681,32 @@ static void *getNewValuetoWrite(EdgeNodeIdentifier type, int num_values)
             break;
         case String:
             {
-                char **retStr = (char**) malloc(sizeof(char*) * num_values);
-                int len;
-                char val[MAX_CHAR_SIZE];
-                for (int i = 0; i < num_values; i++)
+                if(num_values > 1)
                 {
+                    char **retStr = (char**) malloc(sizeof(char*) * num_values);
+                    int len;
+                    char val[MAX_CHAR_SIZE];
+                    for (int i = 0; i < num_values; i++)
+                    {
+                        scanf("%s", val);
+                        len  = strlen(val);
+                        retStr[i] = (char *) EdgeMalloc(len + 1);
+                        strncpy(retStr[i], val, len);
+                        retStr[i][len] = '\0';
+                    }
+                    return (void *) retStr;
+                }
+                else
+                {
+                    char *retStr = NULL;
+                    int len;
+                    char val[MAX_CHAR_SIZE];
                     scanf("%s", val);
                     len  = strlen(val);
-                    retStr[i] = (char *) EdgeMalloc(len + 1);
-                    strncpy(retStr[i], val, len);
-                    retStr[i][len] = '\0';
+                    retStr = (char *) EdgeMalloc(len + 1);
+                    strncpy(retStr, val, len+1);
+                    return (void *) retStr;
                 }
-                return (void *) retStr;
             }
             break;
         default:
