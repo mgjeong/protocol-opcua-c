@@ -1259,22 +1259,7 @@ static void testBrowse(char* endpointUri)
     printf("\n\n" COLOR_YELLOW "********** Browse Int16 node in namespace 2 **********" COLOR_RESET
            "\n");
 #else
-    msg->request->nodeInfo = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
-    if(IS_NULL(msg->request->nodeInfo))
-    {
-        printf("Error : Malloc failed for nodeInfo in test browse\n");
-        goto EXIT_BROWSE;
-    }
-    msg->request->nodeInfo->nodeId = (EdgeNodeId *) EdgeCalloc(1, sizeof(EdgeNodeId));
-    if(IS_NULL(msg->request->nodeInfo->nodeId))
-    {
-        printf("Error : Malloc failed for nodeInfo->nodeId in test browse\n");
-        goto EXIT_BROWSE;
-    }
-    msg->request->nodeInfo->nodeId->type = INTEGER;
-    msg->request->nodeInfo->nodeId->integerNodeId = RootFolder;
-    msg->request->nodeInfo->nodeId->nameSpace = SYSTEM_NAMESPACE_INDEX;
-
+    msg->request->nodeInfo = createEdgeNodeInfoForNodeId(INTEGER, RootFolder, SYSTEM_NAMESPACE_INDEX);
     printf("\n\n" COLOR_YELLOW "********** Browse RootFolder node in system namespace **********"
            COLOR_RESET "\n");
 #endif
@@ -1390,21 +1375,7 @@ static void testBrowses(char* endpointUri)
         printf("Error : Malloc failed for requests[0] in test browses\n");
         goto EXIT_BROWSES;
     }
-    msg->requests[0]->nodeInfo = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
-    if(IS_NULL(msg->requests[0]->nodeInfo))
-    {
-        printf("Error : Malloc failed for nodeInfo1 in test browses\n");
-        goto EXIT_BROWSES;
-    }
-    msg->requests[0]->nodeInfo->nodeId = (EdgeNodeId *) EdgeCalloc(1, sizeof(EdgeNodeId));
-    if(IS_NULL(msg->requests[0]->nodeInfo->nodeId))
-    {
-        printf("Error : Malloc failed for nodeInfo1->nodeId in test browses\n");
-        goto EXIT_BROWSES;
-    }
-    msg->requests[0]->nodeInfo->nodeId->type = INTEGER;
-    msg->requests[0]->nodeInfo->nodeId->integerNodeId = RootFolder;
-    msg->requests[0]->nodeInfo->nodeId->nameSpace = SYSTEM_NAMESPACE_INDEX;
+    msg->requests[0]->nodeInfo = createEdgeNodeInfoForNodeId(INTEGER, RootFolder, SYSTEM_NAMESPACE_INDEX);
 
     msg->requests[1] = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
     if(IS_NULL(msg->requests[1]))
@@ -1412,21 +1383,7 @@ static void testBrowses(char* endpointUri)
         printf("Error : Malloc failed for requests[1] in test browses\n");
         goto EXIT_BROWSES;
     }
-    msg->requests[1]->nodeInfo = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
-    if(IS_NULL(msg->requests[1]->nodeInfo))
-    {
-        printf("Error : Malloc failed for nodeInfo2 in test browses\n");
-        goto EXIT_BROWSES;
-    }
-    msg->requests[1]->nodeInfo->nodeId = (EdgeNodeId *) EdgeCalloc(1, sizeof(EdgeNodeId));
-    if(IS_NULL(msg->requests[1]->nodeInfo->nodeId))
-    {
-        printf("Error : Malloc failed for nodeInfo2->nodeId in test browses\n");
-        goto EXIT_BROWSES;
-    }
-    msg->requests[1]->nodeInfo->nodeId->type = INTEGER;
-    msg->requests[1]->nodeInfo->nodeId->integerNodeId = ObjectsFolder;
-    msg->requests[1]->nodeInfo->nodeId->nameSpace = SYSTEM_NAMESPACE_INDEX;
+    msg->requests[1]->nodeInfo = createEdgeNodeInfoForNodeId(INTEGER, ObjectsFolder, SYSTEM_NAMESPACE_INDEX);
 
     msg->requests[2] = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
     if(IS_NULL(msg->requests[2]))
@@ -1434,21 +1391,12 @@ static void testBrowses(char* endpointUri)
         printf("Error : Malloc failed for requests[2] in test browses\n");
         goto EXIT_BROWSES;
     }
-    msg->requests[2]->nodeInfo = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
-    if(IS_NULL(msg->requests[2]->nodeInfo))
-    {
-        printf("Error : Malloc failed for nodeInfo3 in test browses\n");
-        goto EXIT_BROWSES;
-    }
-    msg->requests[2]->nodeInfo->nodeId = (EdgeNodeId *) EdgeCalloc(1, sizeof(EdgeNodeId));
-    if(IS_NULL(msg->requests[2]->nodeInfo->nodeId))
-    {
-        printf("Error : Malloc failed for nodeInfo3->nodeId in test browses\n");
-        goto EXIT_BROWSES;
-    }
-    msg->requests[2]->nodeInfo->nodeId->type = STRING;
-    msg->requests[2]->nodeInfo->nodeId->nodeId = copyString("Object1");
-    msg->requests[2]->nodeInfo->nodeId->nameSpace = 2;
+    printf("\n\n" COLOR_YELLOW "tkss\n");
+
+    msg->requests[2]->nodeInfo = createEdgeNodeInfo("{2;S;v=0}Object1");
+
+    printf("\n\n" COLOR_YELLOW "tkss1 %d %d %s\n", msg->requests[2]->nodeInfo->nodeId->nameSpace,
+            msg->requests[2]->nodeInfo->nodeId->type, msg->requests[2]->nodeInfo->nodeId->nodeId);
 
     printf("\n\n" COLOR_YELLOW
            "********** Browse RootFolder, ObjectsFolder nodes in system namespace and Object1 in namespace 1 **********"

@@ -817,30 +817,13 @@ unsigned char *getCompleteBrowsePath(char *browseName, UA_NodeId* nodeId, UA_Loc
     char *nodeIdInfo = NULL;
     int browseNameLen = 0;
     int nodeIdInfoLen = 0;
-    char nodeType[4] = {'N','S','B','G'};
     if(IS_NOT_NULL(browseName))
     {
         const int bufferSize = 20;
         browseNameLen = strlen(browseName);
         nodeIdInfo = (char *)EdgeCalloc(bufferSize, sizeof(char));
 
-        char curType = nodeType[0];
-        switch (nodeId->identifierType)
-        {
-            case UA_NODEIDTYPE_NUMERIC:
-                curType = nodeType[0];
-                break;
-            case UA_NODEIDTYPE_STRING:
-                curType = nodeType[1];
-                break;
-            case UA_NODEIDTYPE_BYTESTRING:
-                curType = nodeType[2];
-                break;
-            case UA_NODEIDTYPE_GUID:
-                curType = nodeType[3];
-                break;
-        }
-
+        char curType = getCharacterNodeIdType(nodeId->identifierType);
         if (UA_NODEIDTYPE_STRING == nodeId->identifierType) {
             unsigned char *valueType = convertUAStringToUnsignedChar(&description.text);
             if (0 == strncmp((const char*)valueType, "v=", 2)) {
