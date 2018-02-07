@@ -317,7 +317,7 @@ void stop_server(EdgeEndPointInfo *epInfo)
 {
     b_running = false;
     pthread_join(m_serverThread, NULL);
-
+    UA_Server_run_shutdown(m_server);
     UA_Server_delete(m_server);
     UA_ServerConfig_delete(m_serverConfig);
     EDGE_LOG(TAG, "\n ========= [SERVER] Server Stopped ============= \n");
