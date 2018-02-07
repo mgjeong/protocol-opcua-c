@@ -27,6 +27,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 #define TAG "opcua_manager"
 
@@ -440,3 +441,91 @@ EdgeNodeInfo* createEdgeNodeInfo(const char* nodeName)
 
     return nodeInfo;
 }
+
+EdgeResult insertSubParameter(EdgeMessage **msg, const char* nodeName, EdgeNodeIdentifier subType, double samplingInterval,
+        double publishingInterval, int lifetimeCount, int maxNotificationsPerPublish, bool publishingEnabled, int priority,
+        uint32_t queueSize)
+{
+    EdgeResult result;
+    result.code = STATUS_OK;
+    if(IS_NULL((*msg)) || IS_NULL(nodeName))
+    {
+        EDGE_LOG(TAG, "Error : parameter is not valid");
+        result.code = STATUS_PARAM_INVALID;
+        goto EXIT;
+    }
+
+    size_t index = (*msg)->requestLength;
+    (*msg)->requests[index] = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
+    if(IS_NULL((*msg)->requests[index]))
+    {
+        EDGE_LOG(TAG, "Error : EdgeMalloc failed for requests");
+        result.code = STATUS_ERROR;
+        goto EXIT;
+    }
+
+    (*msg)->requests[index]->nodeInfo = createEdgeNodeInfo(nodeName);
+    if(IS_NULL((*msg)->requests[index]->nodeInfo))
+    {
+        EDGE_LOG(TAG, "Error : Malloc failed for nodeInfo subReq");
+        result.code = STATUS_ERROR;
+        goto EXIT;
+    }
+
+    EdgeSubRequest* subReq = (EdgeSubRequest *) EdgeCalloc(1, sizeof(EdgeSubRequest));
+    if(IS_NULL(subReq))
+    {
+        EDGE_LOG(TAG, "Error : Malloc failed for subReq");
+        result.code = STATUS_ERROR;
+        goto EXIT;
+    }
+
+    subReq->subType = subType;
+    subReq->samplingInterval = samplingInterval;
+    subReq->publishingInterval = publishingInterval;
+    subReq->maxKeepAliveCount = (1 > (int) (
+            ceil(10000.0 / publishingInterval))) ? 1 : (int) ceil(10000.0 / publishingInterval);
+    subReq->lifetimeCount = lifetimeCount;
+    subReq->maxNotificationsPerPublish = maxNotificationsPerPublish;
+    subReq->publishingEnabled = publishingEnabled;
+    subReq->priority = priority;
+    subReq->queueSize = queueSize;
+
+    (*msg)->requests[index]->subMsg = subReq;
+    (*msg)->requestLength = ++index;
+    EXIT:
+    return result;
+}
+
+EdgeMessage* createEdgeSubMessage(const char *endpointUri, size_t requestSize)
+{
+    EdgeMessage *msg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
+    if(IS_NULL(msg))
+    {
+        EDGE_LOG(TAG, "Error : EdgeMalloc failed for msg in test subscription");
+        return NULL;
+    }
+
+    msg->endpointInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
+    if(IS_NULL(msg->endpointInfo))
+    {
+        EDGE_LOG(TAG, "Error : Malloc failed for epInfo in test subscription");
+        return NULL;
+    }
+
+    msg->endpointInfo->endpointUri = copyString(endpointUri);
+    msg->requests = (EdgeRequest **) EdgeCalloc(requestSize, sizeof(EdgeRequest *));
+    if(IS_NULL(msg->requests))
+    {
+        EDGE_LOG(TAG, "Error : Malloc failed for requests in test subscription");
+        return NULL;
+    }
+
+    msg->command = CMD_SUB;
+    msg->type = SEND_REQUESTS;
+
+    return msg;
+}
+
+
+
