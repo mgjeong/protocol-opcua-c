@@ -50,9 +50,9 @@ static bool readNodeFlag = true;
 static bool browseNodeFlag = false;
 static bool methodCallFlag = false;
 
-static char node_arr[10][11] =
-{ "String1", "String2", "String3", "Double", "Int32", "UInt16", "ByteString", "Byte", "Error"
-        "Guid" };
+static char node_arr[10][25] =
+{ "{2;S;v=12}String1", "{2;S;v=12}String2", "{2;S;v=12}String3", "{2;S;v=11}Double", "{2;S;v=6}Int32",
+        "{2;S;v=5}UInt16", "{2;S;v=15}ByteString", "{2;S;v=3}Byte", "Error", "{2;S;v=14}Guid" };
 
 static int method_arr[5] =
 { 105, 205, 305, 405, 505 };
@@ -573,10 +573,8 @@ static void subscribeAndModifyNodes()
     subReq->priority = 0;
     subReq->queueSize = 50;
 
-    EdgeNodeInfo *nodeInfo1 = (EdgeNodeInfo *) EdgeMalloc(sizeof(EdgeNodeInfo));
-    nodeInfo1->valueAlias = node_arr[1];
-    EdgeNodeInfo *nodeInfo2 = (EdgeNodeInfo *) EdgeMalloc(sizeof(EdgeNodeInfo));
-    nodeInfo2->valueAlias = node_arr[0];
+    EdgeNodeInfo *nodeInfo1 = createEdgeNodeInfo(node_arr[1]);
+    EdgeNodeInfo *nodeInfo2 = createEdgeNodeInfo(node_arr[0]);
     requests[0] = (EdgeRequest *) EdgeMalloc(sizeof(EdgeRequest));
     requests[0]->nodeInfo = nodeInfo1;
     requests[0]->subMsg = subReq;
@@ -620,8 +618,7 @@ static void subscribeAndModifyNodes()
     EdgeSubRequest *subReqDel1 = (EdgeSubRequest *) EdgeMalloc(sizeof(EdgeSubRequest));
     subReqDel1->subType = Edge_Delete_Sub;
 
-    EdgeNodeInfo *nodeInfoDel1 = (EdgeNodeInfo *) EdgeMalloc(sizeof(EdgeNodeInfo));
-    nodeInfoDel1->valueAlias = node_arr[0];
+    EdgeNodeInfo *nodeInfoDel1 = createEdgeNodeInfo(node_arr[0]);
 
     EdgeRequest *requestDel1 = (EdgeRequest *) EdgeMalloc(sizeof(EdgeRequest));
     requestDel1->nodeInfo = nodeInfoDel1;
@@ -663,8 +660,7 @@ static void subscribeAndModifyNodes()
     subReqMod->priority = 0;
     subReqMod->queueSize = 50;
 
-    EdgeNodeInfo *nodeInfoMod = (EdgeNodeInfo *) EdgeMalloc(sizeof(EdgeNodeInfo));
-    nodeInfoMod->valueAlias = node_arr[3];
+    EdgeNodeInfo *nodeInfoMod = createEdgeNodeInfo(node_arr[3]);
 
     EdgeRequest *requestMod = (EdgeRequest *) EdgeMalloc(sizeof(EdgeRequest));
     requestMod->nodeInfo = nodeInfoMod;
@@ -678,7 +674,9 @@ static void subscribeAndModifyNodes()
     result = handleSubscription(msgMod);
     EXPECT_NE(result.code, STATUS_OK);
 
-    nodeInfoMod->valueAlias = node_arr[1];
+    destroyEdgeNodeInfo(requestMod->nodeInfo);
+    requestMod->nodeInfo = createEdgeNodeInfo(node_arr[1]);
+
     result = handleSubscription(msgMod);
     EXPECT_EQ(result.code, STATUS_OK);
     sleep(2);
@@ -697,8 +695,7 @@ static void subscribeAndModifyNodes()
     EdgeSubRequest *subReqRepub = (EdgeSubRequest *) EdgeMalloc(sizeof(EdgeSubRequest));
     subReqRepub->subType = Edge_Republish_Sub;
 
-    EdgeNodeInfo *nodeInfoRepub = (EdgeNodeInfo *) EdgeMalloc(sizeof(EdgeNodeInfo));
-    nodeInfoRepub->valueAlias = node_arr[1];
+    EdgeNodeInfo *nodeInfoRepub = createEdgeNodeInfo(node_arr[1]);
 
     EdgeRequest *requestRepub = (EdgeRequest *) EdgeMalloc(sizeof(EdgeRequest));
     requestRepub->nodeInfo = nodeInfoRepub;
@@ -731,8 +728,7 @@ static void deleteSub()
     EdgeSubRequest *subReqDel2 = (EdgeSubRequest *) EdgeMalloc(sizeof(EdgeSubRequest));
     subReqDel2->subType = Edge_Delete_Sub;
 
-    EdgeNodeInfo *nodeInfoDel2 = (EdgeNodeInfo *) EdgeMalloc(sizeof(EdgeNodeInfo));
-    nodeInfoDel2->valueAlias = node_arr[1];
+    EdgeNodeInfo *nodeInfoDel2 = createEdgeNodeInfo(node_arr[1]);
 
     EdgeRequest *requestDel2 = (EdgeRequest *) EdgeMalloc(sizeof(EdgeRequest));
     requestDel2->nodeInfo = nodeInfoDel2;
@@ -849,72 +845,68 @@ static void writeNodes(bool defaultFlag)
         EdgeEndPointInfo *epWrite = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
         epWrite->endpointUri = endpointUri;
 
-        EdgeNodeInfo **nodeInfo = (EdgeNodeInfo **) malloc(sizeof(EdgeNodeInfo *));
-        nodeInfo[0] = (EdgeNodeInfo *) EdgeMalloc(sizeof(EdgeNodeInfo));
-        nodeInfo[0]->valueAlias = node_arr[id];
+        EdgeRequest **requests = (EdgeRequest **) EdgeCalloc(1, sizeof(EdgeRequest *));
+        requests[0] = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
+        requests[0]->nodeInfo = createEdgeNodeInfo(node_arr[id]);
 
-        EdgeRequest **requests = (EdgeRequest **) malloc(sizeof(EdgeRequest *) * 1);
-        requests[0] = (EdgeRequest *) EdgeMalloc(sizeof(EdgeRequest));
-        requests[0]->nodeInfo = nodeInfo[0];
+        EdgeVersatility* message = (EdgeVersatility*) EdgeCalloc(1, sizeof(EdgeVersatility));
+        message->isArray = false;
 
         switch (id)
         {
             case 0:
                 requests[0]->type = String;
                 if (defaultFlag)
-                    requests[0]->value = (void *) TEST_STR1_R;
+                    message->value = (void *) TEST_STR1_R;
                 else
-                    requests[0]->value = (void *) TEST_STR1_W;
+                    message->value = (void *) TEST_STR1_W;
                 break;
             case 1:
                 requests[0]->type = String;
                 if (defaultFlag)
-                    requests[0]->value = (void *) TEST_STR2_R;
+                    message->value = (void *) TEST_STR2_R;
                 else
-                    requests[0]->value = (void *) TEST_STR2_W;
+                    message->value = (void *) TEST_STR2_W;
                 break;
             case 2:
                 requests[0]->type = String;
                 if (defaultFlag)
-                    requests[0]->value = (void *) TEST_STR3_R;
+                    message->value = (void *) TEST_STR3_R;
                 else
-                    requests[0]->value = (void *) TEST_STR3_W;
+                    message->value = (void *) TEST_STR3_W;
                 break;
             case 3:
                 requests[0]->type = Double;
-                requests[0]->value = (void *) &d_value;
+                message->value = (void *) &d_value;
                 break;
             case 4:
                 requests[0]->type = Int32;
-                requests[0]->value = (void *) &i_value;
+                message->value = (void *) &i_value;
                 break;
             case 5:
                 requests[0]->type = UInt16;
-                requests[0]->value = (void *) &id_value;
+                message->value = (void *) &id_value;
                 break;
             case 6:
                 requests[0]->type = UInt16;
-                requests[0]->value = (void *) &id_value;
+                message->value = (void *) &id_value;
                 break;
         }
+        requests[0]->value = message;
 
-        EdgeMessage *msgWrite = (EdgeMessage *) EdgeMalloc(sizeof(EdgeMessage));
+        EdgeMessage *msgWrite = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
         msgWrite->endpointInfo = epWrite;
-        msgWrite->command = CMD_READ;
+        msgWrite->command = CMD_WRITE;
         msgWrite->type = SEND_REQUESTS;
         msgWrite->requests = requests;
         msgWrite->requestLength = 1;
 
         writeNode(msgWrite);
 
-        free(nodeInfo[0]);
-        nodeInfo[0] = NULL;
-        free(nodeInfo);
-        nodeInfo = NULL;
-        free(requests[0]);
-        requests[0] = NULL;
-        free(requests);
-        requests = NULL;
+        destroyEdgeNodeInfo(requests[0]->nodeInfo);
+        EdgeFree(requests[0]->value);
+        EdgeFree(requests[0]);
+        EdgeFree(requests);
         deleteMessage(msgWrite, epWrite);
     }
 }
@@ -926,19 +918,17 @@ static void readNodes()
     EdgeEndPointInfo *epRead = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
     epRead->endpointUri = endpointUri;
 
-    EdgeNodeInfo **nodeInfo = (EdgeNodeInfo **) malloc(sizeof(EdgeNodeInfo *) * 1);
+    EdgeNodeInfo **nodeInfo = (EdgeNodeInfo **) EdgeCalloc(1, sizeof(EdgeNodeInfo *));
 
     for (int idx = 0; idx < 10; idx++)
     {
         PRINT_ARG("*****  Reading the node with browse name  ", node_arr[idx]);
-        nodeInfo[0] = (EdgeNodeInfo *) EdgeMalloc(sizeof(EdgeNodeInfo));
-        nodeInfo[0]->valueAlias = node_arr[idx];
 
-        EdgeRequest **requests = (EdgeRequest **) malloc(sizeof(EdgeRequest *) * 1);
-        requests[0] = (EdgeRequest *) EdgeMalloc(sizeof(EdgeRequest));
-        requests[0]->nodeInfo = nodeInfo[0];
+        EdgeRequest **requests = (EdgeRequest **) EdgeCalloc(1, sizeof(EdgeRequest *));
+        requests[0] = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
+        requests[0]->nodeInfo = createEdgeNodeInfo(node_arr[idx]);
 
-        EdgeMessage *msgRead = (EdgeMessage *) EdgeMalloc(sizeof(EdgeMessage));
+        EdgeMessage *msgRead = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
         msgRead->endpointInfo = epRead;
         msgRead->command = CMD_READ;
         msgRead->type = SEND_REQUESTS;
@@ -947,18 +937,9 @@ static void readNodes()
 
         readNode(msgRead);
 
-        free(nodeInfo[0]);
-        nodeInfo[0] = NULL;
-
-        free(requests[0]);
-        requests[0] = NULL;
-
-        free(requests);
-        requests = NULL;
-
-        free(msgRead);
-        msgRead = NULL;
-
+        destroyEdgeRequest(requests[0]);
+        EdgeFree(requests);
+        EdgeFree(msgRead);
     }
 
     free(nodeInfo);
@@ -966,7 +947,6 @@ static void readNodes()
 
     free(epRead);
     epRead = NULL;
-
 }
 
 static void callClientMethods()
@@ -975,8 +955,7 @@ static void callClientMethods()
     EdgeEndPointInfo *ep = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
     ep->endpointUri = endpointUri;
 
-    EdgeNodeInfo *nodeInfo = (EdgeNodeInfo *) EdgeMalloc(sizeof(EdgeNodeInfo));
-    nodeInfo->valueAlias = "square_root";
+    EdgeNodeInfo *nodeInfo = createEdgeNodeInfo("{2;S;v=0}sqrt(x)");
 
     EdgeMethodRequestParams *methodParams = (EdgeMethodRequestParams *) EdgeMalloc(
             sizeof(EdgeMethodRequestParams));
@@ -1021,8 +1000,7 @@ static void callClientMethods()
     ep = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
     ep->endpointUri = endpointUri;
 
-    nodeInfo = (EdgeNodeInfo *) EdgeMalloc(sizeof(EdgeNodeInfo));
-    nodeInfo->valueAlias = "incrementInc32Array";
+    nodeInfo = createEdgeNodeInfo("{2;S;v=0}incrementInc32Array(x,delta)");
 
     methodParams = (EdgeMethodRequestParams *) EdgeMalloc(sizeof(EdgeMethodRequestParams));
     methodParams->num_inpArgs = 2;
