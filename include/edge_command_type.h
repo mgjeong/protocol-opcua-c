@@ -19,7 +19,9 @@ typedef enum
     CMD_STOP_CLIENT = 6,
     CMD_GET_ENDPOINTS = 7,
     CMD_BROWSE = 8,
-    CMD_METHOD = 9
+    CMD_BROWSENEXT = 9,
+    CMD_BROWSE_VIEW = 10,
+    CMD_METHOD = 11
 } EdgeCommand;
 
 #define  CMD_READ_VALUE                   "read"

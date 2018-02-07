@@ -161,6 +161,10 @@ extern "C"
 
     EdgeNodeInfo *cloneEdgeNodeInfo(EdgeNodeInfo *nodeInfo);
 
+    EdgeMessage* cloneEdgeMessage(EdgeMessage *msg);
+
+    size_t get_size(EdgeNodeIdentifier type, bool isArray);
+
 #ifdef __cplusplus
 }
 #endif

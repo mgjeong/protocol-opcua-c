@@ -21,7 +21,7 @@
 #include "queue.h"
 
 #include <stdlib.h>
-#include "edg_malloc.h"
+#include "edge_malloc.h"
 
 bool isEmpty(Queue *queue)
 {
@@ -36,6 +36,7 @@ bool isFull(Queue *queue)
 Queue *createQueue(int capacity)
 {
     Queue *queue = (Queue *) EdgeMalloc(sizeof(Queue));
+    queue->size = 0;
     queue->capacity = capacity;
     queue->front = 0;
     queue->rear = queue->capacity - 1;

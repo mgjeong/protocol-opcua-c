@@ -84,7 +84,7 @@ typedef struct DiscoveryCallback
 //  DiscoveryCallback* discoveryCallback;
 //} EdgeConfigure;
 
-//void onSendMessage(EdgeMessage* msg);
+void onSendMessage(EdgeMessage* msg);
 void onResponseMessage(EdgeMessage *msg);
 void onStatusCallback(EdgeEndPointInfo *epInfo, EdgeStatusCode status);
 void onDiscoveryCallback(EdgeDevice *device);
@@ -130,6 +130,9 @@ __attribute__((visibility("default"))) EdgeResult callMethod(EdgeMessage *msg);
 __attribute__((visibility("default"))) EdgeResult handleSubscription(EdgeMessage *msg);
 
 __attribute__((visibility("default"))) void showNodeList(void);
+
+// Thread/queue Handling
+__attribute__((visibility("default"))) EdgeResult sendRequest(EdgeMessage* msg);
 
 // Common
 

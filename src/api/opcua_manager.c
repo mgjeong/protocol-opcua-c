@@ -21,6 +21,7 @@
 #include "opcua_manager.h"
 #include "edge_opcua_server.h"
 #include "edge_opcua_client.h"
+#include "message_dispatcher.h"
 #include "edge_logger.h"
 #include "edge_utils.h"
 #include "edge_malloc.h"
@@ -286,51 +287,87 @@ char *copyString(const char *str)
     return cloneString(str);
 }
 
-//EdgeResult* send(EdgeMessage* msg) {
-//  if (msg == NULL)
-//    return NULL;
-//  //bool ret = add_to_sendQ(msg);
+//////////////////////// TODO : QUEUE MESSAGE HANDLING /////////////////////////
 
-//  EdgeResult* result = (EdgeResult*) malloc(sizeof(EdgeResult));
-//  result->code = STATUS_OK;
-////  result->code = (ret  ? STATUS_OK : STATUS_ENQUEUE_ERROR);
-//  return result;
-//}
+EdgeResult sendRequest(EdgeMessage* msg) {
 
-//void onSendMessage(EdgeMessage* msg) {
-//  EDGE_LOG(TAG, "============= onSendMessage============");
-//  if (msg->command == CMD_START_SERVER) {
-//    EDGE_LOG(TAG, "\n[Received command] :: Server start \n");
-//    if (b_serverInitialized) {
-//      EDGE_LOG(TAG, "Server already initialised");
-//      return ;
-//    }
-//    EdgeResult* result = start_server(msg->endpointInfo);
-//    if (result == NULL)
-//      return ;
-//    if (result->code == STATUS_OK) {
-//      b_serverInitialized = true;
-//    }
-//    free (result); result = NULL;
-//  } else if (msg->command == CMD_START_CLIENT) {
-//    EDGE_LOG(TAG, "\n[Received command] :: Client connect \n");
-//    if (b_clientInitialized) {
-//      EDGE_LOG(TAG, "Client already initialised");
-//      return ;
-//    }
-//    bool result = connect_client(msg->endpointInfo->endpointUri);
-//    if (!result)
-//      return ;
-//   b_clientInitialized = true;
-//  } else if (msg->command == CMD_STOP_SERVER) {
-//    stop_server(msg->endpointInfo);
-//    b_serverInitialized = false;
-//  } else if (msg->command == CMD_STOP_CLIENT) {
-//    EDGE_LOG(TAG, "\n[Received command] :: Client disconnect \n");
-//    disconnect_client();
-//    b_clientInitialized = false;
-//  }
-//}
+    EdgeMessage *msgCopy = cloneEdgeMessage(msg);
+    bool ret = add_to_sendQ(msgCopy);
+
+    EdgeResult result;
+    result.code = (ret  ? STATUS_OK : STATUS_ENQUEUE_ERROR);
+    return result;
+}
+
+void onSendMessage(EdgeMessage* msg) {
+    if (msg->command == CMD_START_SERVER)
+    {
+        printf ("\n[Received command] :: START SERVER \n");
+        if (b_serverInitialized)
+        {
+            printf( "Server already initialised\n");
+            return ;
+        }
+        EdgeResult result = start_server(msg->endpointInfo);
+        if (result.code == STATUS_OK)
+        {
+            b_serverInitialized = true;
+        }
+    }
+    else if (msg->command == CMD_START_CLIENT)
+    {
+        printf ("\n[Received command] :: START CLIENT \n");
+        bool result = connect_client(msg->endpointInfo->endpointUri);
+        if (!result)
+            return ;
+    }
+    else if (msg->command == CMD_STOP_SERVER)
+    {
+        printf("\n[Received command] :: STOP SERVER \n");
+        stop_server(msg->endpointInfo);
+        b_serverInitialized = false;
+    }
+    else if (msg->command == CMD_STOP_CLIENT)
+    {
+        printf("\n[Received command] :: STOP CLIENT \n");
+        disconnect_client(msg->endpointInfo);
+    }
+    else if (msg->command == CMD_READ)
+    {
+        printf("\n[Received command] :: READ \n");
+        readNodesFromServer(msg);
+    }
+    else if (msg->command == CMD_WRITE)
+    {
+        printf("\n[Received command] :: WRITE \n");
+        writeNodesInServer(msg);
+    }
+    else if (msg->command == CMD_METHOD)
+    {
+        printf("\n[Received command] :: METHOD CALL \n");
+        callMethodInServer(msg);
+    }
+    else if (msg->command == CMD_SUB)
+    {
+        printf("\n[Received command] :: SUB \n");
+        executeSubscriptionInServer(msg);
+    }
+    else if (msg->command == CMD_BROWSE)
+    {
+        printf("\n[Received command] :: BROWSE \n");
+        browseNodesInServer(msg);
+    }
+    else if (msg->command == CMD_BROWSE_VIEW)
+    {
+        printf("\n[Received command] :: BROWSE \n");
+        browseViewsInServer(msg);
+    }
+    else if (msg->command == CMD_BROWSENEXT)
+    {
+        printf("\n[Received command] :: BROWSE \n");
+        browseNextInServer(msg);
+    }
+}
 
 void onResponseMessage(EdgeMessage *msg)
 {
