@@ -22,6 +22,7 @@
 #include "edge_node_type.h"
 #include "edge_logger.h"
 #include "edge_malloc.h"
+#include "message_dispatcher.h"
 
 #include <inttypes.h>
 #include <string.h>
@@ -503,7 +504,7 @@ static void invokeResponseCb(EdgeMessage *msg, int msgId, EdgeNodeId *srcNodeId,
             return;
         }
         versatileVal->isArray = false;
-        versatileVal->value = (unsigned char *)cloneData(browsePath, strlen((char *)browsePath)+1);
+        versatileVal->value = (unsigned char *)cloneData(browsePath, strlen((char *)browsePath)+1);        //(void*)  cloneString((char*) browsePath);              //(unsigned char *)cloneData(browsePath, strlen((char *)browsePath)+1);
         response->message = versatileVal;
     }
 
@@ -515,9 +516,9 @@ static void invokeResponseCb(EdgeMessage *msg, int msgId, EdgeNodeId *srcNodeId,
         freeEdgeMessage(resultMsg);
         return;
     }
-    response->nodeInfo->nodeId = srcNodeId;
+    response->nodeInfo->nodeId = cloneEdgeNodeId(srcNodeId);               //srcNodeId;
     response->requestId = msgId; // Response for msgId'th request.
-    EdgeResponse **responses = (EdgeResponse **) calloc(1, sizeof(EdgeResponse *));
+    EdgeResponse **responses = (EdgeResponse **) EdgeCalloc (1, sizeof(EdgeResponse *));
     if (IS_NULL(responses))
     {
         EDGE_LOG(TAG, "Memory allocation failed.");
@@ -530,15 +531,11 @@ static void invokeResponseCb(EdgeMessage *msg, int msgId, EdgeNodeId *srcNodeId,
     resultMsg->responses = responses;
     resultMsg->responseLength = 1;
 
-    resultMsg->browseResult = browseResult;
+    resultMsg->browseResult = (EdgeBrowseResult *) EdgeCalloc(1, sizeof(EdgeBrowseResult));               //browseResult;
+    resultMsg->browseResult->browseName = cloneString(browseResult->browseName);
     resultMsg->browseResultLength = size;
 
-    onResponseMessage(resultMsg);
-
-    resultMsg->browseResultLength = 0;
-    resultMsg->browseResult = NULL;
-    response->nodeInfo->nodeId = NULL;
-    freeEdgeMessage(resultMsg);
+    add_to_recvQ(resultMsg);
 }
 
 static void invokeResponseCbForContinuationPoint(EdgeMessage *msg, int msgId, EdgeNodeId *srcNodeId,
@@ -589,7 +586,7 @@ static void invokeResponseCbForContinuationPoint(EdgeMessage *msg, int msgId, Ed
         freeEdgeMessage(resultMsg);
         return;
     }
-    response->nodeInfo->nodeId = srcNodeId;
+    response->nodeInfo->nodeId = cloneEdgeNodeId(srcNodeId);
     response->requestId = msgId; // Response for msgId'th request.
     EdgeResponse **responses = (EdgeResponse **) calloc(1, sizeof(EdgeResponse *));
     if (IS_NULL(responses))
@@ -604,11 +601,7 @@ static void invokeResponseCbForContinuationPoint(EdgeMessage *msg, int msgId, Ed
     resultMsg->responses = responses;
     resultMsg->responseLength = 1;
 
-    onResponseMessage(resultMsg);
-
-    response->nodeInfo->nodeId = NULL;
-
-    freeEdgeMessage(resultMsg);
+    add_to_recvQ(resultMsg);
 }
 
 static EdgeNodeId *getEdgeNodeId(UA_NodeId *node)

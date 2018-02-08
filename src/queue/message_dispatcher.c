@@ -20,20 +20,27 @@
 
 #include "message_dispatcher.h"
 #include "queue.h"
+#include "edge_utils.h"
+#include "edge_logger.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
 
+#define TAG "message_handler"
+
 static pthread_t m_sendQ_Thread;
 static pthread_t m_recvQ_Thread;
+static pthread_mutex_t sendMutex;
+static pthread_mutex_t recvMutex;
+
 static bool b_sendQ_Thread_Running = false;
 static bool b_recvQ_Thread_Running = false;
 
 static Queue *recvQueue = NULL;
 static Queue *sendQueue = NULL;
 
-static int queue_capacity = 1000;
+static const int queue_capacity = 1000;
 
 static void handleMessage(EdgeMessage *data);
 
@@ -80,9 +87,11 @@ static void *sendQ_run(void *ptr)
     {
         if (!isEmpty(sendQueue))
         {
-            data = front(sendQueue); // retrieve the front element from queue
+            pthread_mutex_lock(&sendMutex);
+            data = dequeue(sendQueue); // retrieve the front element from queue
+            pthread_mutex_unlock(&sendMutex);
             handleMessage(data); // process the queue message
-            dequeue(sendQueue); // remove the element from queue
+            freeEdgeMessage(data);
         }
     }
     return NULL;
@@ -97,9 +106,12 @@ static void *recvQ_run(void *ptr)
     {
         if (!isEmpty(recvQueue))
         {
-            data = front(recvQueue); // retrieve the front element from queue
+            pthread_mutex_lock(&recvMutex);
+            data = dequeue(recvQueue); // retrieve the front element from queue
+            pthread_mutex_unlock(&recvMutex);
             handleMessage(data); // process the queue message
-            dequeue(recvQueue); // remove the element from queue
+            //EdgeMessage *msg_to_delete = dequeue(recvQueue); // remove the element from queue
+            freeEdgeMessage(data);
         }
     }
     return NULL;
@@ -111,8 +123,11 @@ bool add_to_sendQ(EdgeMessage *msg)
     {
         sendQueue = createQueue(queue_capacity);
         pthread_create(&m_sendQ_Thread, NULL, &sendQ_run, NULL);
+        pthread_mutex_init(&sendMutex, NULL);
     }
+    pthread_mutex_lock(&sendMutex);
     bool ret = enqueue(sendQueue, msg);
+    pthread_mutex_unlock(&sendMutex);
     return ret;
 }
 
@@ -122,31 +137,26 @@ bool add_to_recvQ(EdgeMessage *msg)
     {
         recvQueue = createQueue(queue_capacity);
         pthread_create(&m_recvQ_Thread, NULL, &recvQ_run, NULL);
+        pthread_mutex_init(&recvMutex, NULL);
     }
+//    printf("msg enqueue :: %p\n", msg);
+    pthread_mutex_lock(&recvMutex);
     bool ret = enqueue(recvQueue, msg);
+    pthread_mutex_unlock(&recvMutex);
     return ret;
 }
 
 static void handleMessage(EdgeMessage *data)
 {
-
+//printf("handleMessage received :: %p\n", data);
     if (SEND_REQUEST == data->type || SEND_REQUESTS == data->type)
     {
         onSendMessage(data);
     }
-    else if (GENERAL_RESPONSE == data->type || BROWSE_RESPONSE == data->type)
+    else if (GENERAL_RESPONSE == data->type || BROWSE_RESPONSE == data->type
+             || REPORT == data->type || ERROR == data->type)
     {
-//         ProtocolManager* receiver = ProtocolManager::getProtocolManagerInstance();
-//         receiver->onResponseMessage(data);
+        onResponseMessage(data);
     }
-    else if (REPORT == data->type)
-    {
-//        ProtocolManager* receiver = ProtocolManager::getProtocolManagerInstance();
-//        receiver->onMonitoredMessage(data);;
-    }
-    else if (ERROR == data->type)
-    {
-//        ProtocolManager* receiver = ProtocolManager::getProtocolManagerInstance();
-//        receiver->onErrorCallback(data);
-    }
+//    printf("\n");
 }

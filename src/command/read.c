@@ -20,6 +20,7 @@
 
 #include "read.h"
 #include "common_client.h"
+#include "message_dispatcher.h"
 #include "edge_logger.h"
 #include "edge_malloc.h"
 
@@ -36,25 +37,29 @@ UA_Int64 DateTime_toUnixTime(UA_DateTime date)
 
 static void sendErrorResponse(const EdgeMessage *msg, char *err_desc)
 {
-    EdgeMessage *resultMsg = (EdgeMessage *) EdgeMalloc(sizeof(EdgeMessage));
+    EdgeMessage *resultMsg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
     VERIFY_NON_NULL_NR(resultMsg);
-    resultMsg->endpointInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    if(IS_NULL(resultMsg->endpointInfo))
-    {
-        EDGE_LOG(TAG, "Error : Malloc failed for resultMessage.endpointfo sendErrorResponse\n");
-        goto EXIT;
-    }
-    memcpy(resultMsg->endpointInfo, msg->endpointInfo, sizeof(EdgeEndPointInfo));
+    resultMsg->endpointInfo = cloneEdgeEndpointInfo(msg->endpointInfo);
     resultMsg->type = ERROR;
-    resultMsg->responseLength = 0;
+    resultMsg->responseLength = 1;
 
-    EdgeVersatility *message = (EdgeVersatility *) EdgeMalloc(sizeof(EdgeVersatility));
-    if(IS_NULL(message))
+    EdgeResponse** responses = (EdgeResponse **) malloc(sizeof(EdgeResponse *) * resultMsg->responseLength);
+    for (int i = 0; i < resultMsg->responseLength; i++)
     {
-        EDGE_LOG(TAG, "Error : Malloc failed for EdgeVersatility sendErrorResponse\n");
-        goto EXIT;
+        responses[i] = (EdgeResponse*) EdgeCalloc(1, sizeof(EdgeResponse));
+        EdgeVersatility *message = (EdgeVersatility *) EdgeCalloc(1, sizeof(EdgeVersatility));
+        if(IS_NULL(message))
+        {
+            EDGE_LOG(TAG, "Error : Malloc failed for EdgeVersatility sendErrorResponse\n");
+            goto EXIT;
+        }
+        char* err_description = (char*) EdgeMalloc(strlen(err_desc) + 1);
+        strncpy(err_description, err_desc, strlen(err_desc));
+        err_description[strlen(err_desc)] = '\0';
+        message->value = (void *) err_description;
+        responses[i]->message = message;
     }
-    message->value = (void *) err_desc;
+    resultMsg->responses = responses;
 
     EdgeResult *res = (EdgeResult *) EdgeMalloc(sizeof(EdgeResult));
     if(IS_NULL(res))
@@ -65,13 +70,22 @@ static void sendErrorResponse(const EdgeMessage *msg, char *err_desc)
     res->code = STATUS_ERROR;
     resultMsg->result = res;
 
-    onResponseMessage(resultMsg);
+    add_to_recvQ(resultMsg);
+    return ;
 
     EXIT:
-    EdgeFree(res);
-    EdgeFree(message);
+    EdgeFree(res);    
     if(IS_NOT_NULL(resultMsg))
     {
+        if(IS_NOT_NULL(resultMsg->responses))
+        {
+            for (int i = 0; i < resultMsg->responseLength; i++)
+            {
+                EdgeFree(resultMsg->responses[i]->message);
+                EdgeFree(resultMsg->responses[i]);
+            }
+            EdgeFree(resultMsg->responses);
+        }
         EdgeFree(resultMsg->endpointInfo);
         EdgeFree(resultMsg);
     }
@@ -370,21 +384,21 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg)
         EDGE_LOG(TAG, "Error : Malloc failed for responses in Read Group\n");
         goto EXIT;
     }
-    EdgeMessage *resultMsg = (EdgeMessage *) EdgeMalloc(sizeof(EdgeMessage));
+    EdgeMessage *resultMsg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
     if(IS_NULL(resultMsg))
     {
         EDGE_LOG(TAG, "Error : Malloc failed for resultMsg in Read Group\n");
         goto EXIT;
     }
-    resultMsg->endpointInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
+
+    resultMsg->responseLength = 0;
+    resultMsg->command = CMD_READ;
+    resultMsg->endpointInfo = cloneEdgeEndpointInfo(msg->endpointInfo);
     if(IS_NULL(resultMsg->endpointInfo))
     {
         EDGE_LOG(TAG, "Error : EdgeCalloc failed for resultMsg.endpointInfo in Read Group\n");
         goto EXIT;
     }
-    resultMsg->responseLength = 0;
-    resultMsg->command = CMD_READ;
-    memcpy(resultMsg->endpointInfo, msg->endpointInfo, sizeof(EdgeEndPointInfo));
     resultMsg->type = GENERAL_RESPONSE;
 
     for (int i = 0; i < reqLen; i++)
@@ -394,16 +408,15 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg)
         {
             UA_Variant val = readResponse.results[i].value;
             bool isScalar = UA_Variant_isScalar(&val);
-            EdgeResponse *response = (EdgeResponse *) EdgeMalloc(sizeof(EdgeResponse));
+            EdgeResponse *response = (EdgeResponse *) EdgeCalloc(1, sizeof(EdgeResponse));
             if (IS_NOT_NULL(response))
             {
-                response->nodeInfo = (EdgeNodeInfo *) EdgeMalloc(sizeof(EdgeNodeInfo));
+                response->nodeInfo = cloneEdgeNodeInfo(msg->requests[i]->nodeInfo);
                 if(IS_NULL(response->nodeInfo))
                 {
                     EDGE_LOG(TAG, "Error : Malloc failed for response.Nodeinfo in Read Group\n");
                     goto EXIT;
                 }
-                memcpy(response->nodeInfo, msg->requests[i]->nodeInfo, sizeof(EdgeNodeInfo));
                 response->requestId = msg->requests[i]->requestId;
 
                 EdgeVersatility *versatility = (EdgeVersatility *) EdgeMalloc(sizeof(EdgeVersatility));
@@ -422,7 +435,6 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg)
                     versatility->arrayLength = val.arrayLength;
                     versatility->isArray = true;
                 }
-                versatility->value = val.data;
 
                 if (val.type == &UA_TYPES[UA_TYPES_BOOLEAN])
                 {
@@ -462,15 +474,70 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg)
                 }
                 else if (val.type == &UA_TYPES[UA_TYPES_STRING])
                 {
-                    if (isScalar)
+                    response->type = String;
+                }
+                else if (val.type == &UA_TYPES[UA_TYPES_BYTESTRING])
+                {
+                    response->type = ByteString;
+                }
+                else if (val.type == &UA_TYPES[UA_TYPES_GUID])
+                {
+                    response->type = Guid;
+                }
+                else if (val.type == &UA_TYPES[UA_TYPES_SBYTE])
+                {
+                    response->type = SByte;
+                }
+                else if (val.type == &UA_TYPES[UA_TYPES_BYTE])
+                {
+                    response->type = Byte;
+                }
+                else if (val.type == &UA_TYPES[UA_TYPES_DATETIME])
+                {
+                    response->type = DateTime;
+                }
+
+                if (isScalar)
+                {
+                    size_t size = get_size(response->type, false);
+                    if ((response->type == String) || (response->type == ByteString))
                     {
                         UA_String str = *((UA_String *) val.data);
-                        if ((int) str.length)
-                            versatility->value = (void *) str.data;
-                        else
-                            versatility->value = NULL;
+                        size_t len = str.length;
+                        versatility->value = (void *) EdgeCalloc(1, len+1);
+                        strncpy(versatility->value, (char*) str.data, len);
+                       ((char*) versatility->value)[(int) len] = '\0';
+                    }
+                    else if (response->type == Guid)
+                    {
+                        UA_Guid str = *((UA_Guid *) val.data);
+                        char *value = (char *) EdgeMalloc(GUID_LENGTH + 1);
+                        if(IS_NULL(value))
+                        {
+                            EDGE_LOG(TAG, "Error : Malloc failed for Guid SCALAR value in Read Group\n");
+                            goto EXIT;
+                        }
+                        snprintf(value, (GUID_LENGTH / 2) + 1, "%08x-%04x-%04x", str.data1,
+                                str.data2, str.data3);
+                        sprintf(value, "%s-%02x", value, str.data4[0]);
+                        sprintf(value, "%s%02x", value, str.data4[1]);
+                        sprintf(value, "%s-", value);
+                        for (int j = 2; j < 8; j++)
+                            sprintf(value, "%s%02x", value, str.data4[j]);
+                        value[GUID_LENGTH] = '\0';
+                        versatility->value = (void *) value;
+                        EDGE_LOG_V(TAG, "%s\n", value);
                     }
                     else
+                    {
+                        versatility->value = (void *) EdgeCalloc(1, size);
+                        memcpy(versatility->value, val.data, size);
+                    }
+                }
+                else
+                {
+                    size_t size = get_size(response->type, true);
+                    if (response->type == String)
                     {
                         // String Array
                         UA_String *str = ((UA_String *) val.data);
@@ -493,19 +560,7 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg)
                         }
                         versatility->value = (void *) values;
                     }
-                    response->type = String;
-                }
-                else if (val.type == &UA_TYPES[UA_TYPES_BYTESTRING])
-                {
-                    if (isScalar)
-                    {
-                        UA_ByteString byteStr = *((UA_ByteString *) val.data);
-                        if ((int) byteStr.length)
-                            versatility->value = (void *) byteStr.data;
-                        else
-                            versatility->value = NULL;
-                    }
-                    else
+                    else if (response->type == ByteString)
                     {
                         // ByteString Array
                         UA_ByteString *str = ((UA_ByteString *) val.data);
@@ -528,31 +583,7 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg)
                         }
                         versatility->value = (void *) values;
                     }
-                    response->type = ByteString;
-                }
-                else if (val.type == &UA_TYPES[UA_TYPES_GUID])
-                {
-                    if (isScalar)
-                    {
-                        UA_Guid str = *((UA_Guid *) val.data);
-                        char *value = (char *) EdgeMalloc(GUID_LENGTH + 1);
-                        if(IS_NULL(value))
-                        {
-                            EDGE_LOG(TAG, "Error : Malloc failed for Guid SCALAR value in Read Group\n");
-                            goto EXIT;
-                        }
-                        snprintf(value, (GUID_LENGTH / 2) + 1, "%08x-%04x-%04x", str.data1,
-                                str.data2, str.data3);
-                        sprintf(value, "%s-%02x", value, str.data4[0]);
-                        sprintf(value, "%s%02x", value, str.data4[1]);
-                        sprintf(value, "%s-", value);
-                        for (int j = 2; j < 8; j++)
-                            sprintf(value, "%s%02x", value, str.data4[j]);
-                        value[GUID_LENGTH] = '\0';
-                        versatility->value = (void *) value;
-                        EDGE_LOG_V(TAG, "%s\n", value);
-                    }
-                    else
+                    else if (response->type == Guid)
                     {
                         // Guid Array
                         UA_Guid *str = ((UA_Guid *) val.data);
@@ -582,22 +613,13 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg)
                         }
                         versatility->value = (void *) values;
                     }
-                    response->type = Guid;
+                    else
+                    {
+                        versatility->value = (void *) EdgeCalloc(versatility->arrayLength, size);
+                        memcpy(versatility->value, val.data, get_size(response->type, false) * versatility->arrayLength);
+                    }
                 }
-                else if (val.type == &UA_TYPES[UA_TYPES_SBYTE])
-                {
-                    response->type = SByte;
-                }
-                else if (val.type == &UA_TYPES[UA_TYPES_BYTE])
-                {
-                    response->type = Byte;
-                }
-                else if (val.type == &UA_TYPES[UA_TYPES_DATETIME])
-                {
-                    response->type = DateTime;
-                    //UA_DateTime *str = ((UA_DateTime*) val.data);
-                    //printf("%s\n", (char*) (UA_DateTime_toString(str[0])).data);
-                }
+
                 response->message = versatility;
                 // ctt check
                 EdgeDiagnosticInfo *diagnosticInfo = checkDiagnosticInfo(msg->requestLength,
@@ -616,12 +638,17 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg)
             // failure read response for this particular node
             EDGE_LOG_V(TAG, "Error in group read response for particular node :: 0x%08x(%s)\n",
                     readResponse.results[i].status, UA_StatusCode_name(readResponse.results[i].status));
-            sendErrorResponse(msg, "");
+            sendErrorResponse(msg, "Error in read response");
         }
     }
 
-    resultMsg->responses = responses;
-    onResponseMessage(resultMsg);
+    if (resultMsg->responseLength > 0)
+    {
+        resultMsg->responses = responses;
+        add_to_recvQ(resultMsg);
+    }
+
+    return ;
 
     EXIT:
 

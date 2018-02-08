@@ -189,7 +189,8 @@ char *cloneString(const char *str)
     size_t len = strlen(str);
     char *clone = (char *) EdgeMalloc(len + 1);
     VERIFY_NON_NULL(clone, NULL);
-    memcpy(clone, str, len + 1);
+    strncpy(clone, str, len);
+    clone[len] = '\0';
     return clone;
 }
 
@@ -283,6 +284,79 @@ void freeEdgeDevice(EdgeDevice *dev)
     EdgeFree(dev->address);
     EdgeFree(dev->serverName);
     EdgeFree(dev);
+}
+
+EdgeSubRequest* cloneSubRequest(EdgeSubRequest* subReq)
+{
+    VERIFY_NON_NULL(subReq, NULL);
+    EdgeSubRequest *clone = (EdgeSubRequest *)EdgeCalloc(1, sizeof(EdgeSubRequest));
+    VERIFY_NON_NULL(clone, NULL);
+
+    clone->subType = subReq->subType;
+    clone->samplingInterval = subReq->samplingInterval;
+    clone->publishingInterval = subReq->publishingInterval;
+    clone->maxKeepAliveCount = subReq->maxKeepAliveCount;
+    clone->lifetimeCount = subReq->lifetimeCount;
+    clone->maxNotificationsPerPublish = subReq->maxNotificationsPerPublish;
+    clone->publishingEnabled = subReq->publishingEnabled;
+    clone->priority = subReq->priority;
+    clone->queueSize = subReq->queueSize;
+
+    return clone;
+}
+
+EdgeMethodRequestParams* cloneEdgeMethodRequestParams(EdgeMethodRequestParams *methodParams)
+{
+    VERIFY_NON_NULL(methodParams, NULL);
+    EdgeMethodRequestParams* clone = (EdgeMethodRequestParams *) EdgeCalloc(1, sizeof(EdgeMethodRequestParams));
+    VERIFY_NON_NULL(clone, NULL);
+
+    clone->num_inpArgs = methodParams->num_inpArgs;
+    clone->inpArg = (EdgeArgument**) EdgeCalloc(methodParams->num_inpArgs, sizeof(EdgeArgument*));
+    for (size_t i  = 0; i < methodParams->num_inpArgs; i++)
+    {
+        clone->inpArg[i] = (EdgeArgument*) EdgeCalloc(1, sizeof(EdgeArgument));
+        clone->inpArg[i]->argType = methodParams->inpArg[i]->argType;
+        clone->inpArg[i]->valType = methodParams->inpArg[i]->valType;
+        clone->inpArg[i]->arrayLength = 0;
+        clone->inpArg[i]->arrayData = NULL;
+        if (SCALAR == methodParams->inpArg[i]->valType)
+        {
+            size_t size = get_size(methodParams->inpArg[i]->argType, false);
+            clone->inpArg[i]->scalarValue = (void *) EdgeCalloc(1, size);
+            memcpy(clone->inpArg[i]->scalarValue, methodParams->inpArg[i]->scalarValue, size);
+        }
+        else if (ARRAY_1D == methodParams->inpArg[i]->valType)
+        {
+            size_t size = get_size(methodParams->inpArg[i]->argType, true);
+            clone->inpArg[i]->arrayLength = methodParams->inpArg[i]->arrayLength;
+            if (methodParams->inpArg[i]->argType == String)
+            {
+                char **srcVal = (char**) methodParams->inpArg[i]->arrayData;
+                char **dstVal = (char **) EdgeCalloc(methodParams->inpArg[i]->arrayLength, sizeof(char*));
+                size_t len;
+                for (int i = 0; i < methodParams->inpArg[i]->arrayLength; i++)
+                {
+                    len = strlen(srcVal[i]);
+                    dstVal[i] = (char*) EdgeCalloc(1, len+1);
+                    strncpy(dstVal[i], srcVal[i], len);
+                    dstVal[i][(int) len + 1] = '\0';
+                }
+                clone->inpArg[i]->arrayData = (void *) dstVal;
+            }
+            else
+            {
+                clone->inpArg[i]->arrayData = (void *) EdgeCalloc(clone->inpArg[i]->arrayLength, size);
+                memcpy(clone->inpArg[i]->arrayData, methodParams->inpArg[i]->arrayData, get_size(methodParams->inpArg[i]->argType, false) * methodParams->inpArg[i]->arrayLength);
+            }
+
+        }
+    }
+
+    clone->num_outArgs = methodParams->num_outArgs;
+
+
+    return clone;
 }
 
 EdgeEndpointConfig *cloneEdgeEndpointConfig(EdgeEndpointConfig *config)
@@ -717,6 +791,213 @@ EdgeNodeInfo *cloneEdgeNodeInfo(EdgeNodeInfo *nodeInfo)
     return clone;
 }
 
+size_t get_size(EdgeNodeIdentifier type, bool isArray)
+{
+    size_t size = -1;
+    switch (type)
+    {
+        case Boolean:
+            {
+                size = (isArray) ? sizeof(bool*) : sizeof(bool);
+            }
+            break;
+        case SByte:
+            {
+                size = (isArray) ? sizeof(int8_t*) : sizeof(int8_t);
+            }
+        case Byte:
+            {
+                size = (isArray) ? sizeof(uint8_t*) : sizeof(uint8_t);
+            }
+            break;
+        case Int16:
+            {
+                size = (isArray) ? sizeof(int16_t*) : sizeof(int16_t);
+            }
+        case UInt16:
+            {
+                size = (isArray) ? sizeof(uint16_t*) : sizeof(uint16_t);
+            }
+            break;
+        case Int32:
+            {
+                size = (isArray) ? sizeof(int32_t*) : sizeof(int32_t);
+            }
+            break;
+        case UInt32:
+            {
+                size = (isArray) ? sizeof(uint32_t*) : sizeof(uint32_t);
+            }
+            break;
+        case Int64:
+            {
+                size = (isArray) ? sizeof(int64_t*) : sizeof(int64_t);
+            }
+            break;
+        case UInt64:
+            {
+                size = (isArray) ? sizeof(uint64_t*) : sizeof(uint64_t);
+            }
+            break;
+        case Float:
+            {
+                size = (isArray) ? sizeof(float*) : sizeof(float);
+            }
+            break;
+        case Double:
+            {
+                size = (isArray) ? sizeof(double*) : sizeof(double);
+            }
+            break;
+        case String:
+            {
+                size = (isArray) ? sizeof(char*) : sizeof(char);
+            }
+            break;
+        default:
+            {
+                size = -1;
+            }
+            break;
+    }
+    return size;
+}
+
+
+EdgeMessage* cloneEdgeMessage(EdgeMessage *msg)
+{
+    if (!msg)
+    {
+        return NULL;
+    }
+
+    EdgeMessage *clone = (EdgeMessage *)EdgeCalloc(1, sizeof(EdgeMessage));
+    if (!clone)
+    {
+        return NULL;
+    }
+
+    clone->type = msg->type;
+    clone->command = msg->command;
+    clone->endpointInfo = cloneEdgeEndpointInfo(msg->endpointInfo);
+    clone->requestLength = msg->requestLength;
+
+    if (msg->browseParam)
+    {
+        clone->browseParam = (EdgeBrowseParameter *) EdgeCalloc(1, sizeof(EdgeBrowseParameter));
+        clone->browseParam->direction = msg->browseParam->direction;
+        clone->browseParam->maxReferencesPerNode = msg->browseParam->maxReferencesPerNode;
+    }
+
+    if (msg->cpList)
+    {
+        clone->cpList = (EdgeContinuationPointList *)EdgeCalloc(1, sizeof(EdgeContinuationPointList));
+        clone->cpList->count = msg->cpList->count;
+        clone->cpList->cp =  (EdgeContinuationPoint **)EdgeCalloc(msg->cpList->count, sizeof(EdgeContinuationPoint *));
+        for (size_t  i = 0; i < msg->cpList->count; i++)
+        {
+            clone->cpList->cp[i] = (EdgeContinuationPoint *)EdgeCalloc(1, sizeof(EdgeContinuationPoint));
+            clone->cpList->cp[i]->length = msg->cpList->cp[i]->length;
+            clone->cpList->cp[i]->continuationPoint = (unsigned char *) cloneData(msg->cpList->cp[i]->continuationPoint,
+                                                                                  strlen((char *) msg->cpList->cp[i]->continuationPoint) + 1);
+        }
+    }
+
+    if (msg->type == SEND_REQUEST)
+    {
+        if (msg->request)
+        {
+            clone->request = (EdgeRequest*) EdgeCalloc(1, sizeof(EdgeRequest));
+            if (msg->request->nodeInfo)
+                clone->request->nodeInfo = cloneEdgeNodeInfo(msg->request->nodeInfo);
+            if (msg->request->subMsg)
+                clone->request->subMsg = cloneSubRequest(msg->request->subMsg);
+            if (msg->request->methodParams)
+                clone->request->methodParams = cloneEdgeMethodRequestParams(msg->request->methodParams);
+        }
+    }
+
+    if (msg->type == SEND_REQUESTS)
+    {
+        clone->requests = (EdgeRequest**) EdgeCalloc(msg->requestLength, sizeof(EdgeRequest*));
+        for (size_t i = 0; i < msg->requestLength; i++)
+        {
+            clone->requests[i] = (EdgeRequest*) EdgeCalloc(1, sizeof(EdgeRequest));
+            if (msg->requests[i]->nodeInfo)
+                clone->requests[i]->nodeInfo = cloneEdgeNodeInfo(msg->requests[i]->nodeInfo);
+            if (msg->command == CMD_WRITE)
+            {
+                clone->requests[i]->type = msg->requests[i]->type;
+                // EdgeVersatility
+                if (msg->requests[i]->value)
+                {
+                    EdgeVersatility *srcVersatility = (EdgeVersatility *) msg->requests[i]->value;
+                    EdgeVersatility* cloneVersatility = (EdgeVersatility*) EdgeCalloc(1, sizeof(EdgeVersatility));
+                    if (cloneVersatility)
+                    {
+                        if (srcVersatility->isArray == false)
+                        {
+                            // Scalar
+                            void *val = srcVersatility->value;
+
+                            cloneVersatility->arrayLength = srcVersatility->arrayLength;
+                            cloneVersatility->isArray = srcVersatility->isArray;
+                            size_t size = get_size(msg->requests[i]->type, srcVersatility->isArray);
+                            if (msg->requests[i]->type == String)
+                            {
+                                size_t len = strlen((char *) srcVersatility->value);
+                                cloneVersatility->value = (void *) EdgeCalloc(1, len+1);
+                                strncpy(cloneVersatility->value, (char*) srcVersatility->value, len);
+                               ((char*) cloneVersatility->value)[(int) len] = '\0';
+                            }
+                            else
+                            {
+                                cloneVersatility->value = (void *) EdgeCalloc(1, size);
+                                memcpy(cloneVersatility->value, val, size);
+                            }
+                            clone->requests[i]->value = (void *) cloneVersatility;
+                        }
+                        else
+                        {
+                            // Array
+                            void *val = srcVersatility->value;
+
+                            cloneVersatility->arrayLength = srcVersatility->arrayLength;
+                            cloneVersatility->isArray = srcVersatility->isArray;
+                            size_t size = get_size(msg->requests[i]->type, srcVersatility->isArray);
+                            if (msg->requests[i]->type == String)
+                            {
+                                char **srcVal = (char**) srcVersatility->value;
+                                char **dstVal = (char **) EdgeCalloc(srcVersatility->arrayLength, sizeof(char*));
+                                size_t len;
+                                for (int i = 0; i < srcVersatility->arrayLength; i++)
+                                {
+                                    len = strlen(srcVal[i]);
+                                    dstVal[i] = (char*) EdgeCalloc(1, len+1);
+                                    strncpy(dstVal[i], srcVal[i], len);
+                                    dstVal[i][(int) len + 1] = '\0';
+                                }
+                                cloneVersatility->value = (void *) dstVal;
+                            }
+                            else
+                            {
+                                cloneVersatility->value = (void *) EdgeCalloc(srcVersatility->arrayLength, size);
+                                memcpy(cloneVersatility->value, val, get_size(msg->requests[i]->type, false) * srcVersatility->arrayLength);
+                            }
+                            clone->requests[i]->value = (void *) cloneVersatility;
+                        }
+                    }
+                }
+            }
+            else if (msg->command == CMD_SUB)
+            {
+                clone->requests[i]->subMsg = cloneSubRequest(msg->requests[i]->subMsg);
+            }
+        }
+    }
+    return clone;
+}
+
 EdgeNodeIdType getEdgeNodeIdType(char type)
 {
     EdgeNodeIdType edgeNodeType = INTEGER;
@@ -764,6 +1045,7 @@ char getCharacterNodeIdType(uint32_t type)
     }
     return nodeType;
 }
+
 // USAGE
 
 /*
