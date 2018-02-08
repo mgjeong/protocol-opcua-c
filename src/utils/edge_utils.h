@@ -165,6 +165,10 @@ extern "C"
 
     size_t get_size(EdgeNodeIdentifier type, bool isArray);
 
+    EdgeNodeIdType getEdgeNodeIdType(char type);
+
+    char getCharacterNodeIdType(uint32_t type);
+
 #ifdef __cplusplus
 }
 #endif

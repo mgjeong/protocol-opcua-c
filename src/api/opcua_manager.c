@@ -28,6 +28,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 #define TAG "opcua_manager"
 
@@ -302,7 +303,7 @@ EdgeResult sendRequest(EdgeMessage* msg) {
 void onSendMessage(EdgeMessage* msg) {
     if (msg->command == CMD_START_SERVER)
     {
-        printf ("\n[Received command] :: START SERVER \n");
+        EDGE_LOG(TAG, "\n[Received command] :: START SERVER \n");
         if (b_serverInitialized)
         {
             printf( "Server already initialised\n");
@@ -316,55 +317,55 @@ void onSendMessage(EdgeMessage* msg) {
     }
     else if (msg->command == CMD_START_CLIENT)
     {
-        printf ("\n[Received command] :: START CLIENT \n");
+        EDGE_LOG(TAG, "\n[Received command] :: START CLIENT \n");
         bool result = connect_client(msg->endpointInfo->endpointUri);
         if (!result)
             return ;
     }
     else if (msg->command == CMD_STOP_SERVER)
     {
-        printf("\n[Received command] :: STOP SERVER \n");
+        EDGE_LOG(TAG, "\nReceived command] :: STOP SERVER \n");
         stop_server(msg->endpointInfo);
         b_serverInitialized = false;
     }
     else if (msg->command == CMD_STOP_CLIENT)
     {
-        printf("\n[Received command] :: STOP CLIENT \n");
+        EDGE_LOG(TAG, "\n[Received command] :: STOP CLIENT \n");
         disconnect_client(msg->endpointInfo);
     }
     else if (msg->command == CMD_READ)
     {
-        printf("\n[Received command] :: READ \n");
+        EDGE_LOG(TAG, "\n[Received command] :: READ \n");
         readNodesFromServer(msg);
     }
     else if (msg->command == CMD_WRITE)
     {
-        printf("\n[Received command] :: WRITE \n");
+        EDGE_LOG(TAG, "\n[Received command] :: WRITE \n");
         writeNodesInServer(msg);
     }
     else if (msg->command == CMD_METHOD)
     {
-        printf("\n[Received command] :: METHOD CALL \n");
+        EDGE_LOG(TAG, "\n[Received command] :: METHOD CALL \n");
         callMethodInServer(msg);
     }
     else if (msg->command == CMD_SUB)
     {
-        printf("\n[Received command] :: SUB \n");
+        EDGE_LOG(TAG, "\n[Received command] :: SUB \n");
         executeSubscriptionInServer(msg);
     }
     else if (msg->command == CMD_BROWSE)
     {
-        printf("\n[Received command] :: BROWSE \n");
+        EDGE_LOG(TAG, "\n[Received command] :: BROWSE \n");
         browseNodesInServer(msg);
     }
     else if (msg->command == CMD_BROWSE_VIEW)
     {
-        printf("\n[Received command] :: BROWSE \n");
+        EDGE_LOG(TAG, "\n[Received command] :: BROWSE \n");
         browseViewsInServer(msg);
     }
     else if (msg->command == CMD_BROWSENEXT)
     {
-        printf("\n[Received command] :: BROWSE \n");
+        EDGE_LOG(TAG, "\n[Received command] :: BROWSE \n");
         browseNextInServer(msg);
     }
 }
@@ -427,41 +428,317 @@ void onStatusCallback(EdgeEndPointInfo *epInfo, EdgeStatusCode status)
     }
 }
 
-EdgeNodeInfo* createEdgeNodeInfo(const char* nodeName)
+EdgeNodeInfo* createEdgeNodeInfoForNodeId(EdgeNodeIdType type, int nodeId, uint16_t nameSpace)
 {
     EdgeNodeInfo* nodeInfo = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
     if (IS_NULL(nodeInfo))
     {
+        EDGE_LOG(TAG, "Error : Malloc failed for nodeInfo in test browse");
         return NULL;
     }
+    nodeInfo->nodeId = (EdgeNodeId *) EdgeCalloc(1, sizeof(EdgeNodeId));
+    if (IS_NULL(nodeInfo->nodeId))
+    {
+        EDGE_LOG(TAG, "Error : Malloc failed for nodeInfo->nodeId in test browse");
+        freeEdgeNodeInfo(nodeInfo);
+        return NULL;
+    }
+    nodeInfo->nodeId->type = type;
+    nodeInfo->nodeId->integerNodeId = nodeId;
+    nodeInfo->nodeId->nameSpace = nameSpace;
 
+    return nodeInfo;
+}
+
+EdgeNodeInfo* createEdgeNodeInfo(const char* nodeName)
+{
     int nsIdx = 0, valueType = 0;
     char nodeType;
     char browseName[MAX_BROWSENAME_SIZE];
     sscanf(nodeName, UNIQUE_NODE_PATH, &nsIdx, &nodeType, &valueType, browseName);
 
-    int browseNameSize = strlen(browseName);
-    nodeInfo->valueAlias = (char *) EdgeCalloc(1, browseNameSize + 1);
-    if (IS_NULL(nodeInfo->valueAlias))
+    EdgeNodeInfo* nodeInfo = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
+    if (IS_NULL(nodeInfo))
     {
-        printf("Error : Malloc failed for nodeInfo->valueAlias in test subscription\n");
-        freeEdgeNodeInfo(nodeInfo);
         return NULL;
     }
-    strncpy(nodeInfo->valueAlias, browseName, browseNameSize);
-    nodeInfo->valueAlias[browseNameSize] = '\0';
+    nodeInfo->valueAlias = copyString(browseName);
 
     nodeInfo->nodeId = (EdgeNodeId *) EdgeCalloc(1, sizeof(EdgeNodeId));
     if (IS_NULL(nodeInfo->nodeId))
+    {
+        EDGE_LOG(TAG, "Error : Malloc failed for nodeInfo->valueAlias in test subscription");
+        freeEdgeNodeInfo(nodeInfo);
+        return NULL;
+    }
+    nodeInfo->nodeId->nodeUri = copyString(nodeName);
+    nodeInfo->nodeId->nodeId = copyString(browseName);
+    nodeInfo->nodeId->nameSpace = (uint16_t) nsIdx;
+    nodeInfo->nodeId->type = getEdgeNodeIdType(nodeType);
+
+    return nodeInfo;
+}
+
+EdgeResult insertSubParameter(EdgeMessage **msg, const char* nodeName, EdgeNodeIdentifier subType,
+        double samplingInterval, double publishingInterval, int maxKeepAliveCount,
+        int lifetimeCount, int maxNotificationsPerPublish, bool publishingEnabled, int priority,
+        uint32_t queueSize)
+{
+    EdgeResult result;
+    result.code = STATUS_OK;
+    if (IS_NULL((*msg)) || IS_NULL(nodeName))
+    {
+        EDGE_LOG(TAG, "Error : parameter is not valid");
+        result.code = STATUS_PARAM_INVALID;
+        goto EXIT;
+    }
+
+    EdgeSubRequest* subReq = (EdgeSubRequest *) EdgeCalloc(1, sizeof(EdgeSubRequest));
+    if (IS_NULL(subReq))
+    {
+        EDGE_LOG(TAG, "Error : Malloc failed for subReq");
+        result.code = STATUS_ERROR;
+        goto EXIT;
+    }
+
+    if (Edge_Create_Sub == subType || Edge_Modify_Sub == subType)
+    {
+        subReq->subType = subType;
+        subReq->samplingInterval = samplingInterval;
+        subReq->publishingInterval = publishingInterval;
+        subReq->maxKeepAliveCount = maxKeepAliveCount;
+        subReq->lifetimeCount = lifetimeCount;
+        subReq->maxNotificationsPerPublish = maxNotificationsPerPublish;
+        subReq->publishingEnabled = publishingEnabled;
+        subReq->priority = priority;
+        subReq->queueSize = queueSize;
+    }
+    else
+    {
+        subReq->subType = subType;
+    }
+
+    if (Edge_Create_Sub == subType)
+    {
+        size_t index = (*msg)->requestLength;
+
+        (*msg)->requests[index] = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
+        if (IS_NULL((*msg)->requests[index]))
         {
-            printf("Error : Malloc failed for nodeInfo->valueAlias in test subscription\n");
-            freeEdgeNodeInfo(nodeInfo);
+            EDGE_LOG(TAG, "Error : EdgeMalloc failed for requests");
+            result.code = STATUS_ERROR;
+            goto EXIT;
+        }
+
+        (*msg)->requests[index]->nodeInfo = createEdgeNodeInfo(nodeName);
+        if (IS_NULL((*msg)->requests[index]->nodeInfo))
+        {
+            EDGE_LOG(TAG, "Error : Malloc failed for nodeInfo subReq");
+            result.code = STATUS_ERROR;
+            goto EXIT;
+        }
+        (*msg)->requests[index]->subMsg = subReq;
+        (*msg)->requestLength = ++index;
+    }
+    else if (Edge_Modify_Sub == subType || Edge_Delete_Sub == subType
+            || Edge_Republish_Sub == subType)
+    {
+        if (NULL == (*msg)->request)
+        {
+            EDGE_LOG(TAG, "Error : Malloc failed for request");
+            result.code = STATUS_ERROR;
+            goto EXIT;
+        }
+
+        (*msg)->request->nodeInfo = createEdgeNodeInfo(nodeName);
+        if (IS_NULL((*msg)->request->nodeInfo))
+        {
+            EDGE_LOG(TAG, "Error : Malloc failed for nodeInfo in test subscription modify");
+            goto EXIT;
+        }
+        (*msg)->request->subMsg = subReq;
+        (*msg)->requestLength = 1;
+    }
+
+    EXIT: return result;
+}
+
+EdgeMessage* createEdgeSubMessage(const char *endpointUri, const char* nodeName, size_t requestSize,
+        EdgeNodeIdentifier subType)
+{
+    EdgeMessage *msg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
+    if (IS_NULL(msg))
+    {
+        EDGE_LOG(TAG, "Error : EdgeMalloc failed for msg in test subscription");
+        return NULL;
+    }
+
+    msg->endpointInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
+    if (IS_NULL(msg->endpointInfo))
+    {
+        EDGE_LOG(TAG, "Error : Malloc failed for epInfo in test subscription");
+        return NULL;
+    }
+
+    msg->endpointInfo->endpointUri = copyString(endpointUri);
+
+    if (Edge_Create_Sub == subType)
+    {
+        msg->requests = (EdgeRequest **) EdgeCalloc(requestSize, sizeof(EdgeRequest *));
+        if (IS_NULL(msg->requests))
+        {
+            EDGE_LOG(TAG, "Error : Malloc failed for requests in test subscription");
             return NULL;
         }
-    int nodeNameSize = strlen(nodeName);
-    nodeInfo->nodeId->nodeUri = (char *) EdgeCalloc(1, nodeNameSize + 1);
-    strncpy(nodeInfo->nodeId->nodeUri, nodeName, nodeNameSize);
-    nodeInfo->nodeId->nodeUri[nodeNameSize] = '\0';
-    nodeInfo->nodeId->nameSpace = (uint16_t)nsIdx;
-    return nodeInfo;
+        msg->type = SEND_REQUESTS;
+    }
+    else if (Edge_Modify_Sub == subType || Edge_Delete_Sub == subType
+            || Edge_Republish_Sub == subType)
+    {
+        msg->request = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
+        if (IS_NULL(msg->request))
+        {
+            EDGE_LOG(TAG, "Error : Malloc failed for request in test subscription modify");
+            return NULL;
+        }
+        msg->type = SEND_REQUEST;
+
+        if (Edge_Delete_Sub == subType || Edge_Republish_Sub == subType)
+        {
+            insertSubParameter(&msg, nodeName, subType, 0, 0, 0, 0, 0, false, 0, 0);
+        }
+    }
+
+    msg->command = CMD_SUB;
+
+    return msg;
+}
+
+EdgeMessage* createEdgeAttributeMessage(const char *endpointUri, size_t requestSize, EdgeCommand cmd)
+{
+    EdgeMessage *msg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
+    if (IS_NULL(msg))
+    {
+        EDGE_LOG(TAG, "Error : EdgeMalloc failed for msg in test subscription");
+        return NULL;
+    }
+
+    msg->endpointInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
+    if (IS_NULL(msg->endpointInfo))
+    {
+        EDGE_LOG(TAG, "Error : Malloc failed for epInfo in test subscription");
+        return NULL;
+    }
+
+    msg->endpointInfo->endpointUri = copyString(endpointUri);
+
+    msg->requests = (EdgeRequest **) EdgeCalloc(requestSize, sizeof(EdgeRequest *));
+    if (IS_NULL(msg->requests))
+    {
+        EDGE_LOG(TAG, "Error : Malloc failed for requests in test subscription");
+        return NULL;
+    }
+    msg->type = SEND_REQUESTS;
+    msg->command = cmd;
+
+    return msg;
+}
+
+EdgeResult insertReadAccessNode(EdgeMessage **msg, const char* nodeName)
+{
+    EdgeResult result;
+    result.code = STATUS_OK;
+    if (IS_NULL((*msg)) || IS_NULL(nodeName))
+    {
+        EDGE_LOG(TAG, "Error : parameter is not valid");
+        result.code = STATUS_PARAM_INVALID;
+        goto EXIT;
+    }
+
+    size_t index = (*msg)->requestLength;
+
+    (*msg)->requests[index] = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
+    if (IS_NULL((*msg)->requests[index]))
+    {
+        EDGE_LOG(TAG, "Error : EdgeMalloc failed for requests");
+        result.code = STATUS_ERROR;
+        goto EXIT;
+    }
+
+    (*msg)->requests[index]->nodeInfo = createEdgeNodeInfo(nodeName);
+    if (IS_NULL((*msg)->requests[index]->nodeInfo))
+    {
+        EDGE_LOG(TAG, "Error : Malloc failed for nodeInfo");
+        result.code = STATUS_ERROR;
+        goto EXIT;
+    }
+    (*msg)->requestLength = ++index;
+
+    EXIT: return result;
+}
+
+EdgeResult insertWriteAccessNode(EdgeMessage **msg, const char* nodeName, void* value,
+        size_t valueLen)
+{
+    EdgeResult result;
+    result.code = STATUS_OK;
+    if (IS_NULL((*msg)) || IS_NULL(nodeName))
+    {
+        EDGE_LOG(TAG, "Error : parameter is not valid");
+        result.code = STATUS_PARAM_INVALID;
+        goto EXIT;
+    }
+
+    size_t index = (*msg)->requestLength;
+
+    (*msg)->requests[index] = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
+    if (IS_NULL((*msg)->requests[index]))
+    {
+        EDGE_LOG(TAG, "Error : EdgeMalloc failed for requests");
+        result.code = STATUS_ERROR;
+        goto EXIT;
+    }
+
+    (*msg)->requests[index]->nodeInfo = createEdgeNodeInfo(nodeName);
+    if (IS_NULL((*msg)->requests[index]->nodeInfo))
+    {
+        EDGE_LOG(TAG, "Error : Malloc failed for nodeInfo");
+        result.code = STATUS_ERROR;
+        goto EXIT;
+    }
+
+    (*msg)->requests[index]->type = getValueType(nodeName);
+
+    EdgeVersatility* varient = (EdgeVersatility*) malloc(sizeof(EdgeVersatility));
+    if (IS_NULL(varient))
+    {
+        EDGE_LOG(TAG, "Error : EdgeMalloc failed for varient");
+        result.code = STATUS_ERROR;
+        goto EXIT;
+    }
+    varient->value = value;
+    varient->arrayLength = 0;
+    if (valueLen > 1)
+    {
+        varient->isArray = true;
+        varient->arrayLength = valueLen;
+    }
+    else
+    {
+        varient->isArray = false;
+    }
+    (*msg)->requests[index]->value = varient;
+
+    (*msg)->requestLength = ++index;
+
+    EXIT: return result;
+}
+
+EdgeNodeIdentifier getValueType(const char* nodeName)
+{
+    int nsIdx = 0, valueType = 0;
+    char nodeType;
+    char browseName[MAX_BROWSENAME_SIZE];
+    sscanf(nodeName, UNIQUE_NODE_PATH, &nsIdx, &nodeType, &valueType, browseName);
+    return valueType;
 }

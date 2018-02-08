@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "open62541.h"
 #include "edge_logger.h"
 #include "edge_malloc.h"
 
@@ -92,7 +93,7 @@ void deleteMap(edgeMap *map)
 
 static List *createListNode(void *data)
 {
-    List *node = (List *)EdgeCalloc(1, sizeof(List));
+    List *node = (List *) EdgeCalloc(1, sizeof(List));
     VERIFY_NON_NULL(node, NULL);
     node->data = data;
     return node;
@@ -118,16 +119,16 @@ bool addListNode(List **head, void *data)
 
 unsigned int getListSize(List *ptr)
 {
-    if(IS_NULL(ptr))
+    if (IS_NULL(ptr))
     {
         return 0;
     }
 
     size_t size = 0;
-    while(ptr)
+    while (ptr)
     {
         size++;
-        ptr=ptr->link;
+        ptr = ptr->link;
     }
     return size;
 }
@@ -186,7 +187,7 @@ char *cloneString(const char *str)
 {
     VERIFY_NON_NULL(str, NULL);
     size_t len = strlen(str);
-    char *clone = (char *)EdgeMalloc(len + 1);
+    char *clone = (char *) EdgeMalloc(len + 1);
     VERIFY_NON_NULL(clone, NULL);
     strncpy(clone, str, len);
     clone[len] = '\0';
@@ -195,7 +196,7 @@ char *cloneString(const char *str)
 
 void *cloneData(const void *src, int lenInbytes)
 {
-    if(!src || lenInbytes < 1)
+    if (!src || lenInbytes < 1)
     {
         return NULL;
     }
@@ -213,7 +214,7 @@ char *convertUAStringToString(UA_String *uaStr)
         return NULL;
     }
 
-    char *str = (char *)EdgeMalloc(uaStr->length + 1);
+    char *str = (char *) EdgeMalloc(uaStr->length + 1);
     VERIFY_NON_NULL(str, NULL);
     memcpy(str, uaStr->data, uaStr->length);
     str[uaStr->length] = '\0';
@@ -230,13 +231,13 @@ void freeEdgeEndpointConfig(EdgeEndpointConfig *config)
 
 void freeEdgeApplicationConfigMembers(EdgeApplicationConfig *config)
 {
-   VERIFY_NON_NULL_NR(config);
+    VERIFY_NON_NULL_NR(config);
     EdgeFree(config->applicationUri);
     EdgeFree(config->productUri);
     EdgeFree(config->applicationName);
     EdgeFree(config->gatewayServerUri);
     EdgeFree(config->discoveryProfileUri);
-    for(size_t i = 0; i < config->discoveryUrlsSize; ++i)
+    for (size_t i = 0; i < config->discoveryUrlsSize; ++i)
     {
         EdgeFree(config->discoveryUrls[i]);
     }
@@ -361,7 +362,7 @@ EdgeMethodRequestParams* cloneEdgeMethodRequestParams(EdgeMethodRequestParams *m
 EdgeEndpointConfig *cloneEdgeEndpointConfig(EdgeEndpointConfig *config)
 {
     VERIFY_NON_NULL(config, NULL);
-    EdgeEndpointConfig *clone = (EdgeEndpointConfig *)EdgeCalloc(1, sizeof(EdgeEndpointConfig));
+    EdgeEndpointConfig *clone = (EdgeEndpointConfig *) EdgeCalloc(1, sizeof(EdgeEndpointConfig));
     VERIFY_NON_NULL(clone, NULL);
     clone->requestTimeout = config->requestTimeout;
     clone->bindPort = config->bindPort;
@@ -385,15 +386,15 @@ EdgeEndpointConfig *cloneEdgeEndpointConfig(EdgeEndpointConfig *config)
 
     return clone;
 
-ERROR:
-    freeEdgeEndpointConfig(clone);
+    ERROR: freeEdgeEndpointConfig(clone);
     return NULL;
 }
 
 EdgeApplicationConfig *cloneEdgeApplicationConfig(EdgeApplicationConfig *config)
 {
     VERIFY_NON_NULL(config, NULL);
-    EdgeApplicationConfig *clone = (EdgeApplicationConfig *)EdgeCalloc(1, sizeof(EdgeApplicationConfig));
+    EdgeApplicationConfig *clone = (EdgeApplicationConfig *) EdgeCalloc(1,
+            sizeof(EdgeApplicationConfig));
     VERIFY_NON_NULL(clone, NULL);
     clone->applicationType = config->applicationType;
 
@@ -443,13 +444,13 @@ EdgeApplicationConfig *cloneEdgeApplicationConfig(EdgeApplicationConfig *config)
     }
 
     clone->discoveryUrlsSize = config->discoveryUrlsSize;
-    clone->discoveryUrls = (char **)calloc(config->discoveryUrlsSize, sizeof(char *));
-    if(!clone->discoveryUrls)
+    clone->discoveryUrls = (char **) calloc(config->discoveryUrlsSize, sizeof(char *));
+    if (!clone->discoveryUrls)
     {
         goto ERROR;
     }
 
-    for(size_t i = 0; i < clone->discoveryUrlsSize; ++i)
+    for (size_t i = 0; i < clone->discoveryUrlsSize; ++i)
     {
         if (config->discoveryUrls[i])
         {
@@ -463,8 +464,7 @@ EdgeApplicationConfig *cloneEdgeApplicationConfig(EdgeApplicationConfig *config)
 
     return clone;
 
-ERROR:
-    freeEdgeApplicationConfig(clone);
+    ERROR: freeEdgeApplicationConfig(clone);
     return NULL;
 }
 
@@ -482,7 +482,7 @@ void freeEdgeEndpointInfo(EdgeEndPointInfo *endpointInfo)
 EdgeEndPointInfo *cloneEdgeEndpointInfo(EdgeEndPointInfo *endpointInfo)
 {
     VERIFY_NON_NULL(endpointInfo, NULL);
-    EdgeEndPointInfo *clone = (EdgeEndPointInfo *)EdgeCalloc(1, sizeof(EdgeEndPointInfo));
+    EdgeEndPointInfo *clone = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
     VERIFY_NON_NULL(clone, NULL);
     clone->securityMode = endpointInfo->securityMode;
     clone->securityLevel = endpointInfo->securityLevel;
@@ -534,8 +534,7 @@ EdgeEndPointInfo *cloneEdgeEndpointInfo(EdgeEndPointInfo *endpointInfo)
 
     return clone;
 
-ERROR:
-    freeEdgeEndpointInfo(clone);
+    ERROR: freeEdgeEndpointInfo(clone);
     return NULL;
 }
 
@@ -610,7 +609,7 @@ void freeEdgeRequest(EdgeRequest *req)
 
 void freeEdgeRequests(EdgeRequest **requests, int requestLength)
 {
-   VERIFY_NON_NULL_NR(requests);
+    VERIFY_NON_NULL_NR(requests);
     for (size_t i = 0; i < requestLength; ++i)
     {
         freeEdgeRequest(requests[i]);
@@ -671,7 +670,7 @@ void freeEdgeMessage(EdgeMessage *msg)
 
 EdgeResult *createEdgeResult(EdgeStatusCode code)
 {
-    EdgeResult *result = (EdgeResult *)EdgeCalloc(1, sizeof(EdgeResult));
+    EdgeResult *result = (EdgeResult *) EdgeCalloc(1, sizeof(EdgeResult));
     if (!result)
     {
         return NULL;
@@ -750,7 +749,7 @@ EdgeNodeInfo *cloneEdgeNodeInfo(EdgeNodeInfo *nodeInfo)
         return NULL;
     }
 
-    EdgeNodeInfo *clone = (EdgeNodeInfo *)EdgeCalloc(1, sizeof(EdgeNodeInfo));
+    EdgeNodeInfo *clone = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
     if (!clone)
     {
         return NULL;
@@ -791,7 +790,6 @@ EdgeNodeInfo *cloneEdgeNodeInfo(EdgeNodeInfo *nodeInfo)
 
     return clone;
 }
-
 
 size_t get_size(EdgeNodeIdentifier type, bool isArray)
 {
@@ -884,7 +882,28 @@ EdgeMessage* cloneEdgeMessage(EdgeMessage *msg)
     clone->endpointInfo = cloneEdgeEndpointInfo(msg->endpointInfo);
     clone->requestLength = msg->requestLength;
 
-    if (msg->type == SEND_REQUEST || msg->type == SEND_REQUESTS)
+    if (msg->browseParam)
+    {
+        clone->browseParam = (EdgeBrowseParameter *) EdgeCalloc(1, sizeof(EdgeBrowseParameter));
+        clone->browseParam->direction = msg->browseParam->direction;
+        clone->browseParam->maxReferencesPerNode = msg->browseParam->maxReferencesPerNode;
+    }
+
+    if (msg->cpList)
+    {
+        clone->cpList = (EdgeContinuationPointList *)EdgeCalloc(1, sizeof(EdgeContinuationPointList));
+        clone->cpList->count = msg->cpList->count;
+        clone->cpList->cp =  (EdgeContinuationPoint **)EdgeCalloc(msg->cpList->count, sizeof(EdgeContinuationPoint *));
+        for (size_t  i = 0; i < msg->cpList->count; i++)
+        {
+            clone->cpList->cp[i] = (EdgeContinuationPoint *)EdgeCalloc(1, sizeof(EdgeContinuationPoint));
+            clone->cpList->cp[i]->length = msg->cpList->cp[i]->length;
+            clone->cpList->cp[i]->continuationPoint = (unsigned char *) cloneData(msg->cpList->cp[i]->continuationPoint,
+                                                                                  strlen((char *) msg->cpList->cp[i]->continuationPoint) + 1);
+        }
+    }
+
+    if (msg->type == SEND_REQUEST)
     {
         if (msg->request)
         {
@@ -896,35 +915,16 @@ EdgeMessage* cloneEdgeMessage(EdgeMessage *msg)
             if (msg->request->methodParams)
                 clone->request->methodParams = cloneEdgeMethodRequestParams(msg->request->methodParams);
         }
+    }
 
-        if (msg->browseParam)
-        {
-            clone->browseParam = (EdgeBrowseParameter *) EdgeCalloc(1, sizeof(EdgeBrowseParameter));
-            clone->browseParam->direction = msg->browseParam->direction;
-            clone->browseParam->maxReferencesPerNode = msg->browseParam->maxReferencesPerNode;
-        }
-
-        if (msg->cpList)
-        {
-            clone->cpList = (EdgeContinuationPointList *)EdgeCalloc(1, sizeof(EdgeContinuationPointList));
-            clone->cpList->count = msg->cpList->count;
-            clone->cpList->cp =  (EdgeContinuationPoint **)EdgeCalloc(msg->cpList->count, sizeof(EdgeContinuationPoint *));
-            for (size_t  i = 0; i < msg->cpList->count; i++)
-            {
-                clone->cpList->cp[i] = (EdgeContinuationPoint *)EdgeCalloc(1, sizeof(EdgeContinuationPoint));
-                clone->cpList->cp[i]->length = msg->cpList->cp[i]->length;
-                clone->cpList->cp[i]->continuationPoint = (unsigned char *) cloneData(msg->cpList->cp[i]->continuationPoint,
-                                                                                      strlen((char *) msg->cpList->cp[i]->continuationPoint) + 1);
-            }
-        }
-
+    if (msg->type == SEND_REQUESTS)
+    {
         clone->requests = (EdgeRequest**) EdgeCalloc(msg->requestLength, sizeof(EdgeRequest*));
         for (size_t i = 0; i < msg->requestLength; i++)
         {
             clone->requests[i] = (EdgeRequest*) EdgeCalloc(1, sizeof(EdgeRequest));
             if (msg->requests[i]->nodeInfo)
                 clone->requests[i]->nodeInfo = cloneEdgeNodeInfo(msg->requests[i]->nodeInfo);
-
             if (msg->command == CMD_WRITE)
             {
                 clone->requests[i]->type = msg->requests[i]->type;
@@ -995,122 +995,55 @@ EdgeMessage* cloneEdgeMessage(EdgeMessage *msg)
             }
         }
     }
-
-#if 0
-    if ((msg->type == GENERAL_RESPONSE) || (msg->type == BROWSE_RESPONSE)
-            || (msg->type == REPORT))
-    {
-        // Clone Response
-        printf(">>>> clone response :; %d\n", (int) msg->responseLength);
-        clone->responseLength = msg->responseLength;
-        clone->responses = (EdgeResponse**) calloc(msg->responseLength, sizeof(EdgeResponse*));
-        for (int i = 0; i < msg->responseLength; i++)
-        {
-            clone->responses[i] = (EdgeResponse*) EdgeCalloc(1, sizeof(EdgeResponse));
-            clone->responses[i]->type = msg->responses[i]->type;
-
-            EdgeVersatility *srcVersatility = (EdgeVersatility*) msg->responses[i]->message;
-            EdgeVersatility *cloneVersatility = (EdgeVersatility *) EdgeCalloc(1, sizeof(EdgeVersatility));
-
-            if (cloneVersatility)
-            {
-                cloneVersatility->isArray = srcVersatility->isArray;
-
-                if (srcVersatility->isArray == false)
-                {
-                    // Scalar response Clone
-                    printf("scalar response clone\n\n");
-                    cloneVersatility->arrayLength = srcVersatility->arrayLength;
-                    void *val = srcVersatility->value;
-
-                    size_t size = get_size(msg->responses[i]->type, srcVersatility->isArray);
-                    if ((msg->responses[i]->type == String) || (msg->responses[i]->type == ByteString) || (msg->responses[i]->type == Guid))
-                    {
-                        printf("string calloc\n\n");
-                        size_t len = strlen((char *) srcVersatility->value);
-                        cloneVersatility->value = (void *) EdgeCalloc(1, len+1);
-                        strncpy(cloneVersatility->value, (char*) srcVersatility->value, len);
-                       ((char*) cloneVersatility->value)[(int) len] = '\0';
-                    }
-                    else
-                    {
-                        printf("memcpy and calloc\n\n");
-                        cloneVersatility->value = (void *) EdgeCalloc(1, size);
-                        memcpy(cloneVersatility->value, val, size);
-                        printf("memcpy and calloc done :: %g\n\n", *((double*) cloneVersatility->value));
-                    }
-                    clone->responses[i]->message= cloneVersatility;
-                    printf("versatility copied\n");
-                }
-                else
-                {
-                    // Array Response Clone
-                    cloneVersatility->arrayLength = srcVersatility->arrayLength;
-                    void *val = srcVersatility->value;
-
-                    size_t size = get_size(msg->responses[i]->type, srcVersatility->isArray);
-                    if (msg->responses[i]->type == String)
-                    {
-                        printf("string calloc array \n\n");
-                        char **srcVal = (char**) srcVersatility->value;
-                        char **dstVal = (char **) EdgeCalloc(srcVersatility->arrayLength, sizeof(char*));
-                        size_t len;
-                        for (int i = 0; i < srcVersatility->arrayLength; i++)
-                        {
-                            printf("string calloc\n");
-                            len = strlen(srcVal[i]);
-                            dstVal[i] = (char*) EdgeCalloc(1, len+1);
-                            strncpy(dstVal[i], srcVal[i], len);
-                            dstVal[i][(int) len + 1] = '\0';
-                        }
-                        cloneVersatility->value = (void *) dstVal;
-                    }
-                    else
-                    {
-                        printf("not string array >>>>>>>>>>>>>>>>>>>>>>>>>>\n\n");
-                        cloneVersatility->value = (void *) EdgeCalloc(srcVersatility->arrayLength, size);
-                        memcpy(cloneVersatility->value, val, get_size(msg->responses[i]->type, false) * srcVersatility->arrayLength);
-                        for (int i = 0; i < srcVersatility->arrayLength; i++)
-                        {
-                                printf("array calloc :: %d\n", ((int*) cloneVersatility->value)[i]);
-                        }
-                    }
-                    clone->responses[i]->message = cloneVersatility;
-                }
-                printf("end\n");
-            }
-        }
-    }
-    else if (msg->type == ERROR)
-    {
-        printf(">>>> clone ERROR response :; %d\n", (int) msg->responseLength);
-        clone->responseLength = msg->responseLength;
-        clone->responses = (EdgeResponse**) calloc(msg->responseLength, sizeof(EdgeResponse*));
-        for (int i = 0; i < msg->responseLength; i++)
-        {
-            clone->responses[i] = (EdgeResponse*) EdgeCalloc(1, sizeof(EdgeResponse));
-            EdgeVersatility *srcVersatility = (EdgeVersatility*) msg->responses[i]->message;
-            EdgeVersatility *cloneVersatility = (EdgeVersatility *) EdgeCalloc(1, sizeof(EdgeVersatility));
-
-            printf("err msg \n");
-            printf("err msg :: %s\n\n", (char *) srcVersatility->value);
-
-            size_t len = strlen((char *) srcVersatility->value);
-            cloneVersatility->value = (void *) EdgeCalloc(1, len+1);
-            strncpy(cloneVersatility->value, (char*) srcVersatility->value, len);
-           ((char*) cloneVersatility->value)[(int) len] = '\0';
-
-            printf("versatility err copy\n");
-            clone->responses[i]->message = cloneVersatility;
-            printf("versatility err copied\n");
-        }
-        clone->result = (EdgeResult*) EdgeCalloc(1, sizeof(EdgeResult));
-        clone->result->code = msg->result->code;
-        printf("edgeresult cloned\n");
-    }
-#endif
-
     return clone;
+}
+
+EdgeNodeIdType getEdgeNodeIdType(char type)
+{
+    EdgeNodeIdType edgeNodeType = INTEGER;
+    switch (type)
+    {
+        case 'N':
+            edgeNodeType = INTEGER;
+            break;
+        case 'S':
+            edgeNodeType = STRING;
+            break;
+        case 'B':
+            edgeNodeType = BYTESTRING;
+            break;
+        case 'G':
+            edgeNodeType = UUID;
+            break;
+        default:
+            break;
+    }
+    return edgeNodeType;
+}
+
+char getCharacterNodeIdType(uint32_t type)
+{
+    char nodeType;
+    char nodeTypeArray[4] =
+    { 'N', 'S', 'B', 'G' };
+    switch (type)
+    {
+        case UA_NODEIDTYPE_NUMERIC:
+            nodeType = nodeTypeArray[0];
+            break;
+        case UA_NODEIDTYPE_STRING:
+            nodeType = nodeTypeArray[1];
+            break;
+        case UA_NODEIDTYPE_BYTESTRING:
+            nodeType = nodeTypeArray[2];
+            break;
+        case UA_NODEIDTYPE_GUID:
+            nodeType = nodeTypeArray[3];
+            break;
+        default:
+            break;
+    }
+    return nodeType;
 }
 
 // USAGE

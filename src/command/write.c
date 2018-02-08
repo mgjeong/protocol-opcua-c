@@ -135,7 +135,6 @@ static EdgeDiagnosticInfo *checkDiagnosticInfo(size_t nodesToProcess,
 
 static void writeGroup(UA_Client *client, const EdgeMessage *msg)
 {
-
     size_t reqLen = msg->requestLength;
     UA_WriteValue *wv = (UA_WriteValue *) EdgeMalloc(sizeof(UA_WriteValue) * reqLen);
     VERIFY_NON_NULL_NR(wv);
@@ -167,16 +166,16 @@ static void writeGroup(UA_Client *client, const EdgeMessage *msg)
             // scalar value to write
             if (type == UA_TYPES_STRING)
             {
-                char **value_to_write = (char**) message->value;
-                UA_String val = UA_STRING_ALLOC((char * ) value_to_write[0]);
+                char *value_to_write = (char*) message->value;
+                UA_String val = UA_STRING_ALLOC(value_to_write);
                 UA_Variant_setScalarCopy(&myVariant[i], &val, &UA_TYPES[type]);
                 UA_String_deleteMembers(&val);
                 EdgeFree(val.data);
             }
             else if (type == UA_TYPES_BYTESTRING)
             {
-                char **value_to_write = (char**) message->value;
-                UA_ByteString val = UA_BYTESTRING_ALLOC((char * ) value_to_write[0]);
+                char *value_to_write = (char*) message->value;
+                UA_ByteString val = UA_BYTESTRING_ALLOC(value_to_write);
                 UA_Variant_setScalarCopy(&myVariant[i], &val, &UA_TYPES[type]);
                 UA_String_deleteMembers(&val);
                 EdgeFree(val.data);

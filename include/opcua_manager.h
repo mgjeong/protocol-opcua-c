@@ -199,6 +199,30 @@ __attribute__((visibility("default"))) char *copyString(const char *str);
 
 /* Create EdgeNodeInfo object */
 __attribute__((visibility("default"))) EdgeNodeInfo* createEdgeNodeInfo(const char* nodeName);
+__attribute__((visibility("default"))) EdgeNodeInfo* createEdgeNodeInfoForNodeId(EdgeNodeIdType type,
+        int nodeId, uint16_t nameSpace);
+
+/* Insert Monitored Item */
+__attribute__((visibility("default"))) EdgeResult insertSubParameter(EdgeMessage **msg, const char* nodeName,
+        EdgeNodeIdentifier subType, double samplingInterval, double publishingInterval, int maxKeepAliveCount,
+        int lifetimeCount, int maxNotificationsPerPublish, bool publishingEnabled, int priority,
+        uint32_t queueSize);
+
+/* Create EdgeMessage for Subscription Services */
+__attribute__((visibility("default"))) EdgeMessage* createEdgeSubMessage(const char *endpointUri,
+        const char* nodeName, size_t requestSize, EdgeNodeIdentifier subType);
+
+/* Create EdgeMessage for Attribute Services such as Read, Write*/
+__attribute__((visibility("default"))) EdgeMessage* createEdgeAttributeMessage(const char *endpointUri,
+        size_t requestSize, EdgeCommand cmd);
+
+/* Insert access request */
+__attribute__((visibility("default"))) EdgeResult insertReadAccessNode(EdgeMessage **msg, const char* nodeName);
+__attribute__((visibility("default"))) EdgeResult insertWriteAccessNode(EdgeMessage **msg, const char* nodeName,
+        void* value, size_t valueLen);
+
+/* Get the value type of the variable node */
+__attribute__((visibility("default"))) EdgeNodeIdentifier getValueType(const char* nodeName);
 
 #ifdef __cplusplus
 }

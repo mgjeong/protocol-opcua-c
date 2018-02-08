@@ -58,6 +58,7 @@ static void add_to_endpoint_list(char *endpoint);
 static EndPointList *remove_from_endpoint_list(char *endpoint);
 
 static void startClient(char *addr, int port, char *securityPolicyUri, char *endpoint);
+static void *getNewValuetoWrite(EdgeNodeIdentifier type, int num_values);
 
 // TODO: Remove this function later when sdk expose it.
 EdgeNodeId *cloneEdgeNodeId(EdgeNodeId *nodeId)
@@ -1261,22 +1262,7 @@ static void testBrowse(char* endpointUri)
     printf("\n\n" COLOR_YELLOW "********** Browse Int16 node in namespace 2 **********" COLOR_RESET
            "\n");
 #else
-    msg->request->nodeInfo = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
-    if(IS_NULL(msg->request->nodeInfo))
-    {
-        printf("Error : Malloc failed for nodeInfo in test browse\n");
-        goto EXIT_BROWSE;
-    }
-    msg->request->nodeInfo->nodeId = (EdgeNodeId *) EdgeCalloc(1, sizeof(EdgeNodeId));
-    if(IS_NULL(msg->request->nodeInfo->nodeId))
-    {
-        printf("Error : Malloc failed for nodeInfo->nodeId in test browse\n");
-        goto EXIT_BROWSE;
-    }
-    msg->request->nodeInfo->nodeId->type = INTEGER;
-    msg->request->nodeInfo->nodeId->integerNodeId = RootFolder;
-    msg->request->nodeInfo->nodeId->nameSpace = SYSTEM_NAMESPACE_INDEX;
-
+    msg->request->nodeInfo = createEdgeNodeInfoForNodeId(INTEGER, RootFolder, SYSTEM_NAMESPACE_INDEX);
     printf("\n\n" COLOR_YELLOW "********** Browse RootFolder node in system namespace **********"
            COLOR_RESET "\n");
 #endif
@@ -1396,21 +1382,7 @@ static void testBrowses(char* endpointUri)
         printf("Error : Malloc failed for requests[0] in test browses\n");
         goto EXIT_BROWSES;
     }
-    msg->requests[0]->nodeInfo = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
-    if(IS_NULL(msg->requests[0]->nodeInfo))
-    {
-        printf("Error : Malloc failed for nodeInfo1 in test browses\n");
-        goto EXIT_BROWSES;
-    }
-    msg->requests[0]->nodeInfo->nodeId = (EdgeNodeId *) EdgeCalloc(1, sizeof(EdgeNodeId));
-    if(IS_NULL(msg->requests[0]->nodeInfo->nodeId))
-    {
-        printf("Error : Malloc failed for nodeInfo1->nodeId in test browses\n");
-        goto EXIT_BROWSES;
-    }
-    msg->requests[0]->nodeInfo->nodeId->type = INTEGER;
-    msg->requests[0]->nodeInfo->nodeId->integerNodeId = RootFolder;
-    msg->requests[0]->nodeInfo->nodeId->nameSpace = SYSTEM_NAMESPACE_INDEX;
+    msg->requests[0]->nodeInfo = createEdgeNodeInfoForNodeId(INTEGER, RootFolder, SYSTEM_NAMESPACE_INDEX);
 
     msg->requests[1] = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
     if(IS_NULL(msg->requests[1]))
@@ -1418,21 +1390,7 @@ static void testBrowses(char* endpointUri)
         printf("Error : Malloc failed for requests[1] in test browses\n");
         goto EXIT_BROWSES;
     }
-    msg->requests[1]->nodeInfo = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
-    if(IS_NULL(msg->requests[1]->nodeInfo))
-    {
-        printf("Error : Malloc failed for nodeInfo2 in test browses\n");
-        goto EXIT_BROWSES;
-    }
-    msg->requests[1]->nodeInfo->nodeId = (EdgeNodeId *) EdgeCalloc(1, sizeof(EdgeNodeId));
-    if(IS_NULL(msg->requests[1]->nodeInfo->nodeId))
-    {
-        printf("Error : Malloc failed for nodeInfo2->nodeId in test browses\n");
-        goto EXIT_BROWSES;
-    }
-    msg->requests[1]->nodeInfo->nodeId->type = INTEGER;
-    msg->requests[1]->nodeInfo->nodeId->integerNodeId = ObjectsFolder;
-    msg->requests[1]->nodeInfo->nodeId->nameSpace = SYSTEM_NAMESPACE_INDEX;
+    msg->requests[1]->nodeInfo = createEdgeNodeInfoForNodeId(INTEGER, ObjectsFolder, SYSTEM_NAMESPACE_INDEX);
 
     msg->requests[2] = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
     if(IS_NULL(msg->requests[2]))
@@ -1440,21 +1398,12 @@ static void testBrowses(char* endpointUri)
         printf("Error : Malloc failed for requests[2] in test browses\n");
         goto EXIT_BROWSES;
     }
-    msg->requests[2]->nodeInfo = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
-    if(IS_NULL(msg->requests[2]->nodeInfo))
-    {
-        printf("Error : Malloc failed for nodeInfo3 in test browses\n");
-        goto EXIT_BROWSES;
-    }
-    msg->requests[2]->nodeInfo->nodeId = (EdgeNodeId *) EdgeCalloc(1, sizeof(EdgeNodeId));
-    if(IS_NULL(msg->requests[2]->nodeInfo->nodeId))
-    {
-        printf("Error : Malloc failed for nodeInfo3->nodeId in test browses\n");
-        goto EXIT_BROWSES;
-    }
-    msg->requests[2]->nodeInfo->nodeId->type = STRING;
-    msg->requests[2]->nodeInfo->nodeId->nodeId = copyString("Object1");
-    msg->requests[2]->nodeInfo->nodeId->nameSpace = 2;
+    printf("\n\n" COLOR_YELLOW "tkss\n");
+
+    msg->requests[2]->nodeInfo = createEdgeNodeInfo("{2;S;v=0}Object1");
+
+    printf("\n\n" COLOR_YELLOW "tkss1 %d %d %s\n", msg->requests[2]->nodeInfo->nodeId->nameSpace,
+            msg->requests[2]->nodeInfo->nodeId->type, msg->requests[2]->nodeInfo->nodeId->nodeId);
 
     printf("\n\n" COLOR_YELLOW
            "********** Browse RootFolder, ObjectsFolder nodes in system namespace and Object1 in namespace 1 **********"
@@ -1484,48 +1433,21 @@ static void testBrowses(char* endpointUri)
 static void readHelper(int num_requests, char *ep)
 {
     char nodeName[MAX_CHAR_SIZE];
-    EdgeMessage *msg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
+    EdgeMessage *msg = createEdgeAttributeMessage(ep, num_requests, CMD_READ);
     if(IS_NULL(msg))
     {
-        printf("Error : Malloc failed for EdgeMessage in test read\n");
-        goto EXIT_READ;
-    }
-
-    msg->endpointInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    if(IS_NULL(msg->endpointInfo))
-    {
-        printf("Error : Malloc failed for epInfo in test read\n");
-        goto EXIT_READ;
-    }
-    msg->endpointInfo->endpointUri = copyString(ep);
-
-    msg->requests = (EdgeRequest **) calloc(num_requests, sizeof(EdgeRequest *));
-    if(IS_NULL(msg->requests))
-    {
-        printf("Error : Malloc failed for requests in test read\n");
-        goto EXIT_READ;
+        printf("Error : Malloc failed for attribute message");
+        return;
     }
 
     for (int i = 0; i < num_requests; i++)
     {
         printf("\nEnter the node #%d name to read :: ", (i + 1));
-
-        msg->requests[i] = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
-        if(IS_NULL(msg->requests[i]))
-        {
-            printf("Error : Malloc failed for requests[%d] in test read\n", i);
-            goto EXIT_READ;
-        }
         scanf("%s", nodeName);
-        msg->requests[i]->nodeInfo = createEdgeNodeInfo(nodeName);
+        insertReadAccessNode(&msg, nodeName);
     }
-    msg->command = CMD_READ;
-    msg->type = SEND_REQUESTS;
-    msg->requestLength = num_requests;
 
     sendRequest(msg);
-
-    EXIT_READ:
     destroyEdgeMessage(msg);
 }
 
@@ -1572,234 +1494,60 @@ static void testReadGroup()
     readHelper(num_requests, ep);
 }
 
-static int getInputType()
-{
-    int type;
-
-    printf("\n1) Boolean\n");
-    printf("2) SByte\n");
-    printf("3) Byte\n");
-    printf("4) Int16\n");
-    printf("5) UInt16\n");
-    printf("6) Int32\n");
-    printf("7) UInt32\n");
-    printf("8) Int64\n");
-    printf("9) UInt64\n");
-    printf("10) Float\n");
-    printf("11) Double\n");
-    printf("12) String\n\n");
-
-    printf("Enter the type of the data to write (integer option only) :: ");
-    scanf("%d", &type);
-
-    return type;
-}
-
-static void *getNewValuetoWrite(EdgeNodeIdentifier type, int num_values)
-{
-    printf("Enter the new value to write :: ");
-    switch (type)
-    {
-        case Boolean:
-            {
-                int *val = (int *) EdgeMalloc(sizeof(int) * num_values);
-                for (int i = 0; i < num_values; i++)
-                    scanf("%d", &val[i]);
-                return (void *) val;
-            }
-            break;
-        case SByte:
-            {
-                int8_t *val = (int8_t *) EdgeMalloc(sizeof(int8_t) * num_values);
-                for (int i = 0; i < num_values; i++)
-                    scanf("%" SCNd8, &val[i]);
-                return (void *) val;
-            }
-        case Byte:
-            {
-                uint8_t *val = (uint8_t *) EdgeMalloc(sizeof(uint8_t) * num_values);
-                for (int i = 0; i < num_values; i++)
-                    scanf("%" SCNu8, &val[i]);
-                return (void *) val;
-            }
-            break;
-        case Int16:
-            {
-                int16_t *val = (int16_t *) EdgeMalloc(sizeof(int16_t) * num_values);
-                for (int i = 0; i < num_values; i++)
-                    scanf("%" SCNd16, &val[i]);
-                return (void *) val;
-            }
-        case UInt16:
-            {
-                uint16_t *val = (uint16_t *) EdgeMalloc(sizeof(uint16_t) * num_values);
-                for (int i = 0; i < num_values; i++)
-                    scanf("%" SCNu16, &val[i]);
-                return (void *) val;
-            }
-            break;
-        case Int32:
-            {
-                int32_t *val = (int32_t *) EdgeMalloc(sizeof(int32_t) * num_values);
-                for (int i = 0; i < num_values; i++)
-                    scanf("%" SCNd32, &val[i]);
-                return (void *) val;
-            }
-            break;
-        case UInt32:
-            {
-                uint32_t *val = (uint32_t *) EdgeMalloc(sizeof(uint32_t) * num_values);
-                for (int i = 0; i < num_values; i++)
-                    scanf("%" SCNu32, &val[i]);
-                return (void *) val;
-            }
-            break;
-        case Int64:
-            {
-                int64_t *val = (int64_t *) EdgeMalloc(sizeof(int64_t) * num_values);
-                for (int i = 0; i < num_values; i++)
-                    scanf("%" SCNd64, &val[i]);
-                return (void *) val;
-            }
-            break;
-        case UInt64:
-            {
-                uint64_t *val = (uint64_t *) EdgeMalloc(sizeof(uint64_t) * num_values);
-                for (int i = 0; i < num_values; i++)
-                    scanf("%" SCNu64, &val[i]);
-                return (void *) val;
-            }
-            break;
-        case Float:
-            {
-                float *val = (float *) EdgeMalloc(sizeof(float) * num_values);
-                for (int i = 0; i < num_values; i++)
-                    scanf("%g", &val[i]);
-                return (void *) val;
-            }
-            break;
-        case Double:
-            {
-                double *val = (double *) EdgeMalloc(sizeof(double) * num_values);
-                for (int i = 0; i < num_values; i++)
-                scanf("%lf", &val[i]);
-                return (void *) val;
-            }
-            break;
-        case String:
-            {
-                char **retStr = (char**) malloc(sizeof(char*) * num_values);
-                int len;
-                char val[MAX_CHAR_SIZE];
-                for (int i = 0; i < num_values; i++)
-                {
-                    scanf("%s", val);
-                    len  = strlen(val);
-                    retStr[i] = (char *) EdgeMalloc(len + 1);
-                    strncpy(retStr[i], val, len);
-                    retStr[i][len] = '\0';
-                }
-                return (void *) retStr;
-            }
-            break;
-        default:
-            break;
-    }
-
-    return NULL;
-}
-
 static void writeHelper(int num_requests, char *ep)
 {
     char nodeName[MAX_CHAR_SIZE];
-    int num_values;
-    EdgeMessage *msg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
+    int valueLen;
+
+    EdgeMessage *msg = createEdgeAttributeMessage(ep, num_requests, CMD_WRITE);
     if(IS_NULL(msg))
     {
-        printf("Error : Malloc failed for EdgeMessage in test write\n");
-        goto EXIT_WRITE;
-    }
-
-    msg->endpointInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    if(IS_NULL(msg->endpointInfo))
-    {
-        printf("Error : Malloc failed for epInfo in test write\n");
-        goto EXIT_WRITE;
-    }
-    msg->endpointInfo->endpointUri = copyString(ep);
-    msg->requests = (EdgeRequest **) calloc(num_requests, sizeof(EdgeRequest *));
-    if(IS_NULL(msg->requests))
-    {
-        printf("Error : Malloc failed for EdgeRequest in test write\n");
-        goto EXIT_WRITE;
+        printf("Error : Malloc failed for attribute message");
+        return;
     }
 
     for (int i = 0; i < num_requests; i++)
     {
         printf("\nEnter the node #%d name to write :: ", (i + 1));
-        msg->requests[i] = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
-        if(IS_NULL(msg->requests[i]))
-        {
-            printf("Error : Malloc failed for requests[%d] in test write\n", i);
-            goto EXIT_WRITE;
-        }
-
         scanf("%s", nodeName);
-        msg->requests[i]->nodeInfo = createEdgeNodeInfo(nodeName);
-        msg->requests[i]->type = getInputType();
+
+        EdgeNodeIdentifier nodeType = getValueType(nodeName);
         printf("Enter number of elements to write (1 for scalar, > 1 for Array) : ");
-        scanf("%d", &num_values);
-
-        EdgeVersatility* message = (EdgeVersatility*) malloc(sizeof(EdgeVersatility));
-        message->value = getNewValuetoWrite(msg->requests[i]->type, num_values);
-        message->arrayLength = 0;
-        if (num_values > 1)
-        {
-            message->isArray = true;
-            message->arrayLength = num_values;
-        }
-        else
-        {
-            message->isArray = false;
-        }
-        msg->requests[i]->value = message;
+        scanf("%d", &valueLen);
+        void *value = getNewValuetoWrite(nodeType, valueLen);
+        insertWriteAccessNode(&msg, nodeName, value, valueLen);
     }
-
-    msg->command = CMD_WRITE;
-    msg->type = SEND_REQUESTS;
-    msg->requestLength = num_requests;
 
     printf("write node \n");
     sendRequest(msg);
     printf("write node call success \n");
-
-    EXIT_WRITE:
-    if (IS_NOT_NULL(msg->requests))
-    {
-        for (int i = 0; i < num_requests; i++)
-        {
-            if(IS_NOT_NULL(msg->requests[i]))
-            {
-                EdgeVersatility *message = (EdgeVersatility*) msg->requests[i]->value;
-                if (IS_NOT_NULL(message))
-                {
-                    if (msg->requests[i]->type == (int) String)
-                    {
-                        char **data = (char**) message->value;
-                        for (int j = 0; j < message->arrayLength; j++)
-                        {
-                            EdgeFree(data[j]);
-                        }
-                        EdgeFree(data);
-                    }
-                    else
-                    {
-                        EdgeFree(message->value);
-                    }
-                }
-            }
-        }
-    }
+//
+//    if (IS_NOT_NULL(msg->requests))
+//    {
+//        for (int i = 0; i < num_requests; i++)
+//        {
+//            if(IS_NOT_NULL(msg->requests[i]))
+//            {
+//                EdgeVersatility *message = (EdgeVersatility*) msg->requests[i]->value;
+//                if (IS_NOT_NULL(message))
+//                {
+//                    if (msg->requests[i]->type == (int) String)
+//                    {
+//                        char **data = (char**) message->value;
+//                        for (int j = 0; j < message->arrayLength; j++)
+//                        {
+//                            EdgeFree(data[j]);
+//                        }
+//                        EdgeFree(data);
+//                    }
+//                    else
+//                    {
+//                        EdgeFree(message->value);
+//                    }
+//                }
+//            }
+//        }
+//    }
     destroyEdgeMessage(msg);
 
 }
@@ -2153,76 +1901,25 @@ static void testSub()
         return;
     }
 
-    EdgeSubRequest *subReq = NULL; // Declaring here to make the handling in EXIT_SUBMODIFY proper.
-    EdgeMessage *msg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
+    EdgeMessage* msg = createEdgeSubMessage(ep, nodeName, num_requests, Edge_Create_Sub);
     if(IS_NULL(msg))
     {
         printf("Error : EdgeMalloc failed for msg in test subscription\n");
-        goto EXIT_SUB;
+        return;
     }
-
-    msg->endpointInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    if(IS_NULL(msg->endpointInfo))
-    {
-        printf("Error : Malloc failed for epInfo in test subscription\n");
-        goto EXIT_SUB;
-    }
-
-    msg->endpointInfo->endpointUri = copyString(ep);
-    msg->requests = (EdgeRequest **) EdgeCalloc(num_requests, sizeof(EdgeRequest *));
-    if(IS_NULL(msg->requests))
-    {
-        printf("Error : Malloc failed for requests in test subscription\n");
-        goto EXIT_SUB;
-    }
-
-    subReq = (EdgeSubRequest *) EdgeCalloc(1, sizeof(EdgeSubRequest));
-    if(IS_NULL(subReq))
-    {
-        printf("Error : Malloc failed for subReq in test subscription\n");
-        goto EXIT_SUB;
-    }
-
-    double samplingInterval;
-    printf("\nEnter number of sampling interval[millisecond] (minimum : 100ms) :: ");
-    scanf("%lf", &samplingInterval);
-
-    subReq->subType = Edge_Create_Sub;
-    subReq->samplingInterval = samplingInterval;
-    subReq->publishingInterval = 0.0;
-    subReq->maxKeepAliveCount = (1 > (int) (
-                                     ceil(10000.0 / subReq->publishingInterval))) ? 1 : (int) ceil(10000.0 / subReq->publishingInterval);
-    subReq->lifetimeCount = 10000;  //subReq->maxKeepAliveCount * 6;
-    subReq->maxNotificationsPerPublish = 1;
-    subReq->publishingEnabled = true;
-    subReq->priority = 0;
-    subReq->queueSize = 50;
 
     for (int i = 0; i < num_requests; i++)
     {
-        msg->requests[i] = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
-        if(IS_NULL(msg->requests[i]))
-        {
-            printf("Error : EdgeMalloc failed for requests[%d] in test subscription\n", i);
-            goto EXIT_SUB;
-        }
-
-
-
         printf("\nEnter the node #%d name to subscribe :: ", (i + 1));
         scanf("%s", nodeName);
-        msg->requests[i]->nodeInfo = createEdgeNodeInfo(nodeName);
-        if(IS_NULL(msg->requests[i]->nodeInfo))
-        {
-            printf("Error : Malloc failed for nodeInfo in test subscription\n");
-            goto EXIT_SUB;
-        }
-        msg->requests[i]->subMsg = subReq;
+
+        double samplingInterval;
+        printf("\nEnter number of sampling interval[millisecond] (minimum : 100ms) :: ");
+        scanf("%lf", &samplingInterval);
+        int keepalivetime = (1 > (int) (ceil(10000.0 / 0.0))) ? 1 : (int) ceil(10000.0 / 0.0);
+        insertSubParameter(&msg, nodeName, Edge_Create_Sub, samplingInterval, 0.0, keepalivetime, 10000, 1, true, 0, 50);
     }
 
-    msg->command = CMD_SUB;
-    msg->type = SEND_REQUESTS;
-    msg->requestLength = num_requests;
 
     EdgeResult result = sendRequest(msg);
     if (result.code == STATUS_OK)
@@ -2232,14 +1929,6 @@ static void testSub()
         printf("CREATE RESULT : %d\n",  result.code);
     }
 
-    subReq = NULL;
-
-    EXIT_SUB:
-    for (int i = 1; i < num_requests; i++)
-    {
-        msg->requests[i]->subMsg = NULL;
-    }
-    EdgeFree(subReq);
     destroyEdgeMessage (msg);
 }
 
@@ -2258,55 +1947,18 @@ static void testSubModify()
     printf("\nEnter the node name to modify Subscribe :: ");
     scanf("%s", nodeName);
 
-    EdgeMessage *msg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
+    EdgeMessage* msg = createEdgeSubMessage(ep, nodeName, 0, Edge_Modify_Sub);
     if(IS_NULL(msg))
     {
-        printf("Error : Malloc failed for EdgeMessage in test subscription modify\n");
-        goto EXIT_SUBMODIFY;
+        printf("Error : EdgeMalloc failed for msg in test subscription\n");
+        return;
     }
-
-    msg->endpointInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    if(IS_NULL(msg->endpointInfo))
-    {
-        printf("Error : Malloc failed for epInfo in test subscription modify\n");
-        goto EXIT_SUBMODIFY;
-    }
-    msg->endpointInfo->endpointUri = copyString(ep);
-
-    msg->request = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
-    if(IS_NULL(msg->request))
-    {
-        printf("Error : Malloc failed for request in test subscription modify\n");
-        goto EXIT_SUBMODIFY;
-    }
-    msg->request->nodeInfo = createEdgeNodeInfo(nodeName);
-    if(IS_NULL(msg->request->nodeInfo))
-    {
-        printf("Error : Malloc failed for nodeInfo in test subscription modify\n");
-        goto EXIT_SUBMODIFY;
-    }
-
-    msg->request->subMsg = (EdgeSubRequest *) EdgeCalloc(1, sizeof(EdgeSubRequest));
-    if(IS_NULL(msg->request->subMsg))
-    {
-        printf("Error : Malloc failed for subReq in test subscription modify\n");
-        goto EXIT_SUBMODIFY;
-    }
-    msg->request->subMsg->subType = Edge_Modify_Sub;
-    msg->request->subMsg->samplingInterval = 5000.0;
-    msg->request->subMsg->publishingInterval = 0.0;
-    msg->request->subMsg->maxKeepAliveCount = (1 > (int) (ceil(10000.0 / msg->request->subMsg->publishingInterval)))
-                    ? 1 : (int) ceil(10000.0 / msg->request->subMsg->publishingInterval);
-    printf("keepalive count :: %d\n", msg->request->subMsg->maxKeepAliveCount);
-    msg->request->subMsg->lifetimeCount = 10000;  //subReq->maxKeepAliveCount * 6;
-    printf("lifetimecount :: %d\n", msg->request->subMsg->lifetimeCount);
-    msg->request->subMsg->maxNotificationsPerPublish = 1;
-    msg->request->subMsg->publishingEnabled = true;
-    msg->request->subMsg->priority = 0;
-    msg->request->subMsg->queueSize = 50;;
-
-    msg->command = CMD_SUB;
-    msg->type = SEND_REQUEST;
+    
+    double samplingInterval;
+    printf("\nEnter number of sampling interval[millisecond] (minimum : 100ms) :: ");
+    scanf("%lf", &samplingInterval);
+    int keepalivetime = (1 > (int) (ceil(10000.0 / 0.0))) ? 1 : (int) ceil(10000.0 / 0.0);
+    insertSubParameter(&msg, nodeName, Edge_Modify_Sub, samplingInterval, 0.0, keepalivetime, 10000, 1, true, 0, 50);
 
     EdgeResult result = sendRequest(msg);
     if (result.code == STATUS_OK)
@@ -2314,7 +1966,6 @@ static void testSubModify()
         printf("SUBSCRPTION MODIFY SUCCESSFULL\n");
     }
 
-    EXIT_SUBMODIFY:
     destroyEdgeMessage (msg);
 }
 
@@ -2331,44 +1982,12 @@ static void testRePublish()
     printf("\nEnter the node name to Re publish :: ");
     scanf("%s", nodeName);
 
-    EdgeMessage *msg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
+    EdgeMessage* msg = createEdgeSubMessage(ep, nodeName, 0, Edge_Republish_Sub);
     if(IS_NULL(msg))
     {
-        printf("Error : Malloc failed for EdgeMessage in test republish\n");
-        goto EXIT_REPUBLISH;
+        printf("Error : EdgeMalloc failed for msg in test subscription\n");
+        return;
     }
-
-    msg->endpointInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    if(IS_NULL(msg->endpointInfo))
-    {
-        printf("Error : Malloc failed for epInfo in test republish\n");
-        goto EXIT_REPUBLISH;
-    }
-    msg->endpointInfo->endpointUri = copyString(ep);
-    msg->request = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
-    if(IS_NULL(msg->request))
-    {
-        printf("Error : Malloc failed for EdgeRequest in test republish\n");
-        goto EXIT_REPUBLISH;
-    }
-
-    msg->request->nodeInfo = createEdgeNodeInfo(nodeName);
-    if(IS_NULL(msg->request->nodeInfo))
-    {
-        printf("Error : Malloc failed for nodeInfo in test republish\n");
-        goto EXIT_REPUBLISH;
-    }
-
-    msg->request->subMsg = (EdgeSubRequest *) EdgeCalloc(1, sizeof(EdgeSubRequest));
-    if(IS_NULL(msg->request->subMsg))
-    {
-        printf("Error : Malloc failed for subReq in test republish\n");
-        goto EXIT_REPUBLISH;
-    }
-    msg->request->subMsg->subType = Edge_Republish_Sub;
-    msg->command = CMD_SUB;
-    msg->type = SEND_REQUEST;
-
     EdgeResult result = sendRequest(msg);
     printf("REPUBLISH RESULT : %d\n",  result.code);
     if (result.code == STATUS_OK)
@@ -2376,7 +1995,6 @@ static void testRePublish()
         printf("REPUBLISH SUCCESSFULL\n");
     }
 
-    EXIT_REPUBLISH:
     destroyEdgeMessage(msg);
 }
 
@@ -2396,45 +2014,13 @@ static void testSubDelete()
     printf("\nEnter the node name to delete Subscribe :: ");
     scanf("%s", nodeName);
 
-    EdgeMessage *msg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
+    EdgeMessage* msg = createEdgeSubMessage(ep, nodeName, 0, Edge_Delete_Sub);
     if(IS_NULL(msg))
     {
-        printf("Error : Malloc failed for EdgeMessage in test subscription delete\n");
-        goto EXIT_SUBDELETE;
+        printf("Error : EdgeMalloc failed for msg in test subscription\n");
+        return;
     }
-
-    msg->endpointInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    if(IS_NULL(msg->endpointInfo))
-    {
-        printf("Error : Malloc failed for epInfo in test subscription delete\n");
-        goto EXIT_SUBDELETE;
-    }
-    msg->endpointInfo->endpointUri = copyString(ep);
-
-    msg->request = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
-    if(IS_NULL(msg->request))
-    {
-        printf("Error : Malloc failed for EdgeRequest in test subscription delete\n");
-        goto EXIT_SUBDELETE;
-    }
-
-    msg->request->nodeInfo = createEdgeNodeInfo(nodeName);
-    if(IS_NULL(msg->request->nodeInfo))
-    {
-        printf("Error : Malloc failed for nodeInfo in test subscription delete\n");
-        goto EXIT_SUBDELETE;
-    }
-
-    msg->request->subMsg = (EdgeSubRequest *) EdgeCalloc(1, sizeof(EdgeSubRequest));
-    if(IS_NULL(msg->request->subMsg))
-    {
-        printf("Error : Malloc failed for subReq in test subscription delete\n");
-        goto EXIT_SUBDELETE;
-    }
-    msg->request->subMsg->subType = Edge_Delete_Sub;
-    msg->command = CMD_SUB;
-    msg->type = SEND_REQUEST;
-
+    
     EdgeResult result = sendRequest(msg);
     printf("DELETE RESULT : %d\n",  result.code);
     if (result.code == STATUS_OK)
@@ -2442,8 +2028,135 @@ static void testSubDelete()
         printf("SUBSCRPTION DELETED SUCCESSFULL\n");
     }
 
-    EXIT_SUBDELETE:
     destroyEdgeMessage(msg);
+}
+
+static void *getNewValuetoWrite(EdgeNodeIdentifier type, int num_values)
+{
+    printf("Enter the new value to write :: ");
+    switch (type)
+    {
+        case Boolean:
+            {
+                int *val = (int *) EdgeMalloc(sizeof(int) * num_values);
+                for (int i = 0; i < num_values; i++)
+                    scanf("%d", &val[i]);
+                return (void *) val;
+            }
+            break;
+        case SByte:
+            {
+                int8_t *val = (int8_t *) EdgeMalloc(sizeof(int8_t) * num_values);
+                for (int i = 0; i < num_values; i++)
+                    scanf("%" SCNd8, &val[i]);
+                return (void *) val;
+            }
+        case Byte:
+            {
+                uint8_t *val = (uint8_t *) EdgeMalloc(sizeof(uint8_t) * num_values);
+                for (int i = 0; i < num_values; i++)
+                    scanf("%" SCNu8, &val[i]);
+                return (void *) val;
+            }
+            break;
+        case Int16:
+            {
+                int16_t *val = (int16_t *) EdgeMalloc(sizeof(int16_t) * num_values);
+                for (int i = 0; i < num_values; i++)
+                    scanf("%" SCNd16, &val[i]);
+                return (void *) val;
+            }
+        case UInt16:
+            {
+                uint16_t *val = (uint16_t *) EdgeMalloc(sizeof(uint16_t) * num_values);
+                for (int i = 0; i < num_values; i++)
+                    scanf("%" SCNu16, &val[i]);
+                return (void *) val;
+            }
+            break;
+        case Int32:
+            {
+                int32_t *val = (int32_t *) EdgeMalloc(sizeof(int32_t) * num_values);
+                for (int i = 0; i < num_values; i++)
+                    scanf("%" SCNd32, &val[i]);
+                return (void *) val;
+            }
+            break;
+        case UInt32:
+            {
+                uint32_t *val = (uint32_t *) EdgeMalloc(sizeof(uint32_t) * num_values);
+                for (int i = 0; i < num_values; i++)
+                    scanf("%" SCNu32, &val[i]);
+                return (void *) val;
+            }
+            break;
+        case Int64:
+            {
+                int64_t *val = (int64_t *) EdgeMalloc(sizeof(int64_t) * num_values);
+                for (int i = 0; i < num_values; i++)
+                    scanf("%" SCNd64, &val[i]);
+                return (void *) val;
+            }
+            break;
+        case UInt64:
+            {
+                uint64_t *val = (uint64_t *) EdgeMalloc(sizeof(uint64_t) * num_values);
+                for (int i = 0; i < num_values; i++)
+                    scanf("%" SCNu64, &val[i]);
+                return (void *) val;
+            }
+            break;
+        case Float:
+            {
+                float *val = (float *) EdgeMalloc(sizeof(float) * num_values);
+                for (int i = 0; i < num_values; i++)
+                    scanf("%g", &val[i]);
+                return (void *) val;
+            }
+            break;
+        case Double:
+            {
+                double *val = (double *) EdgeMalloc(sizeof(double) * num_values);
+                for (int i = 0; i < num_values; i++)
+                scanf("%lf", &val[i]);
+                return (void *) val;
+            }
+            break;
+        case String:
+            {
+                if(num_values > 1)
+                {
+                    char **retStr = (char**) malloc(sizeof(char*) * num_values);
+                    int len;
+                    char val[MAX_CHAR_SIZE];
+                    for (int i = 0; i < num_values; i++)
+                    {
+                        scanf("%s", val);
+                        len  = strlen(val);
+                        retStr[i] = (char *) EdgeMalloc(len + 1);
+                        strncpy(retStr[i], val, len);
+                        retStr[i][len] = '\0';
+                    }
+                    return (void *) retStr;
+                }
+                else
+                {
+                    char *retStr = NULL;
+                    int len;
+                    char val[MAX_CHAR_SIZE];
+                    scanf("%s", val);
+                    len  = strlen(val);
+                    retStr = (char *) EdgeMalloc(len + 1);
+                    strncpy(retStr, val, len+1);
+                    return (void *) retStr;
+                }
+            }
+            break;
+        default:
+            break;
+    }
+
+    return NULL;
 }
 
 static void print_menu()
@@ -2506,7 +2219,7 @@ int main()
             static char ipAddress[MAX_ADDRESS_SIZE];
             printf("[Please input server endpoint uri (Ex: opc.tcp://hostname:port/path)] : ");
             scanf("%s", ipAddress);
-            strncpy(endpointUri, ipAddress, strlen(ipAddress)+1);
+            strncpy(endpointUri, "opc.tcp://localhost:12686", strlen("opc.tcp://localhost:12686")+1);
 
             connect = true;
             testGetEndpoints(endpointUri);
