@@ -968,7 +968,7 @@ static UA_StatusCode modifySub(UA_Client *client, const EdgeMessage *msg)
 
     if (setMonitoringModeResponse.resultsSize != 1)
     {
-        EDGE_LOG_V(TAG, "set monitor mode service failed :: %s\n\n", UA_StatusCode_name(
+        EDGE_LOG_V(TAG, "set monitor mode failed :: %s\n\n", UA_StatusCode_name(
                         UA_STATUSCODE_BADUNEXPECTEDERROR));
         return UA_STATUSCODE_BADUNEXPECTEDERROR;
     }
