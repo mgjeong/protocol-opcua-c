@@ -463,15 +463,19 @@ EdgeResult insertSubParameter(EdgeMessage **msg, const char* nodeName, EdgeNodeI
         goto EXIT;
     }
 
-    subReq->subType = subType;
-    subReq->samplingInterval = samplingInterval;
-    subReq->publishingInterval = publishingInterval;
-    subReq->maxKeepAliveCount = maxKeepAliveCount;
-    subReq->lifetimeCount = lifetimeCount;
-    subReq->maxNotificationsPerPublish = maxNotificationsPerPublish;
-    subReq->publishingEnabled = publishingEnabled;
-    subReq->priority = priority;
-    subReq->queueSize = queueSize;
+    if (Edge_Create_Sub == subType || Edge_Modify_Sub == subType) {
+        subReq->subType = subType;
+        subReq->samplingInterval = samplingInterval;
+        subReq->publishingInterval = publishingInterval;
+        subReq->maxKeepAliveCount = maxKeepAliveCount;
+        subReq->lifetimeCount = lifetimeCount;
+        subReq->maxNotificationsPerPublish = maxNotificationsPerPublish;
+        subReq->publishingEnabled = publishingEnabled;
+        subReq->priority = priority;
+        subReq->queueSize = queueSize;
+    } else {
+        subReq->subType = subType;
+    }
 
     if (Edge_Create_Sub == subType)
     {
@@ -517,7 +521,7 @@ EdgeResult insertSubParameter(EdgeMessage **msg, const char* nodeName, EdgeNodeI
     EXIT: return result;
 }
 
-EdgeMessage* createEdgeSubMessage(const char *endpointUri, size_t requestSize,
+EdgeMessage* createEdgeSubMessage(const char *endpointUri, const char* nodeName, size_t requestSize,
         EdgeNodeIdentifier subType)
 {
     EdgeMessage *msg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
@@ -556,6 +560,10 @@ EdgeMessage* createEdgeSubMessage(const char *endpointUri, size_t requestSize,
             return NULL;
         }
         msg->type = SEND_REQUEST;
+
+        if (Edge_Delete_Sub == subType || Edge_Republish_Sub == subType) {
+            insertSubParameter(&msg, nodeName, subType, 0, 0, 0, 0, 0, false, 0, 0);
+        }
     }
 
     msg->command = CMD_SUB;

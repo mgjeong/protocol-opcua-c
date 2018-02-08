@@ -202,8 +202,8 @@ __attribute__((visibility("default"))) EdgeResult insertSubParameter(EdgeMessage
         EdgeNodeIdentifier subType, double samplingInterval, double publishingInterval, int maxKeepAliveCount,
         int lifetimeCount, int maxNotificationsPerPublish, bool publishingEnabled, int priority,
         uint32_t queueSize);
-__attribute__((visibility("default"))) EdgeMessage* createEdgeSubMessage(const char *endpointUri, size_t requestSize,
-        EdgeNodeIdentifier subType);
+__attribute__((visibility("default"))) EdgeMessage* createEdgeSubMessage(const char *endpointUri,
+        const char* nodeName, size_t requestSize, EdgeNodeIdentifier subType);
 
 #ifdef __cplusplus
 }

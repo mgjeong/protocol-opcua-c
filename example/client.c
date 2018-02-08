@@ -2103,7 +2103,7 @@ static void testSub()
         return;
     }
 
-    EdgeMessage* msg = createEdgeSubMessage(ep, num_requests, Edge_Create_Sub);
+    EdgeMessage* msg = createEdgeSubMessage(ep, nodeName, num_requests, Edge_Create_Sub);
     if(IS_NULL(msg))
     {
         printf("Error : EdgeMalloc failed for msg in test subscription\n");
@@ -2149,7 +2149,7 @@ static void testSubModify()
     printf("\nEnter the node name to modify Subscribe :: ");
     scanf("%s", nodeName);
 
-    EdgeMessage* msg = createEdgeSubMessage(ep, 0, Edge_Modify_Sub);
+    EdgeMessage* msg = createEdgeSubMessage(ep, nodeName, 0, Edge_Modify_Sub);
     if(IS_NULL(msg))
         {
         printf("Error : EdgeMalloc failed for msg in test subscription\n");
@@ -2184,42 +2184,12 @@ static void testRePublish()
     printf("\nEnter the node name to Re publish :: ");
     scanf("%s", nodeName);
 
-    EdgeMessage *msg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
+    EdgeMessage* msg = createEdgeSubMessage(ep, nodeName, 0, Edge_Republish_Sub);
     if(IS_NULL(msg))
-    {
-        printf("Error : Malloc failed for EdgeMessage in test republish\n");
-        goto EXIT_REPUBLISH;
-    }
-
-    msg->endpointInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    if(IS_NULL(msg->endpointInfo))
-    {
-        printf("Error : Malloc failed for epInfo in test republish\n");
-        goto EXIT_REPUBLISH;
-    }
-    msg->endpointInfo->endpointUri = copyString(ep);
-    msg->request = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
-    if(IS_NULL(msg->request))
-    {
-        printf("Error : Malloc failed for EdgeRequest in test republish\n");
-        goto EXIT_REPUBLISH;
-    }
-
-    msg->request->nodeInfo = createEdgeNodeInfo(nodeName);
-    if(IS_NULL(msg->request->nodeInfo))
-    {
-        printf("Error : Malloc failed for nodeInfo in test republish\n");
-        goto EXIT_REPUBLISH;
-    }
-
-    msg->request->subMsg = (EdgeSubRequest *) EdgeCalloc(1, sizeof(EdgeSubRequest));
-    if(IS_NULL(msg->request->subMsg))
-    {
-        printf("Error : Malloc failed for subReq in test republish\n");
-        goto EXIT_REPUBLISH;
-    }
-    msg->request->subMsg->subType = Edge_Republish_Sub;
-    msg->command = CMD_SUB;
+        {
+        printf("Error : EdgeMalloc failed for msg in test subscription\n");
+        return;
+        }
 
     EdgeResult result = handleSubscription(msg);
     printf("REPUBLISH RESULT : %d\n",  result.code);
@@ -2228,7 +2198,6 @@ static void testRePublish()
         printf("REPUBLISH SUCCESSFULL\n");
     }
 
-    EXIT_REPUBLISH:
     destroyEdgeMessage(msg);
 }
 
@@ -2248,43 +2217,12 @@ static void testSubDelete()
     printf("\nEnter the node name to delete Subscribe :: ");
     scanf("%s", nodeName);
 
-    EdgeMessage *msg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
+    EdgeMessage* msg = createEdgeSubMessage(ep, nodeName, 0, Edge_Delete_Sub);
     if(IS_NULL(msg))
-    {
-        printf("Error : Malloc failed for EdgeMessage in test subscription delete\n");
-        goto EXIT_SUBDELETE;
-    }
-
-    msg->endpointInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    if(IS_NULL(msg->endpointInfo))
-    {
-        printf("Error : Malloc failed for epInfo in test subscription delete\n");
-        goto EXIT_SUBDELETE;
-    }
-    msg->endpointInfo->endpointUri = copyString(ep);
-
-    msg->request = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
-    if(IS_NULL(msg->request))
-    {
-        printf("Error : Malloc failed for EdgeRequest in test subscription delete\n");
-        goto EXIT_SUBDELETE;
-    }
-
-    msg->request->nodeInfo = createEdgeNodeInfo(nodeName);
-    if(IS_NULL(msg->request->nodeInfo))
-    {
-        printf("Error : Malloc failed for nodeInfo in test subscription delete\n");
-        goto EXIT_SUBDELETE;
-    }
-
-    msg->request->subMsg = (EdgeSubRequest *) EdgeCalloc(1, sizeof(EdgeSubRequest));
-    if(IS_NULL(msg->request->subMsg))
-    {
-        printf("Error : Malloc failed for subReq in test subscription delete\n");
-        goto EXIT_SUBDELETE;
-    }
-    msg->request->subMsg->subType = Edge_Delete_Sub;
-    msg->command = CMD_SUB;
+        {
+        printf("Error : EdgeMalloc failed for msg in test subscription\n");
+        return;
+        }
 
     EdgeResult result = handleSubscription(msg);
     printf("DELETE RESULT : %d\n",  result.code);
@@ -2293,7 +2231,6 @@ static void testSubDelete()
         printf("SUBSCRPTION DELETED SUCCESSFULL\n");
     }
 
-    EXIT_SUBDELETE:
     destroyEdgeMessage(msg);
 }
 
