@@ -950,30 +950,19 @@ static void testGetEndpoints(const char *endpointUri)
     printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET
            "\n\n");
 
-    EdgeMessage *msg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_GET_ENDPOINTS);
     if(IS_NULL(msg))
     {
-        printf("Error : Malloc failed for EdgeMessage in test GetEndpoints\n");
-        goto EXIT_EP;
+        printf("Error : Malloc failed for EdgeMessage in test Method\n");
+        return;
     }
 
-    msg->endpointInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    if(IS_NULL(msg->endpointInfo))
-    {
-        printf("Error : Malloc failed for EdgeEndPointInfo in test GetEndpoints\n");
-        goto EXIT_EP;
-    }
-    msg->endpointInfo->endpointUri = copyString(endpointUri);
-    msg->command = CMD_GET_ENDPOINTS;
-    msg->type = SEND_REQUEST;
-
-    EdgeResult res = getEndpointInfo(msg->endpointInfo);
+    EdgeResult res = getEndpointInfo(msg);
     if(res.code != STATUS_OK)
     {
         printf("getEndpointInfo() failed. Status Code: %d\n", res.code);
     }
 
-    EXIT_EP:
     destroyEdgeMessage(msg);
 }
 
@@ -984,18 +973,11 @@ static void startClient(char *addr, int port, char *securityPolicyUri, char *end
     printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET
            "\n\n");
 
-    EdgeMessage *msg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_START_CLIENT);
     if(IS_NULL(msg))
     {
-        printf("Error : Malloc failed for EdgeMessage in Start Client\n");
-        goto EXIT_START;
-    }
-
-    msg->endpointInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    if(IS_NULL(msg->endpointInfo))
-    {
-        printf("Error : Malloc failed for EdgeEndPointInfo in Start Client\n");
-        goto EXIT_START;
+        printf("Error : Malloc failed for EdgeMessage in test Method\n");
+        return;
     }
 
     msg->endpointInfo->endpointConfig = (EdgeEndpointConfig *) EdgeCalloc(1, sizeof(EdgeEndpointConfig));
@@ -1011,9 +993,6 @@ static void startClient(char *addr, int port, char *securityPolicyUri, char *end
     msg->endpointInfo->endpointUri = copyString(endpointUri);
     msg->endpointInfo->securityPolicyUri = copyString(securityPolicyUri);
 
-    msg->command = CMD_START_CLIENT;
-    msg->type = SEND_REQUEST;
-
     sendRequest(msg);
 
     EXIT_START:
@@ -1022,32 +1001,23 @@ static void startClient(char *addr, int port, char *securityPolicyUri, char *end
 
 static void stopClient()
 {
-    EdgeMessage *msg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
-    if(IS_NULL(msg))
-    {
-        printf("Error : Malloc failed for EdgeMessage in stop client\n");
-        return;
-    }
-
-    msg->endpointInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    if(IS_NULL(msg->endpointInfo))
-    {
-        printf("Error : Malloc failed for EdgeEndPointInfo in stop client\n");
-        return;
-    }
-    msg->command = CMD_STOP_CLIENT;
-
     EndPointList *temp = epList;
     while (temp)
     {
+        EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_STOP_CLIENT);
+        if(IS_NULL(msg))
+        {
+            printf("Error : Malloc failed for EdgeMessage in test Method\n");
+            return;
+        }
         msg->endpointInfo->endpointUri = copyString(temp->endpoint);
         printf("\n" COLOR_YELLOW "********************** stop client **********************"
            COLOR_RESET"\n");
         disconnectClient(msg->endpointInfo);
         temp = temp->next;
-    }
 
-    destroyEdgeMessage(msg);
+        destroyEdgeMessage(msg);
+    }
 }
 
 static void deinit()
@@ -1242,30 +1212,10 @@ static void testBrowse(char* endpointUri)
         goto EXIT_BROWSE;
     }
 
-#if TEST_WITH_REFERENCE_SERVER
-    msg->request->nodeInfo = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
-    if(IS_NULL(msg->request->nodeInfo))
-    {
-        printf("Error : Malloc failed for nodeInfo in test browse\n");
-        goto EXIT_BROWSE;
-    }
-    msg->request->nodeInfo->nodeId = (EdgeNodeId *) EdgeCalloc(1, sizeof(EdgeNodeId));
-    if(IS_NULL(msg->request->nodeInfo->nodeId))
-    {
-        printf("Error : Malloc failed for nodeInfo->nodeId in test browse\n");
-        goto EXIT_BROWSE;
-    }
-    msg->request->nodeInfo->nodeId->type = STRING;
-    msg->request->nodeInfo->nodeId->nodeId = "DataAccess_DataItem_Int16";
-    msg->request->nodeInfo->nodeId->nameSpace = 2;
-
-    printf("\n\n" COLOR_YELLOW "********** Browse Int16 node in namespace 2 **********" COLOR_RESET
-           "\n");
-#else
     msg->request->nodeInfo = createEdgeNodeInfoForNodeId(INTEGER, RootFolder, SYSTEM_NAMESPACE_INDEX);
     printf("\n\n" COLOR_YELLOW "********** Browse RootFolder node in system namespace **********"
            COLOR_RESET "\n");
-#endif
+
     msg->requestLength = 0;
     msg->browseParam = (EdgeBrowseParameter *)EdgeCalloc(1, sizeof(EdgeBrowseParameter));
     if(IS_NULL(msg->browseParam))
@@ -1312,62 +1262,6 @@ static void testBrowses(char* endpointUri)
     msg->type = SEND_REQUESTS;
     msg->command = CMD_BROWSE;
 
-#if TEST_WITH_REFERENCE_SERVER
-    int requestLength = 2;
-    msg->requests = (EdgeRequest **) calloc(requestLength, sizeof(EdgeRequest *));
-    if(IS_NULL(msg->requests))
-    {
-        printf("Error : Malloc failed for requests in test browses\n");
-        goto EXIT_BROWSES;
-    }
-
-    msg->requests[0] = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
-    if(IS_NULL(msg->requests[0]))
-    {
-        printf("Error : Malloc failed for requests[0] in test browses\n");
-        goto EXIT_BROWSES;
-    }
-    msg->requests[0]->nodeInfo = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
-    if(IS_NULL(msg->requests[0]->nodeInfo))
-    {
-        printf("Error : Malloc failed for nodeInfo1 in test browses\n");
-        goto EXIT_BROWSES;
-    }
-    msg->requests[0]->nodeInfo->nodeId = (EdgeNodeId *) EdgeCalloc(1, sizeof(EdgeNodeId));
-    if(IS_NULL(msg->requests[0]->nodeInfo->nodeId))
-    {
-        printf("Error : Malloc failed for nodeInfo1->nodeId in test browses\n");
-        goto EXIT_BROWSES;
-    }
-    msg->requests[0]->nodeInfo->nodeId->type = STRING;
-    msg->requests[0]->nodeInfo->nodeId->nodeId = copyString("DataAccess_DataItem_Int16");
-    msg->requests[0]->nodeInfo->nodeId->nameSpace = 2;
-
-    msg->requests[1] = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
-    if(IS_NULL(msg->requests[1]))
-    {
-        printf("Error : Malloc failed for requests[1] in test browses\n");
-        goto EXIT_BROWSES;
-    }
-    msg->requests[1]->nodeInfo = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
-    if(IS_NULL(msg->requests[1]->nodeInfo))
-    {
-        printf("Error : Malloc failed for nodeInfo2 in test browses\n");
-        goto EXIT_BROWSES;
-    }
-    msg->requests[1]->nodeInfo->nodeId = (EdgeNodeId *) EdgeCalloc(1, sizeof(EdgeNodeId));
-    if(IS_NULL(msg->requests[1]->nodeInfo->nodeId))
-    {
-        printf("Error : Malloc failed for nodeInfo2->nodeId in test browses\n");
-        goto EXIT_BROWSES;
-    }
-    msg->requests[1]->nodeInfo->nodeId->type = STRING;
-    msg->requests[1]->nodeInfo->nodeId->nodeId = copyString("DataAccess_AnalogType_SByte");
-    msg->requests[1]->nodeInfo->nodeId->nameSpace = 2;
-
-    printf("\n\n" COLOR_YELLOW "********** Browse Int16 & SByte nodes in namespace 2 **********"
-           COLOR_RESET "\n");
-#else
     int requestLength = 3;
     msg->requests = (EdgeRequest **) calloc(requestLength, sizeof(EdgeRequest *));
     if(IS_NULL(msg->requests))
@@ -1408,7 +1302,6 @@ static void testBrowses(char* endpointUri)
     printf("\n\n" COLOR_YELLOW
            "********** Browse RootFolder, ObjectsFolder nodes in system namespace and Object1 in namespace 1 **********"
            COLOR_RESET "\n");
-#endif
 
     msg->requestLength = requestLength;
     msg->browseParam = (EdgeBrowseParameter *)EdgeCalloc(1, sizeof(EdgeBrowseParameter));

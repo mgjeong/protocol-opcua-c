@@ -169,10 +169,17 @@ void closeServer(EdgeEndPointInfo *epInfo)
     }
 }
 
-EdgeResult getEndpointInfo(EdgeEndPointInfo *epInfo)
+EdgeResult getEndpointInfo(EdgeMessage *msg)
 {
-    EDGE_LOG_V(TAG, "[Received command] :: Get endpoint info for [%s].\n", epInfo->endpointUri);
-    return getClientEndpoints(epInfo->endpointUri);
+    EdgeResult ret;
+    ret.code = STATUS_OK;
+    if (NULL == msg || NULL == msg->endpointInfo) {
+        ret.code = STATUS_PARAM_INVALID;
+        return ret;
+    }
+
+    EDGE_LOG_V(TAG, "[Received command] :: Get endpoint info for [%s].\n", msg->endpointInfo->endpointUri);
+    return getClientEndpoints(msg->endpointInfo->endpointUri);
 }
 
 EdgeResult findServers(const char *endpointUri, size_t serverUrisSize, unsigned char **serverUris,
@@ -682,7 +689,7 @@ EdgeMessage* createEdgeMessage(const char *endpointUri, size_t requestSize, Edge
         }
         msg->type = SEND_REQUESTS;
     }
-    else
+    else if (1 == requestSize)
     {
         msg->request = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
         if (IS_NULL(msg->request))
@@ -690,6 +697,8 @@ EdgeMessage* createEdgeMessage(const char *endpointUri, size_t requestSize, Edge
             EDGE_LOG(TAG, "Error : Malloc failed for request");
             return NULL;
         }
+        msg->type = SEND_REQUEST;
+    } else {
         msg->type = SEND_REQUEST;
     }
 

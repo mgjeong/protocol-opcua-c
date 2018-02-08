@@ -100,7 +100,7 @@ allocated for the resultant array of EdgeApplicationConfig objects and its membe
 __attribute__((visibility("default"))) EdgeResult findServers(const char *endpointUri, size_t serverUrisSize,
         unsigned char **serverUris, size_t localeIdsSize, unsigned char **localeIds,
         size_t *registeredServersSize, EdgeApplicationConfig **registeredServers);
-__attribute__((visibility("default"))) EdgeResult getEndpointInfo(EdgeEndPointInfo *epInfo);
+__attribute__((visibility("default"))) EdgeResult getEndpointInfo(EdgeMessage *msg);
 __attribute__((visibility("default"))) void connectClient(EdgeEndPointInfo *epInfo);
 __attribute__((visibility("default"))) void disconnectClient(EdgeEndPointInfo *epInfo);
 
