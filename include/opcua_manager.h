@@ -213,10 +213,17 @@ __attribute__((visibility("default"))) EdgeMessage* createEdgeSubMessage(const c
 __attribute__((visibility("default"))) EdgeMessage* createEdgeAttributeMessage(const char *endpointUri,
         size_t requestSize, EdgeCommand cmd);
 
+/* Create EdgeMessage for Attribute Services such as Read, Write*/
+__attribute__((visibility("default"))) EdgeMessage* createEdgeMessage(const char *endpointUri, size_t requestSize, EdgeCommand cmd);
+
 /* Insert access request */
 __attribute__((visibility("default"))) EdgeResult insertReadAccessNode(EdgeMessage **msg, const char* nodeName);
 __attribute__((visibility("default"))) EdgeResult insertWriteAccessNode(EdgeMessage **msg, const char* nodeName,
         void* value, size_t valueLen);
+
+__attribute__((visibility("default"))) EdgeResult insertEdgeMethodParameter(EdgeMessage **msg, const char* nodeName,
+        size_t inputParameterSize, EdgeNodeIdentifier argType, EdgeArgValType valType,
+        void *scalarValue, void *arrayData, size_t arrayLength);
 
 /* Get the value type of the variable node */
 __attribute__((visibility("default"))) EdgeNodeIdentifier getValueType(const char* nodeName);

@@ -391,6 +391,15 @@ void onStatusCallback(EdgeEndPointInfo *epInfo, EdgeStatusCode status)
     }
 }
 
+EdgeNodeIdentifier getValueType(const char* nodeName)
+{
+    int nsIdx = 0, valueType = 0;
+    char nodeType;
+    char browseName[MAX_BROWSENAME_SIZE];
+    sscanf(nodeName, UNIQUE_NODE_PATH, &nsIdx, &nodeType, &valueType, browseName);
+    return valueType;
+}
+
 EdgeNodeInfo* createEdgeNodeInfoForNodeId(EdgeNodeIdType type, int nodeId, uint16_t nameSpace)
 {
     EdgeNodeInfo* nodeInfo = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
@@ -430,7 +439,7 @@ EdgeNodeInfo* createEdgeNodeInfo(const char* nodeName)
     nodeInfo->nodeId = (EdgeNodeId *) EdgeCalloc(1, sizeof(EdgeNodeId));
     if (IS_NULL(nodeInfo->nodeId))
     {
-        EDGE_LOG(TAG, "Error : Malloc failed for nodeInfo->valueAlias in test subscription");
+        EDGE_LOG(TAG, "Error : Malloc failed for nodeInfo->valueAlias");
         freeEdgeNodeInfo(nodeInfo);
         return NULL;
     }
@@ -516,7 +525,7 @@ EdgeResult insertSubParameter(EdgeMessage **msg, const char* nodeName, EdgeNodeI
         (*msg)->request->nodeInfo = createEdgeNodeInfo(nodeName);
         if (IS_NULL((*msg)->request->nodeInfo))
         {
-            EDGE_LOG(TAG, "Error : Malloc failed for nodeInfo in test subscription modify");
+            EDGE_LOG(TAG, "Error : Malloc failed for nodeInfo modify");
             goto EXIT;
         }
         (*msg)->request->subMsg = subReq;
@@ -532,14 +541,14 @@ EdgeMessage* createEdgeSubMessage(const char *endpointUri, const char* nodeName,
     EdgeMessage *msg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
     if (IS_NULL(msg))
     {
-        EDGE_LOG(TAG, "Error : EdgeMalloc failed for msg in test subscription");
+        EDGE_LOG(TAG, "Error : EdgeMalloc failed for msg");
         return NULL;
     }
 
     msg->endpointInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
     if (IS_NULL(msg->endpointInfo))
     {
-        EDGE_LOG(TAG, "Error : Malloc failed for epInfo in test subscription");
+        EDGE_LOG(TAG, "Error : Malloc failed for epInfo");
         return NULL;
     }
 
@@ -550,7 +559,7 @@ EdgeMessage* createEdgeSubMessage(const char *endpointUri, const char* nodeName,
         msg->requests = (EdgeRequest **) EdgeCalloc(requestSize, sizeof(EdgeRequest *));
         if (IS_NULL(msg->requests))
         {
-            EDGE_LOG(TAG, "Error : Malloc failed for requests in test subscription");
+            EDGE_LOG(TAG, "Error : Malloc failed for requests");
             return NULL;
         }
         msg->type = SEND_REQUESTS;
@@ -561,7 +570,7 @@ EdgeMessage* createEdgeSubMessage(const char *endpointUri, const char* nodeName,
         msg->request = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
         if (IS_NULL(msg->request))
         {
-            EDGE_LOG(TAG, "Error : Malloc failed for request in test subscription modify");
+            EDGE_LOG(TAG, "Error : Malloc failed for request modify");
             return NULL;
         }
         msg->type = SEND_REQUEST;
@@ -577,19 +586,20 @@ EdgeMessage* createEdgeSubMessage(const char *endpointUri, const char* nodeName,
     return msg;
 }
 
-EdgeMessage* createEdgeAttributeMessage(const char *endpointUri, size_t requestSize, EdgeCommand cmd)
+EdgeMessage* createEdgeAttributeMessage(const char *endpointUri, size_t requestSize,
+        EdgeCommand cmd)
 {
     EdgeMessage *msg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
     if (IS_NULL(msg))
     {
-        EDGE_LOG(TAG, "Error : EdgeMalloc failed for msg in test subscription");
+        EDGE_LOG(TAG, "Error : EdgeMalloc failed for msg");
         return NULL;
     }
 
     msg->endpointInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
     if (IS_NULL(msg->endpointInfo))
     {
-        EDGE_LOG(TAG, "Error : Malloc failed for epInfo in test subscription");
+        EDGE_LOG(TAG, "Error : Malloc failed for epInfo");
         return NULL;
     }
 
@@ -598,10 +608,54 @@ EdgeMessage* createEdgeAttributeMessage(const char *endpointUri, size_t requestS
     msg->requests = (EdgeRequest **) EdgeCalloc(requestSize, sizeof(EdgeRequest *));
     if (IS_NULL(msg->requests))
     {
-        EDGE_LOG(TAG, "Error : Malloc failed for requests in test subscription");
+        EDGE_LOG(TAG, "Error : Malloc failed for requests");
         return NULL;
     }
     msg->type = SEND_REQUESTS;
+    msg->command = cmd;
+
+    return msg;
+}
+
+EdgeMessage* createEdgeMessage(const char *endpointUri, size_t requestSize, EdgeCommand cmd)
+{
+    EdgeMessage *msg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
+    if (IS_NULL(msg))
+    {
+        EDGE_LOG(TAG, "Error : EdgeMalloc failed for msg");
+        return NULL;
+    }
+
+    msg->endpointInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
+    if (IS_NULL(msg->endpointInfo))
+    {
+        EDGE_LOG(TAG, "Error : Malloc failed for epInfo");
+        return NULL;
+    }
+
+    msg->endpointInfo->endpointUri = copyString(endpointUri);
+
+    if (requestSize > 1)
+    {
+        msg->requests = (EdgeRequest **) EdgeCalloc(requestSize, sizeof(EdgeRequest *));
+        if (IS_NULL(msg->requests))
+        {
+            EDGE_LOG(TAG, "Error : Malloc failed for requests");
+            return NULL;
+        }
+        msg->type = SEND_REQUESTS;
+    }
+    else
+    {
+        msg->request = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
+        if (IS_NULL(msg->request))
+        {
+            EDGE_LOG(TAG, "Error : Malloc failed for request");
+            return NULL;
+        }
+        msg->type = SEND_REQUEST;
+    }
+
     msg->command = cmd;
 
     return msg;
@@ -697,11 +751,74 @@ EdgeResult insertWriteAccessNode(EdgeMessage **msg, const char* nodeName, void* 
     EXIT: return result;
 }
 
-EdgeNodeIdentifier getValueType(const char* nodeName)
+EdgeResult insertEdgeMethodParameter(EdgeMessage **msg, const char* nodeName,
+        size_t inputParameterSize, EdgeNodeIdentifier argType, EdgeArgValType valType,
+        void *scalarValue, void *arrayData, size_t arrayLength)
 {
-    int nsIdx = 0, valueType = 0;
-    char nodeType;
-    char browseName[MAX_BROWSENAME_SIZE];
-    sscanf(nodeName, UNIQUE_NODE_PATH, &nsIdx, &nodeType, &valueType, browseName);
-    return valueType;
+    EdgeResult result;
+    result.code = STATUS_OK;
+
+    EdgeRequest *request = NULL;
+    if (SEND_REQUEST == (*msg)->type)
+    {
+        request = (*msg)->request;
+        (*msg)->requestLength = 1;
+    }
+    else
+    {
+        result.code = STATUS_NOT_SUPPORT;
+        goto EXIT;
+    }
+
+    if (NULL == request->nodeInfo)
+    {
+        request->nodeInfo = createEdgeNodeInfo(nodeName);
+    }
+
+    if (NULL == request->methodParams)
+    {
+        request->methodParams = (EdgeMethodRequestParams *) EdgeCalloc(1,
+                sizeof(EdgeMethodRequestParams));
+        if (IS_NULL(request->methodParams))
+        {
+            EDGE_LOG(TAG, "Error : EdgeMalloc failed for methodParams");
+            result.code = STATUS_ERROR;
+            goto EXIT;
+        }
+    }
+    if (inputParameterSize <= 0) {
+        request->methodParams->num_inpArgs = 0;
+        return result;
+    }
+
+    if (NULL == request->methodParams->inpArg)
+    {
+        request->methodParams->inpArg = (EdgeArgument **) EdgeCalloc(inputParameterSize,
+                sizeof(EdgeArgument *));
+        if (IS_NULL(request->methodParams->inpArg))
+        {
+            printf("Error : Malloc failed for methodParams->inpArg");
+            result.code = STATUS_ERROR;
+            goto EXIT;
+        }
+    }
+    size_t num_inpArgs = request->methodParams->num_inpArgs;
+
+    request->methodParams->inpArg[num_inpArgs] = (EdgeArgument *) EdgeCalloc(1,
+            sizeof(EdgeArgument));
+    if (IS_NULL(request->methodParams->inpArg[num_inpArgs]))
+    {
+        printf("Error : Malloc failed for methodParams->inpArg[X]");
+        result.code = STATUS_ERROR;
+        goto EXIT;
+    }
+
+    request->methodParams->inpArg[num_inpArgs]->argType = argType;
+    request->methodParams->inpArg[num_inpArgs]->valType = valType;
+    request->methodParams->inpArg[num_inpArgs]->scalarValue = scalarValue;
+    request->methodParams->inpArg[num_inpArgs]->arrayData = arrayData;
+    request->methodParams->inpArg[num_inpArgs]->arrayLength = arrayLength;
+
+    request->methodParams->num_inpArgs = ++num_inpArgs;
+    EXIT: return result;
 }

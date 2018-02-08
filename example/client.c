@@ -1596,128 +1596,47 @@ static void testMethod()
 
     printf("\n|------------------- [Method Call] - sqrt(x) \n");
 
-    EdgeMessage *msg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_METHOD);
     if(IS_NULL(msg))
     {
         printf("Error : Malloc failed for EdgeMessage in test Method\n");
-        goto EXIT_METHOD;
+        return;
     }
-
-    msg->endpointInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    if(IS_NULL(msg->endpointInfo))
-    {
-        printf("Error : Malloc failed for ep in test Method\n");
-        goto EXIT_METHOD;
-    }
-    msg->endpointInfo->endpointUri = copyString(endpointUri);
-    msg->request = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
-    if(IS_NULL(msg->request))
-    {
-        printf("Error : Malloc failed for request in test Method\n");
-        goto EXIT_METHOD;
-    }
-
-    msg->request->nodeInfo = createEdgeNodeInfo("{2;S;v=0}sqrt(x)");
-    msg->request->methodParams = (EdgeMethodRequestParams *) EdgeCalloc(1, sizeof(
-            EdgeMethodRequestParams));
-    if(IS_NULL(msg->request->methodParams))
-    {
-        printf("Error : EdgeMalloc failed for methodParams in test Method\n");
-        goto EXIT_METHOD;
-    }
-    msg->request->methodParams->num_inpArgs = 1;
-    msg->request->methodParams->inpArg = (EdgeArgument **) calloc(msg->request->methodParams->num_inpArgs, sizeof(EdgeArgument *));
-    if(IS_NULL(msg->request->methodParams->inpArg))
-    {
-        printf("Error : Malloc failed for methodParams->inpArg in test Method\n");
-        goto EXIT_METHOD;
-    }
-    msg->request->methodParams->inpArg[0] = (EdgeArgument *) EdgeCalloc(1, sizeof(EdgeArgument));
-    if(IS_NULL(msg->request->methodParams->inpArg[0]))
-    {
-        printf("Error : Malloc failed for methodParams->inpArg[0] in test Method\n");
-        goto EXIT_METHOD;
-    }
-    msg->request->methodParams->inpArg[0]->argType = Double;
-    msg->request->methodParams->inpArg[0]->valType = SCALAR;
     double input = 16.0;
-    msg->request->methodParams->inpArg[0]->scalarValue = (void *) &input;
-
+    EdgeResult ret = insertEdgeMethodParameter(&msg, "{2;S;v=0}sqrt(x)", 1, Double, SCALAR, (void *) &input, NULL, 0);
+    if (ret.code != STATUS_OK) {
+        printf("Error : insertEdgeMethodParameter has failed\n");
+        goto EXIT_METHOD;
+    }
     printf("input(x) :: [%.2f]\n", input);
-
-    msg->command = CMD_METHOD;
-
     callMethod(msg);
-
     EXIT_METHOD:
     msg->request->methodParams->inpArg[0]->scalarValue = NULL; // Setting NULL to prevent destroy() from trying to deallocate it.
     destroyEdgeMessage(msg);
 
     printf("\n|------------------- [Method Call ] - incrementInc32Array(x,delta) \n");
 
-    msg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
+    msg = createEdgeMessage(endpointUri, 1, CMD_METHOD);
     if(IS_NULL(msg))
     {
-        printf("Error : Malloc failed for msg in test Method1\n");
-        goto EXIT_METHOD1;
+        printf("Error : Malloc failed for EdgeMessage in test Method\n");
+        return;
     }
 
-    msg->endpointInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    if(IS_NULL(msg->endpointInfo))
-    {
-        printf("Error : Malloc failed for EdgeEndPointInfo in test Method1\n");
-        goto EXIT_METHOD1;
-    }
-    msg->endpointInfo->endpointUri = copyString(endpointUri);
-    msg->request = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
-    if(IS_NULL(msg->request))
-    {
-        printf("Error : Malloc failed for request in test Method1\n");
-        goto EXIT_METHOD1;
-    }
-
-    msg->request->nodeInfo = createEdgeNodeInfo("{2;S;v=0}incrementInc32Array(x,delta)");
-    msg->request->methodParams = (EdgeMethodRequestParams *) EdgeCalloc(1, sizeof(EdgeMethodRequestParams));
-    if(IS_NULL(msg->request->methodParams))
-    {
-        printf("Error : Malloc failed for methodParams in test Method1\n");
-        goto EXIT_METHOD1;
-    }
-    msg->request->methodParams->num_inpArgs = 2;
-    msg->request->methodParams->inpArg = (EdgeArgument **) calloc(msg->request->methodParams->num_inpArgs, sizeof(EdgeArgument *));
-    if(IS_NULL(msg->request->methodParams->inpArg))
-    {
-        printf("Error : Malloc failed for methodParams->inpArg in test Method1\n");
-        goto EXIT_METHOD1;
-    }
-    msg->request->methodParams->inpArg[0] = (EdgeArgument *) EdgeCalloc(1, sizeof(EdgeArgument));
-    if(IS_NULL(msg->request->methodParams->inpArg[0]))
-    {
-        printf("Error : Malloc failed for methodParams->inpArg[0] in test Method1\n");
-        goto EXIT_METHOD1;
-    }
-    msg->request->methodParams->inpArg[0]->argType = Int32;
-    msg->request->methodParams->inpArg[0]->valType = ARRAY_1D;
     int32_t array[5] = {10, 20, 30, 40, 50};
-    msg->request->methodParams->inpArg[0]->arrayData = (void *) array;
-    msg->request->methodParams->inpArg[0]->arrayLength = 5;
-
-    msg->request->methodParams->inpArg[1] = (EdgeArgument *) EdgeCalloc(1, sizeof(EdgeArgument));
-    if(IS_NULL(msg->request->methodParams->inpArg[1]))
-    {
-        printf("Error : Malloc failed for methodParams->inpArg[1] in test Method1\n");
+    ret = insertEdgeMethodParameter(&msg, "{2;S;v=0}incrementInc32Array(x,delta)", 2,
+            Int32, ARRAY_1D, NULL, (void *) array, 5);
+    if (ret.code != STATUS_OK) {
+        printf("Error : insertEdgeMethodParameter has failed\n");
         goto EXIT_METHOD1;
     }
-    msg->request->methodParams->inpArg[1]->argType = Int32;
-    msg->request->methodParams->inpArg[1]->valType = SCALAR;
     int delta = 5;
-    msg->request->methodParams->inpArg[1]->scalarValue = (void *) &delta;
-
-    printf("input(x, delta) :: [%d %d %d %d %d] [%d]\n",
-            array[0], array[1], array[2], array[3], array[4], delta);
-
-    msg->command = CMD_METHOD;
-
+    ret = insertEdgeMethodParameter(&msg, "{2;S;v=0}incrementInc32Array(x,delta)", 2,
+            Int32, SCALAR, (void *) &delta, NULL, 0);
+    if (ret.code != STATUS_OK) {
+        printf("Error : insertEdgeMethodParameter has failed\n");
+        goto EXIT_METHOD1;
+    }
     callMethod(msg);
 
     EXIT_METHOD1:
@@ -1728,56 +1647,21 @@ static void testMethod()
 
     printf("\n|------------------- [Method Call ] - print(x) \n");
 
-    msg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
+    msg = createEdgeMessage(endpointUri, 1, CMD_METHOD);
     if(IS_NULL(msg))
     {
-        printf("Error : Malloc failed for msg in test Method1\n");
-        goto EXIT_METHOD2;
+        printf("Error : Malloc failed for EdgeMessage in test Method\n");
+        return;
     }
 
-    msg->endpointInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    if(IS_NULL(msg->endpointInfo))
-    {
-        printf("Error : Malloc failed for EdgeEndPointInfo in test Method1\n");
-        goto EXIT_METHOD2;
-    }
-    msg->endpointInfo->endpointUri = copyString(endpointUri);
-    msg->request = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
-    if(IS_NULL(msg->request))
-    {
-        printf("Error : Malloc failed for request in test Method1\n");
-        goto EXIT_METHOD2;
-    }
-
-    msg->request->nodeInfo = createEdgeNodeInfo("{2;S;v=0}print(x)");
-    msg->request->methodParams = (EdgeMethodRequestParams *) EdgeCalloc(1, sizeof(EdgeMethodRequestParams));
-    if(IS_NULL(msg->request->methodParams))
-    {
-        printf("Error : Malloc failed for methodParams in test Method1\n");
-        goto EXIT_METHOD2;
-    }
-    msg->request->methodParams->num_inpArgs = 1;
-    msg->request->methodParams->inpArg = (EdgeArgument **) calloc(msg->request->methodParams->num_inpArgs, sizeof(EdgeArgument *));
-    if(IS_NULL(msg->request->methodParams->inpArg))
-    {
-        printf("Error : Malloc failed for methodParams->inpArg in test Method1\n");
-        goto EXIT_METHOD2;
-    }
-    msg->request->methodParams->inpArg[0] = (EdgeArgument *) EdgeCalloc(1, sizeof(EdgeArgument));
-    if(IS_NULL(msg->request->methodParams->inpArg[0]))
-    {
-        printf("Error : Malloc failed for methodParams->inpArg[0] in test Method1\n");
-        goto EXIT_METHOD2;
-    }
-    msg->request->methodParams->inpArg[0]->argType = Int32;
-    msg->request->methodParams->inpArg[0]->valType = SCALAR;
     int32_t val = 100;
-    msg->request->methodParams->inpArg[0]->scalarValue = &val;
-
+    ret = insertEdgeMethodParameter(&msg, "{2;S;v=0}print(x)", 1,
+                Int32, SCALAR, (void *)&val, NULL, 0);
+    if (ret.code != STATUS_OK) {
+        printf("Error : insertEdgeMethodParameter has failed\n");
+        goto EXIT_METHOD2;
+    }
     printf("input(x) :: [%d]\n", val);
-
-    msg->command = CMD_METHOD;
-
     callMethod(msg);
 
     EXIT_METHOD2:
@@ -1786,38 +1670,19 @@ static void testMethod()
 
     printf("\n|------------------- [Method Call ] - shutdown() \n");
 
-    msg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
+    msg = createEdgeMessage(endpointUri, 1, CMD_METHOD);
     if(IS_NULL(msg))
     {
-        printf("Error : Malloc failed for msg in test Method1\n");
-        goto EXIT_METHOD3;
+        printf("Error : Malloc failed for EdgeMessage in test Method\n");
+        return;
     }
 
-    msg->endpointInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    if(IS_NULL(msg->endpointInfo))
-    {
-        printf("Error : Malloc failed for EdgeEndPointInfo in test Method1\n");
+    ret = insertEdgeMethodParameter(&msg, "{2;S;v=0}shutdown()", 0,
+                    0, 0, NULL, NULL, 0);
+    if (ret.code != STATUS_OK) {
+        printf("Error : insertEdgeMethodParameter has failed\n");
         goto EXIT_METHOD3;
     }
-
-    msg->endpointInfo->endpointUri = copyString(endpointUri);
-    msg->request = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
-    if(IS_NULL(msg->request))
-    {
-        printf("Error : Malloc failed for request in test Method1\n");
-        goto EXIT_METHOD3;
-    }
-
-    msg->request->nodeInfo = createEdgeNodeInfo("{2;S;v=0}shutdown()");
-    msg->request->methodParams = (EdgeMethodRequestParams *) EdgeCalloc(1, sizeof(EdgeMethodRequestParams));
-    if(IS_NULL(msg->request->methodParams))
-    {
-        printf("Error : Malloc failed for methodParams in test Method1\n");
-        goto EXIT_METHOD3;
-    }
-    msg->request->methodParams->num_inpArgs = 0;
-    msg->command = CMD_METHOD;
-
     callMethod(msg);
 
     EXIT_METHOD3:
@@ -1825,39 +1690,19 @@ static void testMethod()
 
     printf("\n|------------------- [Method Call ] - version() \n");
 
-    msg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
+    msg = createEdgeMessage(endpointUri, 1, CMD_METHOD);
     if(IS_NULL(msg))
     {
-        printf("Error : Malloc failed for msg in test Method1\n");
-        goto EXIT_METHOD4;
+        printf("Error : Malloc failed for EdgeMessage in test Method\n");
+        return;
     }
 
-    msg->endpointInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    if(IS_NULL(msg->endpointInfo))
-    {
-        printf("Error : Malloc failed for EdgeEndPointInfo in test Method1\n");
+    ret = insertEdgeMethodParameter(&msg, "{2;S;v=0}version()", 0,
+                    0, 0, NULL, NULL, 0);
+    if (ret.code != STATUS_OK) {
+        printf("Error : insertEdgeMethodParameter has failed\n");
         goto EXIT_METHOD4;
     }
-
-    msg->endpointInfo->endpointUri = copyString(endpointUri);
-    msg->request = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
-    if(IS_NULL(msg->request))
-    {
-        printf("Error : Malloc failed for request in test Method1\n");
-        goto EXIT_METHOD4;
-    }
-
-    msg->request->nodeInfo = createEdgeNodeInfo("{2;S;v=0}version()");
-
-    msg->request->methodParams = (EdgeMethodRequestParams *) EdgeCalloc(1, sizeof(EdgeMethodRequestParams));
-    if(IS_NULL(msg->request->methodParams))
-    {
-        printf("Error : Malloc failed for methodParams in test Method1\n");
-        goto EXIT_METHOD4;
-    }
-    msg->request->methodParams->num_inpArgs = 0;
-    msg->command = CMD_METHOD;
-
     callMethod(msg);
 
     EXIT_METHOD4:
