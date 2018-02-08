@@ -442,90 +442,133 @@ EdgeNodeInfo* createEdgeNodeInfo(const char* nodeName)
     return nodeInfo;
 }
 
-EdgeResult insertSubParameter(EdgeMessage **msg, const char* nodeName, EdgeNodeIdentifier subType, double samplingInterval,
-        double publishingInterval, int lifetimeCount, int maxNotificationsPerPublish, bool publishingEnabled, int priority,
-        uint32_t queueSize)
+EdgeResult insertSubParameter(EdgeMessage **msg, const char* nodeName, EdgeNodeIdentifier subType,
+        double samplingInterval, double publishingInterval, int maxKeepAliveCount, int lifetimeCount,
+        int maxNotificationsPerPublish, bool publishingEnabled, int priority, uint32_t queueSize)
 {
     EdgeResult result;
     result.code = STATUS_OK;
-    if(IS_NULL((*msg)) || IS_NULL(nodeName))
+    if (IS_NULL((*msg)) || IS_NULL(nodeName))
     {
         EDGE_LOG(TAG, "Error : parameter is not valid");
         result.code = STATUS_PARAM_INVALID;
         goto EXIT;
     }
 
-    size_t index = (*msg)->requestLength;
-    (*msg)->requests[index] = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
-    if(IS_NULL((*msg)->requests[index]))
-    {
-        EDGE_LOG(TAG, "Error : EdgeMalloc failed for requests");
-        result.code = STATUS_ERROR;
-        goto EXIT;
-    }
-
-    (*msg)->requests[index]->nodeInfo = createEdgeNodeInfo(nodeName);
-    if(IS_NULL((*msg)->requests[index]->nodeInfo))
-    {
-        EDGE_LOG(TAG, "Error : Malloc failed for nodeInfo subReq");
-        result.code = STATUS_ERROR;
-        goto EXIT;
-    }
-
     EdgeSubRequest* subReq = (EdgeSubRequest *) EdgeCalloc(1, sizeof(EdgeSubRequest));
-    if(IS_NULL(subReq))
+    if (IS_NULL(subReq))
     {
         EDGE_LOG(TAG, "Error : Malloc failed for subReq");
         result.code = STATUS_ERROR;
         goto EXIT;
     }
 
-    subReq->subType = subType;
-    subReq->samplingInterval = samplingInterval;
-    subReq->publishingInterval = publishingInterval;
-    subReq->maxKeepAliveCount = (1 > (int) (
-            ceil(10000.0 / publishingInterval))) ? 1 : (int) ceil(10000.0 / publishingInterval);
-    subReq->lifetimeCount = lifetimeCount;
-    subReq->maxNotificationsPerPublish = maxNotificationsPerPublish;
-    subReq->publishingEnabled = publishingEnabled;
-    subReq->priority = priority;
-    subReq->queueSize = queueSize;
+    if (Edge_Create_Sub == subType || Edge_Modify_Sub == subType) {
+        subReq->subType = subType;
+        subReq->samplingInterval = samplingInterval;
+        subReq->publishingInterval = publishingInterval;
+        subReq->maxKeepAliveCount = maxKeepAliveCount;
+        subReq->lifetimeCount = lifetimeCount;
+        subReq->maxNotificationsPerPublish = maxNotificationsPerPublish;
+        subReq->publishingEnabled = publishingEnabled;
+        subReq->priority = priority;
+        subReq->queueSize = queueSize;
+    } else {
+        subReq->subType = subType;
+    }
 
-    (*msg)->requests[index]->subMsg = subReq;
-    (*msg)->requestLength = ++index;
-    EXIT:
-    return result;
+    if (Edge_Create_Sub == subType)
+    {
+        size_t index = (*msg)->requestLength;
+
+        (*msg)->requests[index] = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
+        if (IS_NULL((*msg)->requests[index]))
+        {
+            EDGE_LOG(TAG, "Error : EdgeMalloc failed for requests");
+            result.code = STATUS_ERROR;
+            goto EXIT;
+        }
+
+        (*msg)->requests[index]->nodeInfo = createEdgeNodeInfo(nodeName);
+        if (IS_NULL((*msg)->requests[index]->nodeInfo))
+        {
+            EDGE_LOG(TAG, "Error : Malloc failed for nodeInfo subReq");
+            result.code = STATUS_ERROR;
+            goto EXIT;
+        }
+        (*msg)->requests[index]->subMsg = subReq;
+        (*msg)->requestLength = ++index;
+    }
+    else if (Edge_Modify_Sub == subType || Edge_Delete_Sub == subType
+                || Edge_Republish_Sub == subType)
+    {
+        if (NULL == (*msg)->request) {
+            EDGE_LOG(TAG, "Error : Malloc failed for request");
+            result.code = STATUS_ERROR;
+            goto EXIT;
+        }
+
+        (*msg)->request->nodeInfo = createEdgeNodeInfo(nodeName);
+        if (IS_NULL((*msg)->request->nodeInfo))
+        {
+            EDGE_LOG(TAG, "Error : Malloc failed for nodeInfo in test subscription modify");
+            goto EXIT;
+        }
+        (*msg)->request->subMsg = subReq;
+        (*msg)->requestLength = 1;
+    }
+
+    EXIT: return result;
 }
 
-EdgeMessage* createEdgeSubMessage(const char *endpointUri, size_t requestSize)
+EdgeMessage* createEdgeSubMessage(const char *endpointUri, const char* nodeName, size_t requestSize,
+        EdgeNodeIdentifier subType)
 {
     EdgeMessage *msg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
-    if(IS_NULL(msg))
+    if (IS_NULL(msg))
     {
         EDGE_LOG(TAG, "Error : EdgeMalloc failed for msg in test subscription");
         return NULL;
     }
 
     msg->endpointInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    if(IS_NULL(msg->endpointInfo))
+    if (IS_NULL(msg->endpointInfo))
     {
         EDGE_LOG(TAG, "Error : Malloc failed for epInfo in test subscription");
         return NULL;
     }
 
     msg->endpointInfo->endpointUri = copyString(endpointUri);
-    msg->requests = (EdgeRequest **) EdgeCalloc(requestSize, sizeof(EdgeRequest *));
-    if(IS_NULL(msg->requests))
+
+    if (Edge_Create_Sub == subType)
     {
-        EDGE_LOG(TAG, "Error : Malloc failed for requests in test subscription");
-        return NULL;
+        msg->requests = (EdgeRequest **) EdgeCalloc(requestSize, sizeof(EdgeRequest *));
+        if (IS_NULL(msg->requests))
+        {
+            EDGE_LOG(TAG, "Error : Malloc failed for requests in test subscription");
+            return NULL;
+        }
+        msg->type = SEND_REQUESTS;
+    }
+    else if (Edge_Modify_Sub == subType || Edge_Delete_Sub == subType
+            || Edge_Republish_Sub == subType)
+    {
+        msg->request = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
+        if (IS_NULL(msg->request))
+        {
+            EDGE_LOG(TAG, "Error : Malloc failed for request in test subscription modify");
+            return NULL;
+        }
+        msg->type = SEND_REQUEST;
+
+        if (Edge_Delete_Sub == subType || Edge_Republish_Sub == subType) {
+            insertSubParameter(&msg, nodeName, subType, 0, 0, 0, 0, 0, false, 0, 0);
+        }
     }
 
     msg->command = CMD_SUB;
-    msg->type = SEND_REQUESTS;
 
     return msg;
 }
-
 
 
