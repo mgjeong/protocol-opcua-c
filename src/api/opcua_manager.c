@@ -443,8 +443,9 @@ EdgeNodeInfo* createEdgeNodeInfo(const char* nodeName)
 }
 
 EdgeResult insertSubParameter(EdgeMessage **msg, const char* nodeName, EdgeNodeIdentifier subType,
-        double samplingInterval, double publishingInterval, int maxKeepAliveCount, int lifetimeCount,
-        int maxNotificationsPerPublish, bool publishingEnabled, int priority, uint32_t queueSize)
+        double samplingInterval, double publishingInterval, int maxKeepAliveCount,
+        int lifetimeCount, int maxNotificationsPerPublish, bool publishingEnabled, int priority,
+        uint32_t queueSize)
 {
     EdgeResult result;
     result.code = STATUS_OK;
@@ -463,7 +464,8 @@ EdgeResult insertSubParameter(EdgeMessage **msg, const char* nodeName, EdgeNodeI
         goto EXIT;
     }
 
-    if (Edge_Create_Sub == subType || Edge_Modify_Sub == subType) {
+    if (Edge_Create_Sub == subType || Edge_Modify_Sub == subType)
+    {
         subReq->subType = subType;
         subReq->samplingInterval = samplingInterval;
         subReq->publishingInterval = publishingInterval;
@@ -473,7 +475,9 @@ EdgeResult insertSubParameter(EdgeMessage **msg, const char* nodeName, EdgeNodeI
         subReq->publishingEnabled = publishingEnabled;
         subReq->priority = priority;
         subReq->queueSize = queueSize;
-    } else {
+    }
+    else
+    {
         subReq->subType = subType;
     }
 
@@ -500,9 +504,10 @@ EdgeResult insertSubParameter(EdgeMessage **msg, const char* nodeName, EdgeNodeI
         (*msg)->requestLength = ++index;
     }
     else if (Edge_Modify_Sub == subType || Edge_Delete_Sub == subType
-                || Edge_Republish_Sub == subType)
+            || Edge_Republish_Sub == subType)
     {
-        if (NULL == (*msg)->request) {
+        if (NULL == (*msg)->request)
+        {
             EDGE_LOG(TAG, "Error : Malloc failed for request");
             result.code = STATUS_ERROR;
             goto EXIT;
@@ -561,7 +566,8 @@ EdgeMessage* createEdgeSubMessage(const char *endpointUri, const char* nodeName,
         }
         msg->type = SEND_REQUEST;
 
-        if (Edge_Delete_Sub == subType || Edge_Republish_Sub == subType) {
+        if (Edge_Delete_Sub == subType || Edge_Republish_Sub == subType)
+        {
             insertSubParameter(&msg, nodeName, subType, 0, 0, 0, 0, 0, false, 0, 0);
         }
     }
@@ -571,4 +577,131 @@ EdgeMessage* createEdgeSubMessage(const char *endpointUri, const char* nodeName,
     return msg;
 }
 
+EdgeMessage* createEdgeAttributeMessage(const char *endpointUri, size_t requestSize, EdgeCommand cmd)
+{
+    EdgeMessage *msg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
+    if (IS_NULL(msg))
+    {
+        EDGE_LOG(TAG, "Error : EdgeMalloc failed for msg in test subscription");
+        return NULL;
+    }
 
+    msg->endpointInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
+    if (IS_NULL(msg->endpointInfo))
+    {
+        EDGE_LOG(TAG, "Error : Malloc failed for epInfo in test subscription");
+        return NULL;
+    }
+
+    msg->endpointInfo->endpointUri = copyString(endpointUri);
+
+    msg->requests = (EdgeRequest **) EdgeCalloc(requestSize, sizeof(EdgeRequest *));
+    if (IS_NULL(msg->requests))
+    {
+        EDGE_LOG(TAG, "Error : Malloc failed for requests in test subscription");
+        return NULL;
+    }
+    msg->type = SEND_REQUESTS;
+    msg->command = cmd;
+
+    return msg;
+}
+
+EdgeResult insertReadAccessNode(EdgeMessage **msg, const char* nodeName)
+{
+    EdgeResult result;
+    result.code = STATUS_OK;
+    if (IS_NULL((*msg)) || IS_NULL(nodeName))
+    {
+        EDGE_LOG(TAG, "Error : parameter is not valid");
+        result.code = STATUS_PARAM_INVALID;
+        goto EXIT;
+    }
+
+    size_t index = (*msg)->requestLength;
+
+    (*msg)->requests[index] = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
+    if (IS_NULL((*msg)->requests[index]))
+    {
+        EDGE_LOG(TAG, "Error : EdgeMalloc failed for requests");
+        result.code = STATUS_ERROR;
+        goto EXIT;
+    }
+
+    (*msg)->requests[index]->nodeInfo = createEdgeNodeInfo(nodeName);
+    if (IS_NULL((*msg)->requests[index]->nodeInfo))
+    {
+        EDGE_LOG(TAG, "Error : Malloc failed for nodeInfo");
+        result.code = STATUS_ERROR;
+        goto EXIT;
+    }
+    (*msg)->requestLength = ++index;
+
+    EXIT: return result;
+}
+
+EdgeResult insertWriteAccessNode(EdgeMessage **msg, const char* nodeName, void* value,
+        size_t valueLen)
+{
+    EdgeResult result;
+    result.code = STATUS_OK;
+    if (IS_NULL((*msg)) || IS_NULL(nodeName))
+    {
+        EDGE_LOG(TAG, "Error : parameter is not valid");
+        result.code = STATUS_PARAM_INVALID;
+        goto EXIT;
+    }
+
+    size_t index = (*msg)->requestLength;
+
+    (*msg)->requests[index] = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
+    if (IS_NULL((*msg)->requests[index]))
+    {
+        EDGE_LOG(TAG, "Error : EdgeMalloc failed for requests");
+        result.code = STATUS_ERROR;
+        goto EXIT;
+    }
+
+    (*msg)->requests[index]->nodeInfo = createEdgeNodeInfo(nodeName);
+    if (IS_NULL((*msg)->requests[index]->nodeInfo))
+    {
+        EDGE_LOG(TAG, "Error : Malloc failed for nodeInfo");
+        result.code = STATUS_ERROR;
+        goto EXIT;
+    }
+
+    (*msg)->requests[index]->type = getValueType(nodeName);
+
+    EdgeVersatility* varient = (EdgeVersatility*) malloc(sizeof(EdgeVersatility));
+    if (IS_NULL(varient))
+    {
+        EDGE_LOG(TAG, "Error : EdgeMalloc failed for varient");
+        result.code = STATUS_ERROR;
+        goto EXIT;
+    }
+    varient->value = value;
+    varient->arrayLength = 0;
+    if (valueLen > 1)
+    {
+        varient->isArray = true;
+        varient->arrayLength = valueLen;
+    }
+    else
+    {
+        varient->isArray = false;
+    }
+    (*msg)->requests[index]->value = varient;
+
+    (*msg)->requestLength = ++index;
+
+    EXIT: return result;
+}
+
+EdgeNodeIdentifier getValueType(const char* nodeName)
+{
+    int nsIdx = 0, valueType = 0;
+    char nodeType;
+    char browseName[MAX_BROWSENAME_SIZE];
+    sscanf(nodeName, UNIQUE_NODE_PATH, &nsIdx, &nodeType, &valueType, browseName);
+    return valueType;
+}
