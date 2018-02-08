@@ -198,10 +198,12 @@ __attribute__((visibility("default"))) char *copyString(const char *str);
 __attribute__((visibility("default"))) EdgeNodeInfo* createEdgeNodeInfo(const char* nodeName);
 __attribute__((visibility("default"))) EdgeNodeInfo* createEdgeNodeInfoForNodeId(EdgeNodeIdType type,
         int nodeId, uint16_t nameSpace);
-__attribute__((visibility("default"))) EdgeResult insertSubParameter(EdgeMessage **msg, const char* nodeName, EdgeNodeIdentifier subType, double samplingInterval,
-        double publishingInterval, int lifetimeCount, int maxNotificationsPerPublish, bool publishingEnabled, int priority,
+__attribute__((visibility("default"))) EdgeResult insertSubParameter(EdgeMessage **msg, const char* nodeName,
+        EdgeNodeIdentifier subType, double samplingInterval, double publishingInterval, int maxKeepAliveCount,
+        int lifetimeCount, int maxNotificationsPerPublish, bool publishingEnabled, int priority,
         uint32_t queueSize);
-__attribute__((visibility("default"))) EdgeMessage* createEdgeSubMessage(const char *endpointUri, size_t requestSize);
+__attribute__((visibility("default"))) EdgeMessage* createEdgeSubMessage(const char *endpointUri, size_t requestSize,
+        EdgeNodeIdentifier subType);
 
 #ifdef __cplusplus
 }

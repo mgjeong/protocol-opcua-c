@@ -2103,7 +2103,7 @@ static void testSub()
         return;
     }
 
-    EdgeMessage* msg = createEdgeSubMessage(ep, num_requests);
+    EdgeMessage* msg = createEdgeSubMessage(ep, num_requests, Edge_Create_Sub);
     if(IS_NULL(msg))
     {
         printf("Error : EdgeMalloc failed for msg in test subscription\n");
@@ -2118,8 +2118,8 @@ static void testSub()
         double samplingInterval;
         printf("\nEnter number of sampling interval[millisecond] (minimum : 100ms) :: ");
         scanf("%lf", &samplingInterval);
-
-        insertSubParameter(&msg, nodeName, Edge_Create_Sub, samplingInterval, 0.0, 10000, 1, true, 0, 50);
+        int keepalivetime = (1 > (int) (ceil(10000.0 / 0.0))) ? 1 : (int) ceil(10000.0 / 0.0);
+        insertSubParameter(&msg, nodeName, Edge_Create_Sub, samplingInterval, 0.0, keepalivetime, 10000, 1, true, 0, 50);
     }
 
 
@@ -2149,54 +2149,18 @@ static void testSubModify()
     printf("\nEnter the node name to modify Subscribe :: ");
     scanf("%s", nodeName);
 
-    EdgeMessage *msg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
+    EdgeMessage* msg = createEdgeSubMessage(ep, 0, Edge_Modify_Sub);
     if(IS_NULL(msg))
-    {
-        printf("Error : Malloc failed for EdgeMessage in test subscription modify\n");
-        goto EXIT_SUBMODIFY;
-    }
+        {
+        printf("Error : EdgeMalloc failed for msg in test subscription\n");
+        return;
+        }
 
-    msg->endpointInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    if(IS_NULL(msg->endpointInfo))
-    {
-        printf("Error : Malloc failed for epInfo in test subscription modify\n");
-        goto EXIT_SUBMODIFY;
-    }
-    msg->endpointInfo->endpointUri = copyString(ep);
-
-    msg->request = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
-    if(IS_NULL(msg->request))
-    {
-        printf("Error : Malloc failed for request in test subscription modify\n");
-        goto EXIT_SUBMODIFY;
-    }
-    msg->request->nodeInfo = createEdgeNodeInfo(nodeName);
-    if(IS_NULL(msg->request->nodeInfo))
-    {
-        printf("Error : Malloc failed for nodeInfo in test subscription modify\n");
-        goto EXIT_SUBMODIFY;
-    }
-
-    msg->request->subMsg = (EdgeSubRequest *) EdgeCalloc(1, sizeof(EdgeSubRequest));
-    if(IS_NULL(msg->request->subMsg))
-    {
-        printf("Error : Malloc failed for subReq in test subscription modify\n");
-        goto EXIT_SUBMODIFY;
-    }
-    msg->request->subMsg->subType = Edge_Modify_Sub;
-    msg->request->subMsg->samplingInterval = 5000.0;
-    msg->request->subMsg->publishingInterval = 0.0;
-    msg->request->subMsg->maxKeepAliveCount = (1 > (int) (ceil(10000.0 / msg->request->subMsg->publishingInterval)))
-                    ? 1 : (int) ceil(10000.0 / msg->request->subMsg->publishingInterval);
-    printf("keepalive count :: %d\n", msg->request->subMsg->maxKeepAliveCount);
-    msg->request->subMsg->lifetimeCount = 10000;  //subReq->maxKeepAliveCount * 6;
-    printf("lifetimecount :: %d\n", msg->request->subMsg->lifetimeCount);
-    msg->request->subMsg->maxNotificationsPerPublish = 1;
-    msg->request->subMsg->publishingEnabled = true;
-    msg->request->subMsg->priority = 0;
-    msg->request->subMsg->queueSize = 50;;
-
-    msg->command = CMD_SUB;
+    double samplingInterval;
+    printf("\nEnter number of sampling interval[millisecond] (minimum : 100ms) :: ");
+    scanf("%lf", &samplingInterval);
+    int keepalivetime = (1 > (int) (ceil(10000.0 / 0.0))) ? 1 : (int) ceil(10000.0 / 0.0);
+    insertSubParameter(&msg, nodeName, Edge_Modify_Sub, samplingInterval, 0.0, keepalivetime, 10000, 1, true, 0, 50);
 
     EdgeResult result = handleSubscription(msg);
     if (result.code == STATUS_OK)
@@ -2204,7 +2168,6 @@ static void testSubModify()
         printf("SUBSCRPTION MODIFY SUCCESSFULL\n");
     }
 
-    EXIT_SUBMODIFY:
     destroyEdgeMessage (msg);
 }
 
@@ -2394,7 +2357,7 @@ int main()
             static char ipAddress[MAX_ADDRESS_SIZE];
             printf("[Please input server endpoint uri (Ex: opc.tcp://hostname:port/path)] : ");
             scanf("%s", ipAddress);
-            strncpy(endpointUri, ipAddress, strlen(ipAddress)+1);
+            strncpy(endpointUri, "opc.tcp://localhost:12686", strlen("opc.tcp://localhost:12686")+1);
 
             connect = true;
             testGetEndpoints(endpointUri);
