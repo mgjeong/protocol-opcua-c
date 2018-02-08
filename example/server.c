@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <signal.h>
 
 #include <pthread.h>
 #include <unistd.h>
@@ -1618,9 +1619,18 @@ static void print_menu()
     printf("\n=============== OPC UA =======================\n\n");
 }
 
+static void stopHandler(int sign)
+{
+    printf("Force terminate triggerred.\n");
+    deinit();
+    exit(0);
+}
+
 int main()
 {
     char command[128];
+
+    signal(SIGINT, stopHandler);
 
     print_menu();
 
@@ -1677,6 +1687,7 @@ int main()
         else if (!strcmp(command, "quit"))
         {
             deinit();
+            stopFlag = true;
         }
         else if (!strcmp(command, "help"))
         {
