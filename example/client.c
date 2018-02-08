@@ -1067,30 +1067,15 @@ static void testBrowseNext()
     initBrowseNextData(&browseNextData->browseParam);
     printf("Total number of continuation points: %d.\n", clone->last_used + 1);
 
-    EdgeMessage *msg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
-    if(IS_NULL(msg))
-    {
-        printf("Error : Malloc failed for EdgeMessage in test browse Next\n");
-        goto EXIT_BROWSENEXT;
-    }
-
-    msg->endpointInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    if(IS_NULL(msg->endpointInfo))
-    {
-        printf("Error : Malloc failed for EdgeEndPointInfo in test browse Next\n");
-        goto EXIT_BROWSENEXT;
-    }
-    msg->endpointInfo->endpointUri = copyString(endpointUri);
-    msg->type = SEND_REQUESTS; // There can be one or more continuation points.
-    msg->command = CMD_BROWSENEXT; // Using the same existing command for browse next operation as well.
-
+    // SEND_REQUESTS : There can be one or more continuation points.
+    // CMD_BROWSENEXT : Using the same existing command for browse next operation as well.
     int requestLength = clone->last_used + 1;
-    msg->requests = (EdgeRequest **) calloc(requestLength, sizeof(EdgeRequest *));
-    if(IS_NULL(msg->requests))
-    {
-        printf("Error : Malloc failed for requests in test browse Next\n");
-        goto EXIT_BROWSENEXT;
-    }
+    EdgeMessage *msg = createEdgeMessage(endpointUri, requestLength, CMD_BROWSENEXT);
+        if(IS_NULL(msg))
+        {
+            printf("Error : Malloc failed for EdgeMessage in test Method\n");
+            return;
+        }
 
     for (int i = 0; i < requestLength; i++)
     {
@@ -1152,31 +1137,20 @@ static void testBrowseViews(char* endpointUri)
     printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET
            "\n");
 
-    EdgeMessage *msg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 0, CMD_BROWSE_VIEW);
     if(IS_NULL(msg))
     {
-        printf("Error : Malloc failed for EdgeMessage in test browse\n");
-        goto EXIT_BROWSE;
+        printf("Error : Malloc failed for EdgeMessage in test Method\n");
+        return;
     }
-    msg->endpointInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    if(IS_NULL(msg->endpointInfo))
-    {
-        printf("Error : Malloc failed for EdgeEndPointInfo in test browse\n");
-        goto EXIT_BROWSE;
-    }
-    msg->endpointInfo->endpointUri = copyString(endpointUri);
-    msg->type = SEND_REQUEST;
-    msg->command = CMD_BROWSE_VIEW;
 
     printf("\n" COLOR_YELLOW "********** Browse Views under RootFolder node in system namespace **********"
            COLOR_RESET "\n");
 
     initBrowseNextData(msg->browseParam);
 
-    //browseViews(msg);
     sendRequest(msg);
 
-    EXIT_BROWSE:
     destroyEdgeMessage(msg);
 }
 
@@ -1188,53 +1162,23 @@ static void testBrowse(char* endpointUri)
     printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET
            "\n\n");
 
-    EdgeMessage *msg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_BROWSE);
     if(IS_NULL(msg))
     {
-        printf("Error : Malloc failed for EdgeMessage in test browse\n");
-        goto EXIT_BROWSE;
+        printf("Error : Malloc failed for EdgeMessage in test Method\n");
+        return;
     }
 
-    msg->endpointInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    if(IS_NULL(msg->endpointInfo))
-    {
-        printf("Error : Malloc failed for EdgeEndPointInfo in test browse\n");
-        goto EXIT_BROWSE;
-    }
-    msg->endpointInfo->endpointUri = copyString(endpointUri);
-    msg->type = SEND_REQUEST;
-    msg->command = CMD_BROWSE;
-
-    msg->request = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
-    if(IS_NULL(msg->request))
-    {
-        printf("Error : Malloc failed for request in test browse\n");
-        goto EXIT_BROWSE;
-    }
-
-    msg->request->nodeInfo = createEdgeNodeInfoForNodeId(INTEGER, RootFolder, SYSTEM_NAMESPACE_INDEX);
+    EdgeNodeInfo* nodeInfo = createEdgeNodeInfoForNodeId(INTEGER, RootFolder, SYSTEM_NAMESPACE_INDEX);
+    EdgeBrowseParameter param = {DIRECTION_FORWARD, maxReferencesPerNode};
+    insertBrowseParameter(&msg, nodeInfo, param);
     printf("\n\n" COLOR_YELLOW "********** Browse RootFolder node in system namespace **********"
            COLOR_RESET "\n");
 
-    msg->requestLength = 0;
-    msg->browseParam = (EdgeBrowseParameter *)EdgeCalloc(1, sizeof(EdgeBrowseParameter));
-    if(IS_NULL(msg->browseParam))
-    {
-        printf("Error : Malloc failed for msg->browseParam in test browse\n");
-        goto EXIT_BROWSE;
-    }
-    msg->browseParam->direction = DIRECTION_FORWARD;
-    msg->browseParam->maxReferencesPerNode = maxReferencesPerNode;
-
     initBrowseNextData(msg->browseParam);
 
-    msg->command = CMD_BROWSE;
-    msg->type = SEND_REQUEST;
-
-    //browseNode(msg);
     sendRequest(msg);
 
-    EXIT_BROWSE:
     destroyEdgeMessage(msg);
 }
 
@@ -1245,80 +1189,29 @@ static void testBrowses(char* endpointUri)
     printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET
            "\n\n");
 
-    EdgeMessage *msg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
+    int requestLength = 3;
+    EdgeMessage *msg = createEdgeMessage(endpointUri, requestLength, CMD_BROWSE);
     if(IS_NULL(msg))
     {
-        printf("Error : Malloc failed for EdgeMessage in test browses\n");
-        goto EXIT_BROWSES;
+        printf("Error : Malloc failed for EdgeMessage in test Method\n");
+        return;
     }
 
-    msg->endpointInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    if(IS_NULL(msg->endpointInfo))
-    {
-        printf("Error : Malloc failed for EdgeEndPointInfo in test browses\n");
-        goto EXIT_BROWSES;
-    }
-    msg->endpointInfo->endpointUri = copyString(endpointUri);
-    msg->type = SEND_REQUESTS;
-    msg->command = CMD_BROWSE;
-
-    int requestLength = 3;
-    msg->requests = (EdgeRequest **) calloc(requestLength, sizeof(EdgeRequest *));
-    if(IS_NULL(msg->requests))
-    {
-        printf("Error : Malloc failed for requests in test browses\n");
-        goto EXIT_BROWSES;
-    }
-
-    msg->requests[0] = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
-    if(IS_NULL(msg->requests[0]))
-    {
-        printf("Error : Malloc failed for requests[0] in test browses\n");
-        goto EXIT_BROWSES;
-    }
-    msg->requests[0]->nodeInfo = createEdgeNodeInfoForNodeId(INTEGER, RootFolder, SYSTEM_NAMESPACE_INDEX);
-
-    msg->requests[1] = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
-    if(IS_NULL(msg->requests[1]))
-    {
-        printf("Error : Malloc failed for requests[1] in test browses\n");
-        goto EXIT_BROWSES;
-    }
-    msg->requests[1]->nodeInfo = createEdgeNodeInfoForNodeId(INTEGER, ObjectsFolder, SYSTEM_NAMESPACE_INDEX);
-
-    msg->requests[2] = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
-    if(IS_NULL(msg->requests[2]))
-    {
-        printf("Error : Malloc failed for requests[2] in test browses\n");
-        goto EXIT_BROWSES;
-    }
-    printf("\n\n" COLOR_YELLOW "tkss\n");
-
-    msg->requests[2]->nodeInfo = createEdgeNodeInfo("{2;S;v=0}Object1");
-
-    printf("\n\n" COLOR_YELLOW "tkss1 %d %d %s\n", msg->requests[2]->nodeInfo->nodeId->nameSpace,
-            msg->requests[2]->nodeInfo->nodeId->type, msg->requests[2]->nodeInfo->nodeId->nodeId);
+    EdgeNodeInfo* nodeInfo = createEdgeNodeInfoForNodeId(INTEGER, RootFolder, SYSTEM_NAMESPACE_INDEX);
+    EdgeBrowseParameter param = {DIRECTION_FORWARD, maxReferencesPerNode};
+    insertBrowseParameter(&msg, nodeInfo, param);
+    nodeInfo = createEdgeNodeInfoForNodeId(INTEGER, ObjectsFolder, SYSTEM_NAMESPACE_INDEX);
+    insertBrowseParameter(&msg, nodeInfo, param);
+    nodeInfo = createEdgeNodeInfo("{2;S;v=0}Object1");
+    insertBrowseParameter(&msg, nodeInfo, param);
 
     printf("\n\n" COLOR_YELLOW
            "********** Browse RootFolder, ObjectsFolder nodes in system namespace and Object1 in namespace 1 **********"
            COLOR_RESET "\n");
 
-    msg->requestLength = requestLength;
-    msg->browseParam = (EdgeBrowseParameter *)EdgeCalloc(1, sizeof(EdgeBrowseParameter));
-    if(IS_NULL(msg->browseParam))
-    {
-        printf("Error : Malloc failed for msg->browseParam in test browses\n");
-        goto EXIT_BROWSES;
-    }
-    msg->browseParam->direction = DIRECTION_FORWARD;
-    msg->browseParam->maxReferencesPerNode = maxReferencesPerNode;
-
     initBrowseNextData(msg->browseParam);
 
-    //browseNode(msg);
     sendRequest(msg);
-
-    EXIT_BROWSES:
 
     destroyEdgeMessage(msg);
 }

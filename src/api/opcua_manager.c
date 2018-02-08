@@ -804,6 +804,13 @@ EdgeResult insertEdgeMethodParameter(EdgeMessage **msg, const char* nodeName,
     EdgeResult result;
     result.code = STATUS_OK;
 
+    if (IS_NULL((*msg)) || IS_NULL(nodeName))
+    {
+        EDGE_LOG(TAG, "Error : parameter is not valid");
+        result.code = STATUS_PARAM_INVALID;
+        goto EXIT;
+    }
+
     EdgeRequest *request = NULL;
     if (SEND_REQUEST == (*msg)->type)
     {
@@ -866,5 +873,59 @@ EdgeResult insertEdgeMethodParameter(EdgeMessage **msg, const char* nodeName,
     request->methodParams->inpArg[num_inpArgs]->arrayLength = arrayLength;
 
     request->methodParams->num_inpArgs = ++num_inpArgs;
+    EXIT: return result;
+}
+
+EdgeResult insertBrowseParameter(EdgeMessage **msg, EdgeNodeInfo* nodeInfo,
+        EdgeBrowseParameter parameter)
+{
+    EdgeResult result;
+    result.code = STATUS_OK;
+
+    if (IS_NULL((*msg)) || IS_NULL(nodeInfo))
+    {
+        EDGE_LOG(TAG, "Error : parameter is not valid");
+        result.code = STATUS_PARAM_INVALID;
+        goto EXIT;
+    }
+
+    if (SEND_REQUESTS == (*msg)->type)
+        {
+            size_t index = (*msg)->requestLength;
+
+            (*msg)->requests[index] = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
+            if (IS_NULL((*msg)->requests[index]))
+            {
+                EDGE_LOG(TAG, "Error : EdgeMalloc failed for requests");
+                result.code = STATUS_ERROR;
+                goto EXIT;
+            }
+
+            (*msg)->requests[index]->nodeInfo = nodeInfo;
+            (*msg)->requestLength = ++index;
+        }
+        else
+        {
+            if (NULL == (*msg)->request)
+            {
+                EDGE_LOG(TAG, "Error : Malloc failed for request");
+                result.code = STATUS_ERROR;
+                goto EXIT;
+            }
+
+            (*msg)->request->nodeInfo = nodeInfo;
+            (*msg)->requestLength = 1;
+        }
+
+    (*msg)->browseParam = (EdgeBrowseParameter *)EdgeCalloc(1, sizeof(EdgeBrowseParameter));
+    if(IS_NULL((*msg)->browseParam))
+    {
+        EDGE_LOG(TAG, "Error : Malloc failed for msg->browseParam");
+        result.code = STATUS_ERROR;
+        goto EXIT;
+    }
+    (*msg)->browseParam->direction = parameter.direction;
+    (*msg)->browseParam->maxReferencesPerNode = parameter.maxReferencesPerNode;
+
     EXIT: return result;
 }
