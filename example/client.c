@@ -1014,7 +1014,7 @@ static void startClient(char *addr, int port, char *securityPolicyUri, char *end
     msg->command = CMD_START_CLIENT;
     msg->type = SEND_REQUEST;
 
-    connectClient(msg->endpointInfo);
+    sendRequest(msg);
 
     EXIT_START:
     destroyEdgeMessage(msg);
@@ -1112,7 +1112,7 @@ static void testBrowseNext()
     }
     msg->endpointInfo->endpointUri = copyString(endpointUri);
     msg->type = SEND_REQUESTS; // There can be one or more continuation points.
-    msg->command = CMD_BROWSE; // Using the same existing command for browse next operation as well.
+    msg->command = CMD_BROWSENEXT; // Using the same existing command for browse next operation as well.
 
     int requestLength = clone->last_used + 1;
     msg->requests = (EdgeRequest **) calloc(requestLength, sizeof(EdgeRequest *));
@@ -1161,7 +1161,8 @@ static void testBrowseNext()
         msg->cpList->cp[i] = &clone->cp[i];
     }
 
-    browseNext(msg);
+    //browseNext(msg);
+    sendRequest(msg);
 
     EXIT_BROWSENEXT:
     for (int i = 0; i < requestLength; i++)
@@ -1195,14 +1196,15 @@ static void testBrowseViews(char* endpointUri)
     }
     msg->endpointInfo->endpointUri = copyString(endpointUri);
     msg->type = SEND_REQUEST;
-    msg->command = CMD_BROWSE;
+    msg->command = CMD_BROWSE_VIEW;
 
     printf("\n" COLOR_YELLOW "********** Browse Views under RootFolder node in system namespace **********"
            COLOR_RESET "\n");
 
     initBrowseNextData(msg->browseParam);
 
-    browseViews(msg);
+    //browseViews(msg);
+    sendRequest(msg);
 
     EXIT_BROWSE:
     destroyEdgeMessage(msg);
@@ -1276,7 +1278,11 @@ static void testBrowse(char* endpointUri)
 
     initBrowseNextData(msg->browseParam);
 
-    browseNode(msg);
+    msg->command = CMD_BROWSE;
+    msg->type = SEND_REQUEST;
+
+    //browseNode(msg);
+    sendRequest(msg);
 
     EXIT_BROWSE:
     destroyEdgeMessage(msg);
@@ -1416,7 +1422,8 @@ static void testBrowses(char* endpointUri)
 
     initBrowseNextData(msg->browseParam);
 
-    browseNode(msg);
+    //browseNode(msg);
+    sendRequest(msg);
 
     EXIT_BROWSES:
 
@@ -1439,8 +1446,8 @@ static void readHelper(int num_requests, char *ep)
         scanf("%s", nodeName);
         insertReadAccessNode(&msg, nodeName);
     }
-    readNode(msg);
 
+    sendRequest(msg);
     destroyEdgeMessage(msg);
 }
 
@@ -1512,7 +1519,7 @@ static void writeHelper(int num_requests, char *ep)
     }
 
     printf("write node \n");
-    writeNode(msg);
+    sendRequest(msg);
     printf("write node call success \n");
 //
 //    if (IS_NOT_NULL(msg->requests))
@@ -1646,8 +1653,9 @@ static void testMethod()
     printf("input(x) :: [%.2f]\n", input);
 
     msg->command = CMD_METHOD;
+    msg->type = SEND_REQUEST;
 
-    callMethod(msg);
+    sendRequest(msg);
 
     EXIT_METHOD:
     msg->request->methodParams->inpArg[0]->scalarValue = NULL; // Setting NULL to prevent destroy() from trying to deallocate it.
@@ -1717,8 +1725,9 @@ static void testMethod()
             array[0], array[1], array[2], array[3], array[4], delta);
 
     msg->command = CMD_METHOD;
+    msg->type = SEND_REQUEST;
 
-    callMethod(msg);
+    sendRequest(msg);
 
     EXIT_METHOD1:
     // Setting NULL to prevent destroy() from trying to deallocate it.
@@ -1777,8 +1786,9 @@ static void testMethod()
     printf("input(x) :: [%d]\n", val);
 
     msg->command = CMD_METHOD;
+    msg->type = SEND_REQUEST;
 
-    callMethod(msg);
+    sendRequest(msg);
 
     EXIT_METHOD2:
     msg->request->methodParams->inpArg[0]->scalarValue = NULL;
@@ -1817,8 +1827,9 @@ static void testMethod()
     }
     msg->request->methodParams->num_inpArgs = 0;
     msg->command = CMD_METHOD;
+    msg->type = SEND_REQUEST;
 
-    callMethod(msg);
+    sendRequest(msg);
 
     EXIT_METHOD3:
     destroyEdgeMessage(msg);
@@ -1857,8 +1868,9 @@ static void testMethod()
     }
     msg->request->methodParams->num_inpArgs = 0;
     msg->command = CMD_METHOD;
+    msg->type = SEND_REQUEST;
 
-    callMethod(msg);
+    sendRequest(msg);
 
     EXIT_METHOD4:
     destroyEdgeMessage(msg);
@@ -1909,7 +1921,7 @@ static void testSub()
     }
 
 
-    EdgeResult result = handleSubscription(msg);
+    EdgeResult result = sendRequest(msg);
     if (result.code == STATUS_OK)
     {
         printf(COLOR_GREEN "\nSUBSCRPTION CREATE SUCCESSFULLY\n" COLOR_RESET);
@@ -1937,18 +1949,18 @@ static void testSubModify()
 
     EdgeMessage* msg = createEdgeSubMessage(ep, nodeName, 0, Edge_Modify_Sub);
     if(IS_NULL(msg))
-        {
+    {
         printf("Error : EdgeMalloc failed for msg in test subscription\n");
         return;
-        }
-
+    }
+    
     double samplingInterval;
     printf("\nEnter number of sampling interval[millisecond] (minimum : 100ms) :: ");
     scanf("%lf", &samplingInterval);
     int keepalivetime = (1 > (int) (ceil(10000.0 / 0.0))) ? 1 : (int) ceil(10000.0 / 0.0);
     insertSubParameter(&msg, nodeName, Edge_Modify_Sub, samplingInterval, 0.0, keepalivetime, 10000, 1, true, 0, 50);
 
-    EdgeResult result = handleSubscription(msg);
+    EdgeResult result = sendRequest(msg);
     if (result.code == STATUS_OK)
     {
         printf("SUBSCRPTION MODIFY SUCCESSFULL\n");
@@ -1972,12 +1984,11 @@ static void testRePublish()
 
     EdgeMessage* msg = createEdgeSubMessage(ep, nodeName, 0, Edge_Republish_Sub);
     if(IS_NULL(msg))
-        {
+    {
         printf("Error : EdgeMalloc failed for msg in test subscription\n");
         return;
-        }
-
-    EdgeResult result = handleSubscription(msg);
+    }
+    EdgeResult result = sendRequest(msg);
     printf("REPUBLISH RESULT : %d\n",  result.code);
     if (result.code == STATUS_OK)
     {
@@ -2005,12 +2016,12 @@ static void testSubDelete()
 
     EdgeMessage* msg = createEdgeSubMessage(ep, nodeName, 0, Edge_Delete_Sub);
     if(IS_NULL(msg))
-        {
+    {
         printf("Error : EdgeMalloc failed for msg in test subscription\n");
         return;
-        }
-
-    EdgeResult result = handleSubscription(msg);
+    }
+    
+    EdgeResult result = sendRequest(msg);
     printf("DELETE RESULT : %d\n",  result.code);
     if (result.code == STATUS_OK)
     {
