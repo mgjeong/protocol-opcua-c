@@ -1013,8 +1013,6 @@ static UA_StatusCode modifySub(UA_Client *client, const EdgeMessage *msg)
     UA_SetPublishingModeRequest_deleteMembers(&setPublishingModeRequest);
     UA_SetPublishingModeResponse_deleteMembers(&setPublishingModeResponse);
 
-    UA_Client_Subscriptions_manuallySendPublishRequest(client);
-
     return UA_STATUSCODE_GOOD;
 }
 
