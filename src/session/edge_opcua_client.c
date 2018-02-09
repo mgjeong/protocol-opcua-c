@@ -834,36 +834,11 @@ static bool isIPv4AddressValid(UA_String *ipv4Address)
 static bool isServerAppDescriptionValid(UA_ApplicationDescription *regServer, size_t serverUrisSize,
     unsigned char **serverUris, size_t localeIdsSize, unsigned char **localeIds)
 {
-    // Application Name check.
-    if(regServer->applicationName.text.length < 1)
-    {
-        EDGE_LOG(TAG, "Application Name is empty.");
-        return false;
-    }
-
-    // Product URI check.
-    if(regServer->productUri.length < 1)
-    {
-        // Product URI is a required field. If it's missing, then it has to be treated as an error.
-        EDGE_LOG(TAG, "Product URI is empty.");
-        return false;
-    }
-
     // Application Type and DiscoveryUrls check.
     if(!isApplicationTypeSupported(regServer->applicationType))
     {
         EDGE_LOG(TAG, "Application type is not supported.");
         return false;
-    }
-
-    if(UA_APPLICATIONTYPE_CLIENTANDSERVER == regServer->applicationType ||
-        UA_APPLICATIONTYPE_SERVER == regServer->applicationType)
-    {
-        if(regServer->discoveryUrlsSize < 1)
-        {
-            EDGE_LOG(TAG, "No discovery endpoints available for the server.");
-            return false;
-        }
     }
 
     // Application URI check.
@@ -917,6 +892,7 @@ static bool isServerAppDescriptionValid(UA_ApplicationDescription *regServer, si
         }
     }
 
+    // For FindServers CTT TC ERR-012.
     // Application Name Locale check.
     // Check whether the received application name's locale matches with the requested list of locales.
     if(localeIdsSize > 0)

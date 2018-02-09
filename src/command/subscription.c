@@ -537,7 +537,7 @@ static UA_StatusCode createSub(UA_Client *client, const EdgeMessage *msg)
 
         for (int i = 0; i < msg->requestLength; i++)
         {
-            subInfo = (subscriptionInfo *) getSubInfo(clientSub->subscriptionList, 
+            subInfo = (subscriptionInfo *) getSubInfo(clientSub->subscriptionList,
                 msg->requests[i]->nodeInfo->valueAlias);
 
             if (IS_NOT_NULL(subInfo))
@@ -959,16 +959,29 @@ static UA_StatusCode modifySub(UA_Client *client, const EdgeMessage *msg)
     __UA_Client_Service(client, &setMonitoringModeRequest,
             &UA_TYPES[UA_TYPES_SETMONITORINGMODEREQUEST], &setMonitoringModeResponse,
             &UA_TYPES[UA_TYPES_SETMONITORINGMODERESPONSE]);
-    if (UA_STATUSCODE_GOOD == setMonitoringModeResponse.responseHeader.serviceResult)
+    if (UA_STATUSCODE_GOOD != setMonitoringModeResponse.responseHeader.serviceResult)
     {
-        EDGE_LOG(TAG, "set monitor mode success\n\n");
-    }
-    else
-    {
-        EDGE_LOG_V(TAG, "set monitor mode failed :: %s\n\n", UA_StatusCode_name(
+        EDGE_LOG_V(TAG, "set monitor mode service failed :: %s\n\n", UA_StatusCode_name(
                         setMonitoringModeResponse.responseHeader.serviceResult));
         return setMonitoringModeResponse.responseHeader.serviceResult;
     }
+
+    if (setMonitoringModeResponse.resultsSize != 1)
+    {
+        EDGE_LOG_V(TAG, "set monitor mode failed :: %s\n\n", UA_StatusCode_name(
+                        UA_STATUSCODE_BADUNEXPECTEDERROR));
+        return UA_STATUSCODE_BADUNEXPECTEDERROR;
+    }
+
+    if (UA_STATUSCODE_GOOD != setMonitoringModeResponse.results[0])
+    {
+        EDGE_LOG_V(TAG, "set monitor mode failed :: %s\n\n", UA_StatusCode_name(
+                        setMonitoringModeResponse.results[0]));
+        return setMonitoringModeResponse.results[0];
+    }
+
+    EDGE_LOG(TAG, "set monitor mode success\n\n");
+
     UA_SetMonitoringModeRequest_deleteMembers(&setMonitoringModeRequest);
     UA_SetMonitoringModeResponse_deleteMembers(&setMonitoringModeResponse);
 
