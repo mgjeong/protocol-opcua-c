@@ -18,25 +18,17 @@
  *
  ******************************************************************/
 
-#ifndef EDGE_BROWSE_H
-#define EDGE_BROWSE_H
+#ifndef EDGE_CMD_ADAPTER_H
+#define EDGE_CMD_ADAPTER_H
 
 #include "opcua_common.h"
-#include "open62541.h"
-
-#include "edge_utils.h"
-#include "command_adapter.h"
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-    EdgeResult executeBrowse(UA_Client *client, EdgeMessage *msg, bool browseNext);
-
-    EdgeResult executeBrowseViews(UA_Client *client, EdgeMessage *msg);
-
-    void resgisterBrowseResponseCallback(response_cb_t callback);
+typedef void (*response_cb_t) (EdgeMessage *data);
 
 #ifdef __cplusplus
 }

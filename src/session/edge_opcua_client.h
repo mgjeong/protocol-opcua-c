@@ -24,6 +24,7 @@
 #include <stdbool.h>
 
 #include "opcua_common.h"
+#include "command_adapter.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -44,6 +45,7 @@ extern "C"
     EdgeResult browseNextInServer(EdgeMessage *msg);
     EdgeResult callMethodInServer(EdgeMessage *msg);
     EdgeResult executeSubscriptionInServer(EdgeMessage *msg);
+    void resgisterClientCallback(response_cb_t callback);
 
 #ifdef __cplusplus
 }

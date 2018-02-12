@@ -23,6 +23,7 @@
 #include "edge_logger.h"
 #include "edge_malloc.h"
 #include "message_dispatcher.h"
+#include "command_adapter.h"
 
 #include <inttypes.h>
 #include <string.h>
@@ -34,6 +35,8 @@ static const int BROWSE_NODECLASS_MASK = UA_NODECLASS_UNSPECIFIED;
 static const int VIEW_NODECLASS_MASK = UA_NODECLASS_OBJECT | UA_NODECLASS_VIEW;
 static const int SHOW_SPECIFIC_NODECLASS_MASK = UA_NODECLASS_VARIABLE | UA_NODECLASS_VIEW | UA_NODECLASS_METHOD;
 static const int SHOW_SPECIFIC_NODECLASS = false;
+
+static response_cb_t g_responseCallback = NULL;
 
 typedef struct ViewNodeInfo
 {
@@ -326,7 +329,9 @@ void invokeErrorCb(EdgeNodeId *srcNodeId, EdgeStatusCode edgeResult, const char 
     resultMsg->responses = responses;
     resultMsg->responseLength = 1;
 
-    onResponseMessage(resultMsg);
+    if (NULL != g_responseCallback) {
+        g_responseCallback(resultMsg);
+    }
 
     EXIT:
     if (IS_NOT_NULL(response))
@@ -1624,3 +1629,6 @@ EdgeResult executeBrowseViews(UA_Client *client, EdgeMessage *msg)
     return result;
 }
 
+void resgisterBrowseResponseCallback(response_cb_t callback) {
+    g_responseCallback = callback;
+}

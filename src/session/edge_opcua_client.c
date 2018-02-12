@@ -1238,3 +1238,8 @@ EdgeResult getClientEndpoints(char *endpointUri)
     freeEdgeDevice(device);
     return result;
 }
+
+void resgisterClientCallback(response_cb_t callback)
+{
+    resgisterBrowseResponseCallback(onResponseMessage);
+}
