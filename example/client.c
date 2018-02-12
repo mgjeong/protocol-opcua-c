@@ -4,10 +4,10 @@
 #include <math.h>
 #include <inttypes.h>
 
-#include <opcua_manager.h>
-#include <opcua_common.h>
-#include <edge_logger.h>
-#include <edge_malloc.h>
+#include "opcua_manager.h"
+#include "opcua_common.h"
+#include "edge_logger.h"
+#include "edge_malloc.h"
 
 #define TAG "SAMPLE_CLIENT"
 
@@ -32,7 +32,7 @@ static bool connect = false;
 
 static uint8_t supportedApplicationTypes = EDGE_APPLICATIONTYPE_SERVER | EDGE_APPLICATIONTYPE_DISCOVERYSERVER |
     EDGE_APPLICATIONTYPE_CLIENTANDSERVER;
-static EdgeConfigure *config = NULL;
+
 
 typedef struct EndPointList {
     char *endpoint;
@@ -40,18 +40,9 @@ typedef struct EndPointList {
 } EndPointList;
 
 static EndPointList* epList = NULL;
+static EdgeConfigure *config = NULL;
 
-typedef struct BrowseNextData
-{
-    EdgeBrowseParameter browseParam;
-    int count;
-    int last_used;
-    EdgeContinuationPoint *cp; // Continuation point List. Size of list = last_used.
-    EdgeNodeId **srcNodeId; // Id of source node of every continuation point. Size of list = last_used.
-} BrowseNextData;
-
-BrowseNextData *browseNextData = NULL;
-
+EdgeBrowseNextData *browseNextData = NULL;
 int maxReferencesPerNode = 0;
 
 static void add_to_endpoint_list(char *endpoint);
@@ -101,11 +92,11 @@ EdgeNodeId *cloneEdgeNodeId(EdgeNodeId *nodeId)
     return clone;
 }
 
-bool addBrowseNextData(BrowseNextData *data, EdgeContinuationPoint *cp, EdgeNodeId *nodeId)
+bool addBrowseNextData(EdgeBrowseNextData *data, EdgeContinuationPoint *cp, EdgeNodeId *nodeId)
 {
     if (data->last_used >= data->count)
     {
-        printf("BrowseNextData limit(%d) reached. Cannot add this data.\n", data->count);
+        printf("BrowseNextData limit(%zu) reached. Cannot add this data.\n", data->count);
         return false;
     }
 
@@ -126,54 +117,12 @@ bool addBrowseNextData(BrowseNextData *data, EdgeContinuationPoint *cp, EdgeNode
     return true;
 }
 
-void destroyBrowseNextDataElements(BrowseNextData *data)
-{
-    if (!data)
-        return;
-
-    for (int i = 0; i <= data->last_used; ++i)
-    {
-        if(IS_NOT_NULL(data->cp))
-        {
-            EdgeFree(data->cp[i].continuationPoint);
-        }
-        destroyEdgeNodeId(data->srcNodeId[i]);
-    }
-}
-
-void destroyBrowseNextData(BrowseNextData *data)
-{
-    if (!data)
-        return;
-
-    destroyBrowseNextDataElements(data);
-    EdgeFree(data->cp);
-    EdgeFree(data->srcNodeId);
-    EdgeFree(data);
-}
-
-void initBrowseNextData(EdgeBrowseParameter *browseParam)
-{
-    destroyBrowseNextData(browseNextData);
-    browseNextData = (BrowseNextData *)EdgeCalloc(1, sizeof(BrowseNextData));
-    VERIFY_NON_NULL_NR(browseNextData);
-    if(browseParam)
-        browseNextData->browseParam = *browseParam;
-    browseNextData->count = MAX_CP_LIST_COUNT;
-    browseNextData->last_used = -1;
-    browseNextData->cp = (EdgeContinuationPoint *)EdgeCalloc(browseNextData->count,
-                         sizeof(EdgeContinuationPoint));
-    VERIFY_NON_NULL_NR(browseNextData->cp);
-    browseNextData->srcNodeId = (EdgeNodeId **)calloc(browseNextData->count, sizeof(EdgeNodeId *));
-    VERIFY_NON_NULL_NR(browseNextData->srcNodeId);
-}
-
-BrowseNextData *cloneBrowseNextData(BrowseNextData *data)
+EdgeBrowseNextData *cloneBrowseNextData(EdgeBrowseNextData *data)
 {
     if (!data)
         return NULL;
 
-    BrowseNextData *clone = (BrowseNextData *)EdgeCalloc(1, sizeof(BrowseNextData));
+    EdgeBrowseNextData *clone = (EdgeBrowseNextData *)EdgeCalloc(1, sizeof(EdgeBrowseNextData));
     VERIFY_NON_NULL(clone, NULL);
     clone->browseParam = browseNextData->browseParam;
     clone->count = browseNextData->count;
@@ -1023,14 +972,14 @@ static void testBrowseNext()
         return;
     }
 
-    BrowseNextData *clone = cloneBrowseNextData(browseNextData);
+    EdgeBrowseNextData *clone = cloneBrowseNextData(browseNextData);
     if (!clone)
     {
         printf("Failed to clone the BrowseNextData.\n");
         return;
     }
 
-    initBrowseNextData(&browseNextData->browseParam);
+    browseNextData = initBrowseNextData(browseNextData, &browseNextData->browseParam, MAX_CP_LIST_COUNT, -1);
     printf("Total number of continuation points: %d.\n", clone->last_used + 1);
 
     // SEND_REQUESTS : There can be one or more continuation points.
@@ -1138,7 +1087,7 @@ static void testBrowseViews(char* endpointUri)
     printf("\n" COLOR_YELLOW "********** Browse Views under RootFolder node in system namespace **********"
            COLOR_RESET "\n");
 
-    initBrowseNextData(msg->browseParam);
+    browseNextData = initBrowseNextData(browseNextData, msg->browseParam, MAX_CP_LIST_COUNT, -1);
 
     sendRequest(msg);
 
@@ -1166,7 +1115,7 @@ static void testBrowse(char* endpointUri)
     printf("\n\n" COLOR_YELLOW "********** Browse RootFolder node in system namespace **********"
            COLOR_RESET "\n");
 
-    initBrowseNextData(msg->browseParam);
+    browseNextData = initBrowseNextData(browseNextData, msg->browseParam, MAX_CP_LIST_COUNT, -1);
 
     sendRequest(msg);
 
@@ -1200,7 +1149,7 @@ static void testBrowses(char* endpointUri)
            "********** Browse RootFolder, ObjectsFolder nodes in system namespace and Object1 in namespace 1 **********"
            COLOR_RESET "\n");
 
-    initBrowseNextData(msg->browseParam);
+    browseNextData = initBrowseNextData(browseNextData, msg->browseParam, MAX_CP_LIST_COUNT, -1);
 
     sendRequest(msg);
 

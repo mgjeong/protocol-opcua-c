@@ -938,3 +938,48 @@ EdgeResult insertBrowseParameter(EdgeMessage **msg, EdgeNodeInfo* nodeInfo,
 
     EXIT: return result;
 }
+
+
+void destroyBrowseNextDataElements(EdgeBrowseNextData *data)
+{
+    if (!data)
+        return;
+
+    for (int i = 0; i <= data->last_used; ++i)
+    {
+        if(IS_NOT_NULL(data->cp))
+        {
+            EdgeFree(data->cp[i].continuationPoint);
+        }
+        destroyEdgeNodeId(data->srcNodeId[i]);
+    }
+}
+
+void destroyBrowseNextData(EdgeBrowseNextData *data)
+{
+    if (!data)
+        return;
+
+    destroyBrowseNextDataElements(data);
+    EdgeFree(data->cp);
+    EdgeFree(data->srcNodeId);
+    EdgeFree(data);
+}
+
+EdgeBrowseNextData* initBrowseNextData(EdgeBrowseNextData *browseNextData,
+        EdgeBrowseParameter *browseParam, size_t count, int32_t last_used)
+{
+    destroyBrowseNextData(browseNextData);
+    browseNextData = (EdgeBrowseNextData *)EdgeCalloc(1, sizeof(EdgeBrowseNextData));
+//    VERIFY_NON_NULL_NR(browseNextData);
+    if(browseParam)
+        browseNextData->browseParam = *browseParam;
+    browseNextData->count = count;
+    browseNextData->last_used = last_used;
+    browseNextData->cp = (EdgeContinuationPoint *)EdgeCalloc(browseNextData->count,
+                         sizeof(EdgeContinuationPoint));
+//    VERIFY_NON_NULL_NR(browseNextData->cp);
+    browseNextData->srcNodeId = (EdgeNodeId **)calloc(browseNextData->count, sizeof(EdgeNodeId *));
+//    VERIFY_NON_NULL_NR(browseNextData->srcNodeId);
+    return browseNextData;
+}

@@ -42,6 +42,15 @@ extern "C"
 {
 #endif
 
+typedef struct EdgeBrowseNextData
+{
+    EdgeBrowseParameter browseParam;
+    size_t count;
+    int32_t last_used;
+    EdgeContinuationPoint *cp; // Continuation point List. Size of list = last_used.
+    EdgeNodeId **srcNodeId; // Id of source node of every continuation point. Size of list = last_used.
+} EdgeBrowseNextData;
+
 /* Recevied Message callbacks */
 typedef void (*response_msg_cb_t) (EdgeMessage *data);
 typedef void (*monitored_msg_cb_t) (EdgeMessage *data);
