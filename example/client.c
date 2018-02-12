@@ -51,105 +51,6 @@ static EndPointList *remove_from_endpoint_list(char *endpoint);
 static void startClient(char *addr, int port, char *securityPolicyUri, char *endpoint);
 static void *getNewValuetoWrite(EdgeNodeIdentifier type, int num_values);
 
-// TODO: Remove this function later when sdk expose it.
-EdgeNodeId *cloneEdgeNodeId(EdgeNodeId *nodeId)
-{
-    if (!nodeId)
-    {
-        return NULL;
-    }
-
-    EdgeNodeId *clone = (EdgeNodeId *) EdgeCalloc(1, sizeof(EdgeNodeId));
-    if (!clone)
-    {
-        return NULL;
-    }
-
-    clone->nameSpace = nodeId->nameSpace;
-    if (nodeId->nodeUri)
-    {
-        clone->nodeUri = copyString(nodeId->nodeUri);
-        if (!clone->nodeUri)
-        {
-            EdgeFree(clone);
-            return NULL;
-        }
-    }
-    clone->nodeIdentifier = nodeId->nodeIdentifier;
-    clone->type = nodeId->type;
-    if (nodeId->nodeId)
-    {
-        clone->nodeId = copyString(nodeId->nodeId);
-        if (!clone->nodeId)
-        {
-            EdgeFree(clone->nodeUri);
-            EdgeFree(clone);
-            return NULL;
-        }
-    }
-    clone->integerNodeId = nodeId->integerNodeId;
-
-    return clone;
-}
-
-bool addBrowseNextData(EdgeBrowseNextData *data, EdgeContinuationPoint *cp, EdgeNodeId *nodeId)
-{
-    if (data->last_used >= data->count)
-    {
-        printf("BrowseNextData limit(%zu) reached. Cannot add this data.\n", data->count);
-        return false;
-    }
-
-    int index = ++data->last_used;
-    data->cp[index].length = cp->length;
-    data->cp[index].continuationPoint = (unsigned char *)EdgeMalloc(cp->length * sizeof(unsigned char));
-    if(IS_NULL(data->cp[index].continuationPoint))
-    {
-        printf("Error : Malloc failed for data->cp[index].continuationPoint in addBrowseNextData\n");
-        return false;
-    }
-    for (int i = 0; i < cp->length; i++)
-    {
-        data->cp[index].continuationPoint[i] = cp->continuationPoint[i];
-    }
-
-    data->srcNodeId[index] = cloneEdgeNodeId(nodeId);
-    return true;
-}
-
-EdgeBrowseNextData *cloneBrowseNextData(EdgeBrowseNextData *data)
-{
-    if (!data)
-        return NULL;
-
-    EdgeBrowseNextData *clone = (EdgeBrowseNextData *)EdgeCalloc(1, sizeof(EdgeBrowseNextData));
-    VERIFY_NON_NULL(clone, NULL);
-    clone->browseParam = browseNextData->browseParam;
-    clone->count = browseNextData->count;
-    clone->last_used = -1;
-    clone->cp = (EdgeContinuationPoint *)EdgeCalloc(clone->count, sizeof(EdgeContinuationPoint));
-    if(IS_NULL(clone->cp))
-    {
-        printf("Error :: EdgeCalloc Failed for lone->cp in cloneBrowseNextData \n");
-        EdgeFree(clone);
-        return NULL;
-    }
-    clone->srcNodeId = (EdgeNodeId **)calloc(clone->count, sizeof(EdgeNodeId *));
-    if(IS_NULL(clone->srcNodeId))
-    {
-        printf("Error :: EdgeCalloc Failed for clone->srcNodeId in cloneBrowseNextData \n");
-        EdgeFree(clone->cp);
-        EdgeFree(clone);
-        return NULL;
-    }
-    for (int i = 0; i <= browseNextData->last_used; ++i)
-    {
-        addBrowseNextData(clone, &browseNextData->cp[i], browseNextData->srcNodeId[i]);
-    }
-
-    return clone;
-}
-
 static void response_msg_cb (EdgeMessage *data)
 {
     if (data->type == GENERAL_RESPONSE)
@@ -582,7 +483,8 @@ static void browse_msg_cb (EdgeMessage *data)
                 }
                 printf("\n");
 
-                if (!addBrowseNextData(browseNextData, data->cpList->cp[i], nodeId))
+                EdgeResult ret = addBrowseNextData(&browseNextData, data->cpList->cp[i], nodeId);
+                if (STATUS_OK != ret.code)
                     break;
             }
             printf("\n\n");

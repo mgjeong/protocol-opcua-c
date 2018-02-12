@@ -198,6 +198,9 @@ __attribute__((visibility("default"))) void destroyBrowseNextData(EdgeBrowseNext
 __attribute__((visibility("default"))) void destroyBrowseNextDataElements(EdgeBrowseNextData *data);
 __attribute__((visibility("default"))) EdgeBrowseNextData* initBrowseNextData(EdgeBrowseNextData *browseNextData,
         EdgeBrowseParameter *browseParam, size_t count, int32_t last_used);
+__attribute__((visibility("default"))) EdgeResult addBrowseNextData(EdgeBrowseNextData **data, EdgeContinuationPoint *cp,
+        EdgeNodeId *nodeId);
+__attribute__((visibility("default"))) EdgeBrowseNextData *cloneBrowseNextData(EdgeBrowseNextData* browseNextData);
 
 #ifdef __cplusplus
 }
