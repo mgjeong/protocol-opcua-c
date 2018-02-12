@@ -605,24 +605,6 @@ static void error_msg_cb (EdgeMessage *data)
     printf("================================================\n");
 }
 
-#if 0
-static void browse_msg_cb (EdgeMessage *data)
-{
-    if (data->type == BROWSE_RESPONSE)
-    {
-        EdgeBrowseResult *browseResult = data->browseResult;
-        int idx = 0;
-        printf("\n[Application browse response callback] List of Browse Names for request(%d)\n",
-               data->responses[0]->requestId);
-        printf("================================================\n");
-        for (idx = 0; idx < data->browseResultLength; idx++)
-        {
-            printf("[%d] %s\n", idx + 1, browseResult[idx].browseName);
-        }
-        printf("================================================\n");
-    }
-}
-#endif
 static void browse_msg_cb (EdgeMessage *data)
 {
     if (data->browseResult)
@@ -630,21 +612,6 @@ static void browse_msg_cb (EdgeMessage *data)
         if(data->responses[0]->message != NULL){
             printf("%s\n", (unsigned char *)data->responses[0]->message->value);
         }
-        /*EdgeBrowseResult *browseResult = data->browseResult;
-        //EdgeNodeId *nodeId = data->responses[0]->nodeInfo->nodeId;
-        //printf("Source Node ID: ");
-        //(nodeId->type == INTEGER) ? printf("%d\n", nodeId->integerNodeId) : printf("%s\n", nodeId->nodeId);
-
-        if (data->browseResultLength > 0)
-        {
-            //printf("BrowseName(s): ");
-            for (int idx = 0; idx < data->browseResultLength; idx++)
-            {
-                if (idx != 0) printf(", ");
-                printf("Browse Name: %s\n", browseResult[idx].browseName);
-            }
-            //printf("\n\n");
-        }*/
     }
     else
     {
@@ -824,7 +791,6 @@ static EndPointList *remove_from_endpoint_list(char *endpoint)
             {
                 prev->next = temp->next;
             }
-//      EdgeFree (temp); temp = NULL;
             return temp;
         }
         prev = temp;
@@ -1023,7 +989,7 @@ static void stopClient()
 static void deinit()
 {
     stopClient();
-/*    if (config)
+    if (config)
     {
         if (config->recvCallback)
         {
@@ -1041,7 +1007,7 @@ static void deinit()
             config->discoveryCallback = NULL;
         }
         free (config); config = NULL;
-    }*/
+    }
 }
 
 static void testBrowseNext()
@@ -1116,7 +1082,6 @@ static void testBrowseNext()
         msg->cpList->cp[i] = &clone->cp[i];
     }
 
-    //browseNext(msg);
     sendRequest(msg);
 
     EXIT_BROWSENEXT:

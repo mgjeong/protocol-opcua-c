@@ -210,13 +210,6 @@ static void startServer()
     epInfo->appConfig = appConfig;
     epInfo->securityPolicyUri = NULL;
 
-    // Commented - For future message queue handling
-    /*EdgeMessage *msg = (EdgeMessage *) EdgeMalloc(sizeof(EdgeMessage));
-     msg->endpointInfo = ep;
-     msg->command = CMD_START_SERVER;
-     msg->type = SEND_REQUEST;*/
-
-    //send(msg);
     createServer(epInfo);
 }
 
@@ -225,13 +218,6 @@ static void stopServer()
     EdgeFree(epInfo->endpointConfig);
     EdgeFree(epInfo->appConfig);
 
-    // Commented - For future message queue handling
-    /*EdgeMessage *msg = (EdgeMessage *) EdgeMalloc(sizeof(EdgeMessage));
-     msg->endpointInfo = ep;
-     msg->command = CMD_STOP_SERVER;
-     msg->type = SEND_REQUEST;*/
-
-    //send(msg);
     closeServer(epInfo);
 }
 
@@ -1352,43 +1338,6 @@ static void testCreateNodes()
     {
         printf("Error :: EdgeMalloc failed for EdgeReference in Test create Nodes\n");
     }
-
-//    reference = (EdgeReference *) EdgeCalloc(1, sizeof(EdgeReference));
-//    if (IS_NOT_NULL(reference))
-//    {
-//        reference->forward = true;
-//        reference->sourceNamespace = DEFAULT_NAMESPACE_VALUE;
-//        reference->sourcePath = "ViewNode2";
-//        reference->targetNamespace = DEFAULT_NAMESPACE_VALUE;
-//        reference->targetPath = "String1";
-//        /* default reference ID : Organizes */
-//        addReference(reference);
-//
-//        EdgeFree(reference);
-//    }
-//    else
-//    {
-//        printf("Error :: EdgeMalloc failed for EdgeReference in Test create Nodes\n");
-//    }
-//
-//    reference = (EdgeReference *) EdgeCalloc(1, sizeof(EdgeReference));
-//    if (IS_NOT_NULL(reference))
-//    {
-//        reference->forward = true;
-//        reference->sourceNamespace = DEFAULT_NAMESPACE_VALUE;
-//        reference->sourcePath = "ViewNode2";
-//        reference->targetNamespace = DEFAULT_NAMESPACE_VALUE;
-//        reference->targetPath = "Byte";
-//        /* default reference ID : Organizes */
-//        addReference(reference);
-//
-//        EdgeFree(reference);
-//    }
-//    else
-//    {
-//        printf("Error :: EdgeMalloc failed for EdgeReference in Test create Nodes\n");
-//    }
-
     printf("\n\n");
 }
 
