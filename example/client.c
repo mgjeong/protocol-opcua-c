@@ -1037,28 +1037,41 @@ static void testBrowseNext()
     // CMD_BROWSENEXT : Using the same existing command for browse next operation as well.
     int requestLength = clone->last_used + 1;
     EdgeMessage *msg = createEdgeMessage(endpointUri, requestLength, CMD_BROWSENEXT);
-        if(IS_NULL(msg))
-        {
-            printf("Error : Malloc failed for EdgeMessage in test Method\n");
-            return;
-        }
-
-    for (int i = 0; i < requestLength; i++)
+    if(IS_NULL(msg))
     {
-        msg->requests[i] = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
-        if(IS_NULL(msg->requests[i]))
-        {
-            printf("Error : Malloc failed for requests[%d] in test browse Next\n", i);
-            goto EXIT_BROWSENEXT;
-        }
+        printf("Error : Malloc failed for EdgeMessage in test Method\n");
+        return;
+    }
 
-        msg->requests[i]->nodeInfo = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
-        if(IS_NULL(msg->requests[i]->nodeInfo))
+    if(requestLength == 1)
+    {
+        msg->request->nodeInfo = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
+        if(IS_NULL(msg->request->nodeInfo))
         {
-            printf("Error : Malloc failed for nodeInfo in test browse Next\n");
+            printf("Error : Malloc failed for nodeInfo in testBrowseNext()\n");
             goto EXIT_BROWSENEXT;
         }
-        msg->requests[i]->nodeInfo->nodeId = clone->srcNodeId[i];
+        msg->request->nodeInfo->nodeId = clone->srcNodeId[0];
+    }
+    else
+    {
+        for (int i = 0; i < requestLength; i++)
+        {
+            msg->requests[i] = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
+            if(IS_NULL(msg->requests[i]))
+            {
+                printf("Error : Malloc failed for requests[%d] in testBrowseNext()\n", i);
+                goto EXIT_BROWSENEXT;
+            }
+
+            msg->requests[i]->nodeInfo = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
+            if(IS_NULL(msg->requests[i]->nodeInfo))
+            {
+                printf("Error : Malloc failed for nodeInfo in testBrowseNext()\n");
+                goto EXIT_BROWSENEXT;
+            }
+            msg->requests[i]->nodeInfo->nodeId = clone->srcNodeId[i];
+        }
     }
 
     msg->requestLength = requestLength;
@@ -1067,14 +1080,14 @@ static void testBrowseNext()
     msg->cpList = (EdgeContinuationPointList *)EdgeCalloc(1, sizeof(EdgeContinuationPointList));
     if(IS_NULL(msg->cpList))
     {
-        printf("Error : Malloc failed for msg->cpList in test browse Next\n");
+        printf("Error : Malloc failed for msg->cpList in testBrowseNext()\n");
         goto EXIT_BROWSENEXT;
     }
     msg->cpList->count = requestLength;
     msg->cpList->cp = (EdgeContinuationPoint **)calloc(requestLength, sizeof(EdgeContinuationPoint *));
     if(IS_NULL(msg->cpList->cp))
     {
-        printf("Error : Malloc failed for msg->cpList->cp in test browse Next\n");
+        printf("Error : Malloc failed for msg->cpList->cp in testBrowseNext()\n");
         goto EXIT_BROWSENEXT;
     }
     for (int i = 0; i < requestLength; i++)
@@ -1085,11 +1098,24 @@ static void testBrowseNext()
     sendRequest(msg);
 
     EXIT_BROWSENEXT:
+
+    // Free request or requests based on the request length.
+    if(requestLength == 1)
+    {
+        msg->request->nodeInfo->nodeId = NULL;
+    }
+    else
+    {
+        for (int i = 0; i < requestLength; i++)
+            msg->requests[i]->nodeInfo->nodeId = NULL;
+    }
+
+    // Free continuation point list
     for (int i = 0; i < requestLength; i++)
     {
         msg->cpList->cp[i] = NULL;
-        msg->requests[i]->nodeInfo->nodeId = NULL;
     }
+
     msg->browseParam = NULL;
     destroyEdgeMessage(msg);
     destroyBrowseNextData(clone);
@@ -1545,7 +1571,7 @@ static void testSubModify()
         printf("Error : EdgeMalloc failed for msg in test subscription\n");
         return;
     }
-    
+
     double samplingInterval;
     printf("\nEnter number of sampling interval[millisecond] (minimum : 100ms) :: ");
     scanf("%lf", &samplingInterval);
@@ -1612,7 +1638,7 @@ static void testSubDelete()
         printf("Error : EdgeMalloc failed for msg in test subscription\n");
         return;
     }
-    
+
     EdgeResult result = sendRequest(msg);
     printf("DELETE RESULT : %d\n",  result.code);
     if (result.code == STATUS_OK)
