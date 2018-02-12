@@ -207,7 +207,7 @@ static void response_msg_cb (EdgeMessage *data)
     {
         int len = data->responseLength;
         if (0 == len)
-            printf("Response Received ::  \n");
+            printf("Msg id : [%" PRIu32 "] , Response Received ::  \n", data->message_id);
         int idx = 0;
         for (idx = 0; idx < len; idx++)
         {
@@ -215,7 +215,7 @@ static void response_msg_cb (EdgeMessage *data)
             {
                 if (data->command == CMD_READ || data->command == CMD_METHOD)
                 {
-                    printf("Response Received ::  ");
+                    printf("Msg id : [%" PRIu32 "] , Response Received ::  ", data->message_id);
                     if (data->responses[idx]->message->isArray)
                     {
                         // Handle Output array
@@ -376,7 +376,7 @@ static void response_msg_cb (EdgeMessage *data)
                 }
                 else if (data->command == CMD_WRITE)
                 {
-                    printf("\nWrite response :: %s\n",
+                    printf("\nMsg id : : [%" PRIu32 "] ,  Write response :: %s\n", data->message_id,
                            (char *) data->responses[idx]->message->value);
                 }
                 // Diagnostics information
@@ -403,7 +403,7 @@ static void monitored_msg_cb (EdgeMessage *data)
         int idx = 0;
         for (idx = 0; idx < len; idx++)
         {
-            printf("[Node Name] : %s\n", data->responses[idx]->nodeInfo->valueAlias);
+            printf("Msg id : [%" PRIu32 "] , [Node Name] : %s\n", data->message_id, data->responses[idx]->nodeInfo->valueAlias);
             if (data->responses[idx]->message->isArray)
             {
                 // Handle Output array
