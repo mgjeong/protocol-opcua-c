@@ -45,7 +45,7 @@ extern "C"
     EdgeResult browseNextInServer(EdgeMessage *msg);
     EdgeResult callMethodInServer(EdgeMessage *msg);
     EdgeResult executeSubscriptionInServer(EdgeMessage *msg);
-    void resgisterClientCallback(response_cb_t callback);
+    void resgisterClientCallback(response_cb_t resCallback, status_cb_t statusCallback, discovery_cb_t discoveryCallback);
 
 #ifdef __cplusplus
 }

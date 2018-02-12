@@ -42,8 +42,6 @@
 #include "common_client.h"
 #include "common_server.h"
 
-#include "opcua_manager.h"
-
 #ifdef __cplusplus
 extern "C"
 {
@@ -54,28 +52,6 @@ extern "C"
 #define MAX_BROWSENAME_SIZE  (1000)
 #define MAX_DISPLAYNAME_SIZE (1000)
 #define UNIQUE_NODE_PATH     "{%d;%c;v=%d}%s"
-typedef struct ReceivedMessageCallback ReceivedMessageCallback;
-typedef struct StatusCallback StatusCallback;
-typedef struct DiscoveryCallback DiscoveryCallback;
-
-typedef struct EdgeConfigure
-{
-    /** Supported Server Application Types.
-    EdgeApplicationType represents the application types.
-    More than one application type can be set by doing bitwise-or.
-    Ex: EDGE_APPLICATIONTYPE_SERVER | EDGE_APPLICATIONTYPE_DISCOVERYSERVER */
-    uint8_t supportedApplicationTypes;
-
-    /** ReceivedMessageCallback.*/
-    ReceivedMessageCallback *recvCallback;
-
-    /** StatusCallback.*/
-    StatusCallback  *statusCallback;
-
-    /** DiscoveryCallback.*/
-    DiscoveryCallback *discoveryCallback;
-
-} EdgeConfigure;
 
 typedef struct EdgeBrowseResult
 {

@@ -29,6 +29,9 @@ extern "C"
 #endif
 
 typedef void (*response_cb_t) (EdgeMessage *data);
+typedef void (*send_cb_t) (EdgeMessage *data);
+typedef void (*status_cb_t) (EdgeEndPointInfo *epInfo, EdgeStatusCode status);
+typedef void (*discovery_cb_t) (EdgeDevice *device);
 
 #ifdef __cplusplus
 }

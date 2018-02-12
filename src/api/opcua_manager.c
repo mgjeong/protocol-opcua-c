@@ -66,7 +66,9 @@ void configure(EdgeConfigure *config)
 
     setSupportedApplicationTypes(config->supportedApplicationTypes);
 
-    resgisterClientCallback(onResponseMessage);
+    resgisterClientCallback(onResponseMessage, onStatusCallback, onDiscoveryCallback);
+    resgisterServerCallback(onStatusCallback);
+    resgisterMQCallback(onResponseMessage, onSendMessage);
 }
 
 EdgeResult createNamespace(char *name, char *rootNodeId, char *rootBrowseName,

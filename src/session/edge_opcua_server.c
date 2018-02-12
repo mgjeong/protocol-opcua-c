@@ -49,6 +49,8 @@ static edgeMap *namespaceMap = NULL;
 
 static int namespaceType = DEFAULT_TYPE;
 
+static status_cb_t g_statusCallback = NULL;
+
 void printNode(void *visitorContext, const UA_Node *node)
 {
     if (node == NULL)
@@ -304,7 +306,7 @@ EdgeResult start_server(EdgeEndPointInfo *epInfo)
         EDGE_LOG(TAG, "\n ========= [SERVER] Server Start successful ============= \n");
         b_running = UA_TRUE;
         pthread_create(&m_serverThread, NULL, &server_loop, NULL);
-        onStatusCallback(epInfo, STATUS_SERVER_STARTED);
+        g_statusCallback(epInfo, STATUS_SERVER_STARTED);
         //return (new EdgeResult::Builder(STATUS_OK))->build();
 
         result.code = STATUS_OK;
@@ -322,5 +324,10 @@ void stop_server(EdgeEndPointInfo *epInfo)
     UA_ServerConfig_delete(m_serverConfig);
     EDGE_LOG(TAG, "\n ========= [SERVER] Server Stopped ============= \n");
 
-    onStatusCallback(epInfo, STATUS_STOP_SERVER);
+    g_statusCallback(epInfo, STATUS_STOP_SERVER);
+}
+
+void resgisterServerCallback(status_cb_t statusCallback)
+{
+    g_statusCallback = statusCallback;
 }
