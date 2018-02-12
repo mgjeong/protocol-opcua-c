@@ -81,6 +81,7 @@ static void addVariableNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeI
     }
 
     attr.dataType = UA_TYPES[(int) id - 1].typeId;
+    attr.valueRank = -1;
 
     int type = (int) id - 1;
     if (type == UA_TYPES_STRING)
@@ -157,6 +158,8 @@ static void addArrayNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem
     {
         attr.userAccessLevel = UA_ACCESSLEVELMASK_READ | UA_ACCESSLEVELMASK_WRITE;
     }
+
+    attr.valueRank = 0;
 
     int type = (int) id - 1;
     if (type == UA_TYPES_STRING)
