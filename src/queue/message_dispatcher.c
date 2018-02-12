@@ -42,6 +42,9 @@ static Queue *sendQueue = NULL;
 
 static const int queue_capacity = 1000;
 
+static response_cb_t g_responseCallback = NULL;
+static send_cb_t g_sendCallback = NULL;
+
 static void handleMessage(EdgeMessage *data);
 
 void terminate()
@@ -139,7 +142,6 @@ bool add_to_recvQ(EdgeMessage *msg)
         pthread_create(&m_recvQ_Thread, NULL, &recvQ_run, NULL);
         pthread_mutex_init(&recvMutex, NULL);
     }
-//    printf("msg enqueue :: %p\n", msg);
     pthread_mutex_lock(&recvMutex);
     bool ret = enqueue(recvQueue, msg);
     pthread_mutex_unlock(&recvMutex);
@@ -148,15 +150,19 @@ bool add_to_recvQ(EdgeMessage *msg)
 
 static void handleMessage(EdgeMessage *data)
 {
-//printf("handleMessage received :: %p\n", data);
     if (SEND_REQUEST == data->type || SEND_REQUESTS == data->type)
     {
-        onSendMessage(data);
+        g_sendCallback(data);
     }
     else if (GENERAL_RESPONSE == data->type || BROWSE_RESPONSE == data->type
              || REPORT == data->type || ERROR == data->type)
     {
-        onResponseMessage(data);
+        g_responseCallback(data);
     }
-//    printf("\n");
+}
+
+void resgisterMQCallback(response_cb_t resCallback, send_cb_t sendCallback)
+{
+    g_responseCallback = resCallback;
+    g_sendCallback = sendCallback;
 }

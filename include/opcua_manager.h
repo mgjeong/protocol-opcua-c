@@ -23,6 +23,7 @@
 
 #include <stdio.h>
 #include "opcua_common.h"
+#include "opcua_interface.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -42,54 +43,10 @@ typedef struct EdgeEndpointConfig EdgeEndpointConfig;
 typedef struct EdgeApplicationConfig EdgeApplicationConfig;
 typedef struct EdgeBrowseParameter EdgeBrowseParameter;
 
-/* Recevied Message callbacks */
-typedef void (*response_msg_cb_t) (EdgeMessage *data);
-typedef void (*monitored_msg_cb_t) (EdgeMessage *data);
-typedef void (*error_msg_cb_t) (EdgeMessage *data);
-typedef void (*browse_msg_cb_t) (EdgeMessage *data);
-
-/* status callbacks */
-typedef void (*status_start_cb_t) (EdgeEndPointInfo *epInfo, EdgeStatusCode status);
-typedef void (*status_stop_cb_t) (EdgeEndPointInfo *epInfo, EdgeStatusCode status);
-typedef void (*status_network_cb_t) (EdgeEndPointInfo *epInfo, EdgeStatusCode status);
-
-/* discovery callback */
-typedef void (*endpoint_found_cb_t) (EdgeDevice *device);
-typedef void (*device_found_cb_t) (EdgeDevice *device);
-
-
-typedef struct ReceivedMessageCallback
-{
-    response_msg_cb_t resp_msg_cb;
-    monitored_msg_cb_t monitored_msg_cb;
-    error_msg_cb_t error_msg_cb;
-    browse_msg_cb_t browse_msg_cb;
-} ReceivedMessageCallback;
-
-typedef struct StatusCallback
-{
-    status_start_cb_t start_cb;
-    status_stop_cb_t stop_cb;
-    status_network_cb_t network_cb;
-} StatusCallback;
-
-typedef struct DiscoveryCallback
-{
-    endpoint_found_cb_t endpoint_found_cb;
-    device_found_cb_t device_found_cb;
-} DiscoveryCallback;
-
-//typedef struct {
-//  ReceivedMessageCallback* recvCallback;
-//  StatusCallback* statusCallback;
-//  DiscoveryCallback* discoveryCallback;
-//} EdgeConfigure;
-
 void onSendMessage(EdgeMessage* msg);
 void onResponseMessage(EdgeMessage *msg);
 void onStatusCallback(EdgeEndPointInfo *epInfo, EdgeStatusCode status);
 void onDiscoveryCallback(EdgeDevice *device);
-
 
 // Server
 __attribute__((visibility("default"))) void createServer(EdgeEndPointInfo *epInfo);

@@ -22,6 +22,7 @@
 #define EDGE_OPCUA_SERVER_H
 
 #include "opcua_common.h"
+#include "command_adapter.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -49,6 +50,7 @@ extern "C"
             EdgeIdentifier nodeType);
     EdgeResult deleteNodeItemImpl(EdgeNodeItem* item);
     void printNodeListInServer();
+    void resgisterServerCallback(status_cb_t statusCallback);
 
 #ifdef __cplusplus
 }

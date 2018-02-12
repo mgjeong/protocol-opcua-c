@@ -40,6 +40,9 @@ static edgeMap *sessionClientMap = NULL;
 static size_t clientCount = 0;
 static uint8_t supportedApplicationTypes;
 
+static status_cb_t g_statusCallback = NULL;
+static discovery_cb_t g_discoveryCallback = NULL;
+
 static void getAddressPort(char *endpoint, char **out)
 {
     UA_String hostName = UA_STRING_NULL, path = UA_STRING_NULL;
@@ -228,7 +231,7 @@ bool connect_client(char *endpoint)
     EdgeEndPointInfo *ep = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
     VERIFY_NON_NULL(ep, false);
     ep->endpointUri = endpoint;
-    onStatusCallback(ep, STATUS_CLIENT_STARTED);
+    g_statusCallback(ep, STATUS_CLIENT_STARTED);
     free(ep);
     ep = NULL;
 
@@ -255,7 +258,7 @@ void disconnect_client(EdgeEndPointInfo *epInfo)
         free(session);
         session = NULL;
         clientCount--;
-        onStatusCallback(epInfo, STATUS_STOP_CLIENT);
+        g_statusCallback(epInfo, STATUS_STOP_CLIENT);
     }
     if (0 == clientCount)
     {
@@ -1188,7 +1191,7 @@ EdgeResult getClientEndpoints(char *endpointUri)
     {
         EDGE_LOG(TAG, "No endpoints found.");
         device->num_endpoints = 0;
-        onDiscoveryCallback(device);
+        g_discoveryCallback(device);
         result.code = STATUS_OK;
         goto EXIT;
     }
@@ -1223,7 +1226,7 @@ EdgeResult getClientEndpoints(char *endpointUri)
         ptr = ptr->link;
     }
 
-    onDiscoveryCallback(device);
+    g_discoveryCallback(device);
     result.code = STATUS_OK;
 
     EXIT: if (endpointArray)
@@ -1237,4 +1240,11 @@ EdgeResult getClientEndpoints(char *endpointUri)
     }
     freeEdgeDevice(device);
     return result;
+}
+
+void resgisterClientCallback(response_cb_t resCallback, status_cb_t statusCallback, discovery_cb_t discoveryCallback)
+{
+    resgisterBrowseResponseCallback(resCallback);
+    g_statusCallback = statusCallback;
+    g_discoveryCallback = discoveryCallback;
 }
