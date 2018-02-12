@@ -427,6 +427,7 @@ static void monitoredItemHandler(UA_UInt32 monId, UA_DataValue *value, void *con
                 goto EXIT;
             }
 
+            resultMsg->message_id = subInfo->msg->message_id;
             resultMsg->type = REPORT;
             resultMsg->responseLength = 1;
             resultMsg->responses = (EdgeResponse **) malloc(1 * sizeof(EdgeResponse*));

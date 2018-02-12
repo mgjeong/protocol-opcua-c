@@ -25,6 +25,7 @@
 #include "edge_logger.h"
 #include "edge_utils.h"
 #include "edge_malloc.h"
+#include "edge_random.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -295,10 +296,10 @@ char *copyString(const char *str)
     return cloneString(str);
 }
 
-//////////////////////// TODO : QUEUE MESSAGE HANDLING /////////////////////////
+//////////////////////// QUEUE MESSAGE HANDLING /////////////////////////
 
-EdgeResult sendRequest(EdgeMessage* msg) {
-
+EdgeResult sendRequest(EdgeMessage* msg)
+{
     EdgeMessage *msgCopy = cloneEdgeMessage(msg);
     bool ret = add_to_sendQ(msgCopy);
 
@@ -307,7 +308,8 @@ EdgeResult sendRequest(EdgeMessage* msg) {
     return result;
 }
 
-void onSendMessage(EdgeMessage* msg) {
+void onSendMessage(EdgeMessage* msg)
+{
     if (msg->command == CMD_START_SERVER)
     {
         EDGE_LOG(TAG, "\n[Received command] :: START SERVER \n");
@@ -626,6 +628,7 @@ EdgeMessage* createEdgeSubMessage(const char *endpointUri, const char* nodeName,
     }
 
     msg->command = CMD_SUB;
+    msg->message_id = EdgeGetRandom();
 
     return msg;
 }
@@ -657,6 +660,7 @@ EdgeMessage* createEdgeAttributeMessage(const char *endpointUri, size_t requestS
     }
     msg->type = SEND_REQUESTS;
     msg->command = cmd;
+    msg->message_id = EdgeGetRandom();
 
     return msg;
 }
@@ -703,6 +707,7 @@ EdgeMessage* createEdgeMessage(const char *endpointUri, size_t requestSize, Edge
     }
 
     msg->command = cmd;
+    msg->message_id = EdgeGetRandom();
 
     return msg;
 }

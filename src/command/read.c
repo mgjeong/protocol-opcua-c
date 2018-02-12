@@ -42,6 +42,7 @@ static void sendErrorResponse(const EdgeMessage *msg, char *err_desc)
     resultMsg->endpointInfo = cloneEdgeEndpointInfo(msg->endpointInfo);
     resultMsg->type = ERROR;
     resultMsg->responseLength = 1;
+    resultMsg->message_id = msg->message_id;
 
     EdgeResponse** responses = (EdgeResponse **) malloc(sizeof(EdgeResponse *) * resultMsg->responseLength);
     for (int i = 0; i < resultMsg->responseLength; i++)
@@ -393,13 +394,14 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg)
 
     resultMsg->responseLength = 0;
     resultMsg->command = CMD_READ;
+    resultMsg->type = GENERAL_RESPONSE;
+    resultMsg->message_id = msg->message_id;
     resultMsg->endpointInfo = cloneEdgeEndpointInfo(msg->endpointInfo);
     if(IS_NULL(resultMsg->endpointInfo))
     {
         EDGE_LOG(TAG, "Error : EdgeCalloc failed for resultMsg.endpointInfo in Read Group\n");
         goto EXIT;
     }
-    resultMsg->type = GENERAL_RESPONSE;
 
     for (int i = 0; i < reqLen; i++)
     {

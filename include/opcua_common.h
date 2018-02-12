@@ -346,6 +346,9 @@ typedef struct EdgeMessage
     /** List of continuation point **/
     EdgeContinuationPointList *cpList;
 
+    /** message id **/
+    uint32_t message_id;
+
 } EdgeMessage;
 
 #ifdef __cplusplus

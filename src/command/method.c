@@ -347,6 +347,7 @@ EdgeResult executeMethod(UA_Client *client, const EdgeMessage *msg)
             resultMsg->responseLength = outputSize;
             resultMsg->responses = response;
             resultMsg->command = CMD_METHOD;
+            resultMsg->message_id = msg->message_id;
 
             add_to_recvQ(resultMsg);
             error_flag = false;
@@ -399,6 +400,7 @@ EdgeResult executeMethod(UA_Client *client, const EdgeMessage *msg)
         }
         resultMsg->type = ERROR;
         resultMsg->responseLength = 1;
+        resultMsg->message_id = msg->message_id;
 
         EdgeResponse** responses = (EdgeResponse **) EdgeMalloc(sizeof(EdgeResponse *) * resultMsg->responseLength);
         for (int i = 0; i < resultMsg->responseLength; i++)

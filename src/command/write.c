@@ -35,6 +35,7 @@ static void sendErrorResponse(const EdgeMessage *msg, char *err_desc)
     resultMsg->endpointInfo = cloneEdgeEndpointInfo(msg->endpointInfo);
     resultMsg->type = ERROR;
     resultMsg->responseLength = 1;
+    resultMsg->message_id = msg->message_id;
 
     EdgeResponse** responses = (EdgeResponse **) malloc(sizeof(EdgeResponse *) * resultMsg->responseLength);
     for (int i = 0; i < resultMsg->responseLength; i++)
@@ -286,6 +287,7 @@ static void writeGroup(UA_Client *client, const EdgeMessage *msg)
     resultMsg->responseLength = 0;
     resultMsg->command = CMD_WRITE;
     resultMsg->type = GENERAL_RESPONSE;
+    resultMsg->message_id = msg->message_id;
 
     for (size_t i = 0; i < reqLen; i++)
     {

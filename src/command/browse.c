@@ -530,6 +530,7 @@ static void invokeResponseCb(EdgeMessage *msg, int msgId, EdgeNodeId *srcNodeId,
     responses[0] = response;
     resultMsg->responses = responses;
     resultMsg->responseLength = 1;
+    resultMsg->message_id = msg->message_id;
 
     resultMsg->browseResult = (EdgeBrowseResult *) EdgeCalloc(1, sizeof(EdgeBrowseResult));               //browseResult;
     resultMsg->browseResult->browseName = cloneString(browseResult->browseName);
@@ -600,6 +601,7 @@ static void invokeResponseCbForContinuationPoint(EdgeMessage *msg, int msgId, Ed
     responses[0] = response;
     resultMsg->responses = responses;
     resultMsg->responseLength = 1;
+    resultMsg->message_id = msg->message_id;
 
     add_to_recvQ(resultMsg);
 }

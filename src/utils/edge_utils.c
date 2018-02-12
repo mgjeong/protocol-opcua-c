@@ -881,6 +881,7 @@ EdgeMessage* cloneEdgeMessage(EdgeMessage *msg)
     clone->command = msg->command;
     clone->endpointInfo = cloneEdgeEndpointInfo(msg->endpointInfo);
     clone->requestLength = msg->requestLength;
+    clone->message_id = msg->message_id;
 
     if (msg->browseParam)
     {
