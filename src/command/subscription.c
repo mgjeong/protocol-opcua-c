@@ -160,8 +160,9 @@ void sendPublishRequest(UA_Client *client)
     UA_Client_Subscriptions_manuallySendPublishRequest(client);
 }
 
-static void monitoredItemHandler(UA_UInt32 monId, UA_DataValue *value, void *context)
+static void monitoredItemHandler(UA_Client *client, UA_UInt32 monId, UA_DataValue *value, void *context)
 {
+    (void) client;
 
     if (value->status != UA_STATUSCODE_GOOD)
     {

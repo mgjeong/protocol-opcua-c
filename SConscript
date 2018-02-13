@@ -43,12 +43,17 @@ if architecture == 'arm' :
 
 def do__(self, arg):
 	Execute(arg)
-	print "\n"
+	print "\n"    
+
+######################################################################
+# Build Open62541 library
+######################################################################
+SConscript('extlibs/open62541/SConscript')
 
 buildDir= 'build/'
 incPath= 'include/'
 srcPath= 'src/'
-extPath= 'extlib/'
+extPath= 'extlibs/'
 
 AddMethod(env, do__)
 
@@ -77,7 +82,7 @@ env.do__(createBuildDir )
 
 env.AppendUnique(CPPPATH= [
 		incPath,
-		extPath,
+		extPath + '/open62541/open62541',
 		srcPath + '/command',
 		srcPath + '/node',
 		srcPath + '/queue',
@@ -92,6 +97,7 @@ if ARGUMENTS.get('DEBUG', False) in [
             'y', 'yes', 'true', 't', '1', 'on', 'all', True
     ]:
     env.AppendUnique(CPPDEFINES= ['DEBUG'])
+    env.AppendUnique(CCFLAGS= ['-g'])
 
 ######################################################################
 # Source files and Targets
@@ -99,7 +105,7 @@ if ARGUMENTS.get('DEBUG', False) in [
 
 src = [
 		buildDir + srcPath + '/api/opcua_manager.c',
-		buildDir + extPath + 'open62541.c',
+		buildDir + extPath + '/open62541/open62541/open62541.c',
 		buildDir + srcPath + '/command/browse.c',
 		buildDir + srcPath + '/command/read.c',
 		buildDir + srcPath + '/command/write.c',
@@ -112,11 +118,11 @@ src = [
 		buildDir + srcPath + '/session/edge_opcua_server.c',
 		buildDir + srcPath + '/utils/edge_malloc.c',	
 		buildDir + srcPath + '/utils/edge_utils.c',	
-                buildDir + srcPath + '/utils/edge_random.c',
+        buildDir + srcPath + '/utils/edge_random.c',
 	]
 
 env.VariantDir(variant_dir = (buildDir + '/' + srcPath), src_dir = 'src', duplicate = 0)
-env.VariantDir(variant_dir = (buildDir + '/' + extPath), src_dir = 'extlib', duplicate = 0)
+env.VariantDir(variant_dir = (buildDir + '/' + extPath), src_dir = 'extlibs', duplicate = 0)
 
 env.SharedLibrary(target = (buildDir + '/' + 'opcua-adapter'), source = src)
 

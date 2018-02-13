@@ -36,10 +36,10 @@ example_env.Execute('mkdir -p ' + outDir)
 # Build flags
 ######################################################################
 
-example_env['CCFLAGS'] = ['-fvisibility=hidden', '-fPIC',  '-Wall', '-Werror', '-std=gnu99']
+example_env['CCFLAGS'] = ['-fvisibility=hidden', '-fPIC',  '-Wall', '-Werror', '-std=gnu99', '-g']
 
 example_env['CPPPATH'] = [incPath,
-			'../extlib',
+			'../extlibs/open62541/open62541/',
 			srcPath + '/command',
 			srcPath + '/node',
 			#srcPath + '/queue',

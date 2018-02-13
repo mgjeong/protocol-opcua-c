@@ -19,6 +19,6 @@
 echo "Start edge opcua build"
 
 scons -c
-scons TARGET_ARCH=linux TEST=1
+scons TARGET_ARCH=linux TEST=1 AUTO_DOWNLOAD_DEP_LIBS=1
 
 echo "End of edge opcua build"
