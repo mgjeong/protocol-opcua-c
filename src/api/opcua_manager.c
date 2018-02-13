@@ -178,7 +178,8 @@ EdgeResult getEndpointInfo(EdgeMessage *msg)
 {
     EdgeResult ret;
     ret.code = STATUS_OK;
-    if (NULL == msg || NULL == msg->endpointInfo) {
+    if (NULL == msg || NULL == msg->endpointInfo)
+    {
         ret.code = STATUS_PARAM_INVALID;
         return ret;
     }
@@ -308,7 +309,7 @@ EdgeResult sendRequest(EdgeMessage* msg)
     bool ret = add_to_sendQ(msgCopy);
 
     EdgeResult result;
-    result.code = (ret  ? STATUS_OK : STATUS_ENQUEUE_ERROR);
+    result.code = (ret ? STATUS_OK : STATUS_ENQUEUE_ERROR);
     return result;
 }
 
@@ -319,8 +320,8 @@ void onSendMessage(EdgeMessage* msg)
         EDGE_LOG(TAG, "\n[Received command] :: START SERVER \n");
         if (b_serverInitialized)
         {
-            printf( "Server already initialised\n");
-            return ;
+            printf("Server already initialised\n");
+            return;
         }
         EdgeResult result = start_server(msg->endpointInfo);
         if (result.code == STATUS_OK)
@@ -333,7 +334,7 @@ void onSendMessage(EdgeMessage* msg)
         EDGE_LOG(TAG, "\n[Received command] :: START CLIENT \n");
         bool result = connect_client(msg->endpointInfo->endpointUri);
         if (!result)
-            return ;
+            return;
     }
     else if (msg->command == CMD_STOP_SERVER)
     {
@@ -706,7 +707,9 @@ EdgeMessage* createEdgeMessage(const char *endpointUri, size_t requestSize, Edge
             return NULL;
         }
         msg->type = SEND_REQUEST;
-    } else {
+    }
+    else
+    {
         msg->type = SEND_REQUEST;
     }
 
@@ -848,7 +851,8 @@ EdgeResult insertEdgeMethodParameter(EdgeMessage **msg, const char* nodeName,
             goto EXIT;
         }
     }
-    if (inputParameterSize <= 0) {
+    if (inputParameterSize <= 0)
+    {
         request->methodParams->num_inpArgs = 0;
         return result;
     }
@@ -899,35 +903,35 @@ EdgeResult insertBrowseParameter(EdgeMessage **msg, EdgeNodeInfo* nodeInfo,
     }
 
     if (SEND_REQUESTS == (*msg)->type)
+    {
+        size_t index = (*msg)->requestLength;
+
+        (*msg)->requests[index] = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
+        if (IS_NULL((*msg)->requests[index]))
         {
-            size_t index = (*msg)->requestLength;
-
-            (*msg)->requests[index] = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
-            if (IS_NULL((*msg)->requests[index]))
-            {
-                EDGE_LOG(TAG, "Error : EdgeMalloc failed for requests");
-                result.code = STATUS_ERROR;
-                goto EXIT;
-            }
-
-            (*msg)->requests[index]->nodeInfo = nodeInfo;
-            (*msg)->requestLength = ++index;
-        }
-        else
-        {
-            if (NULL == (*msg)->request)
-            {
-                EDGE_LOG(TAG, "Error : Malloc failed for request");
-                result.code = STATUS_ERROR;
-                goto EXIT;
-            }
-
-            (*msg)->request->nodeInfo = nodeInfo;
-            (*msg)->requestLength = 1;
+            EDGE_LOG(TAG, "Error : EdgeMalloc failed for requests");
+            result.code = STATUS_ERROR;
+            goto EXIT;
         }
 
-    (*msg)->browseParam = (EdgeBrowseParameter *)EdgeCalloc(1, sizeof(EdgeBrowseParameter));
-    if(IS_NULL((*msg)->browseParam))
+        (*msg)->requests[index]->nodeInfo = nodeInfo;
+        (*msg)->requestLength = ++index;
+    }
+    else
+    {
+        if (NULL == (*msg)->request)
+        {
+            EDGE_LOG(TAG, "Error : Malloc failed for request");
+            result.code = STATUS_ERROR;
+            goto EXIT;
+        }
+
+        (*msg)->request->nodeInfo = nodeInfo;
+        (*msg)->requestLength = 1;
+    }
+
+    (*msg)->browseParam = (EdgeBrowseParameter *) EdgeCalloc(1, sizeof(EdgeBrowseParameter));
+    if (IS_NULL((*msg)->browseParam))
     {
         EDGE_LOG(TAG, "Error : Malloc failed for msg->browseParam");
         result.code = STATUS_ERROR;
@@ -937,4 +941,124 @@ EdgeResult insertBrowseParameter(EdgeMessage **msg, EdgeNodeInfo* nodeInfo,
     (*msg)->browseParam->maxReferencesPerNode = parameter.maxReferencesPerNode;
 
     EXIT: return result;
+}
+
+void destroyBrowseNextDataElements(EdgeBrowseNextData *data)
+{
+    if (!data)
+        return;
+
+    for (int i = 0; i <= data->last_used; ++i)
+    {
+        if (IS_NOT_NULL(data->cp))
+        {
+            EdgeFree(data->cp[i].continuationPoint);
+        }
+        destroyEdgeNodeId(data->srcNodeId[i]);
+    }
+}
+
+void destroyBrowseNextData(EdgeBrowseNextData *data)
+{
+    if (!data)
+        return;
+
+    destroyBrowseNextDataElements(data);
+    EdgeFree(data->cp);
+    EdgeFree(data->srcNodeId);
+    EdgeFree(data);
+}
+
+EdgeBrowseNextData* initBrowseNextData(EdgeBrowseNextData *browseNextData,
+        EdgeBrowseParameter *browseParam, int count, int last_used)
+{
+    destroyBrowseNextData(browseNextData);
+    browseNextData = (EdgeBrowseNextData *) EdgeCalloc(1, sizeof(EdgeBrowseNextData));
+    if (NULL == browseNextData)
+    {
+        return NULL;
+    }
+
+    if (browseParam)
+    {
+        browseNextData->browseParam = *browseParam;
+    }
+    browseNextData->count = count;
+    browseNextData->last_used = last_used;
+    browseNextData->cp = (EdgeContinuationPoint *) EdgeCalloc(browseNextData->count,
+            sizeof(EdgeContinuationPoint));
+    if (NULL == browseNextData->cp)
+    {
+        return NULL;
+    }
+
+    browseNextData->srcNodeId = (EdgeNodeId **) calloc(browseNextData->count, sizeof(EdgeNodeId *));
+    if (NULL == browseNextData->srcNodeId)
+    {
+        return NULL;
+    }
+
+    return browseNextData;
+}
+
+EdgeResult addBrowseNextData(EdgeBrowseNextData **data, EdgeContinuationPoint *cp,
+        EdgeNodeId *nodeId)
+{
+    EdgeResult result;
+    result.code = STATUS_OK;
+    if ((*data)->last_used >= (*data)->count)
+    {
+        printf("BrowseNextData limit(%d) reached. Cannot add this data.\n", (*data)->count);
+        result.code = STATUS_ERROR;
+        goto EXIT;
+    }
+
+    int index = ++(*data)->last_used;
+    (*data)->cp[index].length = cp->length;
+    (*data)->cp[index].continuationPoint = (unsigned char *) EdgeMalloc(
+            cp->length * sizeof(unsigned char));
+    if (IS_NULL((*data)->cp[index].continuationPoint))
+    {
+        printf(
+                "Error : Malloc failed for data->cp[index].continuationPoint in addBrowseNextData\n");
+        result.code = STATUS_ERROR;
+        goto EXIT;
+    }
+    for (int i = 0; i < cp->length; i++)
+    {
+        (*data)->cp[index].continuationPoint[i] = cp->continuationPoint[i];
+    }
+
+    (*data)->srcNodeId[index] = cloneEdgeNodeId(nodeId);
+    EXIT: return result;
+}
+
+EdgeBrowseNextData *cloneBrowseNextData(EdgeBrowseNextData* browseNextData)
+{
+    EdgeBrowseNextData *clone = (EdgeBrowseNextData *)EdgeCalloc(1, sizeof(EdgeBrowseNextData));
+    VERIFY_NON_NULL(clone, NULL);
+    clone->browseParam = browseNextData->browseParam;
+    clone->count = browseNextData->count;
+    clone->last_used = -1;
+    clone->cp = (EdgeContinuationPoint *)EdgeCalloc(clone->count, sizeof(EdgeContinuationPoint));
+    if(IS_NULL(clone->cp))
+    {
+        printf("Error :: EdgeCalloc Failed for lone->cp in cloneBrowseNextData \n");
+        EdgeFree(clone);
+        return NULL;
+    }
+    clone->srcNodeId = (EdgeNodeId **)calloc(clone->count, sizeof(EdgeNodeId *));
+    if(IS_NULL(clone->srcNodeId))
+    {
+        printf("Error :: EdgeCalloc Failed for clone->srcNodeId in cloneBrowseNextData \n");
+        EdgeFree(clone->cp);
+        EdgeFree(clone);
+        return NULL;
+    }
+    for (int i = 0; i <= browseNextData->last_used; ++i)
+    {
+        addBrowseNextData(&clone, &browseNextData->cp[i], browseNextData->srcNodeId[i]);
+    }
+
+    return clone;
 }

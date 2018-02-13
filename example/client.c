@@ -4,10 +4,10 @@
 #include <math.h>
 #include <inttypes.h>
 
-#include <opcua_manager.h>
-#include <opcua_common.h>
-#include <edge_logger.h>
-#include <edge_malloc.h>
+#include "opcua_manager.h"
+#include "opcua_common.h"
+#include "edge_logger.h"
+#include "edge_malloc.h"
 
 #define TAG "SAMPLE_CLIENT"
 
@@ -32,7 +32,7 @@ static bool connect = false;
 
 static uint8_t supportedApplicationTypes = EDGE_APPLICATIONTYPE_SERVER | EDGE_APPLICATIONTYPE_DISCOVERYSERVER |
     EDGE_APPLICATIONTYPE_CLIENTANDSERVER;
-static EdgeConfigure *config = NULL;
+
 
 typedef struct EndPointList {
     char *endpoint;
@@ -40,18 +40,9 @@ typedef struct EndPointList {
 } EndPointList;
 
 static EndPointList* epList = NULL;
+static EdgeConfigure *config = NULL;
 
-typedef struct BrowseNextData
-{
-    EdgeBrowseParameter browseParam;
-    int count;
-    int last_used;
-    EdgeContinuationPoint *cp; // Continuation point List. Size of list = last_used.
-    EdgeNodeId **srcNodeId; // Id of source node of every continuation point. Size of list = last_used.
-} BrowseNextData;
-
-BrowseNextData *browseNextData = NULL;
-
+EdgeBrowseNextData *browseNextData = NULL;
 int maxReferencesPerNode = 0;
 
 static void add_to_endpoint_list(char *endpoint);
@@ -59,147 +50,6 @@ static EndPointList *remove_from_endpoint_list(char *endpoint);
 
 static void startClient(char *addr, int port, char *securityPolicyUri, char *endpoint);
 static void *getNewValuetoWrite(EdgeNodeIdentifier type, int num_values);
-
-// TODO: Remove this function later when sdk expose it.
-EdgeNodeId *cloneEdgeNodeId(EdgeNodeId *nodeId)
-{
-    if (!nodeId)
-    {
-        return NULL;
-    }
-
-    EdgeNodeId *clone = (EdgeNodeId *) EdgeCalloc(1, sizeof(EdgeNodeId));
-    if (!clone)
-    {
-        return NULL;
-    }
-
-    clone->nameSpace = nodeId->nameSpace;
-    if (nodeId->nodeUri)
-    {
-        clone->nodeUri = copyString(nodeId->nodeUri);
-        if (!clone->nodeUri)
-        {
-            EdgeFree(clone);
-            return NULL;
-        }
-    }
-    clone->nodeIdentifier = nodeId->nodeIdentifier;
-    clone->type = nodeId->type;
-    if (nodeId->nodeId)
-    {
-        clone->nodeId = copyString(nodeId->nodeId);
-        if (!clone->nodeId)
-        {
-            EdgeFree(clone->nodeUri);
-            EdgeFree(clone);
-            return NULL;
-        }
-    }
-    clone->integerNodeId = nodeId->integerNodeId;
-
-    return clone;
-}
-
-bool addBrowseNextData(BrowseNextData *data, EdgeContinuationPoint *cp, EdgeNodeId *nodeId)
-{
-    if (data->last_used >= data->count)
-    {
-        printf("BrowseNextData limit(%d) reached. Cannot add this data.\n", data->count);
-        return false;
-    }
-
-    int index = ++data->last_used;
-    data->cp[index].length = cp->length;
-    data->cp[index].continuationPoint = (unsigned char *)EdgeMalloc(cp->length * sizeof(unsigned char));
-    if(IS_NULL(data->cp[index].continuationPoint))
-    {
-        printf("Error : Malloc failed for data->cp[index].continuationPoint in addBrowseNextData\n");
-        return false;
-    }
-    for (int i = 0; i < cp->length; i++)
-    {
-        data->cp[index].continuationPoint[i] = cp->continuationPoint[i];
-    }
-
-    data->srcNodeId[index] = cloneEdgeNodeId(nodeId);
-    return true;
-}
-
-void destroyBrowseNextDataElements(BrowseNextData *data)
-{
-    if (!data)
-        return;
-
-    for (int i = 0; i <= data->last_used; ++i)
-    {
-        if(IS_NOT_NULL(data->cp))
-        {
-            EdgeFree(data->cp[i].continuationPoint);
-        }
-        destroyEdgeNodeId(data->srcNodeId[i]);
-    }
-}
-
-void destroyBrowseNextData(BrowseNextData *data)
-{
-    if (!data)
-        return;
-
-    destroyBrowseNextDataElements(data);
-    EdgeFree(data->cp);
-    EdgeFree(data->srcNodeId);
-    EdgeFree(data);
-}
-
-void initBrowseNextData(EdgeBrowseParameter *browseParam)
-{
-    destroyBrowseNextData(browseNextData);
-    browseNextData = (BrowseNextData *)EdgeCalloc(1, sizeof(BrowseNextData));
-    VERIFY_NON_NULL_NR(browseNextData);
-    if(browseParam)
-        browseNextData->browseParam = *browseParam;
-    browseNextData->count = MAX_CP_LIST_COUNT;
-    browseNextData->last_used = -1;
-    browseNextData->cp = (EdgeContinuationPoint *)EdgeCalloc(browseNextData->count,
-                         sizeof(EdgeContinuationPoint));
-    VERIFY_NON_NULL_NR(browseNextData->cp);
-    browseNextData->srcNodeId = (EdgeNodeId **)calloc(browseNextData->count, sizeof(EdgeNodeId *));
-    VERIFY_NON_NULL_NR(browseNextData->srcNodeId);
-}
-
-BrowseNextData *cloneBrowseNextData(BrowseNextData *data)
-{
-    if (!data)
-        return NULL;
-
-    BrowseNextData *clone = (BrowseNextData *)EdgeCalloc(1, sizeof(BrowseNextData));
-    VERIFY_NON_NULL(clone, NULL);
-    clone->browseParam = browseNextData->browseParam;
-    clone->count = browseNextData->count;
-    clone->last_used = -1;
-    clone->cp = (EdgeContinuationPoint *)EdgeCalloc(clone->count, sizeof(EdgeContinuationPoint));
-    if(IS_NULL(clone->cp))
-    {
-        printf("Error :: EdgeCalloc Failed for lone->cp in cloneBrowseNextData \n");
-        EdgeFree(clone);
-        return NULL;
-    }
-    clone->srcNodeId = (EdgeNodeId **)calloc(clone->count, sizeof(EdgeNodeId *));
-    if(IS_NULL(clone->srcNodeId))
-    {
-        printf("Error :: EdgeCalloc Failed for clone->srcNodeId in cloneBrowseNextData \n");
-        EdgeFree(clone->cp);
-        EdgeFree(clone);
-        return NULL;
-    }
-    for (int i = 0; i <= browseNextData->last_used; ++i)
-    {
-        addBrowseNextData(clone, &browseNextData->cp[i], browseNextData->srcNodeId[i]);
-    }
-
-    return clone;
-}
 
 static void response_msg_cb (EdgeMessage *data)
 {
@@ -633,7 +483,8 @@ static void browse_msg_cb (EdgeMessage *data)
                 }
                 printf("\n");
 
-                if (!addBrowseNextData(browseNextData, data->cpList->cp[i], nodeId))
+                EdgeResult ret = addBrowseNextData(&browseNextData, data->cpList->cp[i], nodeId);
+                if (STATUS_OK != ret.code)
                     break;
             }
             printf("\n\n");
@@ -1023,14 +874,14 @@ static void testBrowseNext()
         return;
     }
 
-    BrowseNextData *clone = cloneBrowseNextData(browseNextData);
+    EdgeBrowseNextData *clone = cloneBrowseNextData(browseNextData);
     if (!clone)
     {
         printf("Failed to clone the BrowseNextData.\n");
         return;
     }
 
-    initBrowseNextData(&browseNextData->browseParam);
+    browseNextData = initBrowseNextData(browseNextData, &browseNextData->browseParam, MAX_CP_LIST_COUNT, -1);
     printf("Total number of continuation points: %d.\n", clone->last_used + 1);
 
     // SEND_REQUESTS : There can be one or more continuation points.
@@ -1138,7 +989,7 @@ static void testBrowseViews(char* endpointUri)
     printf("\n" COLOR_YELLOW "********** Browse Views under RootFolder node in system namespace **********"
            COLOR_RESET "\n");
 
-    initBrowseNextData(msg->browseParam);
+    browseNextData = initBrowseNextData(browseNextData, msg->browseParam, MAX_CP_LIST_COUNT, -1);
 
     sendRequest(msg);
 
@@ -1166,7 +1017,7 @@ static void testBrowse(char* endpointUri)
     printf("\n\n" COLOR_YELLOW "********** Browse RootFolder node in system namespace **********"
            COLOR_RESET "\n");
 
-    initBrowseNextData(msg->browseParam);
+    browseNextData = initBrowseNextData(browseNextData, msg->browseParam, MAX_CP_LIST_COUNT, -1);
 
     sendRequest(msg);
 
@@ -1200,7 +1051,7 @@ static void testBrowses(char* endpointUri)
            "********** Browse RootFolder, ObjectsFolder nodes in system namespace and Object1 in namespace 1 **********"
            COLOR_RESET "\n");
 
-    initBrowseNextData(msg->browseParam);
+    browseNextData = initBrowseNextData(browseNextData, msg->browseParam, MAX_CP_LIST_COUNT, -1);
 
     sendRequest(msg);
 

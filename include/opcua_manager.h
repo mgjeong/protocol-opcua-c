@@ -194,6 +194,14 @@ __attribute__((visibility("default"))) EdgeResult insertBrowseParameter(EdgeMess
 /* Get the value type of the variable node */
 __attribute__((visibility("default"))) EdgeNodeIdentifier getValueType(const char* nodeName);
 
+__attribute__((visibility("default"))) void destroyBrowseNextData(EdgeBrowseNextData *data);
+__attribute__((visibility("default"))) void destroyBrowseNextDataElements(EdgeBrowseNextData *data);
+__attribute__((visibility("default"))) EdgeBrowseNextData* initBrowseNextData(EdgeBrowseNextData *browseNextData,
+        EdgeBrowseParameter *browseParam, int count, int last_used);
+__attribute__((visibility("default"))) EdgeResult addBrowseNextData(EdgeBrowseNextData **data, EdgeContinuationPoint *cp,
+        EdgeNodeId *nodeId);
+__attribute__((visibility("default"))) EdgeBrowseNextData *cloneBrowseNextData(EdgeBrowseNextData* browseNextData);
+
 #ifdef __cplusplus
 }
 #endif
