@@ -79,13 +79,6 @@ __attribute__((visibility("default"))) EdgeResult modifyVariableNode(char *names
 __attribute__((visibility("default"))) EdgeResult createMethodNode(char *namespaceUri,
         EdgeNodeItem *item, EdgeMethod *method);
 __attribute__((visibility("default"))) EdgeResult addReference(EdgeReference *reference);
-__attribute__((visibility("default"))) EdgeResult readNode(EdgeMessage *msg);
-__attribute__((visibility("default"))) EdgeResult writeNode(EdgeMessage *msg);
-__attribute__((visibility("default"))) EdgeResult browseNode(EdgeMessage *msg);
-__attribute__((visibility("default"))) EdgeResult browseViews(EdgeMessage *msg);
-__attribute__((visibility("default"))) EdgeResult browseNext(EdgeMessage *msg);
-__attribute__((visibility("default"))) EdgeResult callMethod(EdgeMessage *msg);
-__attribute__((visibility("default"))) EdgeResult handleSubscription(EdgeMessage *msg);
 
 __attribute__((visibility("default"))) void showNodeList(void);
 
