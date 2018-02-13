@@ -107,48 +107,6 @@ EdgeResult createMethodNode(char *namespaceUri, EdgeNodeItem *item, EdgeMethod *
     return result;
 }
 
-EdgeResult readNode(EdgeMessage *msg)
-{
-    EdgeResult result = readNodesFromServer(msg);
-    return result;
-}
-
-EdgeResult writeNode(EdgeMessage *msg)
-{
-    EdgeResult result = writeNodesInServer(msg);
-    return result;
-}
-
-EdgeResult browseNode(EdgeMessage *msg)
-{
-    EdgeResult result = browseNodesInServer(msg);
-    return result;
-}
-
-EdgeResult browseViews(EdgeMessage *msg)
-{
-    EdgeResult result = browseViewsInServer(msg);
-    return result;
-}
-
-EdgeResult browseNext(EdgeMessage *msg)
-{
-    EdgeResult result = browseNextInServer(msg);
-    return result;
-}
-
-EdgeResult callMethod(EdgeMessage *msg)
-{
-    EdgeResult result = callMethodInServer(msg);
-    return result;
-}
-
-EdgeResult handleSubscription(EdgeMessage *msg)
-{
-    EdgeResult result = executeSubscriptionInServer(msg);
-    return result;
-}
-
 void createServer(EdgeEndPointInfo *epInfo)
 {
     EDGE_LOG(TAG, "[Received command] :: Server start.");
