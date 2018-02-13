@@ -45,8 +45,8 @@ extern "C"
 typedef struct EdgeBrowseNextData
 {
     EdgeBrowseParameter browseParam;
-    size_t count;
-    int32_t last_used;
+    int count;
+    int last_used;
     EdgeContinuationPoint *cp; // Continuation point List. Size of list = last_used.
     EdgeNodeId **srcNodeId; // Id of source node of every continuation point. Size of list = last_used.
 } EdgeBrowseNextData;

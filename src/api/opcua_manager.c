@@ -970,7 +970,7 @@ void destroyBrowseNextData(EdgeBrowseNextData *data)
 }
 
 EdgeBrowseNextData* initBrowseNextData(EdgeBrowseNextData *browseNextData,
-        EdgeBrowseParameter *browseParam, size_t count, int32_t last_used)
+        EdgeBrowseParameter *browseParam, int count, int last_used)
 {
     destroyBrowseNextData(browseNextData);
     browseNextData = (EdgeBrowseNextData *) EdgeCalloc(1, sizeof(EdgeBrowseNextData));
@@ -1008,7 +1008,7 @@ EdgeResult addBrowseNextData(EdgeBrowseNextData **data, EdgeContinuationPoint *c
     result.code = STATUS_OK;
     if ((*data)->last_used >= (*data)->count)
     {
-        printf("BrowseNextData limit(%zu) reached. Cannot add this data.\n", (*data)->count);
+        printf("BrowseNextData limit(%d) reached. Cannot add this data.\n", (*data)->count);
         result.code = STATUS_ERROR;
         goto EXIT;
     }
