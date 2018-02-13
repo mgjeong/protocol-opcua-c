@@ -53,7 +53,9 @@ env.VariantDir(variant_dir = buildDir, src_dir = '.', duplicate = 0)
 
 env.Program(target = 'test', source = [
 					buildDir + 'opcuaTest.cpp',
-					buildDir +  'utilTests.cpp'
+                                        buildDir +  'utilTests.cpp',
+                                        buildDir + 'readTest.cpp',
+                                        buildDir + 'writeTest.cpp'
 					])
 #env.Program('test', ['opcuaTest.cpp', 'utilTests.cpp'])
 

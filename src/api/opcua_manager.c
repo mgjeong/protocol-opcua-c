@@ -154,14 +154,6 @@ EdgeResult findServers(const char *endpointUri, size_t serverUrisSize, unsigned 
             registeredServersSize, registeredServers);
 }
 
-void connectClient(EdgeEndPointInfo *epInfo)
-{
-    EDGE_LOG(TAG, "[Received command] :: Client connect.");
-    bool result = connect_client(epInfo->endpointUri);
-    if (!result)
-        return;
-}
-
 void disconnectClient(EdgeEndPointInfo *epInfo)
 {
     EDGE_LOG(TAG, "[Received command] :: Client disconnect.");
@@ -259,15 +251,98 @@ char *copyString(const char *str)
     return cloneString(str);
 }
 
+static EdgeResult checkParameterValid(EdgeMessage *msg)
+{
+    EdgeResult result;
+    result.code = STATUS_PARAM_INVALID;
+    if ((msg == NULL))
+    {
+        return result;
+    }
+
+    if (msg->endpointInfo == NULL)
+    {
+        return result;
+    }
+    else
+    {
+        if (msg->endpointInfo->endpointUri == NULL)
+        {
+            return result;
+        }
+    }
+
+    if (msg->request != NULL && msg->request->nodeInfo == NULL)
+    {
+        return result;
+    }
+    else if (msg->requests != NULL)
+    {
+        if (msg->requestLength == 0)
+            return result;
+        for (size_t indx = 0; indx < msg->requestLength; indx++)
+        {
+            EdgeRequest *req = msg->requests[indx];
+            if (req->nodeInfo == NULL)
+            {
+                return result;
+            }
+            else if (req->nodeInfo->valueAlias == NULL)
+            {
+                return result;
+            }
+        }
+    }
+    else if ((msg->type == SEND_REQUEST && msg->request == NULL)
+             || (msg->type == SEND_REQUESTS  && msg->requests == NULL))
+    {
+        if (msg->command == CMD_READ
+                || msg->command == CMD_WRITE
+                || msg->command == CMD_BROWSE
+                || msg->command == CMD_METHOD
+                || msg->command == CMD_SUB)
+        {
+            return result;
+        }
+    }
+    else if (msg->command == CMD_BROWSE  && msg->browseParam == NULL)
+    {
+        return result;
+    }
+    else if (msg->command == CMD_SUB)
+    {
+        if (msg->request)
+        {
+            if (msg->request->subMsg == NULL)
+                return result;
+        }
+        else
+        {
+            for (size_t indx = 0; indx < msg->requestLength; indx++)
+            {
+                if (msg->requests[indx]->subMsg == NULL)
+                {
+                    return result;
+                }
+            }
+        }
+    }
+
+    result.code = STATUS_OK;
+    return result;
+}
+
 //////////////////////// QUEUE MESSAGE HANDLING /////////////////////////
 
 EdgeResult sendRequest(EdgeMessage* msg)
 {
-    EdgeMessage *msgCopy = cloneEdgeMessage(msg);
-    bool ret = add_to_sendQ(msgCopy);
-
-    EdgeResult result;
-    result.code = (ret ? STATUS_OK : STATUS_ENQUEUE_ERROR);
+    EdgeResult result = checkParameterValid(msg);
+    if (result.code == STATUS_OK)
+    {
+        EdgeMessage *msgCopy = cloneEdgeMessage(msg);
+        bool ret = add_to_sendQ(msgCopy);
+        result.code = (ret ? STATUS_OK : STATUS_ENQUEUE_ERROR);
+    }
     return result;
 }
 

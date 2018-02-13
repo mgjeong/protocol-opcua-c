@@ -59,7 +59,6 @@ __attribute__((visibility("default"))) EdgeResult findServers(const char *endpoi
         unsigned char **serverUris, size_t localeIdsSize, unsigned char **localeIds,
         size_t *registeredServersSize, EdgeApplicationConfig **registeredServers);
 __attribute__((visibility("default"))) EdgeResult getEndpointInfo(EdgeMessage *msg);
-__attribute__((visibility("default"))) void connectClient(EdgeEndPointInfo *epInfo);
 __attribute__((visibility("default"))) void disconnectClient(EdgeEndPointInfo *epInfo);
 
 __attribute__((visibility("default"))) void configure(EdgeConfigure *config);
