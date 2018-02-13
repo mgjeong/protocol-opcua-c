@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include <iostream>
+#include <math.h>
 
 extern "C"
 {
@@ -24,7 +25,7 @@ extern "C"
 #define TEST_DOUBLE_R 50.4
 #define TEST_INT32_R 40
 #define TEST_UINT16_R 30
-#define TEST_METHOD_SR 5
+#define TEST_METHOD_SR 256
 
 #define TEST_STR1_W "apple"
 #define TEST_STR2_W "banana"
@@ -404,7 +405,10 @@ extern "C"
         browseNodeFlag = true;
         if (data->browseResult)
         {
-            //PRINT_ARG("\n", (unsigned char *)data->responses[0]->message->value);
+            if(data->responses[0]->message != NULL)
+            {
+                //PRINT_ARG("\n", (unsigned char *)data->responses[0]->message->value);
+            }
         }
         else
         {
@@ -556,498 +560,118 @@ static void deleteMessage(EdgeMessage *msg, EdgeEndPointInfo *ep)
 
 static void subscribeAndModifyNodes()
 {
-    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    ep->endpointUri = endpointUri;
+    /* Create Subscription */
+    EdgeMessage* msg = createEdgeSubMessage(endpointUri, node_arr[0], 1, Edge_Create_Sub);
+    EXPECT_EQ(NULL!=msg, true);
 
-    EdgeRequest **requests = (EdgeRequest **) malloc(sizeof(EdgeRequest *) * 2);
-    EdgeSubRequest *subReq = (EdgeSubRequest *) EdgeMalloc(sizeof(EdgeSubRequest));
-    subReq->subType = Edge_Create_Sub;
-    subReq->samplingInterval = 1000.0;
-    subReq->publishingInterval = 0.0;
-    subReq->maxKeepAliveCount =
-            (1 > (int) ((10000.0 / subReq->publishingInterval))) ?
-                    1 : (int) (10000.0 / subReq->publishingInterval);
-    subReq->lifetimeCount = 10000; //subReq->maxKeepAliveCount * 6;
-    subReq->maxNotificationsPerPublish = 1;
-    subReq->publishingEnabled = true;
-    subReq->priority = 0;
-    subReq->queueSize = 50;
+    double samplingInterval = 100.0;
+    int keepalivetime = (1 > (int) (ceil(10000.0 / 0.0))) ? 1 : (int) ceil(10000.0 / 0.0);
+    insertSubParameter(&msg, node_arr[0], Edge_Create_Sub, samplingInterval, 0.0, keepalivetime, 10000, 1, true, 0, 50);
 
-    EdgeNodeInfo *nodeInfo1 = createEdgeNodeInfo(node_arr[1]);
-    EdgeNodeInfo *nodeInfo2 = createEdgeNodeInfo(node_arr[0]);
-    requests[0] = (EdgeRequest *) EdgeMalloc(sizeof(EdgeRequest));
-    requests[0]->nodeInfo = nodeInfo1;
-    requests[0]->subMsg = subReq;
-    requests[1] = (EdgeRequest *) EdgeMalloc(sizeof(EdgeRequest));
-    requests[1]->nodeInfo = nodeInfo2;
-    requests[1]->subMsg = subReq;
-
-    EdgeMessage *msg = (EdgeMessage *) EdgeMalloc(sizeof(EdgeMessage));
-    msg->endpointInfo = ep;
-    msg->command = CMD_SUB;
-    msg->type = SEND_REQUESTS;
-    msg->requests = requests;
-    msg->requestLength = 2;
-
-    EdgeResult result = handleSubscription(msg);
+    EdgeResult result = sendRequest(msg);
     EXPECT_EQ(result.code, STATUS_OK);
+    destroyEdgeMessage (msg);
+    sleep(1);
 
-    sleep(3);
+    /* Modify Subscription */
+    msg = createEdgeSubMessage(endpointUri, node_arr[0], 0, Edge_Modify_Sub);
+    EXPECT_EQ(NULL!=msg, true);
 
-    free(requests[0]->nodeInfo);
-    requests[0]->nodeInfo = NULL;
-    free(requests[1]->nodeInfo);
-    requests[1]->nodeInfo = NULL;
-    free(requests[0]);
-    requests[0] = NULL;
-    free(requests[1]);
-    requests[1] = NULL;
-    free(requests);
-    requests = NULL;
-    free(subReq);
-    subReq = NULL;
-    free(msg);
-    msg = NULL;
-    free(ep);
-    ep = NULL;
+    samplingInterval = 500.0;
+    keepalivetime = (1 > (int) (ceil(10000.0 / 0.0))) ? 1 : (int) ceil(10000.0 / 0.0);
+    insertSubParameter(&msg, node_arr[0], Edge_Modify_Sub, samplingInterval, 0.0, keepalivetime, 10000, 1, true, 0, 50);
 
-    //Deleting Subscription - node_arr[0]
-    EdgeEndPointInfo *epDel1 = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    epDel1->endpointUri = endpointUri;
-
-    EdgeSubRequest *subReqDel1 = (EdgeSubRequest *) EdgeMalloc(sizeof(EdgeSubRequest));
-    subReqDel1->subType = Edge_Delete_Sub;
-
-    EdgeNodeInfo *nodeInfoDel1 = createEdgeNodeInfo(node_arr[0]);
-
-    EdgeRequest *requestDel1 = (EdgeRequest *) EdgeMalloc(sizeof(EdgeRequest));
-    requestDel1->nodeInfo = nodeInfoDel1;
-    requestDel1->subMsg = subReqDel1;
-
-    EdgeMessage *msgDel1 = (EdgeMessage *) EdgeMalloc(sizeof(EdgeMessage));
-    msgDel1->endpointInfo = epDel1;
-    msgDel1->command = CMD_SUB;
-    msgDel1->request = requestDel1;
-
-    result = handleSubscription(msgDel1);
+    result = sendRequest(msg);
     EXPECT_EQ(result.code, STATUS_OK);
+    destroyEdgeMessage (msg);
+    sleep(1);
 
-    free(subReqDel1);
-    subReqDel1 = NULL;
-    free(nodeInfoDel1);
-    nodeInfoDel1 = NULL;
-    free(requestDel1);
-    requestDel1 = NULL;
-    deleteMessage(msgDel1, epDel1);
-
-    sleep(2);
-
-    EdgeEndPointInfo *epModify = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    epModify->endpointUri = endpointUri;
-
-    EdgeSubRequest *subReqMod = (EdgeSubRequest *) EdgeMalloc(sizeof(EdgeSubRequest));
-    subReqMod->subType = Edge_Modify_Sub;
-    subReqMod->samplingInterval = 3000.0;
-    subReqMod->publishingInterval = 0.0;
-    subReqMod->maxKeepAliveCount =
-            (1 > (int) ((10000.0 / subReqMod->publishingInterval))) ?
-                    1 : (int) (10000.0 / subReqMod->publishingInterval);
-    EDGE_LOG_V(TAG, "keepalive count :: %d\n", subReqMod->maxKeepAliveCount);
-    subReqMod->lifetimeCount = 10000; //subReq->maxKeepAliveCount * 6;
-    EDGE_LOG_V(TAG, "lifetimecount :: %d\n", subReqMod->lifetimeCount);
-    subReqMod->maxNotificationsPerPublish = 1;
-    subReqMod->publishingEnabled = true;
-    subReqMod->priority = 0;
-    subReqMod->queueSize = 50;
-
-    EdgeNodeInfo *nodeInfoMod = createEdgeNodeInfo(node_arr[3]);
-
-    EdgeRequest *requestMod = (EdgeRequest *) EdgeMalloc(sizeof(EdgeRequest));
-    requestMod->nodeInfo = nodeInfoMod;
-    requestMod->subMsg = subReqMod;
-
-    EdgeMessage *msgMod = (EdgeMessage *) EdgeMalloc(sizeof(EdgeMessage));
-    msgMod->endpointInfo = epModify;
-    msgMod->command = CMD_SUB;
-    msgMod->request = requestMod;
-
-    result = handleSubscription(msgMod);
-    EXPECT_NE(result.code, STATUS_OK);
-
-    destroyEdgeNodeInfo(requestMod->nodeInfo);
-    requestMod->nodeInfo = createEdgeNodeInfo(node_arr[1]);
-
-    result = handleSubscription(msgMod);
+    /* Delete Subscription */
+    msg = createEdgeSubMessage(endpointUri, node_arr[0], 0, Edge_Delete_Sub);
+    EXPECT_EQ(NULL!=msg, true);
+    result = sendRequest(msg);
     EXPECT_EQ(result.code, STATUS_OK);
-    sleep(2);
-
-    free(nodeInfoMod);
-    nodeInfoMod = NULL;
-    free(subReqMod);
-    subReqMod = NULL;
-    free(requestMod);
-    requestMod = NULL;
-    deleteMessage(msgMod, epModify);
-
-    EdgeEndPointInfo *epRepub = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    epRepub->endpointUri = endpointUri;
-
-    EdgeSubRequest *subReqRepub = (EdgeSubRequest *) EdgeMalloc(sizeof(EdgeSubRequest));
-    subReqRepub->subType = Edge_Republish_Sub;
-
-    EdgeNodeInfo *nodeInfoRepub = createEdgeNodeInfo(node_arr[1]);
-
-    EdgeRequest *requestRepub = (EdgeRequest *) EdgeMalloc(sizeof(EdgeRequest));
-    requestRepub->nodeInfo = nodeInfoRepub;
-    requestRepub->subMsg = subReqRepub;
-
-    EdgeMessage *msgRepub = (EdgeMessage *) EdgeMalloc(sizeof(EdgeMessage));
-    msgRepub->endpointInfo = epRepub;
-    msgRepub->command = CMD_SUB;
-    msgRepub->request = requestRepub;
-
-    result = handleSubscription(msgRepub);
-    sleep(2);
-    //EXPECT_EQ(result.code, STATUS_OK);
-
-    free(nodeInfoRepub);
-    nodeInfoRepub = NULL;
-    free(subReqRepub);
-    subReqRepub = NULL;
-    free(requestRepub);
-    requestRepub = NULL;
-    deleteMessage(msgRepub, epRepub);
-}
-
-static void deleteSub()
-{
-    //Deleting Subscription - node_arr[1]
-    EdgeEndPointInfo *epDel2 = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    epDel2->endpointUri = endpointUri;
-
-    EdgeSubRequest *subReqDel2 = (EdgeSubRequest *) EdgeMalloc(sizeof(EdgeSubRequest));
-    subReqDel2->subType = Edge_Delete_Sub;
-
-    EdgeNodeInfo *nodeInfoDel2 = createEdgeNodeInfo(node_arr[1]);
-
-    EdgeRequest *requestDel2 = (EdgeRequest *) EdgeMalloc(sizeof(EdgeRequest));
-    requestDel2->nodeInfo = nodeInfoDel2;
-    requestDel2->subMsg = subReqDel2;
-
-    EdgeMessage *msgDel2 = (EdgeMessage *) EdgeMalloc(sizeof(EdgeMessage));
-    msgDel2->endpointInfo = epDel2;
-    msgDel2->command = CMD_SUB;
-    msgDel2->request = requestDel2;
-
-    EdgeResult result = handleSubscription(msgDel2);
-    EXPECT_EQ(result.code, STATUS_OK);
-
-    free(subReqDel2);
-    subReqDel2 = NULL;
-    free(nodeInfoDel2);
-    nodeInfoDel2 = NULL;
-    free(requestDel2);
-    requestDel2 = NULL;
-    deleteMessage(msgDel2, epDel2);
-
-    sleep(2);
-
+    destroyEdgeMessage(msg);
+    sleep(1);
 }
 
 static void browseNodes()
 {
-    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    ep->endpointUri = endpointUri;
+    int  maxReferencesPerNode = 0;
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_BROWSE);
+    EXPECT_EQ(NULL != msg, true);
 
-    EdgeMessage *msg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
-    msg->type = SEND_REQUEST;
-    msg->endpointInfo = ep;
-    msg->command = CMD_BROWSE;
-
-    EdgeNodeInfo *nodeInfo = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
-    nodeInfo->nodeId = (EdgeNodeId *) EdgeCalloc(1, sizeof(EdgeNodeId));
-    nodeInfo->nodeId->type = INTEGER;
-    nodeInfo->nodeId->integerNodeId = RootFolder;
-    nodeInfo->nodeId->nameSpace = SYSTEM_NAMESPACE_INDEX;
-
-    EdgeRequest *request = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
-    request->nodeInfo = nodeInfo;
-
-    msg->request = request;
-    msg->requestLength = 0;
-    msg->browseParam = (EdgeBrowseParameter *) EdgeCalloc(1, sizeof(EdgeBrowseParameter));
-    msg->browseParam->direction = DIRECTION_FORWARD;
-    msg->browseParam->maxReferencesPerNode = 0;
-
-    browseNextData = (BrowseNextData *)EdgeCalloc(1, sizeof(BrowseNextData));
-    browseNextData->browseParam = *msg->browseParam;
-    browseNextData->count = 1000;
-    browseNextData->last_used = -1;
-    browseNextData->cp = (EdgeContinuationPoint *)EdgeCalloc(browseNextData->count,
-                         sizeof(EdgeContinuationPoint));
-    browseNextData->srcNodeId = (EdgeNodeId **)calloc(browseNextData->count, sizeof(EdgeNodeId *));
-
+    EdgeNodeInfo* nodeInfo = createEdgeNodeInfoForNodeId(INTEGER, RootFolder, SYSTEM_NAMESPACE_INDEX);
+    EdgeBrowseParameter param = {DIRECTION_FORWARD, maxReferencesPerNode};
+    insertBrowseParameter(&msg, nodeInfo, param);
 
     EXPECT_EQ(browseNodeFlag, false);
-    browseNode(msg);
+    sendRequest(msg);
+    destroyEdgeMessage(msg);
+    sleep(1);
+
+    /* Wait some time and check whether browse callback is received */
     EXPECT_EQ(browseNodeFlag, true);
     browseNodeFlag = false;
-
-    free(nodeInfo);
-    nodeInfo = NULL;
-
-    nodeInfo = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
-    nodeInfo->nodeId = (EdgeNodeId *) EdgeCalloc(1, sizeof(EdgeNodeId));
-
-    nodeInfo->nodeId->type = INTEGER;
-    nodeInfo->nodeId->integerNodeId = ObjectsFolder;
-    nodeInfo->nodeId->nameSpace = SYSTEM_NAMESPACE_INDEX;
-
-    request->nodeInfo = nodeInfo;
-    msg->request = request;
-
-    EXPECT_EQ(browseNodeFlag, false);
-    browseNode(msg);
-    EXPECT_EQ(browseNodeFlag, true);
-    browseNodeFlag = false;
-
-    free(nodeInfo);
-    nodeInfo = NULL;
-    free(ep);
-    ep = NULL;
-    free(request);
-    request = NULL;
-    free(msg);
-    msg = NULL;
 }
 
-static void writeNodes(bool defaultFlag)
+
+static void writeNodes()
 {
     PRINT("=============== Writting Nodes ==================");
+    EdgeMessage *msg = createEdgeAttributeMessage(endpointUri, 1, CMD_WRITE);
+    EXPECT_EQ(NULL!=msg, true);
+    char *value = (char*) malloc(sizeof(char) * 10);
+    strcpy(value, "test_str");
+    insertWriteAccessNode(&msg, node_arr[0], value, 1);
 
-    void *new_value = NULL;
+    printf("write node \n");
+    sendRequest(msg);
+    printf("write node call success \n");
 
-    int id;
-    double d_value = TEST_DOUBLE_R;
-    int i_value = TEST_INT32_R;
-    int id_value = TEST_UINT16_R;
-    if (!defaultFlag)
-    {
-        d_value = TEST_DOUBLE_W;
-        i_value = TEST_INT32_W;
-        id_value = TEST_UINT16_W;
-    }
+    destroyEdgeMessage(msg);
 
-    for (id = 0; id < 7; id++)
-    {
-        PRINT_ARG("*****  Writting the node with browse name  ", node_arr[id]);
-
-        EdgeEndPointInfo *epWrite = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-        epWrite->endpointUri = endpointUri;
-
-        EdgeRequest **requests = (EdgeRequest **) EdgeCalloc(1, sizeof(EdgeRequest *));
-        requests[0] = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
-        requests[0]->nodeInfo = createEdgeNodeInfo(node_arr[id]);
-
-        EdgeVersatility* message = (EdgeVersatility*) EdgeCalloc(1, sizeof(EdgeVersatility));
-        message->isArray = false;
-
-        switch (id)
-        {
-            case 0:
-                requests[0]->type = String;
-                if (defaultFlag)
-                    message->value = (void *) TEST_STR1_R;
-                else
-                    message->value = (void *) TEST_STR1_W;
-                break;
-            case 1:
-                requests[0]->type = String;
-                if (defaultFlag)
-                    message->value = (void *) TEST_STR2_R;
-                else
-                    message->value = (void *) TEST_STR2_W;
-                break;
-            case 2:
-                requests[0]->type = String;
-                if (defaultFlag)
-                    message->value = (void *) TEST_STR3_R;
-                else
-                    message->value = (void *) TEST_STR3_W;
-                break;
-            case 3:
-                requests[0]->type = Double;
-                message->value = (void *) &d_value;
-                break;
-            case 4:
-                requests[0]->type = Int32;
-                message->value = (void *) &i_value;
-                break;
-            case 5:
-                requests[0]->type = UInt16;
-                message->value = (void *) &id_value;
-                break;
-            case 6:
-                requests[0]->type = UInt16;
-                message->value = (void *) &id_value;
-                break;
-        }
-        requests[0]->value = message;
-
-        EdgeMessage *msgWrite = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
-        msgWrite->endpointInfo = epWrite;
-        msgWrite->command = CMD_WRITE;
-        msgWrite->type = SEND_REQUESTS;
-        msgWrite->requests = requests;
-        msgWrite->requestLength = 1;
-
-        writeNode(msgWrite);
-
-        destroyEdgeNodeInfo(requests[0]->nodeInfo);
-        EdgeFree(requests[0]->value);
-        EdgeFree(requests[0]);
-        EdgeFree(requests);
-        deleteMessage(msgWrite, epWrite);
-    }
+    sleep(1);
 }
 
 static void readNodes()
 {
     PRINT("=============== Reading Nodes ==================");
 
-    EdgeEndPointInfo *epRead = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    epRead->endpointUri = endpointUri;
+    int num_requests  = 2;
+    EdgeMessage *msg = createEdgeAttributeMessage(endpointUri, num_requests, CMD_READ);
+    EXPECT_EQ(NULL != msg, true);
 
-    EdgeNodeInfo **nodeInfo = (EdgeNodeInfo **) EdgeCalloc(1, sizeof(EdgeNodeInfo *));
-
-    for (int idx = 0; idx < 10; idx++)
+    for (int i = 0; i < num_requests; i++)
     {
-        PRINT_ARG("*****  Reading the node with browse name  ", node_arr[idx]);
-
-        EdgeRequest **requests = (EdgeRequest **) EdgeCalloc(1, sizeof(EdgeRequest *));
-        requests[0] = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
-        requests[0]->nodeInfo = createEdgeNodeInfo(node_arr[idx]);
-
-        EdgeMessage *msgRead = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
-        msgRead->endpointInfo = epRead;
-        msgRead->command = CMD_READ;
-        msgRead->type = SEND_REQUESTS;
-        msgRead->requests = requests;
-        msgRead->requestLength = 1;
-
-        readNode(msgRead);
-
-        destroyEdgeRequest(requests[0]);
-        EdgeFree(requests);
-        EdgeFree(msgRead);
+        insertReadAccessNode(&msg, node_arr[i]);
     }
 
-    free(nodeInfo);
-    nodeInfo = NULL;
+    EdgeResult result = sendRequest(msg);
+    EXPECT_EQ(result.code, STATUS_OK);
 
-    free(epRead);
-    epRead = NULL;
+    destroyEdgeMessage(msg);
+
+    sleep(1);
 }
+
 
 static void callClientMethods()
 {
     PRINT("=============== Calling Methods ==================");
-    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    ep->endpointUri = endpointUri;
 
-    EdgeNodeInfo *nodeInfo = createEdgeNodeInfo("{2;S;v=0}sqrt(x)");
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_METHOD);
+    EXPECT_EQ(NULL != msg, true);
 
-    EdgeMethodRequestParams *methodParams = (EdgeMethodRequestParams *) EdgeMalloc(
-            sizeof(EdgeMethodRequestParams));
-    methodParams->num_inpArgs = 1;
-    methodParams->inpArg = (EdgeArgument **) malloc(
-            sizeof(EdgeArgument *) * methodParams->num_inpArgs);
-    methodParams->inpArg[0] = (EdgeArgument *) EdgeMalloc(sizeof(EdgeArgument));
-    methodParams->inpArg[0]->argType = Double;
-    methodParams->inpArg[0]->valType = SCALAR;
-    double d = 25.0;
-    methodParams->inpArg[0]->scalarValue = (void *) &d;
-
-    EdgeRequest *request = (EdgeRequest *) EdgeMalloc(sizeof(EdgeRequest));
-    request->nodeInfo = nodeInfo;
-    request->methodParams = methodParams;
-
-    EdgeMessage *msg = (EdgeMessage *) EdgeMalloc(sizeof(EdgeMessage));
-    msg->endpointInfo = ep;
-    msg->command = CMD_METHOD;
-    msg->request = request;
-
+    double input = 16.0;
+    EdgeResult ret = insertEdgeMethodParameter(&msg, "{2;S;v=0}square(x)", 1, Double, SCALAR, (void *) &input, NULL, 0);
+    EXPECT_EQ(ret.code, STATUS_OK);
     methodCallFlag = true;
+    sendRequest(msg);
 
-    callMethod(msg);
+    //destroyEdgeMessage(msg);
 
-    for (int i = 0; i < methodParams->num_inpArgs; i++)
-    {
-        free(methodParams->inpArg[i]);
-        methodParams->inpArg[i] = NULL;
-    }
-    free(methodParams->inpArg);
-    methodParams->inpArg = NULL;
-    free(methodParams);
-    methodParams = NULL;
-
-    free(nodeInfo);
-    nodeInfo = NULL;
-    free(request);
-    request = NULL;
-    deleteMessage(msg, ep);
-
-    ep = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    ep->endpointUri = endpointUri;
-
-    nodeInfo = createEdgeNodeInfo("{2;S;v=0}incrementInc32Array(x,delta)");
-
-    methodParams = (EdgeMethodRequestParams *) EdgeMalloc(sizeof(EdgeMethodRequestParams));
-    methodParams->num_inpArgs = 2;
-    methodParams->inpArg = (EdgeArgument **) malloc(
-            sizeof(EdgeArgument *) * methodParams->num_inpArgs);
-    methodParams->inpArg[0] = (EdgeArgument *) EdgeMalloc(sizeof(EdgeArgument));
-    methodParams->inpArg[0]->argType = Int32;
-    methodParams->inpArg[0]->valType = ARRAY_1D;
-    int32_t array[5] =
-    { 100, 200, 300, 400, 500 };
-    methodParams->inpArg[0]->arrayData = (void *) array;
-    methodParams->inpArg[0]->arrayLength = 5;
-
-    methodParams->inpArg[1] = (EdgeArgument *) EdgeMalloc(sizeof(EdgeArgument));
-    methodParams->inpArg[1]->argType = Int32;
-    methodParams->inpArg[1]->valType = SCALAR;
-    int delta = 5;
-    methodParams->inpArg[1]->scalarValue = (void *) &delta;
-
-    request = (EdgeRequest *) EdgeMalloc(sizeof(EdgeRequest));
-    request->nodeInfo = nodeInfo;
-    request->methodParams = methodParams;
-
-    msg = (EdgeMessage *) EdgeMalloc(sizeof(EdgeMessage));
-    msg->endpointInfo = ep;
-    msg->command = CMD_METHOD;
-    msg->request = request;
-
-    methodCallFlag = true;
-
-    callMethod(msg);
-
-    for (int i = 0; i < methodParams->num_inpArgs; i++)
-    {
-        free(methodParams->inpArg[i]);
-        methodParams->inpArg[i] = NULL;
-    }
-    free(methodParams->inpArg);
-    methodParams->inpArg = NULL;
-    free(methodParams);
-    methodParams = NULL;
-    free(nodeInfo);
-    nodeInfo = NULL;
-    free(request);
-    request = NULL;
-    deleteMessage(msg, ep);
-
+    sleep(1);
 }
 
 static void startClient(char *addr, int port, char *securityPolicyUri)
@@ -1101,18 +725,77 @@ static void startClient(char *addr, int port, char *securityPolicyUri)
     endpointAppConfig = NULL;
 }
 
-static void stopClient()
+static void start_server()
 {
-    EdgeEndPointInfo *ep_t = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    ep_t->endpointUri = endpointUri;
+    int len = strlen(endpointUri);
+    epInfo->endpointUri = (char *) EdgeMalloc(len + 1);
 
-    EdgeMessage *msg_t = (EdgeMessage *) EdgeMalloc(sizeof(EdgeMessage));
-    msg_t->endpointInfo = ep_t;
-    msg_t->command = CMD_STOP_CLIENT;
+    strncpy(epInfo->endpointUri, endpointUri, len);
+    epInfo->endpointUri[len] = '\0';
 
-    disconnectClient(ep_t);
+    configureCallbacks();
 
-    deleteMessage(msg_t, ep_t);
+    EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) EdgeCalloc(1, sizeof(EdgeEndpointConfig));
+    endpointConfig->bindAddress = ipAddress;
+    endpointConfig->bindPort = 12686;
+    endpointConfig->serverName = (char *) DEFAULT_SERVER_NAME_VALUE;
+
+    EdgeApplicationConfig *appConfig = (EdgeApplicationConfig *) EdgeCalloc(1, sizeof(EdgeApplicationConfig));
+    appConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
+    appConfig->applicationUri = (char *) DEFAULT_SERVER_URI_VALUE;
+    appConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
+
+    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
+    ep->endpointUri = endpointUri;
+    ep->endpointConfig = endpointConfig;
+    ep->appConfig = appConfig;
+
+    EdgeMessage *msg = (EdgeMessage *) EdgeMalloc(sizeof(EdgeMessage));
+    msg->endpointInfo = ep;
+    msg->command = CMD_START_SERVER;
+    msg->type = SEND_REQUEST;
+
+    PRINT("--- START SERVER ----");
+    createServer(ep);
+    //ASSERT_TRUE(startServerFlag == true);
+
+    printf("start server flag assert\n");
+
+    deleteMessage(msg, ep);
+    cleanCallbacks();
+    free(endpointConfig);
+    free(appConfig);
+    if (epInfo->endpointUri != NULL)
+    {
+        free(epInfo->endpointUri);
+        epInfo->endpointUri = NULL;
+    }
+}
+
+static void stop_server()
+{
+    configureCallbacks();
+    EdgeEndPointInfo *epStop = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
+    epStop->endpointUri = endpointUri;
+
+    closeServer(epStop);
+
+    printf("b4 assert \n");
+    //ASSERT_TRUE(startServerFlag == false);
+    printf("after assert \n");
+
+    deleteMessage(NULL, epStop);
+
+    printf("clean cbs\n");
+    cleanCallbacks();
+}
+
+static void stop_client()
+{
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_STOP_CLIENT);
+    EXPECT_EQ(NULL!=msg, true);
+    disconnectClient(msg->endpointInfo);
+    destroyEdgeMessage(msg);
 }
 
 class OPC_serverTests: public ::testing::Test
@@ -1135,9 +818,7 @@ protected:
             free(epInfo);
             epInfo = NULL;
         }
-
     }
-
 };
 
 class OPC_clientTests: public ::testing::Test
@@ -1312,6 +993,30 @@ TEST_F(OPC_serverTests , StartServer_N)
     }
 }
 
+TEST_F(OPC_serverTests , StartStopServer_P)
+{
+    if (startServerFlag == true)
+        printf("true\n");
+    else
+        printf("false\n");
+    start_server();
+
+    ASSERT_TRUE(startServerFlag == true);
+
+    if (startServerFlag == true)
+        printf("true\n");
+    else
+        printf("false\n");
+
+    PRINT("=============STOP SERVER===============");
+
+    stop_server();
+    if (startServerFlag == true)
+        printf("true\n");
+    else
+        printf("false\n");
+}
+
 TEST_F(OPC_serverTests , StartServer_P)
 {
     int len = strlen(endpointUri);
@@ -1339,7 +1044,6 @@ TEST_F(OPC_serverTests , StartServer_P)
     EdgeMessage *msg = (EdgeMessage *) EdgeMalloc(sizeof(EdgeMessage));
     msg->endpointInfo = ep;
     msg->command = CMD_START_SERVER;
-
     msg->type = SEND_REQUEST;
 
     EXPECT_EQ(startServerFlag, false);
@@ -1366,6 +1070,8 @@ TEST_F(OPC_serverTests , StartServer_P)
 
 TEST_F(OPC_serverTests , ServerCreateNamespace_P)
 {
+#ifdef TO_BE_REMOVED
+
     int len = strlen(endpointUri);
     epInfo->endpointUri = (char *) EdgeMalloc(len + 1);
 
@@ -1397,6 +1103,8 @@ TEST_F(OPC_serverTests , ServerCreateNamespace_P)
     PRINT("--- START SERVER ----");
 
     createServer(ep);
+
+#endif
 
     EXPECT_EQ(startServerFlag, true);
 
@@ -1407,53 +1115,23 @@ TEST_F(OPC_serverTests , ServerCreateNamespace_P)
 
     EXPECT_EQ(result.code, STATUS_OK);
 
-    deleteMessage(msg, ep);
+//    deleteMessage(msg, ep);
 
-    cleanCallbacks();
+//    cleanCallbacks();
 
-    free(endpointConfig);
-    free(appConfig);
+//    free(endpointConfig);
+//    free(appConfig);
 
-    if (epInfo->endpointUri != NULL)
-    {
-        free(epInfo->endpointUri);
-        epInfo->endpointUri = NULL;
-    }
+//    if (epInfo->endpointUri != NULL)
+//    {
+//        free(epInfo->endpointUri);
+//        epInfo->endpointUri = NULL;
+//    }
 }
 
 TEST_F(OPC_serverTests , ServerAddNodes_P)
 {
-    int len = strlen(endpointUri);
-    epInfo->endpointUri = (char *) EdgeMalloc(len + 1);
-
-    strncpy(epInfo->endpointUri, endpointUri, len);
-    epInfo->endpointUri[len] = '\0';
-
-    configureCallbacks();
-
-    EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) EdgeCalloc(1, sizeof(EdgeEndpointConfig));
-    endpointConfig->bindAddress = ipAddress;
-    endpointConfig->bindPort = 12686;
-    endpointConfig->serverName = (char *) DEFAULT_SERVER_NAME_VALUE;
-
-    EdgeApplicationConfig *appConfig = (EdgeApplicationConfig *) EdgeCalloc(1, sizeof(EdgeApplicationConfig));
-    appConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
-    appConfig->applicationUri = (char *) DEFAULT_SERVER_URI_VALUE;
-    appConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
-
-    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    ep->endpointUri = endpointUri;
-    ep->endpointConfig = endpointConfig;
-    ep->appConfig = appConfig;
-
-    EdgeMessage *msg = (EdgeMessage *) EdgeMalloc(sizeof(EdgeMessage));
-    msg->endpointInfo = ep;
-    msg->command = CMD_START_SERVER;
-    msg->type = SEND_REQUEST;
-
-    PRINT("--- START SERVER ----");
-
-    createServer(ep);
+    start_server();
 
     EXPECT_EQ(startServerFlag, true);
 
@@ -1462,6 +1140,11 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     // VARIABLE NODE with string variant:
     item = createVariableNodeItem("String1", String, (void *)"test1", VARIABLE_NODE);
     EdgeResult result = createNode(DEFAULT_NAMESPACE_VALUE, item);
+    EXPECT_EQ(result.code, STATUS_OK);
+    deleteNodeItem(item);
+
+    item = createVariableNodeItem("String2", String, (void *)"test2", VARIABLE_NODE);
+    result = createNode(DEFAULT_NAMESPACE_VALUE, item);
     EXPECT_EQ(result.code, STATUS_OK);
     deleteNodeItem(item);
 
@@ -1614,7 +1297,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
 
     //METHOD NODE
     EdgeNodeItem *methodNodeItem = (EdgeNodeItem *) EdgeMalloc(sizeof(EdgeNodeItem));
-    methodNodeItem->browseName = "square";
+    methodNodeItem->browseName = "square(x)";
     methodNodeItem->sourceNodeId = NULL;
 
     EdgeMethod *method = (EdgeMethod *) EdgeMalloc(sizeof(EdgeMethod));
@@ -1640,6 +1323,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     }
     result = createMethodNode(DEFAULT_NAMESPACE_VALUE, methodNodeItem, method);
     EXPECT_EQ(result.code, STATUS_OK);
+    EdgeFree(methodNodeItem);
 
 
     //REFERENCE NODE
@@ -1653,130 +1337,12 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     EXPECT_EQ(result.code, STATUS_OK);
     EdgeFree(reference);*/
 
-    deleteMessage(msg, ep);
+//    deleteMessage(msg, ep);
 
-    cleanCallbacks();
+//    cleanCallbacks();
 
-    free(endpointConfig);
-    free(appConfig);
-
-    if (epInfo->endpointUri != NULL)
-    {
-        free(epInfo->endpointUri);
-        epInfo->endpointUri = NULL;
-    }
-}
-
-TEST_F(OPC_serverTests , StartStopServer_P)
-{
-    int len = strlen(endpointUri);
-    epInfo->endpointUri = (char *) EdgeMalloc(len + 1);
-
-    strncpy(epInfo->endpointUri, endpointUri, len);
-    epInfo->endpointUri[len] = '\0';
-
-    configureCallbacks();
-
-    EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) EdgeCalloc(1, sizeof(EdgeEndpointConfig));
-    endpointConfig->bindAddress = ipAddress;
-    endpointConfig->bindPort = 12686;
-    endpointConfig->serverName = (char *) DEFAULT_SERVER_NAME_VALUE;
-
-    EdgeApplicationConfig *appConfig = (EdgeApplicationConfig *) EdgeCalloc(1, sizeof(EdgeApplicationConfig));
-    appConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
-    appConfig->applicationUri = (char *) DEFAULT_SERVER_URI_VALUE;
-    appConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
-
-    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    ep->endpointUri = endpointUri;
-    ep->endpointConfig = endpointConfig;
-    ep->appConfig = appConfig;
-
-    EdgeMessage *msg = (EdgeMessage *) EdgeMalloc(sizeof(EdgeMessage));
-    msg->endpointInfo = ep;
-    msg->command = CMD_START_SERVER;
-    msg->type = SEND_REQUEST;
-
-    PRINT("--- START SERVER ----");
-
-    createServer(ep);
-
-    ASSERT_TRUE(startServerFlag);
-
-    deleteMessage(msg, ep);
-
-    PRINT("=============STOP SERVER===============");
-
-    EdgeEndPointInfo *epStop = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    epStop->endpointUri = endpointUri;
-
-    EdgeMessage *msgStop = (EdgeMessage *) EdgeMalloc(sizeof(EdgeMessage));
-    ASSERT_TRUE(NULL != msgStop);
-    msgStop->endpointInfo = epStop;
-    msgStop->command = CMD_STOP_SERVER;
-    EXPECT_EQ(msgStop->command, CMD_STOP_SERVER);
-    msgStop->type = SEND_REQUEST;
-    EXPECT_EQ(msgStop->type, SEND_REQUEST);
-
-    closeServer(epStop);
-
-    ASSERT_FALSE(startServerFlag);
-
-    deleteMessage(msgStop, epStop);
-
-    cleanCallbacks();
-
-    free(endpointConfig);
-    free(appConfig);
-
-    if (epInfo->endpointUri != NULL)
-    {
-        free(epInfo->endpointUri);
-        epInfo->endpointUri = NULL;
-    }
-}
-
-TEST_F(OPC_serverTests , StartServerNew_P)
-{
-    int len = strlen(endpointUri);
-    epInfo->endpointUri = (char *) EdgeMalloc(len + 1);
-
-    strncpy(epInfo->endpointUri, endpointUri, len);
-    epInfo->endpointUri[len] = '\0';
-    configureCallbacks();
-
-    EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) EdgeCalloc(1, sizeof(EdgeEndpointConfig));
-    endpointConfig->bindAddress = ipAddress;
-    endpointConfig->bindPort = 12686;
-    endpointConfig->serverName = (char *) DEFAULT_SERVER_NAME_VALUE;
-
-    EdgeApplicationConfig *appConfig = (EdgeApplicationConfig *) EdgeCalloc(1, sizeof(EdgeApplicationConfig));
-    appConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
-    appConfig->applicationUri = (char *) DEFAULT_SERVER_URI_VALUE;
-    appConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
-
-    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    ep->endpointUri = endpointUri;
-    ep->endpointConfig = endpointConfig;
-    ep->appConfig = appConfig;
-
-    EdgeMessage *msg = (EdgeMessage *) EdgeMalloc(sizeof(EdgeMessage));
-    msg->endpointInfo = ep;
-    msg->command = CMD_START_SERVER;
-    msg->type = SEND_REQUEST;
-
-    PRINT("--- START SERVER ----");
-
-    createServer(ep);
-
-    ASSERT_TRUE(startServerFlag);
-
-    deleteMessage(msg, ep);
-
-    cleanCallbacks();
-
-    free(endpointConfig);
-    free(appConfig);
+//    free(endpointConfig);
+//    free(appConfig);
 
     if (epInfo->endpointUri != NULL)
     {
@@ -1807,293 +1373,124 @@ TEST_F(OPC_clientTests , InitializeClient_P)
 
 TEST_F(OPC_clientTests , StartClient_P)
 {
-    EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) EdgeCalloc(1, sizeof(EdgeEndpointConfig));
-    EXPECT_EQ(NULL != endpointConfig, true);
-    endpointConfig->serverName = (char *) DEFAULT_SERVER_NAME_VALUE;
-    EXPECT_EQ(strcmp(endpointConfig->serverName, DEFAULT_SERVER_NAME_VALUE) == 0, true);
-
-    EdgeApplicationConfig *appConfig = (EdgeApplicationConfig *) EdgeCalloc(1, sizeof(EdgeApplicationConfig));
-    EXPECT_EQ(NULL != appConfig, true);
-    appConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
-    EXPECT_EQ(strcmp(appConfig->applicationName, DEFAULT_SERVER_APP_NAME_VALUE) == 0, true);
-    appConfig->applicationUri = (char *) DEFAULT_SERVER_APP_URI_VALUE;
-    EXPECT_EQ(strcmp(appConfig->applicationUri, DEFAULT_SERVER_APP_URI_VALUE) == 0, true);
-    appConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
-    EXPECT_EQ(strcmp(appConfig->productUri, DEFAULT_PRODUCT_URI_VALUE) == 0, true);
-
-    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    EXPECT_EQ(NULL != ep, true);
-    ep->endpointUri = endpointUri;
-    EXPECT_EQ(strcmp(ep->endpointUri, ipAddress) == 0, true);
-    ep->endpointConfig = endpointConfig;
-    ep->appConfig = appConfig;
-
-    EdgeMessage *msg = (EdgeMessage *) EdgeMalloc(sizeof(EdgeMessage));
-    EXPECT_EQ(NULL != msg, true);
-    msg->endpointInfo = ep;
-    msg->command = CMD_START_SERVER;
-    EXPECT_EQ(msg->command, CMD_START_SERVER);
-    msg->type = SEND_REQUEST;
-    EXPECT_EQ(msg->type, SEND_REQUEST);
-
     PRINT("=============== startClient ==================");
     EXPECT_EQ(startClientFlag, false);
 
-    getEndpointInfo(ep);
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_GET_ENDPOINTS);
+    EXPECT_EQ(NULL != msg, true);
+
+    EdgeResult res = getEndpointInfo(msg);
+    EXPECT_EQ(res.code, STATUS_OK);
 
     EXPECT_EQ(startClientFlag, true);
 
-    deleteMessage(msg, ep);
+    destroyEdgeMessage(msg);
 
-    stopClient();
-
+    stop_client();
     EXPECT_EQ(startClientFlag, false);
-
-    free(endpointConfig);
-    free(appConfig);
 }
 
 TEST_F(OPC_clientTests , ClientBrowse_P)
 {
-    EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) EdgeCalloc(1, sizeof(EdgeEndpointConfig));
-    endpointConfig->serverName = (char *) DEFAULT_SERVER_NAME_VALUE;
-
-    EdgeApplicationConfig *appConfig = (EdgeApplicationConfig *) EdgeCalloc(1, sizeof(EdgeApplicationConfig));
-    appConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
-    appConfig->applicationUri = (char *) DEFAULT_SERVER_APP_URI_VALUE;
-    appConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
-
-    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    ep->endpointUri = endpointUri;
-    ep->endpointConfig = endpointConfig;
-    ep->appConfig = appConfig;
-
-    EdgeMessage *msg = (EdgeMessage *) EdgeMalloc(sizeof(EdgeMessage));
-    msg->endpointInfo = ep;
-    msg->command = CMD_START_SERVER;
-    msg->type = SEND_REQUEST;
-
     PRINT("=============== startClient ==================");
-
-    getEndpointInfo(ep);
-
-    EXPECT_EQ(startClientFlag, true);
-
-    deleteMessage(msg, ep);
-
-    browseNodes();
-
-    EdgeEndPointInfo *ep_t = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    ep_t->endpointUri = endpointUri;
-
-    EdgeMessage *msg_t = (EdgeMessage *) EdgeMalloc(sizeof(EdgeMessage));
-    msg_t->endpointInfo = ep_t;
-    msg_t->command = CMD_STOP_CLIENT;
-
-    disconnectClient(ep_t);
 
     EXPECT_EQ(startClientFlag, false);
 
-    deleteMessage(msg_t, ep_t);
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_GET_ENDPOINTS);
+    EXPECT_EQ(NULL != msg, true);
 
-    free(endpointConfig);
-    free(appConfig);
+    EdgeResult res = getEndpointInfo(msg);
+    EXPECT_EQ(res.code, STATUS_OK);
+
+    EXPECT_EQ(startClientFlag, true);
+
+    destroyEdgeMessage(msg);
+
+    browseNodes();
+
+    stop_client();
+    EXPECT_EQ(startClientFlag, false);
 }
 
 TEST_F(OPC_clientTests , ClientRead_P)
 {
-    EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) EdgeCalloc(1, sizeof(EdgeEndpointConfig));
-    endpointConfig->serverName = (char *) DEFAULT_SERVER_NAME_VALUE;
-
-    EdgeApplicationConfig *appConfig = (EdgeApplicationConfig *) EdgeCalloc(1, sizeof(EdgeApplicationConfig));
-    appConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
-    appConfig->applicationUri = (char *) DEFAULT_SERVER_APP_URI_VALUE;
-    appConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
-
-    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    ep->endpointUri = endpointUri;
-    ep->endpointConfig = endpointConfig;
-    ep->appConfig = appConfig;
-
-    EdgeMessage *msg = (EdgeMessage *) EdgeMalloc(sizeof(EdgeMessage));
-    msg->endpointInfo = ep;
-    msg->command = CMD_START_SERVER;
-    msg->type = SEND_REQUEST;
-
     PRINT("=============== startClient ==================");
-
-    getEndpointInfo(ep);
-
-    EXPECT_EQ(startClientFlag, true);
-
-    deleteMessage(msg, ep);
-
-    readNodes();
-
-    EdgeEndPointInfo *ep_t = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    ep_t->endpointUri = endpointUri;
-
-    EdgeMessage *msg_t = (EdgeMessage *) EdgeMalloc(sizeof(EdgeMessage));
-    msg_t->endpointInfo = ep_t;
-    msg_t->command = CMD_STOP_CLIENT;
-
-    disconnectClient(ep_t);
 
     EXPECT_EQ(startClientFlag, false);
 
-    deleteMessage(msg_t, ep_t);
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_GET_ENDPOINTS);
+    EXPECT_EQ(NULL != msg, true);
 
-    free(endpointConfig);
-    free(appConfig);
+    EdgeResult res = getEndpointInfo(msg);
+    EXPECT_EQ(res.code, STATUS_OK);
+
+    EXPECT_EQ(startClientFlag, true);
+
+    destroyEdgeMessage(msg);
+
+    readNodeFlag = true;
+    readNodes();
+    readNodeFlag = false;
+
+    stop_client();
+    EXPECT_EQ(startClientFlag, false);
 }
+
 
 TEST_F(OPC_clientTests , ClientWrite_P)
 {
-    EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) EdgeCalloc(1, sizeof(EdgeEndpointConfig));
-    endpointConfig->serverName = (char *) DEFAULT_SERVER_NAME_VALUE;
+    EXPECT_EQ(startClientFlag, false);
 
-    EdgeApplicationConfig *appConfig = (EdgeApplicationConfig *) EdgeCalloc(1, sizeof(EdgeApplicationConfig));
-    appConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
-    appConfig->applicationUri = (char *) DEFAULT_SERVER_APP_URI_VALUE;
-    appConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_GET_ENDPOINTS);
+    EXPECT_EQ(NULL != msg, true);
 
-    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    ep->endpointUri = endpointUri;
-    ep->endpointConfig = endpointConfig;
-    ep->appConfig = appConfig;
-
-    EdgeMessage *msg = (EdgeMessage *) EdgeMalloc(sizeof(EdgeMessage));
-    msg->endpointInfo = ep;
-    msg->command = CMD_START_SERVER;
-    msg->type = SEND_REQUEST;
-
-    PRINT("=============== startClient ==================");
-
-    getEndpointInfo(ep);
+    EdgeResult res = getEndpointInfo(msg);
+    EXPECT_EQ(res.code, STATUS_OK);
 
     EXPECT_EQ(startClientFlag, true);
 
-    deleteMessage(msg, ep);
+    destroyEdgeMessage(msg);
 
-    writeNodes(false);
+    writeNodes();
 
-    // Verify written nodes values
-    readNodeFlag = false;
-    readNodes();
-
-    writeNodes(true);
-
-    EdgeEndPointInfo *ep_t = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    ep_t->endpointUri = endpointUri;
-
-    EdgeMessage *msg_t = (EdgeMessage *) EdgeMalloc(sizeof(EdgeMessage));
-    msg_t->endpointInfo = ep_t;
-    msg_t->command = CMD_STOP_CLIENT;
-
-    disconnectClient(ep_t);
-
+    stop_client();
     EXPECT_EQ(startClientFlag, false);
-
-    deleteMessage(msg_t, ep_t);
-
-    free(endpointConfig);
-    free(appConfig);
 }
 
 TEST_F(OPC_clientTests , ClientMethodCall_P)
 {
-    EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) EdgeCalloc(1, sizeof(EdgeEndpointConfig));
-    endpointConfig->serverName = (char *) DEFAULT_SERVER_NAME_VALUE;
-
-    EdgeApplicationConfig *appConfig = (EdgeApplicationConfig *) EdgeCalloc(1, sizeof(EdgeApplicationConfig));
-    appConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
-    appConfig->applicationUri = (char *) DEFAULT_SERVER_APP_URI_VALUE;
-    appConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
-
-    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    ep->endpointUri = endpointUri;
-    ep->endpointConfig = endpointConfig;
-    ep->appConfig = appConfig;
-
-    EdgeMessage *msg = (EdgeMessage *) EdgeMalloc(sizeof(EdgeMessage));
-    msg->endpointInfo = ep;
-    msg->command = CMD_START_SERVER;
-    msg->type = SEND_REQUEST;
-
-    PRINT("=============== startClient ==================");
-
-    getEndpointInfo(ep);
-
-    EXPECT_EQ(startClientFlag, true);
-
-    deleteMessage(msg, ep);
-
-    callClientMethods();
-
-    EdgeEndPointInfo *ep_t = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    ep_t->endpointUri = endpointUri;
-
-    EdgeMessage *msg_t = (EdgeMessage *) EdgeMalloc(sizeof(EdgeMessage));
-    msg_t->endpointInfo = ep_t;
-    msg_t->command = CMD_STOP_CLIENT;
-
-    disconnectClient(ep_t);
-
     EXPECT_EQ(startClientFlag, false);
 
-    deleteMessage(msg_t, ep_t);
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_GET_ENDPOINTS);
+    EXPECT_EQ(NULL != msg, true);
+    EdgeResult res = getEndpointInfo(msg);
+    EXPECT_EQ(res.code, STATUS_OK);
+    EXPECT_EQ(startClientFlag, true);
+    destroyEdgeMessage(msg);
 
-    free(endpointConfig);
-    free(appConfig);
+    methodCallFlag = true;
+    callClientMethods();
+    methodCallFlag = false;
+
+    stop_client();
+    EXPECT_EQ(startClientFlag, false);
 }
 
 TEST_F(OPC_clientTests , ClientSubscribe_P)
 {
-    EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) EdgeCalloc(1, sizeof(EdgeEndpointConfig));
-    endpointConfig->serverName = (char *) DEFAULT_SERVER_NAME_VALUE;
+    EXPECT_EQ(startClientFlag, false);
 
-    EdgeApplicationConfig *appConfig = (EdgeApplicationConfig *) EdgeCalloc(1, sizeof(EdgeApplicationConfig));
-    appConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
-    appConfig->applicationUri = (char *) DEFAULT_SERVER_APP_URI_VALUE;
-    appConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
-
-    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    ep->endpointUri = endpointUri;
-    ep->endpointConfig = endpointConfig;
-    ep->appConfig = appConfig;
-
-    EdgeMessage *msg = (EdgeMessage *) EdgeMalloc(sizeof(EdgeMessage));
-    msg->endpointInfo = ep;
-    msg->command = CMD_START_SERVER;
-    msg->type = SEND_REQUEST;
-
-    PRINT("=============== startClient ==================");
-
-    getEndpointInfo(ep);
-
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_GET_ENDPOINTS);
+    EXPECT_EQ(NULL != msg, true);
+    EdgeResult res = getEndpointInfo(msg);
+    EXPECT_EQ(res.code, STATUS_OK);
     EXPECT_EQ(startClientFlag, true);
-
-    deleteMessage(msg, ep);
+    destroyEdgeMessage(msg);
 
     subscribeAndModifyNodes();
 
-    //deleteSub();
-
-    EdgeEndPointInfo *ep_t = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    ep_t->endpointUri = endpointUri;
-
-    EdgeMessage *msg_t = (EdgeMessage *) EdgeMalloc(sizeof(EdgeMessage));
-    msg_t->endpointInfo = ep_t;
-    msg_t->command = CMD_STOP_CLIENT;
-
-    disconnectClient(ep_t);
-
+    stop_client();
     EXPECT_EQ(startClientFlag, false);
-
-    deleteMessage(msg_t, ep_t);
-
-    free(endpointConfig);
-    free(appConfig);
 }
 
 int main(int argc, char **argv)
