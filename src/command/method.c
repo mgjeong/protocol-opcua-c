@@ -252,16 +252,16 @@ EdgeResult executeMethod(UA_Client *client, const EdgeMessage *msg)
                             EDGE_LOG(TAG, "Error : Malloc failed for String Array values in Read Group\n");
                             goto EXIT;
                         }
-                        for (int i = 0; i < output[i].arrayLength; i++)
+                        for (int j = 0; j < output[i].arrayLength; j++)
                         {
-                            values[i] = (char *) EdgeMalloc(str[i].length+1);
-                            if(IS_NULL(values[i]))
+                            values[j] = (char *) EdgeMalloc(str[j].length+1);
+                            if(IS_NULL(values[j]))
                             {
                                 EDGE_LOG_V(TAG, "Error : Malloc failed for String Array value %d in Read Group\n", i);
                                 goto EXIT;
                             }
-                            strncpy(values[i], (char *) str[i].data, str[i].length);
-                            values[i][str[i].length] = '\0';
+                            strncpy(values[j], (char *) str[j].data, str[j].length);
+                            values[j][str[j].length] = '\0';
                         }
                         versatility->value = (void *) values;
                     }
@@ -275,16 +275,16 @@ EdgeResult executeMethod(UA_Client *client, const EdgeMessage *msg)
                             EDGE_LOG(TAG, "Error : Malloc failed for ByteString Array value in Read Group\n");
                             goto EXIT;
                         }
-                        for (int i = 0; i < output[i].arrayLength; i++)
+                        for (int j = 0; j < output[i].arrayLength; j++)
                         {
-                            values[i] = (char *) EdgeMalloc(str[i].length + 1);
-                            if(IS_NULL(values[i]))
+                            values[j] = (char *) EdgeMalloc(str[j].length + 1);
+                            if(IS_NULL(values[j]))
                             {
                                 EDGE_LOG_V(TAG, "Error : Malloc failed for ByteString Array value %d in Read Group\n", i);
                                 goto EXIT;
                             }
-                            strncpy(values[i], (char *) str[i].data, str[i].length);
-                            values[i][str[i].length] = '\0';
+                            strncpy(values[j], (char *) str[j].data, str[j].length);
+                            values[j][str[j].length] = '\0';
                         }
                         versatility->value = (void *) values;
                     }
@@ -298,23 +298,23 @@ EdgeResult executeMethod(UA_Client *client, const EdgeMessage *msg)
                             EDGE_LOG(TAG, "Error : Malloc failed for Guid Array values in Read Group\n");
                             goto EXIT;
                         }
-                        for (int i = 0; i < output[i].arrayLength; i++)
+                        for (int j = 0; j < output[i].arrayLength; j++)
                         {
-                            values[i] = (char *) EdgeMalloc(GUID_LENGTH + 1);
-                            if(IS_NULL(values[i]))
+                            values[j] = (char *) EdgeMalloc(GUID_LENGTH + 1);
+                            if(IS_NULL(values[j]))
                             {
                                 EDGE_LOG_V(TAG, "Error : Malloc failed for Guid Array value %d in Read Group\n", i);
                                 goto EXIT;
                             }
-                            snprintf(values[i], (GUID_LENGTH / 2) + 1, "%08x-%04x-%04x",
-                                    str[i].data1, str[i].data2, str[i].data3);
-                            sprintf(values[i], "%s-%02x", values[i], str[i].data4[0]);
-                            sprintf(values[i], "%s%02x", values[i], str[i].data4[1]);
-                            sprintf(values[i], "%s-", values[i]);
-                            for (int j = 2; j < 8; j++)
-                                sprintf(values[i], "%s%02x", values[i], str[i].data4[j]);
+                            snprintf(values[j], (GUID_LENGTH / 2) + 1, "%08x-%04x-%04x",
+                                    str[j].data1, str[j].data2, str[j].data3);
+                            sprintf(values[j], "%s-%02x", values[j], str[j].data4[0]);
+                            sprintf(values[j], "%s%02x", values[j], str[j].data4[1]);
+                            sprintf(values[j], "%s-", values[j]);
+                            for (int k = 2; k < 8; k++)
+                                sprintf(values[j], "%s%02x", values[j], str[j].data4[k]);
                             values[GUID_LENGTH] = '\0';
-                            EDGE_LOG_V(TAG, "%s\n", values[i]);
+                            EDGE_LOG_V(TAG, "%s\n", values[j]);
                         }
                         versatility->value = (void *) values;
                     }

@@ -44,8 +44,6 @@ extern "C"
     Queue *createQueue(int size);
     bool enqueue(Queue *queue, EdgeMessage *msg);
     EdgeMessage *dequeue(Queue *queue);
-    EdgeMessage *front(Queue *queue);
-    EdgeMessage *rear(Queue *queue);
 
 #ifdef __cplusplus
 }

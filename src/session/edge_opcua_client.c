@@ -23,6 +23,7 @@
 #include "write.h"
 #include "browse.h"
 #include "method.h"
+#include "message_dispatcher.h"
 #include "subscription.h"
 #include "edge_logger.h"
 #include "edge_utils.h"
@@ -259,11 +260,14 @@ void disconnect_client(EdgeEndPointInfo *epInfo)
         session = NULL;
         clientCount--;
         g_statusCallback(epInfo, STATUS_STOP_CLIENT);
-    }
-    if (0 == clientCount)
-    {
-        free(sessionClientMap);
-        sessionClientMap = NULL;
+
+        if (0 == clientCount)
+        {
+            free(sessionClientMap);
+            sessionClientMap = NULL;
+            /* Delete all the messages in send and receiver queue */
+            delete_queue();
+        }
     }
 }
 

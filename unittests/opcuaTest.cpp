@@ -57,7 +57,7 @@ char node_arr[13][30] =
         "{2;S;v=11}DoubleArray", "{2;S;v=12}CharArray", "{2;S;v=15}ByteStringArray" };
 
 static int method_arr[5] =
-{ 105, 205, 305, 405, 505 };
+{ 15, 25, 35, 45, 55 };
 
 typedef struct BrowseNextData
 {
@@ -84,6 +84,13 @@ extern void testWrite_P3(char *endpointUri);
 extern void testWriteWithoutEndpoint();
 extern void testWriteWithoutValueAlias(char *endpointUri);
 extern void testWriteWithoutMessage();
+
+extern void testMethod_P1(char *endpointUri);
+extern void testMethod_P2(char *endpointUri);
+extern void testMethod_P3(char *endpointUri);
+extern void testMethodWithoutEndpoint();
+extern void testMethodWithoutValueAlias(char *endpointUri);
+extern void testMethodWithoutMessage();
 
 
 extern "C"
@@ -275,16 +282,6 @@ extern "C"
                                 PRINT_ARG(
                                         "[Application response Callback] Data read from node ===>>  ",
                                         *((double * )data->responses[idx]->message->value));
-                                double temp = *((double *) data->responses[idx]->message->value);
-                                if (readNodeFlag)
-                                    EXPECT_EQ(temp, TEST_DOUBLE_R);
-                                else if (methodCallFlag)
-                                {
-                                    EXPECT_EQ(temp, TEST_METHOD_SR);
-                                    methodCallFlag = false;
-                                }
-                                else
-                                    EXPECT_EQ(temp, TEST_DOUBLE_W);
                             }
                             else if (data->responses[idx]->type == Float)
                                 PRINT_ARG(
@@ -473,6 +470,7 @@ extern "C"
     /* discovery callback */
     static void endpoint_found_cb(EdgeDevice *device)
     {
+        PRINT("endpoint foung\n");
         if (device)
         {
             int num_endpoints = device->num_endpoints;
@@ -495,6 +493,10 @@ static void square_method(int inpSize, void **input, int outSize, void **output)
     double *sq = (double *) EdgeMalloc(sizeof(double));
     *sq = (*inp) * (*inp);
     output[0] = (void *) sq;
+
+    double *check = (double*) EdgeMalloc(sizeof(double));
+    *check = (*sq) * (*sq);
+    output[1] = (void *) check;
 }
 
 void increment_int32Array_method(int inpSize, void **input, int outSize, void **output)
@@ -505,7 +507,19 @@ void increment_int32Array_method(int inpSize, void **input, int outSize, void **
     for (int i = 0; i < 5; i++)
     {
         outputArray[i] = inputArray[i] + *delta;
-        printf("%d ", outputArray[i]);
+    }
+    output[0] = (void *) outputArray;
+}
+
+void string_method(int inpSize, void **input, int outSize, void **output)
+{
+    char **inputArray = (char **) input[0];
+    char **outputArray = (char **) EdgeMalloc(sizeof(char*) * 5);
+    for (int i = 0; i < 5; i++)
+    {
+        outputArray[i] = (char*) EdgeMalloc(sizeof(char) * (strlen(inputArray[i])+1));
+        strncpy(outputArray[i], inputArray[i], strlen(inputArray[i]));
+        outputArray[i][strlen(inputArray[i])] = '\0';
     }
     output[0] = (void *) outputArray;
 }
@@ -655,77 +669,6 @@ static void browseViews()
     sleep(1);
 }
 
-static void writeNodes()
-{
-    PRINT("=============== Writting Nodes ==================");
-    EdgeMessage *msg = createEdgeAttributeMessage(endpointUri, 1, CMD_WRITE);
-    EXPECT_EQ(NULL!=msg, true);
-    char *value = (char*) malloc(sizeof(char) * 10);
-    strcpy(value, "test_str");
-    insertWriteAccessNode(&msg, node_arr[0], value, 1);
-
-    printf("write node \n");
-    sendRequest(msg);
-    printf("write node call success \n");
-
-    destroyEdgeMessage(msg);
-
-    sleep(1);
-}
-
-static void readNodes()
-{
-    PRINT("=============== Reading Nodes ==================");
-
-    int num_requests  = 2;
-    EdgeMessage *msg = createEdgeAttributeMessage(endpointUri, num_requests, CMD_READ);
-    EXPECT_EQ(NULL != msg, true);
-
-    for (int i = 0; i < num_requests; i++)
-    {
-        insertReadAccessNode(&msg, node_arr[i]);
-    }
-
-    EdgeResult result = sendRequest(msg);
-    EXPECT_EQ(result.code, STATUS_OK);
-
-    destroyEdgeMessage(msg);
-
-    sleep(1);
-}
-
-static void callClientMethods()
-{
-    PRINT("=============== Calling Methods ==================");
-
-    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_METHOD);
-    EXPECT_EQ(NULL != msg, true);
-
-    double input = 16.0;
-    EdgeResult ret = insertEdgeMethodParameter(&msg, "{2;S;v=0}square(x)", 1, Double, SCALAR, (void *) &input, NULL, 0);
-    EXPECT_EQ(ret.code, STATUS_OK);
-    methodCallFlag = true;
-    sendRequest(msg);
-    //destroyEdgeMessage(msg);
-
-    msg = createEdgeMessage(endpointUri, 1, CMD_METHOD);
-    EXPECT_EQ(NULL != msg, true);
-
-    int32_t array[5] = {10, 20, 30, 40, 50};
-    ret = insertEdgeMethodParameter(&msg, "{2;S;v=0}incrementInc32Array(x,delta)", 2,
-            Int32, ARRAY_1D, NULL, (void *) array, 5);
-    EXPECT_EQ(ret.code, STATUS_OK);
-
-    int delta = 5;
-    ret = insertEdgeMethodParameter(&msg, "{2;S;v=0}incrementInc32Array(x,delta)", 2,
-            Int32, SCALAR, (void *) &delta, NULL, 0);
-    EXPECT_EQ(ret.code, STATUS_OK);
-    sendRequest(msg);
-    //destroyEdgeMessage(msg);
-
-    sleep(1);
-}
-
 static void startClient(char *addr, int port, char *securityPolicyUri)
 {
     PRINT("                       Client connect            ");
@@ -740,7 +683,8 @@ static void startClient(char *addr, int port, char *securityPolicyUri)
     msg->endpointInfo->endpointUri = copyString(endpointUri);
     msg->endpointInfo->securityPolicyUri = copyString(securityPolicyUri);
 
-    sendRequest(msg);
+    EdgeResult ret = sendRequest(msg);
+    EXPECT_EQ(ret.code, STATUS_OK);
     sleep(1);
     destroyEdgeMessage(msg);
 }
@@ -1351,7 +1295,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
         method->inpArg[idx]->valType = SCALAR;
     }
 
-    method->num_outArgs = 1;
+    method->num_outArgs = 2;
     method->outArg = (EdgeArgument **) malloc(sizeof(EdgeArgument *) * method->num_outArgs);
     for (int idx = 0; idx < method->num_outArgs; idx++)
     {
@@ -1395,6 +1339,35 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     }
     createMethodNode(DEFAULT_NAMESPACE_VALUE, methodNodeItem1, method1);
     EdgeFree(methodNodeItem1);
+
+    /* Method Node */
+    EdgeNodeItem *methodNodeItem2 = (EdgeNodeItem *) EdgeMalloc(sizeof(EdgeNodeItem));
+    methodNodeItem2->browseName = "string_method(x)";
+    methodNodeItem2->sourceNodeId = NULL;
+
+    EdgeMethod *method2 = (EdgeMethod *) EdgeMalloc(sizeof(EdgeMethod));
+    method2->description = "string copy method";
+    method2->methodNodeName = "string_method";
+    method2->method_fn = string_method;
+
+    method2->num_inpArgs = 1;
+    method2->inpArg = (EdgeArgument **) malloc(sizeof(EdgeArgument *) * method2->num_inpArgs);
+    method2->inpArg[0] = (EdgeArgument *) EdgeMalloc(sizeof(EdgeArgument));
+    method2->inpArg[0]->argType = String;
+    method2->inpArg[0]->valType = ARRAY_1D;
+    method2->inpArg[0]->arrayLength = 5;
+
+    method2->num_outArgs = 1;
+    method2->outArg = (EdgeArgument **) malloc(sizeof(EdgeArgument *) * method2->num_outArgs);
+    for (int idx = 0; idx < method2->num_outArgs; idx++)
+    {
+        method2->outArg[idx] = (EdgeArgument *) EdgeMalloc(sizeof(EdgeArgument));
+        method2->outArg[idx]->argType = String;
+        method2->outArg[idx]->valType = ARRAY_1D;
+        method2->outArg[idx]->arrayLength = 5;
+    }
+    createMethodNode(DEFAULT_NAMESPACE_VALUE, methodNodeItem2, method2);
+    EdgeFree(methodNodeItem2);
 
 
     //REFERENCE NODE
@@ -1793,7 +1766,7 @@ TEST_F(OPC_clientTests , ClientBrowseViews_P)
     EXPECT_EQ(startClientFlag, false);
 }
 
-TEST_F(OPC_clientTests , ClientMethodCall_P)
+TEST_F(OPC_clientTests , ClientMethodCall_P1)
 {
     EXPECT_EQ(startClientFlag, false);
 
@@ -1805,7 +1778,102 @@ TEST_F(OPC_clientTests , ClientMethodCall_P)
     destroyEdgeMessage(msg);
 
     methodCallFlag = true;
-    callClientMethods();
+    testMethod_P1(endpointUri);
+    methodCallFlag = false;
+
+    stop_client();
+    EXPECT_EQ(startClientFlag, false);
+}
+
+TEST_F(OPC_clientTests , ClientMethodCall_P2)
+{
+    EXPECT_EQ(startClientFlag, false);
+
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_GET_ENDPOINTS);
+    EXPECT_EQ(NULL != msg, true);
+    EdgeResult res = getEndpointInfo(msg);
+    EXPECT_EQ(res.code, STATUS_OK);
+    EXPECT_EQ(startClientFlag, true);
+    destroyEdgeMessage(msg);
+
+    methodCallFlag = true;
+    testMethod_P2(endpointUri);
+    methodCallFlag = false;
+
+    stop_client();
+    EXPECT_EQ(startClientFlag, false);
+}
+
+TEST_F(OPC_clientTests , ClientMethodCall_P3)
+{
+    EXPECT_EQ(startClientFlag, false);
+
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_GET_ENDPOINTS);
+    EXPECT_EQ(NULL != msg, true);
+    EdgeResult res = getEndpointInfo(msg);
+    EXPECT_EQ(res.code, STATUS_OK);
+    EXPECT_EQ(startClientFlag, true);
+    destroyEdgeMessage(msg);
+
+    methodCallFlag = true;
+    testMethod_P3(endpointUri);
+    methodCallFlag = false;
+
+    stop_client();
+    EXPECT_EQ(startClientFlag, false);
+}
+
+TEST_F(OPC_clientTests , ClientMethodCall_N1)
+{
+    EXPECT_EQ(startClientFlag, false);
+
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_GET_ENDPOINTS);
+    EXPECT_EQ(NULL != msg, true);
+    EdgeResult res = getEndpointInfo(msg);
+    EXPECT_EQ(res.code, STATUS_OK);
+    EXPECT_EQ(startClientFlag, true);
+    destroyEdgeMessage(msg);
+
+    methodCallFlag = true;
+    testMethodWithoutEndpoint();
+    methodCallFlag = false;
+
+    stop_client();
+    EXPECT_EQ(startClientFlag, false);
+}
+
+TEST_F(OPC_clientTests , ClientMethodCall_N2)
+{
+    EXPECT_EQ(startClientFlag, false);
+
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_GET_ENDPOINTS);
+    EXPECT_EQ(NULL != msg, true);
+    EdgeResult res = getEndpointInfo(msg);
+    EXPECT_EQ(res.code, STATUS_OK);
+    EXPECT_EQ(startClientFlag, true);
+    destroyEdgeMessage(msg);
+
+    methodCallFlag = true;
+    testMethodWithoutValueAlias(endpointUri);
+    methodCallFlag = false;
+
+    stop_client();
+    EXPECT_EQ(startClientFlag, false);
+}
+
+TEST_F(OPC_clientTests , ClientMethodCall_N3)
+{
+    EXPECT_EQ(startClientFlag, false);
+
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_GET_ENDPOINTS);
+    EXPECT_EQ(NULL != msg, true);
+    EdgeResult res = getEndpointInfo(msg);
+    EXPECT_EQ(res.code, STATUS_OK);
+    EXPECT_EQ(startClientFlag, true);
+    destroyEdgeMessage(msg);
+
+    methodCallFlag = true;
+    testMethodWithoutMessage();
     methodCallFlag = false;
 
     stop_client();

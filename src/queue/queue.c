@@ -65,17 +65,3 @@ EdgeMessage *dequeue(Queue *queue)
     queue->size -= 1;
     return msg;
 }
-
-EdgeMessage *front(Queue *queue)
-{
-    if (isEmpty(queue))
-        return NULL;
-    return queue->message[queue->front];
-}
-
-EdgeMessage *rear(Queue *queue)
-{
-    if (isEmpty(queue))
-        return NULL;
-    return queue->message[queue->rear];
-}

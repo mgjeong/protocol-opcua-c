@@ -28,8 +28,7 @@
 
 bool add_to_recvQ(EdgeMessage *msg);
 bool add_to_sendQ(EdgeMessage *msg);
-void start();
-void terminate();
+void delete_queue();
 void resgisterMQCallback(response_cb_t resCallback, send_cb_t sendCallback);
 
 #endif  // EDGE_MESSAGE_DISPATCHER_H
