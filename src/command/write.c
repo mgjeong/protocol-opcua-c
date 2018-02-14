@@ -37,6 +37,7 @@ static void sendErrorResponse(const EdgeMessage *msg, char *err_desc)
     resultMsg->responseLength = 1;
     resultMsg->message_id = msg->message_id;
 
+    EdgeResult *res;
     EdgeResponse** responses = (EdgeResponse **) malloc(sizeof(EdgeResponse *) * resultMsg->responseLength);
     for (int i = 0; i < resultMsg->responseLength; i++)
     {
@@ -47,15 +48,15 @@ static void sendErrorResponse(const EdgeMessage *msg, char *err_desc)
             EDGE_LOG(TAG, "Error : Malloc failed for EdgeVersatility sendErrorResponse\n");
             goto EXIT;
         }
-        char* err_description = (char*) EdgeMalloc(strlen(err_desc) + 1);
-        strncpy(err_description, err_desc, strlen(err_desc));
-        err_description[strlen(err_desc)] = '\0';
+        int errDescLen = strlen(err_desc);
+        char* err_description = (char*) EdgeMalloc(errDescLen + 1);
+        strncpy(err_description, err_desc, errDescLen+1);
         message->value = (void *) err_description;
         responses[i]->message = message;
     }
     resultMsg->responses = responses;
 
-    EdgeResult *res = (EdgeResult *) EdgeMalloc(sizeof(EdgeResult));
+    res = (EdgeResult *) EdgeMalloc(sizeof(EdgeResult));
     if(IS_NULL(res))
     {
         EDGE_LOG(TAG, "Error : Malloc failed for EdgeResult sendErrorResponse\n");
@@ -66,7 +67,7 @@ static void sendErrorResponse(const EdgeMessage *msg, char *err_desc)
 
     //onResponseMessage(resultMsg);
     add_to_recvQ(resultMsg);
-    return ;
+    return;
 
     EXIT:
     EdgeFree(res);
@@ -251,47 +252,49 @@ static void writeGroup(UA_Client *client, const EdgeMessage *msg)
         return;
     }
 
+    EdgeFree(wv);
+    for (size_t i = 0; i < reqLen; i++)
+        UA_Variant_deleteMembers(&myVariant[i]);
+    EdgeFree(myVariant);
+
     if (reqLen != writeResponse.resultsSize)
     {
         EDGE_LOG_V(TAG, "Requested(%d) but received(%d) => %s\n", (int) reqLen, (int)writeResponse.resultsSize,
                 (reqLen < writeResponse.resultsSize) ? "Received more results" : "Received less results");
         sendErrorResponse(msg, "Error in write operation");
 
-        EdgeFree(wv);
-        for (size_t i = 0; i < reqLen; i++)
-            UA_Variant_deleteMembers(&myVariant[i]);
-        EdgeFree(myVariant);
         UA_WriteResponse_deleteMembers(&writeResponse);
         return;
     }
 
-    size_t respIndex = 0;
-    EdgeResponse **responses = (EdgeResponse **) malloc(sizeof(EdgeResponse *) * reqLen);
-    if (IS_NULL(responses))
-    {
-        EDGE_LOG(TAG, "Error : Malloc Failed for responses in Write Group");
-        goto EXIT;
-    }
     EdgeMessage *resultMsg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
     if (IS_NULL(resultMsg))
     {
         EDGE_LOG(TAG, "Error : Malloc Failed for resultMsg in Write Group");
-        goto EXIT;
+        goto ERROR;
     }
+
     resultMsg->endpointInfo = cloneEdgeEndpointInfo(msg->endpointInfo);
     if (IS_NULL(resultMsg->endpointInfo))
     {
         EDGE_LOG(TAG, "Error : Malloc Failed for resultMsg->endpointInfo in Write Group");
-        goto EXIT;
+        goto ERROR;
     }
     resultMsg->responseLength = 0;
     resultMsg->command = CMD_WRITE;
     resultMsg->type = GENERAL_RESPONSE;
     resultMsg->message_id = msg->message_id;
 
+    resultMsg->responses = (EdgeResponse **) EdgeCalloc(reqLen, sizeof(EdgeResponse *));
+    if (IS_NULL(resultMsg->responses))
+    {
+        EDGE_LOG(TAG, "Error : Malloc Failed for responses in Write Group");
+        goto ERROR;
+    }
+
+    size_t respIndex = 0;
     for (size_t i = 0; i < reqLen; i++)
     {
-        responses[i] = NULL;
         UA_StatusCode code = writeResponse.results[i];
 
         if (code != UA_STATUSCODE_GOOD)
@@ -307,83 +310,61 @@ static void writeGroup(UA_Client *client, const EdgeMessage *msg)
         else
         {
             EdgeResponse *response = (EdgeResponse *) EdgeCalloc(1, sizeof(EdgeResponse));
-            if (IS_NOT_NULL(response))
+            if (IS_NULL(response))
             {
-                response->nodeInfo = cloneEdgeNodeInfo(msg->requests[i]->nodeInfo);
-                if (IS_NULL(response->nodeInfo))
-                {
-                    EDGE_LOG(TAG, "Error : Malloc Failed for EdgeResponse.NodeInfo in Write Group");
-                    goto EXIT;
-                }
-                response->requestId = msg->requests[i]->requestId;
-                response->message = NULL;
-
-                EdgeDiagnosticInfo *diagnosticInfo = checkDiagnosticInfo(msg->requestLength,
-                        writeResponse.diagnosticInfos, writeResponse.diagnosticInfosSize,
-                        writeRequest.requestHeader.returnDiagnostics);
-                response->m_diagnosticInfo = diagnosticInfo;
-
-                EdgeVersatility *message = (EdgeVersatility *) EdgeCalloc(1, sizeof(EdgeVersatility));
-                if (IS_NULL(message))
-                {
-                    EDGE_LOG(TAG, "Error : Malloc Failed for EdgeVersatility in Write Group");
-                    goto EXIT;
-                }
-                const char *retCode = UA_StatusCode_name(code);
-                size_t len = strlen(retCode);
-                char *code = (char*) malloc(len+1);
-                strncpy(code, retCode, len);
-                code[len] = '\0';
-
-                message->value = (void *) code;
-                message->isArray = false;
-                message->arrayLength = 0;
-                response->message = message;
-
-                resultMsg->responseLength += 1;
-                responses[respIndex] = response;
-                respIndex += 1;
+                goto ERROR;
             }
+            response->nodeInfo = cloneEdgeNodeInfo(msg->requests[i]->nodeInfo);
+            if (IS_NULL(response->nodeInfo))
+            {
+                EDGE_LOG(TAG, "Error : Malloc Failed for EdgeResponse.NodeInfo in Write Group");
+                freeEdgeResponse(response);
+                goto ERROR;
+            }
+            response->requestId = msg->requests[i]->requestId;
+            response->m_diagnosticInfo = checkDiagnosticInfo(msg->requestLength,
+                    writeResponse.diagnosticInfos, writeResponse.diagnosticInfosSize,
+                    writeRequest.requestHeader.returnDiagnostics);
+            if (IS_NULL(response->m_diagnosticInfo))
+            {
+                EDGE_LOG(TAG, "Error : Malloc Failed for EdgeResponse.DagnosticInfo in Write Group");
+                freeEdgeResponse(response);
+                goto ERROR;
+            }
+
+            response->message = (EdgeVersatility *) EdgeCalloc(1, sizeof(EdgeVersatility));
+            if (IS_NULL(response->message))
+            {
+                EDGE_LOG(TAG, "Error : Malloc Failed for EdgeVersatility in Write Group");
+                freeEdgeResponse(response);
+                goto ERROR;
+            }
+            const char *retCode = UA_StatusCode_name(code);
+            size_t len = strlen(retCode);
+            char *code = (char*) malloc(len+1);
+            strncpy(code, retCode, len+1);
+
+            response->message->value = (void *) code;
+            response->message->isArray = false;
+            response->message->arrayLength = 0;
+
+            resultMsg->responseLength++;
+            resultMsg->responses[respIndex++] = response;
         }
     }
 
-    if (resultMsg->responseLength > 0)
+    if (respIndex < 1)
     {
-        resultMsg->responses = responses;
-        add_to_recvQ(resultMsg);
+        goto ERROR;
     }
 
-    return ;
+    add_to_recvQ(resultMsg);
 
-    EXIT:
+    UA_WriteResponse_deleteMembers(&writeResponse);
+    return;
 
-    if (IS_NOT_NULL(resultMsg))
-    {
-        for (size_t i = 0; i < resultMsg->responseLength; i++)
-        {
-            if (responses[i]->m_diagnosticInfo)
-            {
-                if (responses[i]->m_diagnosticInfo->additionalInfo)
-                {
-                    EdgeFree(responses[i]->m_diagnosticInfo->additionalInfo);
-                }
-                EdgeFree(responses[i]->m_diagnosticInfo);
-            }
-            EdgeFree(responses[i]->message);
-            EdgeFree(responses[i]->nodeInfo);
-            EdgeFree(responses[i]);
-        }
-
-        EdgeFree(resultMsg->endpointInfo);
-        EdgeFree(resultMsg->responses);
-        EdgeFree(resultMsg);
-    }
-    EdgeFree(wv);
-    for (size_t i = 0; i < reqLen; i++)
-    {
-        UA_Variant_deleteMembers(&myVariant[i]);
-    }
-    EdgeFree(myVariant);
+    ERROR:
+    freeEdgeMessage(resultMsg);
     UA_WriteResponse_deleteMembers(&writeResponse);
 }
 

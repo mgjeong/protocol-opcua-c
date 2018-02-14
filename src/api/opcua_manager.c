@@ -633,6 +633,7 @@ EdgeMessage* createEdgeSubMessage(const char *endpointUri, const char* nodeName,
     if (IS_NULL(msg->endpointInfo))
     {
         EDGE_LOG(TAG, "Error : Malloc failed for epInfo");
+        EdgeFree(msg);
         return NULL;
     }
 
@@ -644,6 +645,7 @@ EdgeMessage* createEdgeSubMessage(const char *endpointUri, const char* nodeName,
         if (IS_NULL(msg->requests))
         {
             EDGE_LOG(TAG, "Error : Malloc failed for requests");
+            freeEdgeMessage(msg);
             return NULL;
         }
         msg->type = SEND_REQUESTS;
@@ -655,6 +657,7 @@ EdgeMessage* createEdgeSubMessage(const char *endpointUri, const char* nodeName,
         if (IS_NULL(msg->request))
         {
             EDGE_LOG(TAG, "Error : Malloc failed for request modify");
+            freeEdgeMessage(msg);
             return NULL;
         }
         msg->type = SEND_REQUEST;
@@ -685,6 +688,7 @@ EdgeMessage* createEdgeAttributeMessage(const char *endpointUri, size_t requestS
     if (IS_NULL(msg->endpointInfo))
     {
         EDGE_LOG(TAG, "Error : Malloc failed for epInfo");
+        EdgeFree(msg);
         return NULL;
     }
 
@@ -694,6 +698,7 @@ EdgeMessage* createEdgeAttributeMessage(const char *endpointUri, size_t requestS
     if (IS_NULL(msg->requests))
     {
         EDGE_LOG(TAG, "Error : Malloc failed for requests");
+        freeEdgeMessage(msg);
         return NULL;
     }
     msg->type = SEND_REQUESTS;
@@ -716,6 +721,7 @@ EdgeMessage* createEdgeMessage(const char *endpointUri, size_t requestSize, Edge
     if (IS_NULL(msg->endpointInfo))
     {
         EDGE_LOG(TAG, "Error : Malloc failed for epInfo");
+        EdgeFree(msg);
         return NULL;
     }
 
@@ -727,6 +733,7 @@ EdgeMessage* createEdgeMessage(const char *endpointUri, size_t requestSize, Edge
         if (IS_NULL(msg->requests))
         {
             EDGE_LOG(TAG, "Error : Malloc failed for requests");
+            freeEdgeMessage(msg);
             return NULL;
         }
         msg->type = SEND_REQUESTS;
@@ -737,6 +744,7 @@ EdgeMessage* createEdgeMessage(const char *endpointUri, size_t requestSize, Edge
         if (IS_NULL(msg->request))
         {
             EDGE_LOG(TAG, "Error : Malloc failed for request");
+            freeEdgeMessage(msg);
             return NULL;
         }
         msg->type = SEND_REQUEST;
@@ -1022,12 +1030,15 @@ EdgeBrowseNextData* initBrowseNextData(EdgeBrowseNextData *browseNextData,
             sizeof(EdgeContinuationPoint));
     if (NULL == browseNextData->cp)
     {
+        EdgeFree(browseNextData);
         return NULL;
     }
 
     browseNextData->srcNodeId = (EdgeNodeId **) calloc(browseNextData->count, sizeof(EdgeNodeId *));
     if (NULL == browseNextData->srcNodeId)
     {
+        EdgeFree(browseNextData->cp);
+        EdgeFree(browseNextData);
         return NULL;
     }
 
