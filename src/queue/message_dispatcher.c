@@ -47,7 +47,7 @@ static send_cb_t g_sendCallback = NULL;
 
 static void handleMessage(EdgeMessage *data);
 
-void terminate()
+void delete_queue()
 {
     b_sendQ_Thread_Running = false;
     pthread_join(m_sendQ_Thread, NULL);
@@ -55,30 +55,35 @@ void terminate()
     b_recvQ_Thread_Running = false;
     pthread_join(m_recvQ_Thread, NULL);
 
-    while (!isEmpty(sendQueue))
+    if (sendQueue != NULL)
     {
-        EdgeMessage *data = dequeue(sendQueue);
-        if (data)
+        pthread_mutex_lock(&sendMutex);
+        while (!isEmpty(sendQueue))
         {
-            free(data);
-            data = NULL;
+            EdgeMessage *data = dequeue(sendQueue);
+            freeEdgeMessage(data);
         }
+        pthread_mutex_unlock(&sendMutex);
+        pthread_mutex_destroy(&sendMutex);
+
+        free(sendQueue);
+        sendQueue = NULL;
     }
 
-    while (!isEmpty(recvQueue))
+    if (recvQueue != NULL)
     {
-        EdgeMessage *data = dequeue(recvQueue);
-        if (data)
+        pthread_mutex_lock(&recvMutex);
+        while (!isEmpty(recvQueue))
         {
-            free(data);
-            data = NULL;
+            EdgeMessage *data = dequeue(recvQueue);
+            freeEdgeMessage(data);
         }
-    }
-}
+        pthread_mutex_unlock(&recvMutex);
+        pthread_mutex_destroy(&recvMutex);
 
-void start()
-{
-//  if (sendQ)
+        free(recvQueue);
+        recvQueue = NULL;
+    }
 }
 
 static void *sendQ_run(void *ptr)

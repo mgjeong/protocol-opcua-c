@@ -333,12 +333,12 @@ EdgeMethodRequestParams* cloneEdgeMethodRequestParams(EdgeMethodRequestParams *m
             {
                 char **srcVal = (char**) methodParams->inpArg[i]->arrayData;
                 char **dstVal = (char **) EdgeCalloc(methodParams->inpArg[i]->arrayLength, sizeof(char*));
-                size_t len;
-                for (int i = 0; i < methodParams->inpArg[i]->arrayLength; i++)
+                int len;
+                for (size_t j = 0; j < methodParams->inpArg[i]->arrayLength; j++)
                 {
-                    len = strlen(srcVal[i]);
-                    dstVal[i] = (char*) EdgeCalloc(1, len+1);
-                    strncpy(dstVal[i], srcVal[i], len+1);
+                    len = strlen(srcVal[j]);
+                    dstVal[j] = (char*) EdgeCalloc(1, sizeof(char) * (len+1));
+                    strncpy(dstVal[j], srcVal[j], len+1);
                 }
                 clone->inpArg[i]->arrayData = (void *) dstVal;
             }
@@ -350,9 +350,7 @@ EdgeMethodRequestParams* cloneEdgeMethodRequestParams(EdgeMethodRequestParams *m
 
         }
     }
-
     clone->num_outArgs = methodParams->num_outArgs;
-
 
     return clone;
 }
@@ -970,11 +968,11 @@ EdgeMessage* cloneEdgeMessage(EdgeMessage *msg)
                                 char **srcVal = (char**) srcVersatility->value;
                                 char **dstVal = (char **) EdgeCalloc(srcVersatility->arrayLength, sizeof(char*));
                                 size_t len;
-                                for (int i = 0; i < srcVersatility->arrayLength; i++)
+                                for (int j = 0; j < srcVersatility->arrayLength; j++)
                                 {
-                                    len = strlen(srcVal[i]);
-                                    dstVal[i] = (char*) EdgeCalloc(1, len+1);
-                                    strncpy(dstVal[i], srcVal[i], len+1);
+                                    len = strlen(srcVal[j]);
+                                    dstVal[j] = (char*) EdgeCalloc(1, sizeof(char) * (len+1));
+                                    strncpy(dstVal[j], srcVal[j], len+1);
                                 }
                                 cloneVersatility->value = (void *) dstVal;
                             }

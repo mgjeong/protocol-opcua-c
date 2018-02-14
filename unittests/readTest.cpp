@@ -13,7 +13,7 @@ extern "C"
 #include "open62541.h"
 }
 
-#define TAG "TC"
+#define TAG "readTest"
 
 extern char node_arr[13][30];
 

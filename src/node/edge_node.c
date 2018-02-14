@@ -500,7 +500,6 @@ static UA_StatusCode methodCallback(UA_Server *server, const UA_NodeId *sessionI
         const UA_NodeId *objectId, void *objectContext, size_t inputSize, const UA_Variant *input,
         size_t outputSize, UA_Variant *output)
 {
-
     char *key = (char *) methodId->identifier.string.data;
     keyValue value = getMethodMapElement(methodNodeMap, (keyValue) key);
     if (value != NULL)
@@ -515,7 +514,22 @@ static UA_StatusCode methodCallback(UA_Server *server, const UA_NodeId *sessionI
             VERIFY_NON_NULL(inp, STATUS_ERROR);
             for (size_t i = 0; i < inputSize; i++)
             {
-                inp[i] = input[i].data;
+                if (input[i].type == &UA_TYPES[UA_TYPES_STRING])
+                {
+                    UA_String* str = ((UA_String*) input[i].data);
+                    char **values = (char**) EdgeCalloc(input[i].arrayLength, sizeof(char*));
+                    for (size_t j = 0; j < input[i].arrayLength; j++)
+                    {
+                        values[j] = (char *) EdgeMalloc(str[j].length+1);
+                        strncpy(values[j], (char *) str[j].data, str[j].length);
+                        values[j][str[j].length] = '\0';
+                    }
+                    inp[i] = (void*) values;
+                }
+                else
+                {
+                    inp[i] = input[i].data;
+                }
             }
         }
         void **out = NULL;
@@ -555,7 +569,7 @@ static UA_StatusCode methodCallback(UA_Server *server, const UA_NodeId *sessionI
                     else
                     {
                         UA_Variant *variant = &output[idx];
-                        UA_Variant_setScalarCopy(variant, *out, &UA_TYPES[type]);
+                        UA_Variant_setScalarCopy(variant, out[idx], &UA_TYPES[type]);
                     }
                 }
                 else if (method->outArg[idx]->valType == ARRAY_1D)
@@ -563,7 +577,7 @@ static UA_StatusCode methodCallback(UA_Server *server, const UA_NodeId *sessionI
                     // Array copy
                     if (type == UA_TYPES_STRING)
                     {
-                        char **data = (char **) out;
+                        char **data = (char **) out[idx];
                         UA_String *array = (UA_String *) UA_Array_new(
                                 method->outArg[idx]->arrayLength, &UA_TYPES[type]);
                         for (size_t idx1 = 0; idx1 < method->outArg[idx]->arrayLength; idx1++)
