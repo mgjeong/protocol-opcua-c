@@ -110,13 +110,6 @@ static void addVariableNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeI
         EDGE_LOG(TAG, "+++ addVariableNode failed +++\n");
     }
     UA_Variant_deleteMembers(&attr.value);
-
-//    status = UA_Server_addReference(server, UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER),
-//                                                    UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES),
-//                                                    UA_EXPANDEDNODEID_STRING(1, item->browseName), item->forward);
-//    status = UA_Server_addReference(server, UA_NODEID_STRING(1, item->browseName),
-//                                                    UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES),
-//                                                    UA_EXPANDEDNODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER), !(item->forward));
 }
 
 static void addArrayNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem *item)
