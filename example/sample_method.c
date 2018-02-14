@@ -17,7 +17,7 @@
  * limitations under the License.
  *
  ******************************************************************/
- 
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -54,7 +54,7 @@ void test_method_print(int inpSize, void **input, int outSize, void **output)
 void test_method_version(int inpSize, void **input, int outSize, void **output)
 {
     char *version = (char*) EdgeMalloc(sizeof(char) * CHAR_SIZE);
-    strcpy(version, "09131759");
+    strncpy(version, "09131759", CHAR_SIZE);
     output[0] = version;
     printf(COLOR_GREEN "\n[version() method called] :: %s\n" COLOR_RESET, version);
 }

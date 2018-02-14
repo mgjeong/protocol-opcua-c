@@ -37,7 +37,7 @@ static void sendErrorResponse(const EdgeMessage *msg, char *err_desc)
     resultMsg->responseLength = 1;
     resultMsg->message_id = msg->message_id;
 
-    EdgeResult *res;
+    EdgeResult *res = NULL;
     EdgeResponse** responses = (EdgeResponse **) malloc(sizeof(EdgeResponse *) * resultMsg->responseLength);
     for (int i = 0; i < resultMsg->responseLength; i++)
     {

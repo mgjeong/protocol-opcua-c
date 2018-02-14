@@ -620,6 +620,31 @@ void freeEdgeVersatility(EdgeVersatility *versatileValue)
     EdgeFree(versatileValue);
 }
 
+void freeEdgeVersatilityByType(EdgeVersatility *versatileValue, EdgeNodeIdentifier type)
+{
+    VERIFY_NON_NULL_NR(versatileValue);
+
+    if (versatileValue->isArray && (type == String || type == ByteString || type == Guid))
+    {
+        // Free String array
+        char **values = versatileValue->value;
+        if (values)
+        {
+            for (int j = 0; j < versatileValue->arrayLength; j++)
+            {
+                EdgeFree(values[j]);
+            }
+            EdgeFree(values);
+        }
+    }
+    else
+    {
+        EdgeFree(versatileValue->value);
+    }
+
+    EdgeFree(versatileValue);
+}
+
 void freeEdgeDiagnosticInfo(EdgeDiagnosticInfo *info)
 {
     VERIFY_NON_NULL_NR(info);
@@ -633,7 +658,7 @@ void freeEdgeResponse(EdgeResponse *response)
 {
     VERIFY_NON_NULL_NR(response);
     if(IS_NOT_NULL(response->message))
-        freeEdgeVersatility(response->message);
+        freeEdgeVersatilityByType(response->message, response->type);
 
     if(IS_NOT_NULL(response->value))
         EdgeFree(response->value);

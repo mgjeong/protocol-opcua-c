@@ -135,6 +135,8 @@ extern "C"
 
     void freeEdgeVersatility(EdgeVersatility *versatileValue);
 
+    void freeEdgeVersatilityByType(EdgeVersatility *versatileValue, EdgeNodeIdentifier type);
+
     void freeEdgeResponse(EdgeResponse *response);
 
     void freeEdgeResponses(EdgeResponse **responses, int responseLength);
