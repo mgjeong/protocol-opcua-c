@@ -60,7 +60,7 @@ void printNode(void *visitorContext, const UA_Node *node)
     }
 
     UA_NodeId nodeId = node->nodeId;
-    UA_QualifiedName browseName = node->browseName;
+    UA_QualifiedName browseNameUA = node->browseName;
     char *type = NULL;
     switch (nodeId.identifierType)
     {
@@ -79,8 +79,13 @@ void printNode(void *visitorContext, const UA_Node *node)
         default:
             type = "unknown";
     }
-    printf("namespaceIndex : %d, type : %s, browseName : %s\n", nodeId.namespaceIndex, type,
-            convertUAStringToString(&browseName.name));
+
+    char *browseName = convertUAStringToString(&browseNameUA.name);
+    printf("namespaceIndex : %d, type : %s, browseName : %s\n", nodeId.namespaceIndex, type, browseName);
+    if(IS_NOT_NULL(browseName))
+    {
+        EdgeFree(browseName);
+    }
 }
 
 void printNodeListInServer()
@@ -122,12 +127,12 @@ void createNamespaceInServer(char *namespaceUri, char *rootNodeIdentifier, char 
 
         EdgeNamespace *ns = (EdgeNamespace*) EdgeMalloc(sizeof(EdgeNamespace));
         ns->ns_index = idx;
-        ns->rootNodeIdentifier = (char*) EdgeMalloc(sizeof(char) * strlen(rootNodeIdentifier));
-        strncpy(ns->rootNodeIdentifier, rootNodeIdentifier, strlen(rootNodeIdentifier));
-        ns->rootNodeBrowseName = (char*) EdgeMalloc(sizeof(char) * strlen(rootNodeBrowseName));
-        strncpy(ns->rootNodeBrowseName, rootNodeBrowseName, strlen(rootNodeBrowseName));
-        ns->rootNodeDisplayName = (char*) EdgeMalloc(sizeof(char) * strlen(rootNodeDisplayName));
-        strncpy(ns->rootNodeDisplayName, rootNodeDisplayName, strlen(rootNodeDisplayName));
+        ns->rootNodeIdentifier = (char*) EdgeMalloc(sizeof(char) * (strlen(rootNodeIdentifier)+1));
+        strncpy(ns->rootNodeIdentifier, rootNodeIdentifier, strlen(rootNodeIdentifier)+1);
+        ns->rootNodeBrowseName = (char*) EdgeMalloc(sizeof(char) * (strlen(rootNodeBrowseName)+1));
+        strncpy(ns->rootNodeBrowseName, rootNodeBrowseName, strlen(rootNodeBrowseName)+1);
+        ns->rootNodeDisplayName = (char*) EdgeMalloc(sizeof(char) * (strlen(rootNodeDisplayName)+1));
+        strncpy(ns->rootNodeDisplayName, rootNodeDisplayName, strlen(rootNodeDisplayName)+1);
 
         if (namespaceMap == NULL)
             namespaceMap = createMap();

@@ -1685,10 +1685,8 @@ int main()
         }
         else if (!strcmp(command, "start"))
         {
-            static char ipAddress[MAX_ADDRESS_SIZE];
             printf("[Please input server endpoint uri (Ex: opc.tcp://hostname:port/path)] : ");
-            scanf("%s", ipAddress);
-            strncpy(endpointUri, "opc.tcp://localhost:12686", strlen("opc.tcp://localhost:12686")+1);
+            scanf("%s", endpointUri);
 
             connect = true;
             testGetEndpoints(endpointUri);

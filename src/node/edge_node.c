@@ -35,9 +35,9 @@ static size_t methodNodeCount = 0;
 /****************************** Static functions ***********************************/
 static void getDisplayInfo(const EdgeNodeItem *item, char* displayInfo) {
     if (NULL != item->displayName) {
-        sprintf(displayInfo, "v=%d,n=%s", item->variableIdentifier, item->displayName);
+        snprintf(displayInfo, MAX_DISPLAYNAME_SIZE, "v=%d,n=%s", item->variableIdentifier, item->displayName);
     } else {
-        sprintf(displayInfo, "v=%d", item->variableIdentifier);
+        snprintf(displayInfo, MAX_DISPLAYNAME_SIZE, "v=%d", item->variableIdentifier);
     }
 }
 
