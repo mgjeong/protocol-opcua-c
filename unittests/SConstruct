@@ -56,7 +56,8 @@ env.Program(target = 'test', source = [
                                         buildDir +  'utilTests.cpp',
                                         buildDir + 'readTest.cpp',
                                         buildDir + 'writeTest.cpp',
-                                        buildDir + 'methodTest.cpp'
+                                        buildDir + 'methodTest.cpp',
+                                        buildDir + 'subscriptionTest.cpp'
 					])
 #env.Program('test', ['opcuaTest.cpp', 'utilTests.cpp'])
 

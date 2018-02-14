@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include <iostream>
+#include <inttypes.h>
 #include <math.h>
 
 extern "C"
@@ -92,6 +93,12 @@ extern void testMethodWithoutEndpoint();
 extern void testMethodWithoutValueAlias(char *endpointUri);
 extern void testMethodWithoutMessage();
 
+extern void testSubscription_P1(char *endpointUri);
+extern void testSubscription_P2(char *endpointUri);
+extern void testSubscription_P3(char *endpointUri);
+extern void testSubscriptionWithoutEndpoint();
+extern void testSubscriptionWithoutValueAlias(char *endpointUri);
+extern void testSubscriptionWithoutMessage();
 
 extern "C"
 {
@@ -362,51 +369,165 @@ extern "C"
     {
         if (data->type == REPORT)
         {
-            PRINT("[Application response Callback] Monitored Item Response received");
+            printf("[Application response Callback] Monitored Item Response received\n");
             int len = data->responseLength;
             int idx = 0;
             for (idx = 0; idx < len; idx++)
             {
-                if (data->responses[idx]->message != NULL)
+                printf("Msg id : [%" PRIu32 "] , [Node Name] : %s\n", data->message_id, data->responses[idx]->nodeInfo->valueAlias);
+                if (data->responses[idx]->message->isArray)
                 {
-                    if (data->responses[idx]->type == Int16)
-                        PRINT_ARG(
-                                "[MonitoredItem DataChange callback] Monitored Change Value read from node ===>> ",
-                                *((int * )data->responses[idx]->message->value));
+                    // Handle Output array
+                    int arrayLen = data->responses[idx]->message->arrayLength;
+                    if (data->responses[idx]->type == Boolean)
+                    {
+                        /* Handle Boolean output array */
+                        for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
+                        {
+                            printf("%d  ", ((bool *) data->responses[idx]->message->value)[arrayIdx]);
+                        }
+                    }
+                    else if (data->responses[idx]->type == Byte)
+                    {
+                        /* Handle Byte output array */
+                        for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
+                        {
+                            printf("%" PRIu8 " ", ((uint8_t *) data->responses[idx]->message->value)[arrayIdx]);
+                        }
+                    }
+                    else if (data->responses[idx]->type == SByte)
+                    {
+                        /* Handle SByte output array */
+                        for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
+                        {
+                            printf("%" PRId8 " ", ((int8_t *) data->responses[idx]->message->value)[arrayIdx]);
+                        }
+                    }
+                    else if (data->responses[idx]->type == Int16)
+                    {
+                        /* Handle int16 output array */
+                        for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
+                        {
+                            printf("%" PRId16 "  ", ((int16_t *) data->responses[idx]->message->value)[arrayIdx]);
+                        }
+                    }
                     else if (data->responses[idx]->type == UInt16)
-                        PRINT_ARG(
-                                "[MonitoredItem DataChange callback] Monitored Change Value read from node ===>> ",
-                                *((int * )data->responses[idx]->message->value));
+                    {
+                        /* Handle UInt16 output array */
+                        for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
+                        {
+                            printf("%" PRIu16 "  ", ((uint16_t *) data->responses[idx]->message->value)[arrayIdx]);
+                        }
+                    }
                     else if (data->responses[idx]->type == Int32)
-                        PRINT_ARG(
-                                "[MonitoredItem DataChange callback] Monitored Change Value read from node ===>>  ",
-                                *((int * )data->responses[idx]->message->value));
+                    {
+                        /* Handle Int32 output array */
+                        for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
+                        {
+                            printf("%d  ", ((int32_t *) data->responses[idx]->message->value)[arrayIdx]);
+                        }
+                    }
                     else if (data->responses[idx]->type == UInt32)
-                        PRINT_ARG(
-                                "[MonitoredItem DataChange callbackk] Monitored Change Value read from node ===>> ",
-                                *((int * )data->responses[idx]->message->value));
+                    {
+                        /* Handle UInt32 output array */
+                        for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
+                        {
+                            printf("%u  ", ((uint *) data->responses[idx]->message->value)[arrayIdx]);
+                        }
+                    }
                     else if (data->responses[idx]->type == Int64)
-                        PRINT_ARG(
-                                "[MonitoredItem DataChange callbackk] Monitored Change Value read from node ===>>  ",
-                                *((long * )data->responses[idx]->message->value));
+                    {
+                        /* Handle Int64 output array */
+                        for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
+                        {
+                            printf("%ld  ", ((long int *) data->responses[idx]->message->value)[arrayIdx]);
+                        }
+                    }
                     else if (data->responses[idx]->type == UInt64)
-                        PRINT_ARG(
-                                "[MonitoredItem DataChange callbackk] Monitored Change Value read from node ===>>  ",
-                                *((long * )data->responses[idx]->message->value));
+                    {
+                        /* Handle UInt64 output array */
+                        for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
+                        {
+                            printf("%lu  ", ((ulong *) data->responses[idx]->message->value)[arrayIdx]);
+                        }
+                    }
                     else if (data->responses[idx]->type == Float)
-                        PRINT_ARG(
-                                "[MonitoredItem DataChange callback] Monitored Change Value read from node  ===>>  ",
-                                *((float * )data->responses[idx]->message->value));
+                    {
+                        /* Handle Float output array */
+                        for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
+                        {
+                            printf("%g  ", ((float *) data->responses[idx]->message->value)[arrayIdx]);
+                        }
+                    }
                     else if (data->responses[idx]->type == Double)
-                        PRINT_ARG(
-                                "[MonitoredItem DataChange callback] Monitored Change Value read from node  ===>>  ",
-                                *((double * )data->responses[idx]->message->value));
-                    else if (data->responses[idx]->type == String)
-                        PRINT_ARG(
-                                "[MonitoredItem DataChange callback] Monitored Change Value read from node ===>>  ",
-                                ((char * )data->responses[idx]->message->value));
+                    {
+                        /* Handle Double output array */
+                        for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
+                        {
+                            printf("%g  ", ((double *) data->responses[idx]->message->value)[arrayIdx]);
+                        }
+                    }
+                    else if (data->responses[idx]->type == String || data->responses[idx]->type == ByteString
+                             || data->responses[idx]->type == Guid)
+                    {
+                        /* Handle String/ByteString/Guid output array */
+                        char **values = ((char **) data->responses[idx]->message->value);
+                        for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
+                        {
+                            printf("%s  ", values[arrayIdx]);
+                        }
+                    }
+                    else if (data->responses[idx]->type == DateTime)
+                    {
+                        /* Handle DateTime output array */
+                        for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
+                        {
+                            printf("%" PRId64 "  ", ((int64_t *) data->responses[idx]->message->value)[arrayIdx]);
+                        }
+                    }
+                    printf("\n");
+                }
+                else
+                {
+                    if (data->responses[idx]->message != NULL)
+                    {
+                        if (data->responses[idx]->type == Int16)
+                            printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>> [%d]\n",
+                                   *((int *)data->responses[idx]->message->value));
+                        else if (data->responses[idx]->type == Byte)
+                            printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>> [%d]\n",
+                                   *((uint8_t *)data->responses[idx]->message->value));
+                        else if (data->responses[idx]->type == ByteString)
+                            printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>> [%s]\n",
+                                   (char *)data->responses[idx]->message->value);
+                        else if (data->responses[idx]->type == UInt16)
+                            printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>> [%d]\n",
+                                   *((int *)data->responses[idx]->message->value));
+                        else if (data->responses[idx]->type == Int32)
+                            printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>>  [%d]\n",
+                                   *((int *)data->responses[idx]->message->value));
+                        else if (data->responses[idx]->type == UInt32)
+                            printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>>  [%d]\n",
+                                   *((int *)data->responses[idx]->message->value));
+                        else if (data->responses[idx]->type == Int64)
+                            printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>>  [%ld]\n",
+                                   *((long *)data->responses[idx]->message->value));
+                        else if (data->responses[idx]->type == UInt64)
+                            printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>>  [%ld]\n",
+                                   *((long *)data->responses[idx]->message->value));
+                        else if (data->responses[idx]->type == Float)
+                            printf("[MonitoredItem DataChange callback] Monitored Change Value read from node  ===>>  [%f]\n",
+                                   *((float *)data->responses[idx]->message->value));
+                        else if (data->responses[idx]->type == Double)
+                            printf("[MonitoredItem DataChange callback] Monitored Change Value read from node  ===>>  [%f]\n",
+                                   *((double *)data->responses[idx]->message->value));
+                        else if (data->responses[idx]->type == String || data->responses[idx]->type == Guid)
+                            printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>>  [%s]\n",
+                                   ((char *)data->responses[idx]->message->value));
+                    }
                 }
             }
+            printf("\n\n");
         }
     }
 
@@ -600,43 +721,6 @@ static void deleteMessage(EdgeMessage *msg, EdgeEndPointInfo *ep)
         free(ep);
         ep = NULL;
     }
-}
-
-static void subscribeAndModifyNodes()
-{
-    /* Create Subscription */
-    EdgeMessage* msg = createEdgeSubMessage(endpointUri, node_arr[0], 1, Edge_Create_Sub);
-    EXPECT_EQ(NULL!=msg, true);
-
-    double samplingInterval = 100.0;
-    int keepalivetime = (1 > (int) (ceil(10000.0 / 0.0))) ? 1 : (int) ceil(10000.0 / 0.0);
-    insertSubParameter(&msg, node_arr[0], Edge_Create_Sub, samplingInterval, 0.0, keepalivetime, 10000, 1, true, 0, 50);
-
-    EdgeResult result = sendRequest(msg);
-    EXPECT_EQ(result.code, STATUS_OK);
-    destroyEdgeMessage (msg);
-    sleep(1);
-
-    /* Modify Subscription */
-    msg = createEdgeSubMessage(endpointUri, node_arr[0], 0, Edge_Modify_Sub);
-    EXPECT_EQ(NULL!=msg, true);
-
-    samplingInterval = 500.0;
-    keepalivetime = (1 > (int) (ceil(10000.0 / 0.0))) ? 1 : (int) ceil(10000.0 / 0.0);
-    insertSubParameter(&msg, node_arr[0], Edge_Modify_Sub, samplingInterval, 0.0, keepalivetime, 10000, 1, true, 0, 50);
-
-    result = sendRequest(msg);
-    EXPECT_EQ(result.code, STATUS_OK);
-    destroyEdgeMessage (msg);
-    sleep(1);
-
-    /* Delete Subscription */
-    msg = createEdgeSubMessage(endpointUri, node_arr[0], 0, Edge_Delete_Sub);
-    EXPECT_EQ(NULL!=msg, true);
-    result = sendRequest(msg);
-    EXPECT_EQ(result.code, STATUS_OK);
-    destroyEdgeMessage(msg);
-    sleep(1);
 }
 
 static void browseNodes()
@@ -1880,7 +1964,7 @@ TEST_F(OPC_clientTests , ClientMethodCall_N3)
     EXPECT_EQ(startClientFlag, false);
 }
 
-TEST_F(OPC_clientTests , ClientSubscribe_P)
+TEST_F(OPC_clientTests , ClientSubscribe_P1)
 {
     EXPECT_EQ(startClientFlag, false);
 
@@ -1891,7 +1975,92 @@ TEST_F(OPC_clientTests , ClientSubscribe_P)
     EXPECT_EQ(startClientFlag, true);
     destroyEdgeMessage(msg);
 
-    subscribeAndModifyNodes();
+    testSubscription_P1(endpointUri);
+
+    stop_client();
+    EXPECT_EQ(startClientFlag, false);
+}
+
+TEST_F(OPC_clientTests , ClientSubscribe_P2)
+{
+    EXPECT_EQ(startClientFlag, false);
+
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_GET_ENDPOINTS);
+    EXPECT_EQ(NULL != msg, true);
+    EdgeResult res = getEndpointInfo(msg);
+    EXPECT_EQ(res.code, STATUS_OK);
+    EXPECT_EQ(startClientFlag, true);
+    destroyEdgeMessage(msg);
+
+    testSubscription_P2(endpointUri);
+
+    stop_client();
+    EXPECT_EQ(startClientFlag, false);
+}
+
+TEST_F(OPC_clientTests , ClientSubscribe_P3)
+{
+    EXPECT_EQ(startClientFlag, false);
+
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_GET_ENDPOINTS);
+    EXPECT_EQ(NULL != msg, true);
+    EdgeResult res = getEndpointInfo(msg);
+    EXPECT_EQ(res.code, STATUS_OK);
+    EXPECT_EQ(startClientFlag, true);
+    destroyEdgeMessage(msg);
+
+    testSubscription_P3(endpointUri);
+
+    stop_client();
+    EXPECT_EQ(startClientFlag, false);
+}
+
+TEST_F(OPC_clientTests , ClientSubscribe_N1)
+{
+    EXPECT_EQ(startClientFlag, false);
+
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_GET_ENDPOINTS);
+    EXPECT_EQ(NULL != msg, true);
+    EdgeResult res = getEndpointInfo(msg);
+    EXPECT_EQ(res.code, STATUS_OK);
+    EXPECT_EQ(startClientFlag, true);
+    destroyEdgeMessage(msg);
+
+    testSubscriptionWithoutEndpoint();
+
+    stop_client();
+    EXPECT_EQ(startClientFlag, false);
+}
+
+TEST_F(OPC_clientTests , ClientSubscribe_N2)
+{
+    EXPECT_EQ(startClientFlag, false);
+
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_GET_ENDPOINTS);
+    EXPECT_EQ(NULL != msg, true);
+    EdgeResult res = getEndpointInfo(msg);
+    EXPECT_EQ(res.code, STATUS_OK);
+    EXPECT_EQ(startClientFlag, true);
+    destroyEdgeMessage(msg);
+
+    testSubscriptionWithoutValueAlias(endpointUri);
+
+    stop_client();
+    EXPECT_EQ(startClientFlag, false);
+}
+
+TEST_F(OPC_clientTests , ClientSubscribe_N3)
+{
+    EXPECT_EQ(startClientFlag, false);
+
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_GET_ENDPOINTS);
+    EXPECT_EQ(NULL != msg, true);
+    EdgeResult res = getEndpointInfo(msg);
+    EXPECT_EQ(res.code, STATUS_OK);
+    EXPECT_EQ(startClientFlag, true);
+    destroyEdgeMessage(msg);
+
+    testSubscriptionWithoutMessage();
 
     stop_client();
     EXPECT_EQ(startClientFlag, false);

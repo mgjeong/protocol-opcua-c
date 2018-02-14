@@ -320,6 +320,8 @@ static EdgeResult checkParameterValid(EdgeMessage *msg)
         {
             for (size_t indx = 0; indx < msg->requestLength; indx++)
             {
+                if (msg->requestLength == 0)
+                    return result;
                 if (msg->requests[indx]->subMsg == NULL)
                 {
                     return result;
