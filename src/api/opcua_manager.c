@@ -255,46 +255,61 @@ static EdgeResult checkParameterValid(EdgeMessage *msg)
 {
     EdgeResult result;
     result.code = STATUS_PARAM_INVALID;
-    if ((msg == NULL))
+    if (IS_NULL(msg))
     {
+        EDGE_LOG(TAG, "EdgeMessage is NULL");
         return result;
     }
 
-    if (msg->endpointInfo == NULL)
+    if (IS_NULL(msg->endpointInfo))
     {
+        EDGE_LOG(TAG, "EndpointInfo is NULL");
         return result;
-    }
-    else
-    {
-        if (msg->endpointInfo->endpointUri == NULL)
-        {
-            return result;
-        }
     }
 
-    if (msg->request != NULL && msg->request->nodeInfo == NULL)
+    if (IS_NULL(msg->endpointInfo->endpointUri))
     {
+        EDGE_LOG(TAG, "EndpointURI in EndpointInfo is NULL");
         return result;
     }
-    else if (msg->requests != NULL)
+
+    if (IS_NOT_NULL(msg->request) && IS_NULL(msg->request->nodeInfo))
     {
-        if (msg->requestLength == 0)
-            return result;
+        EDGE_LOG(TAG, "NodeInfo in EdgeRequest is NULL");
+        return result;
+    }
+
+    if (IS_NOT_NULL(msg->requests) && 0 == msg->requestLength)
+    {
+        EDGE_LOG(TAG, "Request Length is 0 but requests in EdgeMessage is not NULL.");
+        return result;
+    }
+
+    if (IS_NOT_NULL(msg->requests))
+    {
         for (size_t indx = 0; indx < msg->requestLength; indx++)
         {
             EdgeRequest *req = msg->requests[indx];
-            if (req->nodeInfo == NULL)
+            if (IS_NULL(req) || IS_NULL(req->nodeInfo))
             {
+                EDGE_LOG(TAG, "Request or its nodeInfo is NULL in one of the requests");
                 return result;
             }
-            else if (req->nodeInfo->valueAlias == NULL)
+
+            if(msg->command != CMD_BROWSE && msg->command != CMD_BROWSENEXT &&
+                    msg->command != CMD_BROWSE_VIEW)
             {
-                return result;
+                if (IS_NULL(req->nodeInfo->valueAlias))
+                {
+                    EDGE_LOG(TAG, "ValueAlias in NodeInfo is NULL in one of the requests.");
+                    return result;
+                }
             }
         }
     }
-    else if ((msg->type == SEND_REQUEST && msg->request == NULL)
-             || (msg->type == SEND_REQUESTS  && msg->requests == NULL))
+
+    if ((msg->type == SEND_REQUEST && IS_NULL(msg->request))
+             || (msg->type == SEND_REQUESTS  && IS_NULL(msg->requests)))
     {
         if (msg->command == CMD_READ
                 || msg->command == CMD_WRITE
@@ -305,25 +320,30 @@ static EdgeResult checkParameterValid(EdgeMessage *msg)
             return result;
         }
     }
-    else if (msg->command == CMD_BROWSE  && msg->browseParam == NULL)
+
+    if (msg->command == CMD_BROWSE  && msg->browseParam == NULL)
     {
+        EDGE_LOG(TAG, "BrowseParam is NULL");
         return result;
     }
-    else if (msg->command == CMD_SUB)
+
+    if (msg->command == CMD_SUB)
     {
         if (msg->request)
         {
-            if (msg->request->subMsg == NULL)
+            if (IS_NULL(msg->request->subMsg))
+            {
+                EDGE_LOG(TAG, "SubMessage in request is NULL.");
                 return result;
+            }
         }
         else
         {
             for (size_t indx = 0; indx < msg->requestLength; indx++)
             {
-                if (msg->requestLength == 0)
-                    return result;
-                if (msg->requests[indx]->subMsg == NULL)
+                if (IS_NULL(msg->requests[indx]->subMsg))
                 {
+                    EDGE_LOG(TAG, "SubMessage in one of the requests is NULL.");
                     return result;
                 }
             }
