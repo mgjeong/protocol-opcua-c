@@ -539,7 +539,7 @@ static bool convertUnsignedCharStringsToUAStrings(size_t strArrSize,
         if(!convertUnsignedCharStringToUAString(strArr[i], &uaStrArrLocal[i]))
         {
             EDGE_LOG(TAG, "Failed to convert 'unsigned char string' to 'UA_String'.");
-            for(int j = i-1; j >=0; --j)
+            for(size_t j = 0; j < i; ++j)
             {
                 EdgeFree(uaStrArrLocal[j].data);
             }
@@ -809,7 +809,7 @@ static bool isIPv4AddressValid(UA_String *ipv4Address)
     {
         if(data[i] == '.')
         {
-            if(numOfDigitsInSegment < 1 || numOfDigitsInSegment > 3 || value < 0 || value > 255)
+            if(numOfDigitsInSegment < 1 || numOfDigitsInSegment > 3 || value > 255)
             {
                 return false;
             }
@@ -826,7 +826,7 @@ static bool isIPv4AddressValid(UA_String *ipv4Address)
             numOfDigitsInSegment++;
         }
     }
-    if(numOfDots != 3 || numOfDigitsInSegment < 1 || numOfDigitsInSegment > 3 || value < 0 || value > 255)
+    if(numOfDots != 3 || numOfDigitsInSegment < 1 || numOfDigitsInSegment > 3 || value > 255)
     {
         return false;
     }

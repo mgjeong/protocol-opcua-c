@@ -644,19 +644,13 @@ static EdgeNodeId *getEdgeNodeId(UA_NodeId *node)
             {
                 EDGE_LOG(TAG, "Memory allocation failed.");
                 EdgeFree(edgeNodeId);
+                edgeNodeId = NULL;
                 break;
             }
 
-            snprintf(value, (GUID_LENGTH / 2) + 1, "%08x-%04x-%04x", guid.data1, guid.data2,
-                    guid.data3);
-            sprintf(value, "%s-%02x", value, guid.data4[0]);
-            sprintf(value, "%s%02x", value, guid.data4[1]);
-            sprintf(value, "%s-", value);
-            for (int i = 2; i < 8; i++)
-            {
-                sprintf(value, "%s%02x", value, guid.data4[i]);
-            }
-            value[GUID_LENGTH] = '\0';
+            snprintf(value, GUID_LENGTH + 1, "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x",
+                    guid.data1, guid.data2, guid.data3, guid.data4[0], guid.data4[1], guid.data4[2],
+                    guid.data4[3], guid.data4[4], guid.data4[5], guid.data4[6], guid.data4[7]);
             edgeNodeId->nodeId = value;
             break;
         default:
@@ -1018,13 +1012,14 @@ static EdgeMessage *prepareEdgeMessageForBrowseView(EdgeMessage *msg, List *view
     EdgeMessage *browseViewMsg = (EdgeMessage *)EdgeCalloc(1, sizeof(EdgeMessage));
     if(IS_NULL(browseViewMsg))
     {
-        goto ERROR;
+        return NULL;
     }
 
     browseViewMsg->endpointInfo = (EdgeEndPointInfo *)EdgeCalloc(1, sizeof(EdgeEndPointInfo));
     if(IS_NULL(browseViewMsg->endpointInfo))
     {
-        goto ERROR;
+        EdgeFree(browseViewMsg);
+        return NULL;
     }
     browseViewMsg->endpointInfo->endpointUri = cloneString(msg->endpointInfo->endpointUri);
     browseViewMsg->type = SEND_REQUESTS;
@@ -1039,7 +1034,7 @@ static EdgeMessage *prepareEdgeMessageForBrowseView(EdgeMessage *msg, List *view
     }
 
     List *ptr = viewNodeList;
-    int idx = 0;
+    size_t idx = 0;
     while(ptr)
     {
         if(IS_NOT_NULL(ptr->data))
@@ -1060,6 +1055,7 @@ static EdgeMessage *prepareEdgeMessageForBrowseView(EdgeMessage *msg, List *view
             request[idx]->nodeInfo->nodeId = getEdgeNodeId(((ViewNodeInfo_t *)ptr->data)->nodeId);
             if(IS_NULL(request[idx]->nodeInfo->nodeId))
             {
+                EdgeFree(request[idx]->nodeInfo);
                 EdgeFree(request[idx]);
                 goto ERROR;
             }
@@ -1075,28 +1071,29 @@ static EdgeMessage *prepareEdgeMessageForBrowseView(EdgeMessage *msg, List *view
         goto ERROR;
     }
 
-    for(int i = 0; i < idx; ++i)
+    for(size_t i = 0; i < idx; ++i)
     {
         browseViewMsg->requests[i] = request[i];
     }
 
+    EdgeFree(request);
+    request = NULL;
+
     browseViewMsg->requestLength = idx;
     browseViewMsg->browseParam = (EdgeBrowseParameter *)EdgeCalloc(1, sizeof(EdgeBrowseParameter));
-    if(IS_NULL(msg->browseParam))
+    if(IS_NULL(browseViewMsg->browseParam))
     {
-        EdgeFree(request);
         goto ERROR;
     }
     browseViewMsg->browseParam->direction = DIRECTION_FORWARD;
     browseViewMsg->browseParam->maxReferencesPerNode = 0;
 
-    EdgeFree(request);
     return browseViewMsg;
 
 ERROR:
     if(IS_NOT_NULL(request))
     {
-        for(int i = 0; i < idx; ++i)
+        for(size_t i = 0; i < idx; ++i)
         {
             freeEdgeRequest(request[i]);
         }
@@ -1257,7 +1254,7 @@ EdgeStatusCode browse(UA_Client *client, EdgeMessage *msg, bool browseNext,
         }
 
         int nextMsgListCount = 0;
-        int nextNodeListCount = 0;
+        size_t nextNodeListCount = 0;
         for (size_t j = 0; j < resp->results[i].referencesSize; ++j)
         {
             bool isError = false;
