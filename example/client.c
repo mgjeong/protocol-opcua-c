@@ -467,11 +467,11 @@ static void browse_msg_cb (EdgeMessage *data)
     {
         if (data->cpList && data->cpList->count > 0)
         {
-            printf("Total number of continuation points: %d\n", data->cpList->count);
-            for (int i = 0; i < data->cpList->count; ++i)
+            printf("Total number of continuation points: %zu\n", data->cpList->count);
+            for (size_t i = 0; i < data->cpList->count; ++i)
             {
                 EdgeNodeId *nodeId = data->responses[i]->nodeInfo->nodeId;
-                printf("Node ID of Continuation point[%d]: ", i + 1);
+                printf("Node ID of Continuation point[%zu]: ", i + 1);
                 (nodeId->type == INTEGER) ? printf("%d\n", nodeId->integerNodeId) : printf("%s\n", nodeId->nodeId);
 
                 int length = data->cpList->cp[i]->length;
@@ -886,7 +886,7 @@ static void testBrowseNext()
 
     // SEND_REQUESTS : There can be one or more continuation points.
     // CMD_BROWSENEXT : Using the same existing command for browse next operation as well.
-    int requestLength = clone->last_used + 1;
+    size_t requestLength = clone->last_used + 1;
     EdgeMessage *msg = createEdgeMessage(endpointUri, requestLength, CMD_BROWSENEXT);
     if(IS_NULL(msg))
     {
@@ -906,12 +906,12 @@ static void testBrowseNext()
     }
     else
     {
-        for (int i = 0; i < requestLength; i++)
+        for (size_t i = 0; i < requestLength; i++)
         {
             msg->requests[i] = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
             if(IS_NULL(msg->requests[i]))
             {
-                printf("Error : Malloc failed for requests[%d] in testBrowseNext()\n", i);
+                printf("Error : Malloc failed for requests[%zu] in testBrowseNext()\n", i);
                 goto EXIT_BROWSENEXT;
             }
 
@@ -941,7 +941,7 @@ static void testBrowseNext()
         printf("Error : Malloc failed for msg->cpList->cp in testBrowseNext()\n");
         goto EXIT_BROWSENEXT;
     }
-    for (int i = 0; i < requestLength; i++)
+    for (size_t i = 0; i < requestLength; i++)
     {
         msg->cpList->cp[i] = &clone->cp[i];
     }
@@ -957,12 +957,12 @@ static void testBrowseNext()
     }
     else
     {
-        for (int i = 0; i < requestLength; i++)
+        for (size_t i = 0; i < requestLength; i++)
             msg->requests[i]->nodeInfo->nodeId = NULL;
     }
 
     // Free continuation point list
-    for (int i = 0; i < requestLength; i++)
+    for (size_t i = 0; i < requestLength; i++)
     {
         msg->cpList->cp[i] = NULL;
     }

@@ -260,7 +260,7 @@ void freeEdgeContinuationPoint(EdgeContinuationPoint *cp)
 void freeEdgeContinuationPointList(EdgeContinuationPointList *cpList)
 {
     VERIFY_NON_NULL_NR(cpList);
-    for (int i = 0; i < cpList->count; ++i)
+    for (size_t i = 0; i < cpList->count; ++i)
     {
         freeEdgeContinuationPoint(cpList->cp[i]);
     }
@@ -632,11 +632,21 @@ void freeEdgeDiagnosticInfo(EdgeDiagnosticInfo *info)
 void freeEdgeResponse(EdgeResponse *response)
 {
     VERIFY_NON_NULL_NR(response);
-    freeEdgeVersatility(response->message);
-    EdgeFree(response->value);
-    freeEdgeNodeInfo(response->nodeInfo);
-    EdgeFree(response->result);
-    freeEdgeDiagnosticInfo(response->m_diagnosticInfo);
+    if(IS_NOT_NULL(response->message))
+        freeEdgeVersatility(response->message);
+
+    if(IS_NOT_NULL(response->value))
+        EdgeFree(response->value);
+
+    if(IS_NOT_NULL(response->nodeInfo))
+        freeEdgeNodeInfo(response->nodeInfo);
+
+    if(IS_NOT_NULL(response->result))
+        EdgeFree(response->result);
+
+    if(IS_NOT_NULL(response->m_diagnosticInfo))
+        freeEdgeDiagnosticInfo(response->m_diagnosticInfo);
+
     EdgeFree(response);
 }
 
@@ -653,14 +663,30 @@ void freeEdgeResponses(EdgeResponse **responses, int responseLength)
 void freeEdgeMessage(EdgeMessage *msg)
 {
     VERIFY_NON_NULL_NR(msg);
-    freeEdgeEndpointInfo(msg->endpointInfo);
-    freeEdgeRequest(msg->request);
-    freeEdgeRequests(msg->requests, msg->requestLength);
-    freeEdgeResponses(msg->responses, msg->responseLength);
-    EdgeFree(msg->result);
-    EdgeFree(msg->browseParam);
-    freeEdgeBrowseResult(msg->browseResult, msg->browseResultLength);
-    freeEdgeContinuationPointList(msg->cpList);
+    if(IS_NOT_NULL(msg->endpointInfo))
+        freeEdgeEndpointInfo(msg->endpointInfo);
+
+    if(IS_NOT_NULL(msg->request))
+        freeEdgeRequest(msg->request);
+
+    if(IS_NOT_NULL(msg->requests))
+        freeEdgeRequests(msg->requests, msg->requestLength);
+
+    if(IS_NOT_NULL(msg->responses))
+        freeEdgeResponses(msg->responses, msg->responseLength);
+
+    if(IS_NOT_NULL(msg->result))
+        EdgeFree(msg->result);
+
+    if(IS_NOT_NULL(msg->browseParam))
+        EdgeFree(msg->browseParam);
+
+    if(IS_NOT_NULL(msg->browseResult))
+        freeEdgeBrowseResult(msg->browseResult, msg->browseResultLength);
+
+    if(IS_NOT_NULL(msg->cpList))
+        freeEdgeContinuationPointList(msg->cpList);
+
     EdgeFree(msg);
 }
 

@@ -271,77 +271,68 @@ void invokeErrorCb(EdgeNodeId *srcNodeId, EdgeStatusCode edgeResult, const char 
     EdgeMessage *resultMsg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
     if (IS_NULL(resultMsg))
     {
-        goto EXIT;
+        return;
     }
 
-    EdgeEndPointInfo *epInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    if (IS_NULL(epInfo))
+    resultMsg->endpointInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
+    if (IS_NULL(resultMsg->endpointInfo))
     {
         goto EXIT;
     }
 
-    epInfo->endpointUri = cloneString(WELL_KNOWN_LOCALHOST_URI_VALUE);
-    resultMsg->endpointInfo = epInfo;
+    resultMsg->endpointInfo->endpointUri = cloneString(WELL_KNOWN_LOCALHOST_URI_VALUE);
+    if(IS_NULL(resultMsg->endpointInfo->endpointUri))
+    {
+        goto EXIT;
+    }
+
     resultMsg->type = ERROR;
     resultMsg->result = createEdgeResult(edgeResult);
-    if (!resultMsg->result)
+    if (IS_NULL(resultMsg->result))
     {
         goto EXIT;
     }
 
-    EdgeVersatility *versatileVal = (EdgeVersatility *) EdgeCalloc(1, sizeof(EdgeVersatility));
-    if (IS_NULL(versatileVal))
+    resultMsg->responses = (EdgeResponse **) EdgeCalloc(1, sizeof(EdgeResponse *));
+    if (IS_NULL(resultMsg->responses))
     {
         goto EXIT;
     }
-    versatileVal->isArray = false;
-    versatileVal->value = cloneString(versatileValue);
 
-    EdgeResponse *response = (EdgeResponse *) EdgeCalloc(1, sizeof(EdgeResponse));
-    if (IS_NULL(response))
+    resultMsg->responses[0] = (EdgeResponse *) EdgeCalloc(1, sizeof(EdgeResponse));
+    if (IS_NULL(resultMsg->responses[0]))
     {
-        freeEdgeVersatility(versatileVal);
         goto EXIT;
     }
-    response->message = versatileVal;
+
+    resultMsg->responses[0]->message = (EdgeVersatility *) EdgeCalloc(1, sizeof(EdgeVersatility));
+    if (IS_NULL(resultMsg->responses[0]->message))
+    {
+        goto EXIT;
+    }
+    resultMsg->responses[0]->message->isArray = false;
+    resultMsg->responses[0]->message->value = cloneString(versatileValue);
 
     if (srcNodeId)
     {
-        response->nodeInfo = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
-        if (IS_NULL(response->nodeInfo))
+        resultMsg->responses[0]->nodeInfo = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
+        if (IS_NULL(resultMsg->responses[0]->nodeInfo))
         {
-            freeEdgeResponse(response);
             goto EXIT;
         }
-        response->nodeInfo->nodeId = srcNodeId;
+        resultMsg->responses[0]->nodeInfo->nodeId = srcNodeId;
     }
 
-    EdgeResponse **responses = (EdgeResponse **) calloc(1, sizeof(EdgeResponse *));
-    if (IS_NULL(responses))
-    {
-        if (response->nodeInfo)
-            response->nodeInfo->nodeId = NULL;
-
-        freeEdgeResponse(response);
-        goto EXIT;
-    }
-    responses[0] = response;
-    resultMsg->responses = responses;
     resultMsg->responseLength = 1;
 
-    if (NULL != g_responseCallback) {
+    if (IS_NOT_NULL(g_responseCallback))
+    {
         g_responseCallback(resultMsg);
     }
 
-    EXIT:
-    if (IS_NOT_NULL(response))
-    {
-        if (IS_NOT_NULL(response->nodeInfo))
-        {
-            response->nodeInfo->nodeId = NULL;
-        }
-    }
+    resultMsg->responses[0]->nodeInfo->nodeId = NULL;
 
+EXIT:
     freeEdgeMessage(resultMsg);
 }
 
@@ -1104,7 +1095,7 @@ ERROR:
 }
 
 EdgeStatusCode browse(UA_Client *client, EdgeMessage *msg, bool browseNext,
-        NodesToBrowse_t *browseNodesInfo, int *msgIdList, int msgCount, List **viewList)
+        NodesToBrowse_t *browseNodesInfo, int *msgIdList, size_t msgCount, List **viewList)
 {
     UA_BrowseResponse *resp = NULL;
     UA_BrowseResponse browseResp =
@@ -1418,7 +1409,7 @@ EdgeResult executeBrowse(UA_Client *client, EdgeMessage *msg, bool browseNext)
     }
 
     int *msgIdList = NULL;
-    int nodesToBrowseSize;
+    size_t nodesToBrowseSize;
     NodesToBrowse_t *browseNodesInfo = NULL;
     if (browseNext)
     {
@@ -1436,7 +1427,6 @@ EdgeResult executeBrowse(UA_Client *client, EdgeMessage *msg, bool browseNext)
         result.code = STATUS_INTERNAL_ERROR;
         return result;
     }
-
 
     browseNodesInfo = initNodesToBrowse(nodesToBrowseSize);
     if (IS_NULL(browseNodesInfo))
@@ -1471,7 +1461,7 @@ EdgeResult executeBrowse(UA_Client *client, EdgeMessage *msg, bool browseNext)
             return result;
         }
 
-        for (int i = 0; i < nodesToBrowseSize; ++i)
+        for (size_t i = 0; i < nodesToBrowseSize; ++i)
         {
             UA_NodeId *nodeId;
             browseNodesInfo->nodeId[i] = (nodeId = getNodeIdMultiReq(msg, i)) ? *nodeId : UA_NODEID_NULL;

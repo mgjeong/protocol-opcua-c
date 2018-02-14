@@ -1005,7 +1005,7 @@ EdgeResult findServersInternal(const char *endpointUri, size_t serverUrisSize,
     }
 
     UA_Client *client = UA_Client_new(UA_ClientConfig_default);
-    if (!client)
+    if (IS_NULL(client))
     {
         EDGE_LOG(TAG, "UA_Client_new() failed.");
         destroyUAStringArray(serverUrisUA, serverUrisSize);
@@ -1031,6 +1031,22 @@ EdgeResult findServersInternal(const char *endpointUri, size_t serverUrisSize,
     size_t validServerCount = 0;
     EdgeApplicationConfig **appConfigAll = (EdgeApplicationConfig **)
             EdgeCalloc(regServersCount, sizeof(EdgeApplicationConfig *));
+    if (IS_NULL(appConfigAll))
+    {
+        EDGE_LOG(TAG, "Failed to allocated memory.");
+        for(size_t idx = 0; idx < regServersCount ; ++idx)
+        {
+            UA_ApplicationDescription_deleteMembers(&regServers[idx]);
+        }
+        EdgeFree(regServers);
+
+        UA_Client_delete(client);
+        destroyUAStringArray(serverUrisUA, serverUrisSize);
+        destroyUAStringArray(localeIdsUA, localeIdsSize);
+        res.code = STATUS_INTERNAL_ERROR;
+        return res;
+    }
+
     for(size_t i = 0; i < regServersCount; ++i)
     {
         // Add validation and filtering logic here.
@@ -1044,7 +1060,7 @@ EdgeResult findServersInternal(const char *endpointUri, size_t serverUrisSize,
         if(IS_NULL(appConfigAll[i]))
         {
             EDGE_LOG(TAG, "Failed to convert UA_ApplicationDescription");
-            for(int j = i-1; j >=0; --j)
+            for(size_t j = 0; j < i; ++j)
             {
                 freeEdgeApplicationConfig(appConfigAll[j]);
             }

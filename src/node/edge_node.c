@@ -535,23 +535,19 @@ static UA_StatusCode methodCallback(UA_Server *server, const UA_NodeId *sessionI
         void **out = NULL;
         if (outputSize > 0)
         {
-            out = EdgeMalloc(sizeof(void *) * outputSize);
+            out = EdgeCalloc(outputSize, sizeof(void *));
             if (IS_NULL(out))
             {
                 EDGE_LOG(TAG, "ERROR : out in methodCallback Malloc FAILED\n");
                 EdgeFree(inp);
                 return STATUS_ERROR;
             }
-            for (size_t i = 0; i < outputSize; i++)
-            {
-                out[i] = NULL;
-            }
         }
         method_to_call(inputSize, inp, outputSize, out);
 
         EdgeFree(inp);
 
-        for (size_t idx = 0; idx < method->num_outArgs; idx++)
+        for (size_t idx = 0; idx < outputSize; idx++)
         {
             if (out[idx] != NULL)
             {
@@ -824,6 +820,7 @@ EdgeResult modifyNode(UA_Server *server, uint16_t nsIndex, char *nodeUri, EdgeVe
     if (ret != UA_STATUSCODE_GOOD)
     {
         EDGE_LOG(TAG, "error in read value during modify node \n");
+        UA_Variant_delete(readval);
         result.code = STATUS_ERROR;
         return result;
     }

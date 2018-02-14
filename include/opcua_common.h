@@ -266,7 +266,7 @@ typedef struct EdgeResult
 typedef struct EdgeContinuationPoint
 {
     /** Length of continuation point **/
-    int length;
+    size_t length;
 
     /** Continuation point **/
     unsigned char *continuationPoint;
@@ -275,7 +275,7 @@ typedef struct EdgeContinuationPoint
 typedef struct EdgeContinuationPointList
 {
     /** Total number of continuation points **/
-    int count;
+    size_t count;
 
     /** List of continuation points **/
     EdgeContinuationPoint **cp;
