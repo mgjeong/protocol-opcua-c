@@ -827,6 +827,13 @@ EdgeResult insertWriteAccessNode(EdgeMessage **msg, const char* nodeName, void* 
         goto EXIT;
     }
 
+    if(IS_NULL(value) && valueLen != 0)
+    {
+        EDGE_LOG_V(TAG, "Error : Value length is %zu but value pointer is NULL.", valueLen);
+        result.code = STATUS_PARAM_INVALID;
+        goto EXIT;
+    }
+
     size_t index = (*msg)->requestLength;
 
     (*msg)->requests[index] = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));

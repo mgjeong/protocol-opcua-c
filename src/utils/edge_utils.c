@@ -903,13 +903,25 @@ EdgeMessage* cloneEdgeMessage(EdgeMessage *msg)
 
     clone->type = msg->type;
     clone->command = msg->command;
-    clone->endpointInfo = cloneEdgeEndpointInfo(msg->endpointInfo);
+    if(IS_NOT_NULL(msg->endpointInfo))
+    {
+        clone->endpointInfo = cloneEdgeEndpointInfo(msg->endpointInfo);
+        if(IS_NULL(clone->endpointInfo))
+        {
+            goto ERROR;
+        }
+    }
+
     clone->requestLength = msg->requestLength;
     clone->message_id = msg->message_id;
 
     if (msg->browseParam)
     {
         clone->browseParam = (EdgeBrowseParameter *) EdgeCalloc(1, sizeof(EdgeBrowseParameter));
+        if(IS_NULL(clone->browseParam))
+        {
+            goto ERROR;
+        }
         clone->browseParam->direction = msg->browseParam->direction;
         clone->browseParam->maxReferencesPerNode = msg->browseParam->maxReferencesPerNode;
     }
@@ -917,14 +929,33 @@ EdgeMessage* cloneEdgeMessage(EdgeMessage *msg)
     if (msg->cpList)
     {
         clone->cpList = (EdgeContinuationPointList *)EdgeCalloc(1, sizeof(EdgeContinuationPointList));
+        if(IS_NULL(clone->cpList))
+        {
+            goto ERROR;
+        }
+
         clone->cpList->count = msg->cpList->count;
         clone->cpList->cp =  (EdgeContinuationPoint **)EdgeCalloc(msg->cpList->count, sizeof(EdgeContinuationPoint *));
+        if(IS_NULL(clone->cpList->cp))
+        {
+            goto ERROR;
+        }
+
         for (size_t  i = 0; i < msg->cpList->count; i++)
         {
             clone->cpList->cp[i] = (EdgeContinuationPoint *)EdgeCalloc(1, sizeof(EdgeContinuationPoint));
+            if(IS_NULL(clone->cpList->cp[i]))
+            {
+                goto ERROR;
+            }
+
             clone->cpList->cp[i]->length = msg->cpList->cp[i]->length;
             clone->cpList->cp[i]->continuationPoint = (unsigned char *) cloneData(msg->cpList->cp[i]->continuationPoint,
                                                                                   strlen((char *) msg->cpList->cp[i]->continuationPoint) + 1);
+            if(IS_NULL(clone->cpList->cp[i]->continuationPoint))
+            {
+                goto ERROR;
+            }
         }
     }
 
@@ -933,23 +964,65 @@ EdgeMessage* cloneEdgeMessage(EdgeMessage *msg)
         if (msg->request)
         {
             clone->request = (EdgeRequest*) EdgeCalloc(1, sizeof(EdgeRequest));
+            if(IS_NULL(clone->request))
+            {
+                goto ERROR;
+            }
+
             if (msg->request->nodeInfo)
+            {
                 clone->request->nodeInfo = cloneEdgeNodeInfo(msg->request->nodeInfo);
+                if(IS_NULL(clone->request->nodeInfo))
+                {
+                    goto ERROR;
+                }
+            }
+
             if (msg->request->subMsg)
+            {
                 clone->request->subMsg = cloneSubRequest(msg->request->subMsg);
+                if(IS_NULL(clone->request->subMsg))
+                {
+                    goto ERROR;
+                }
+            }
+
             if (msg->request->methodParams)
+            {
                 clone->request->methodParams = cloneEdgeMethodRequestParams(msg->request->methodParams);
+                if(IS_NULL(clone->request->methodParams))
+                {
+                    goto ERROR;
+                }
+            }
         }
     }
 
     if (msg->type == SEND_REQUESTS)
     {
         clone->requests = (EdgeRequest**) EdgeCalloc(msg->requestLength, sizeof(EdgeRequest*));
+        if(IS_NULL(clone->requests))
+        {
+            goto ERROR;
+        }
+
         for (size_t i = 0; i < msg->requestLength; i++)
         {
             clone->requests[i] = (EdgeRequest*) EdgeCalloc(1, sizeof(EdgeRequest));
+            if(IS_NULL(clone->requests[i]))
+            {
+                goto ERROR;
+            }
+
             if (msg->requests[i]->nodeInfo)
+            {
                 clone->requests[i]->nodeInfo = cloneEdgeNodeInfo(msg->requests[i]->nodeInfo);
+                if(IS_NULL(clone->requests[i]->nodeInfo))
+                {
+                    goto ERROR;
+                }
+            }
+
             if (msg->command == CMD_WRITE)
             {
                 clone->requests[i]->type = msg->requests[i]->type;
@@ -957,68 +1030,103 @@ EdgeMessage* cloneEdgeMessage(EdgeMessage *msg)
                 if (msg->requests[i]->value)
                 {
                     EdgeVersatility *srcVersatility = (EdgeVersatility *) msg->requests[i]->value;
-                    EdgeVersatility* cloneVersatility = (EdgeVersatility*) EdgeCalloc(1, sizeof(EdgeVersatility));
-                    if (cloneVersatility)
+                    clone->requests[i]->value = (EdgeVersatility*) EdgeCalloc(1, sizeof(EdgeVersatility));
+                    if(IS_NULL(clone->requests[i]->value))
                     {
-                        if (srcVersatility->isArray == false)
-                        {
-                            // Scalar
-                            void *val = srcVersatility->value;
+                        goto ERROR;
+                    }
 
-                            cloneVersatility->arrayLength = srcVersatility->arrayLength;
-                            cloneVersatility->isArray = srcVersatility->isArray;
-                            size_t size = get_size(msg->requests[i]->type, srcVersatility->isArray);
-                            if (msg->requests[i]->type == String)
+                    EdgeVersatility* cloneVersatility = (EdgeVersatility*) clone->requests[i]->value;
+                    if (srcVersatility->isArray == false)
+                    {
+                        // Scalar
+                        void *val = srcVersatility->value;
+
+                        cloneVersatility->arrayLength = srcVersatility->arrayLength;
+                        cloneVersatility->isArray = srcVersatility->isArray;
+                        size_t size = get_size(msg->requests[i]->type, srcVersatility->isArray);
+                        if (msg->requests[i]->type == String)
+                        {
+                            size_t len = strlen((char *) srcVersatility->value);
+                            cloneVersatility->value = (void *) EdgeCalloc(1, len+1);
+                            if(IS_NULL(cloneVersatility->value))
                             {
-                                size_t len = strlen((char *) srcVersatility->value);
-                                cloneVersatility->value = (void *) EdgeCalloc(1, len+1);
-                                strncpy(cloneVersatility->value, (char*) srcVersatility->value, len+1);
+                                goto ERROR;
                             }
-                            else
-                            {
-                                cloneVersatility->value = (void *) EdgeCalloc(1, size);
-                                memcpy(cloneVersatility->value, val, size);
-                            }
-                            clone->requests[i]->value = (void *) cloneVersatility;
+
+                            strncpy(cloneVersatility->value, (char*) srcVersatility->value, len+1);
                         }
                         else
                         {
-                            // Array
-                            void *val = srcVersatility->value;
+                            cloneVersatility->value = (void *) EdgeCalloc(1, size);
+                            if(IS_NULL(cloneVersatility->value))
+                            {
+                                goto ERROR;
+                            }
+                            memcpy(cloneVersatility->value, val, size);
+                        }
+                    }
+                    else
+                    {
+                        // Array
+                        void *val = srcVersatility->value;
 
-                            cloneVersatility->arrayLength = srcVersatility->arrayLength;
-                            cloneVersatility->isArray = srcVersatility->isArray;
-                            size_t size = get_size(msg->requests[i]->type, srcVersatility->isArray);
-                            if (msg->requests[i]->type == String || msg->requests[i]->type == ByteString)
+                        cloneVersatility->arrayLength = srcVersatility->arrayLength;
+                        cloneVersatility->isArray = srcVersatility->isArray;
+                        size_t size = get_size(msg->requests[i]->type, srcVersatility->isArray);
+                        if (msg->requests[i]->type == String || msg->requests[i]->type == ByteString)
+                        {
+                            char **srcVal = (char**) srcVersatility->value;
+                            cloneVersatility->value = EdgeCalloc(srcVersatility->arrayLength, sizeof(char*));
+                            if(IS_NULL(cloneVersatility->value))
                             {
-                                char **srcVal = (char**) srcVersatility->value;
-                                char **dstVal = (char **) EdgeCalloc(srcVersatility->arrayLength, sizeof(char*));
-                                size_t len;
-                                for (int j = 0; j < srcVersatility->arrayLength; j++)
+                                goto ERROR;
+                            }
+
+                            char **dstVal = (char **) cloneVersatility->value;
+                            size_t len;
+                            for (int j = 0; j < srcVersatility->arrayLength; j++)
+                            {
+                                len = strlen(srcVal[j]);
+                                dstVal[j] = (char*) EdgeCalloc(1, sizeof(char) * (len+1));
+                                if(IS_NULL(dstVal[j]))
                                 {
-                                    len = strlen(srcVal[j]);
-                                    dstVal[j] = (char*) EdgeCalloc(1, sizeof(char) * (len+1));
-                                    strncpy(dstVal[j], srcVal[j], len+1);
+                                    goto ERROR;
                                 }
-                                cloneVersatility->value = (void *) dstVal;
+                                strncpy(dstVal[j], srcVal[j], len+1);
                             }
-                            else
+                        }
+                        else
+                        {
+                            cloneVersatility->value = EdgeCalloc(srcVersatility->arrayLength, size);
+                            if(IS_NULL(cloneVersatility->value))
                             {
-                                cloneVersatility->value = (void *) EdgeCalloc(srcVersatility->arrayLength, size);
-                                memcpy(cloneVersatility->value, val, get_size(msg->requests[i]->type, false) * srcVersatility->arrayLength);
+                                goto ERROR;
                             }
-                            clone->requests[i]->value = (void *) cloneVersatility;
+                            memcpy(cloneVersatility->value, val, get_size(msg->requests[i]->type, false) * srcVersatility->arrayLength);
                         }
                     }
                 }
             }
             else if (msg->command == CMD_SUB)
             {
-                clone->requests[i]->subMsg = cloneSubRequest(msg->requests[i]->subMsg);
+                if(IS_NOT_NULL(msg->requests[i]->subMsg))
+                {
+                    clone->requests[i]->subMsg = cloneSubRequest(msg->requests[i]->subMsg);
+                    if(IS_NULL(clone->requests[i]->subMsg))
+                    {
+                        goto ERROR;
+                    }
+                }
             }
         }
     }
+
     return clone;
+
+ERROR:
+    freeEdgeMessage(clone);
+    return NULL;
 }
 
 EdgeNodeIdType getEdgeNodeIdType(char type)
