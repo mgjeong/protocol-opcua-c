@@ -219,7 +219,7 @@ static void response_msg_cb (EdgeMessage *data)
                         else if (data->responses[idx]->type == UInt64)
                             printf("[%" PRIu64 "]\n",
                                    *((uint64_t *)data->responses[idx]->message->value));
-                        else if (data->responses[idx]->type == String)
+                        else if (data->responses[idx]->type == String || data->responses[idx]->type == XmlElement)
                             printf("[%s]\n",
                                    (char *)data->responses[idx]->message->value);
                     }
