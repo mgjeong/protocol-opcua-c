@@ -527,8 +527,16 @@ static void invokeResponseCb(EdgeMessage *msg, int msgId, EdgeNodeId *srcNodeId,
     resultMsg->responses = responses;
     resultMsg->responseLength = 1;
     resultMsg->message_id = msg->message_id;
-
     resultMsg->browseResult = (EdgeBrowseResult *) EdgeCalloc(1, sizeof(EdgeBrowseResult));               //browseResult;
+    if (IS_NULL(resultMsg->browseResult))
+    {
+        EDGE_LOG(TAG, "Memory allocation failed.");
+        response->nodeInfo->nodeId = NULL;
+        freeEdgeResponse(response);
+        freeEdgeMessage(resultMsg);
+        EdgeFree(responses);
+        return;
+    }
     resultMsg->browseResult->browseName = cloneString(browseResult->browseName);
     resultMsg->browseResultLength = size;
 

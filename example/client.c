@@ -254,6 +254,12 @@ static void monitored_msg_cb (EdgeMessage *data)
         for (idx = 0; idx < len; idx++)
         {
             printf("Msg id : [%" PRIu32 "] , [Node Name] : %s\n", data->message_id, data->responses[idx]->nodeInfo->valueAlias);
+            if (data->responses[idx]->message == NULL)
+            {
+                printf("data->responses[%d]->message is NULL\n", idx);
+                continue;
+            }
+
             if (data->responses[idx]->message->isArray)
             {
                 // Handle Output array
@@ -368,42 +374,39 @@ static void monitored_msg_cb (EdgeMessage *data)
             }
             else
             {
-                if (data->responses[idx]->message != NULL)
-                {
-                    if (data->responses[idx]->type == Int16)
-                        printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>> [%d]\n",
-                               *((int *)data->responses[idx]->message->value));
-                    else if (data->responses[idx]->type == Byte)
-                        printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>> [%d]\n",
-                               *((uint8_t *)data->responses[idx]->message->value));
-                    else if (data->responses[idx]->type == ByteString)
-                        printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>> [%s]\n",
-                               (char *)data->responses[idx]->message->value);
-                    else if (data->responses[idx]->type == UInt16)
-                        printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>> [%d]\n",
-                               *((int *)data->responses[idx]->message->value));
-                    else if (data->responses[idx]->type == Int32)
-                        printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>>  [%d]\n",
-                               *((int *)data->responses[idx]->message->value));
-                    else if (data->responses[idx]->type == UInt32)
-                        printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>>  [%d]\n",
-                               *((int *)data->responses[idx]->message->value));
-                    else if (data->responses[idx]->type == Int64)
-                        printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>>  [%ld]\n",
-                               *((long *)data->responses[idx]->message->value));
-                    else if (data->responses[idx]->type == UInt64)
-                        printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>>  [%ld]\n",
-                               *((long *)data->responses[idx]->message->value));
-                    else if (data->responses[idx]->type == Float)
-                        printf("[MonitoredItem DataChange callback] Monitored Change Value read from node  ===>>  [%f]\n",
-                               *((float *)data->responses[idx]->message->value));
-                    else if (data->responses[idx]->type == Double)
-                        printf("[MonitoredItem DataChange callback] Monitored Change Value read from node  ===>>  [%f]\n",
-                               *((double *)data->responses[idx]->message->value));
-                    else if (data->responses[idx]->type == String)
-                        printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>>  [%s]\n",
-                               ((char *)data->responses[idx]->message->value));
-                }
+                if (data->responses[idx]->type == Int16)
+                    printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>> [%d]\n",
+                           *((int *)data->responses[idx]->message->value));
+                else if (data->responses[idx]->type == Byte)
+                    printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>> [%d]\n",
+                           *((uint8_t *)data->responses[idx]->message->value));
+                else if (data->responses[idx]->type == ByteString)
+                    printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>> [%s]\n",
+                           (char *)data->responses[idx]->message->value);
+                else if (data->responses[idx]->type == UInt16)
+                    printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>> [%d]\n",
+                           *((int *)data->responses[idx]->message->value));
+                else if (data->responses[idx]->type == Int32)
+                    printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>>  [%d]\n",
+                           *((int *)data->responses[idx]->message->value));
+                else if (data->responses[idx]->type == UInt32)
+                    printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>>  [%d]\n",
+                           *((int *)data->responses[idx]->message->value));
+                else if (data->responses[idx]->type == Int64)
+                    printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>>  [%ld]\n",
+                           *((long *)data->responses[idx]->message->value));
+                else if (data->responses[idx]->type == UInt64)
+                    printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>>  [%ld]\n",
+                           *((long *)data->responses[idx]->message->value));
+                else if (data->responses[idx]->type == Float)
+                    printf("[MonitoredItem DataChange callback] Monitored Change Value read from node  ===>>  [%f]\n",
+                           *((float *)data->responses[idx]->message->value));
+                else if (data->responses[idx]->type == Double)
+                    printf("[MonitoredItem DataChange callback] Monitored Change Value read from node  ===>>  [%f]\n",
+                           *((double *)data->responses[idx]->message->value));
+                else if (data->responses[idx]->type == String)
+                    printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>>  [%s]\n",
+                           ((char *)data->responses[idx]->message->value));
             }
         }
         printf("\n\n");
@@ -868,7 +871,7 @@ static void testBrowseNext()
     printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET
            "\n\n");
 
-    if (!browseNextData || browseNextData->last_used < 0)
+    if (!browseNextData || browseNextData->next_free < 1)
     {
         printf("Invalid data for browse next service.\n");
         return;
@@ -881,12 +884,12 @@ static void testBrowseNext()
         return;
     }
 
-    browseNextData = initBrowseNextData(browseNextData, &browseNextData->browseParam, MAX_CP_LIST_COUNT, -1);
-    printf("Total number of continuation points: %d.\n", clone->last_used + 1);
+    browseNextData = initBrowseNextData(browseNextData, &browseNextData->browseParam, MAX_CP_LIST_COUNT, 0);
+    printf("Total number of continuation points: %zu.\n", clone->next_free);
 
     // SEND_REQUESTS : There can be one or more continuation points.
     // CMD_BROWSENEXT : Using the same existing command for browse next operation as well.
-    size_t requestLength = clone->last_used + 1;
+    size_t requestLength = clone->next_free;
     EdgeMessage *msg = createEdgeMessage(endpointUri, requestLength, CMD_BROWSENEXT);
     if(IS_NULL(msg))
     {
@@ -989,7 +992,7 @@ static void testBrowseViews(char* endpointUri)
     printf("\n" COLOR_YELLOW "********** Browse Views under RootFolder node in system namespace **********"
            COLOR_RESET "\n");
 
-    browseNextData = initBrowseNextData(browseNextData, msg->browseParam, MAX_CP_LIST_COUNT, -1);
+    browseNextData = initBrowseNextData(browseNextData, msg->browseParam, MAX_CP_LIST_COUNT, 0);
 
     sendRequest(msg);
 
@@ -1017,7 +1020,7 @@ static void testBrowse(char* endpointUri)
     printf("\n\n" COLOR_YELLOW "********** Browse RootFolder node in system namespace **********"
            COLOR_RESET "\n");
 
-    browseNextData = initBrowseNextData(browseNextData, msg->browseParam, MAX_CP_LIST_COUNT, -1);
+    browseNextData = initBrowseNextData(browseNextData, msg->browseParam, MAX_CP_LIST_COUNT, 0);
 
     sendRequest(msg);
 
@@ -1051,7 +1054,7 @@ static void testBrowses(char* endpointUri)
            "********** Browse RootFolder, ObjectsFolder nodes in system namespace and Object1 in namespace 1 **********"
            COLOR_RESET "\n");
 
-    browseNextData = initBrowseNextData(browseNextData, msg->browseParam, MAX_CP_LIST_COUNT, -1);
+    browseNextData = initBrowseNextData(browseNextData, msg->browseParam, MAX_CP_LIST_COUNT, 0);
 
     sendRequest(msg);
 
@@ -1143,6 +1146,13 @@ static void writeHelper(int num_requests, char *ep)
         printf("Enter number of elements to write (1 for scalar, > 1 for Array) : ");
         scanf("%d", &valueLen);
         void *value = getNewValuetoWrite(nodeType, valueLen);
+        if(IS_NULL(value))
+        {
+            printf("Value ptr is NULL. So write() can't be performed.\n.");
+            destroyEdgeMessage(msg);
+            return;
+        }
+
         EdgeResult res = insertWriteAccessNode(&msg, nodeName, value, valueLen);
         if(STATUS_OK != res.code)
         {
@@ -1507,12 +1517,20 @@ static void testSubDelete()
 
 static void *getNewValuetoWrite(EdgeNodeIdentifier type, int num_values)
 {
+    if(num_values < 1)
+    {
+        printf("Number of elements cannot be less than 1.\n");
+        return NULL;
+    }
+
     printf("Enter the new value to write :: ");
     switch (type)
     {
         case Boolean:
             {
                 int *val = (int *) EdgeMalloc(sizeof(int) * num_values);
+                if(IS_NULL(val))
+                    return NULL;
                 for (int i = 0; i < num_values; i++)
                     scanf("%d", &val[i]);
                 return (void *) val;
@@ -1521,6 +1539,8 @@ static void *getNewValuetoWrite(EdgeNodeIdentifier type, int num_values)
         case SByte:
             {
                 int8_t *val = (int8_t *) EdgeMalloc(sizeof(int8_t) * num_values);
+                if(IS_NULL(val))
+                    return NULL;
                 for (int i = 0; i < num_values; i++)
                     scanf("%" SCNd8, &val[i]);
                 return (void *) val;
@@ -1528,6 +1548,8 @@ static void *getNewValuetoWrite(EdgeNodeIdentifier type, int num_values)
         case Byte:
             {
                 uint8_t *val = (uint8_t *) EdgeMalloc(sizeof(uint8_t) * num_values);
+                if(IS_NULL(val))
+                    return NULL;
                 for (int i = 0; i < num_values; i++)
                     scanf("%" SCNu8, &val[i]);
                 return (void *) val;
@@ -1536,6 +1558,8 @@ static void *getNewValuetoWrite(EdgeNodeIdentifier type, int num_values)
         case Int16:
             {
                 int16_t *val = (int16_t *) EdgeMalloc(sizeof(int16_t) * num_values);
+                if(IS_NULL(val))
+                    return NULL;
                 for (int i = 0; i < num_values; i++)
                     scanf("%" SCNd16, &val[i]);
                 return (void *) val;
@@ -1543,6 +1567,8 @@ static void *getNewValuetoWrite(EdgeNodeIdentifier type, int num_values)
         case UInt16:
             {
                 uint16_t *val = (uint16_t *) EdgeMalloc(sizeof(uint16_t) * num_values);
+                if(IS_NULL(val))
+                    return NULL;
                 for (int i = 0; i < num_values; i++)
                     scanf("%" SCNu16, &val[i]);
                 return (void *) val;
@@ -1551,6 +1577,8 @@ static void *getNewValuetoWrite(EdgeNodeIdentifier type, int num_values)
         case Int32:
             {
                 int32_t *val = (int32_t *) EdgeMalloc(sizeof(int32_t) * num_values);
+                if(IS_NULL(val))
+                    return NULL;
                 for (int i = 0; i < num_values; i++)
                     scanf("%" SCNd32, &val[i]);
                 return (void *) val;
@@ -1559,6 +1587,8 @@ static void *getNewValuetoWrite(EdgeNodeIdentifier type, int num_values)
         case UInt32:
             {
                 uint32_t *val = (uint32_t *) EdgeMalloc(sizeof(uint32_t) * num_values);
+                if(IS_NULL(val))
+                    return NULL;
                 for (int i = 0; i < num_values; i++)
                     scanf("%" SCNu32, &val[i]);
                 return (void *) val;
@@ -1567,6 +1597,8 @@ static void *getNewValuetoWrite(EdgeNodeIdentifier type, int num_values)
         case Int64:
             {
                 int64_t *val = (int64_t *) EdgeMalloc(sizeof(int64_t) * num_values);
+                if(IS_NULL(val))
+                    return NULL;
                 for (int i = 0; i < num_values; i++)
                     scanf("%" SCNd64, &val[i]);
                 return (void *) val;
@@ -1575,6 +1607,8 @@ static void *getNewValuetoWrite(EdgeNodeIdentifier type, int num_values)
         case UInt64:
             {
                 uint64_t *val = (uint64_t *) EdgeMalloc(sizeof(uint64_t) * num_values);
+                if(IS_NULL(val))
+                    return NULL;
                 for (int i = 0; i < num_values; i++)
                     scanf("%" SCNu64, &val[i]);
                 return (void *) val;
@@ -1583,6 +1617,8 @@ static void *getNewValuetoWrite(EdgeNodeIdentifier type, int num_values)
         case Float:
             {
                 float *val = (float *) EdgeMalloc(sizeof(float) * num_values);
+                if(IS_NULL(val))
+                    return NULL;
                 for (int i = 0; i < num_values; i++)
                     scanf("%g", &val[i]);
                 return (void *) val;
@@ -1591,6 +1627,8 @@ static void *getNewValuetoWrite(EdgeNodeIdentifier type, int num_values)
         case Double:
             {
                 double *val = (double *) EdgeMalloc(sizeof(double) * num_values);
+                if(IS_NULL(val))
+                    return NULL;
                 for (int i = 0; i < num_values; i++)
                 scanf("%lf", &val[i]);
                 return (void *) val;
@@ -1601,6 +1639,8 @@ static void *getNewValuetoWrite(EdgeNodeIdentifier type, int num_values)
                 if(num_values > 1)
                 {
                     char **retStr = (char**) malloc(sizeof(char*) * num_values);
+                    if(IS_NULL(retStr))
+                        return NULL;
                     int len;
                     char val[MAX_CHAR_SIZE];
                     for (int i = 0; i < num_values; i++)
@@ -1608,19 +1648,24 @@ static void *getNewValuetoWrite(EdgeNodeIdentifier type, int num_values)
                         scanf("%s", val);
                         len  = strlen(val);
                         retStr[i] = (char *) EdgeMalloc(len + 1);
-                        strncpy(retStr[i], val, len);
-                        retStr[i][len] = '\0';
+                        if(IS_NULL(retStr[i]))
+                        {
+                            EdgeFree(retStr);
+                            return NULL;
+                        }
+                        strncpy(retStr[i], val, len+1);
                     }
                     return (void *) retStr;
                 }
                 else
                 {
                     char *retStr = NULL;
-                    int len;
                     char val[MAX_CHAR_SIZE];
                     scanf("%s", val);
-                    len  = strlen(val);
+                    size_t len  = strlen(val);
                     retStr = (char *) EdgeMalloc(len + 1);
+                    if(IS_NULL(retStr))
+                        return NULL;
                     strncpy(retStr, val, len+1);
                     return (void *) retStr;
                 }

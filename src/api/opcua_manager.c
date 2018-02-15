@@ -501,7 +501,7 @@ EdgeNodeIdentifier getValueType(const char* nodeName)
 {
     int nsIdx = 0, valueType = 0;
     char nodeType;
-    char browseName[MAX_BROWSENAME_SIZE+1];
+    char browseName[MAX_BROWSENAME_SIZE+1] = {0};
     sscanf(nodeName, UNIQUE_NODE_PATH, &nsIdx, &nodeType, &valueType, browseName);
     return valueType;
 }
@@ -532,7 +532,7 @@ EdgeNodeInfo* createEdgeNodeInfo(const char* nodeName)
 {
     int nsIdx = 0, valueType = 0;
     char nodeType;
-    char browseName[MAX_BROWSENAME_SIZE+1];
+    char browseName[MAX_BROWSENAME_SIZE+1] = {0};
     sscanf(nodeName, UNIQUE_NODE_PATH, &nsIdx, &nodeType, &valueType, browseName);
 
     EdgeNodeInfo* nodeInfo = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
@@ -1018,7 +1018,7 @@ void destroyBrowseNextDataElements(EdgeBrowseNextData *data)
     if (!data)
         return;
 
-    for (int i = 0; i <= data->last_used; ++i)
+    for (size_t i = 0; i < data->next_free; ++i)
     {
         if (IS_NOT_NULL(data->cp))
         {
@@ -1040,7 +1040,7 @@ void destroyBrowseNextData(EdgeBrowseNextData *data)
 }
 
 EdgeBrowseNextData* initBrowseNextData(EdgeBrowseNextData *browseNextData,
-        EdgeBrowseParameter *browseParam, int count, int last_used)
+        EdgeBrowseParameter *browseParam, size_t count, size_t next_free)
 {
     destroyBrowseNextData(browseNextData);
     browseNextData = (EdgeBrowseNextData *) EdgeCalloc(1, sizeof(EdgeBrowseNextData));
@@ -1054,7 +1054,7 @@ EdgeBrowseNextData* initBrowseNextData(EdgeBrowseNextData *browseNextData,
         browseNextData->browseParam = *browseParam;
     }
     browseNextData->count = count;
-    browseNextData->last_used = last_used;
+    browseNextData->next_free = next_free;
     browseNextData->cp = (EdgeContinuationPoint *) EdgeCalloc(browseNextData->count,
             sizeof(EdgeContinuationPoint));
     if (NULL == browseNextData->cp)
@@ -1079,30 +1079,31 @@ EdgeResult addBrowseNextData(EdgeBrowseNextData **data, EdgeContinuationPoint *c
 {
     EdgeResult result;
     result.code = STATUS_OK;
-    if ((*data)->last_used >= (*data)->count)
+    if ((*data)->next_free >= (*data)->count)
     {
-        printf("BrowseNextData limit(%d) reached. Cannot add this data.\n", (*data)->count);
+        EDGE_LOG_V(TAG, "BrowseNextData limit(%zu) reached. Cannot add this data.\n", (*data)->count);
         result.code = STATUS_ERROR;
         goto EXIT;
     }
 
-    int index = ++(*data)->last_used;
+    size_t index = (*data)->next_free;
     (*data)->cp[index].length = cp->length;
     (*data)->cp[index].continuationPoint = (unsigned char *) EdgeMalloc(
             cp->length * sizeof(unsigned char));
     if (IS_NULL((*data)->cp[index].continuationPoint))
     {
-        printf(
-                "Error : Malloc failed for data->cp[index].continuationPoint in addBrowseNextData\n");
+        EDGE_LOG(TAG,
+                "Error : Malloc failed for data->cp[index].continuationPoint in addBrowseNextData.");
         result.code = STATUS_ERROR;
         goto EXIT;
     }
-    for (int i = 0; i < cp->length; i++)
+    for (size_t i = 0; i < cp->length; i++)
     {
         (*data)->cp[index].continuationPoint[i] = cp->continuationPoint[i];
     }
 
     (*data)->srcNodeId[index] = cloneEdgeNodeId(nodeId);
+    (*data)->next_free++;
     EXIT: return result;
 }
 
@@ -1112,7 +1113,7 @@ EdgeBrowseNextData *cloneBrowseNextData(EdgeBrowseNextData* browseNextData)
     VERIFY_NON_NULL(clone, NULL);
     clone->browseParam = browseNextData->browseParam;
     clone->count = browseNextData->count;
-    clone->last_used = -1;
+    clone->next_free = 0;
     clone->cp = (EdgeContinuationPoint *)EdgeCalloc(clone->count, sizeof(EdgeContinuationPoint));
     if(IS_NULL(clone->cp))
     {
@@ -1128,7 +1129,7 @@ EdgeBrowseNextData *cloneBrowseNextData(EdgeBrowseNextData* browseNextData)
         EdgeFree(clone);
         return NULL;
     }
-    for (int i = 0; i <= browseNextData->last_used; ++i)
+    for (size_t i = 0; i < browseNextData->next_free; ++i)
     {
         addBrowseNextData(&clone, &browseNextData->cp[i], browseNextData->srcNodeId[i]);
     }
