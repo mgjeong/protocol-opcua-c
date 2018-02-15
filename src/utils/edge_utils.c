@@ -133,38 +133,6 @@ unsigned int getListSize(List *ptr)
     return size;
 }
 
-void deleteListNode(List **head, void *data)
-{
-    if (!head || !data)
-    {
-        return;
-    }
-
-    List *ptr = *head, *prev = NULL;
-    while (ptr && ptr->data != data)
-    {
-        prev = ptr;
-        ptr = ptr->link;
-    }
-
-    if (!ptr)
-    {
-        return;
-    }
-
-    if (prev)
-    {
-        prev->link = ptr->link;
-    }
-    else
-    {
-        *head = ptr->link;
-    }
-
-    ptr->link = NULL;
-    EdgeFree(ptr);
-}
-
 void deleteList(List **head)
 {
     if (!head)
@@ -323,7 +291,14 @@ EdgeMethodRequestParams* cloneEdgeMethodRequestParams(EdgeMethodRequestParams *m
         {
             size_t size = get_size(methodParams->inpArg[i]->argType, false);
             clone->inpArg[i]->scalarValue = (void *) EdgeCalloc(1, size);
-            memcpy(clone->inpArg[i]->scalarValue, methodParams->inpArg[i]->scalarValue, size);
+            if (methodParams->inpArg[i]->argType == String)
+            {
+                clone->inpArg[i]->scalarValue = cloneString((char*) methodParams->inpArg[i]->scalarValue);
+            }
+            else
+            {
+                memcpy(clone->inpArg[i]->scalarValue, methodParams->inpArg[i]->scalarValue, size);
+            }
         }
         else if (ARRAY_1D == methodParams->inpArg[i]->valType)
         {
@@ -1014,7 +989,7 @@ EdgeMessage* cloneEdgeMessage(EdgeMessage *msg)
                             cloneVersatility->arrayLength = srcVersatility->arrayLength;
                             cloneVersatility->isArray = srcVersatility->isArray;
                             size_t size = get_size(msg->requests[i]->type, srcVersatility->isArray);
-                            if (msg->requests[i]->type == String)
+                            if (msg->requests[i]->type == String || msg->requests[i]->type == ByteString)
                             {
                                 char **srcVal = (char**) srcVersatility->value;
                                 char **dstVal = (char **) EdgeCalloc(srcVersatility->arrayLength, sizeof(char*));

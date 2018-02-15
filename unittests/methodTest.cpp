@@ -75,7 +75,7 @@ void testMethod_P2(char *endpointUri)
     strncpy(array[4], "elephant", strlen("elephant"));
     array[4][strlen("elephant")] = '\0';
 
-    EdgeResult ret = insertEdgeMethodParameter(&msg, "{2;S;v=0}string_method(x)", 1,
+    EdgeResult ret = insertEdgeMethodParameter(&msg, "{2;S;v=0}print_string_array(x)", 1,
             String, ARRAY_1D, NULL, (void *) array, 5);
     EXPECT_EQ(ret.code, STATUS_OK);
     sendRequest(msg);
@@ -85,6 +85,21 @@ void testMethod_P2(char *endpointUri)
 }
 
 void testMethod_P3(char *endpointUri)
+{
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_METHOD);
+    ASSERT_EQ(NULL != msg, true);
+
+    EdgeResult ret = insertEdgeMethodParameter(&msg, "{2;S;v=0}print_string(x)", 1,
+                   String, SCALAR, (void*) "string method", NULL, 0);
+    ASSERT_EQ(ret.code, STATUS_OK);
+    ret = sendRequest(msg);
+    ASSERT_EQ(ret.code, STATUS_OK);
+    //destroyEdgeMessage(msg);
+
+    sleep(1);
+}
+
+void testMethod_P4(char *endpointUri)
 {
     EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_METHOD);
     EXPECT_EQ(NULL != msg, true);

@@ -59,8 +59,8 @@ EdgeResult executeMethod(UA_Client *client, const EdgeMessage *msg)
             {
                 UA_String val = UA_STRING_ALLOC((char * ) params->inpArg[idx]->scalarValue);
                 UA_Variant_setScalarCopy(&input[idx], &val, &UA_TYPES[type]);
-                EdgeFree(val.data);
                 UA_String_deleteMembers(&val);
+                EdgeFree(val.data);
             }
             else
             {
@@ -242,7 +242,7 @@ EdgeResult executeMethod(UA_Client *client, const EdgeMessage *msg)
                     versatility->arrayLength = output[i].arrayLength;
                     versatility->isArray = true;
                     size_t size = get_size(response[i]->type, true);
-                    if (response[i]->type == String)
+                    if (response[i]->type == String || response[i]->type == ByteString)
                     {
                         // String Array
                         UA_String *str = ((UA_String *) output[i].data);
@@ -257,30 +257,7 @@ EdgeResult executeMethod(UA_Client *client, const EdgeMessage *msg)
                             values[j] = (char *) EdgeMalloc(str[j].length+1);
                             if(IS_NULL(values[j]))
                             {
-                                EDGE_LOG_V(TAG, "Error : Malloc failed for String Array value %d in Read Group\n", i);
-                                goto EXIT;
-                            }
-                            strncpy(values[j], (char *) str[j].data, str[j].length);
-                            values[j][str[j].length] = '\0';
-                        }
-                        versatility->value = (void *) values;
-                    }
-                    else if (response[i]->type == ByteString)
-                    {
-                        // ByteString Array
-                        UA_ByteString *str = ((UA_ByteString *) output[i].data);
-                        char **values = (char **) EdgeMalloc(sizeof(char *) * output[i].arrayLength);
-                        if(IS_NULL(values))
-                        {
-                            EDGE_LOG(TAG, "Error : Malloc failed for ByteString Array value in Read Group\n");
-                            goto EXIT;
-                        }
-                        for (int j = 0; j < output[i].arrayLength; j++)
-                        {
-                            values[j] = (char *) EdgeMalloc(str[j].length + 1);
-                            if(IS_NULL(values[j]))
-                            {
-                                EDGE_LOG_V(TAG, "Error : Malloc failed for ByteString Array value %d in Read Group\n", i);
+                                EDGE_LOG_V(TAG, "Error : Malloc failed for String/ByteString Array value %d in Read Group\n", i);
                                 goto EXIT;
                             }
                             strncpy(values[j], (char *) str[j].data, str[j].length);

@@ -50,6 +50,7 @@ static bool startServerFlag = false;
 static bool startClientFlag = false;
 static bool readNodeFlag = true;
 static bool browseNodeFlag = false;
+static bool browseNextFlag = false;
 static bool methodCallFlag = false;
 
 char node_arr[13][30] =
@@ -60,16 +61,7 @@ char node_arr[13][30] =
 static int method_arr[5] =
 { 15, 25, 35, 45, 55 };
 
-typedef struct BrowseNextData
-{
-    EdgeBrowseParameter browseParam;
-    int count;
-    int last_used;
-    EdgeContinuationPoint *cp; // Continuation point List. Size of list = last_used.
-    EdgeNodeId **srcNodeId; // Id of source node of every continuation point. Size of list = last_used.
-} BrowseNextData;
-
-BrowseNextData *browseNextData = NULL;
+EdgeBrowseNextData *browseNextData = NULL;
 
 extern void testRead_P1(char *endpointUri);
 extern void testRead_P2(char *endpointUri);
@@ -89,6 +81,7 @@ extern void testWriteWithoutMessage();
 extern void testMethod_P1(char *endpointUri);
 extern void testMethod_P2(char *endpointUri);
 extern void testMethod_P3(char *endpointUri);
+extern void testMethod_P4(char *endpointUri);
 extern void testMethodWithoutEndpoint();
 extern void testMethodWithoutValueAlias(char *endpointUri);
 extern void testMethodWithoutMessage();
@@ -303,24 +296,12 @@ extern "C"
                                 PRINT_ARG(
                                         "[Application response Callback] Data read from node ===>> ",
                                         *((int16_t * )data->responses[idx]->message->value));
-
-                                int16_t temp = *((int16_t *) data->responses[idx]->message->value);
-                                if (readNodeFlag)
-                                    EXPECT_EQ(temp, TEST_UINT16_R);
-                                else
-                                    EXPECT_EQ(temp, TEST_UINT16_W);
                             }
                             else if (data->responses[idx]->type == Int32)
                             {
                                 PRINT_ARG(
                                         "[Application response Callback] Data read from node ===>>  ",
                                         *((int32_t * )data->responses[idx]->message->value));
-
-                                int temp = *((int *) data->responses[idx]->message->value);
-                                if (readNodeFlag)
-                                    EXPECT_EQ(temp, TEST_INT32_R);
-                                else
-                                    EXPECT_EQ(temp, TEST_INT32_W);
                             }
                             else if (data->responses[idx]->type == UInt32)
                                 PRINT_ARG(
@@ -339,16 +320,6 @@ extern "C"
                                 PRINT_ARG(
                                         "[Application response Callback] Data read from node ===>>  ",
                                         (char * )data->responses[idx]->message->value);
-
-                                char *temp = ((char *) data->responses[idx]->message->value);
-                                if (readNodeFlag)
-                                    EXPECT_EQ(
-                                            (strcmp(temp, TEST_STR1_R) && strcmp(temp, TEST_STR2_R) && strcmp(temp, TEST_STR3_R)),
-                                            0);
-                                else
-                                    EXPECT_EQ(
-                                            (strcmp(temp, TEST_STR1_W) && strcmp(temp, TEST_STR2_W) && strcmp(temp, TEST_STR3_W)),
-                                            0);
                             }
                         }
                     }
@@ -550,6 +521,30 @@ extern "C"
             if (data->cpList && data->cpList->count > 0)
             {
                 // Do somethings
+                if (data->cpList && data->cpList->count > 0)
+                {
+                    printf("Total number of continuation points: %zu\n", data->cpList->count);
+                    for (size_t i = 0; i < data->cpList->count; ++i)
+                    {
+                        EdgeNodeId *nodeId = data->responses[i]->nodeInfo->nodeId;
+                        printf("Node ID of Continuation point[%zu]: ", i + 1);
+                        (nodeId->type == INTEGER) ? printf("%d\n", nodeId->integerNodeId) : printf("%s\n", nodeId->nodeId);
+
+                        int length = data->cpList->cp[i]->length;
+                        unsigned char *cp = data->cpList->cp[i]->continuationPoint;
+                        printf("Length: %d\n", length);
+                        for (int j = 0; j < length; ++j)
+                        {
+                            printf("%02X", cp[j]);
+                        }
+                        printf("\n");
+
+                        EdgeResult ret = addBrowseNextData(&browseNextData, data->cpList->cp[i], nodeId);
+                        if (STATUS_OK != ret.code)
+                            break;
+                    }
+                    printf("\n\n");
+                }
             }
         }
     }
@@ -591,7 +586,6 @@ extern "C"
     /* discovery callback */
     static void endpoint_found_cb(EdgeDevice *device)
     {
-        PRINT("endpoint foung\n");
         if (device)
         {
             int num_endpoints = device->num_endpoints;
@@ -630,6 +624,17 @@ void increment_int32Array_method(int inpSize, void **input, int outSize, void **
         outputArray[i] = inputArray[i] + *delta;
     }
     output[0] = (void *) outputArray;
+}
+
+void test_method_print_string(int inpSize, void **input, int outSize, void **output)
+{
+    char *inp = (char*) input[0];
+    printf("\n[print() method called] ");
+    printf(" %s\n", inp );
+    char *out = (char*) EdgeMalloc(sizeof(char) * (strlen(inp)+1));
+    strncpy(out, inp, strlen(inp));
+    out[strlen(inp)] = '\0';
+    output[0] = (void *) out;
 }
 
 void string_method(int inpSize, void **input, int outSize, void **output)
@@ -753,6 +758,93 @@ static void browseViews()
     sleep(1);
 }
 
+static void browse_next()
+{
+    int  maxReferencesPerNode = 2;
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_BROWSE);
+    EXPECT_EQ(NULL != msg, true);
+
+    EdgeNodeInfo* nodeInfo = createEdgeNodeInfoForNodeId(INTEGER, RootFolder, SYSTEM_NAMESPACE_INDEX);
+    EdgeBrowseParameter param = {DIRECTION_FORWARD, maxReferencesPerNode};
+    insertBrowseParameter(&msg, nodeInfo, param);
+
+    browseNextData = initBrowseNextData(browseNextData, msg->browseParam, 1000, -1);
+    EXPECT_EQ(browseNodeFlag, false);
+    sendRequest(msg);
+    destroyEdgeMessage(msg);
+    sleep(1);
+
+    /* Wait some time and check whether browse callback is received */
+    EXPECT_EQ(browseNodeFlag, true);
+    browseNodeFlag = false;
+
+    EdgeBrowseNextData *clone = cloneBrowseNextData(browseNextData);
+    EXPECT_EQ(NULL != clone, true);
+    browseNextData = initBrowseNextData(browseNextData, &browseNextData->browseParam, 1000, -1);
+    size_t requestLength = clone->last_used + 1;
+    msg = createEdgeMessage(endpointUri, requestLength, CMD_BROWSENEXT);
+
+    if(requestLength == 1)
+    {
+        msg->request->nodeInfo = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
+        EXPECT_EQ(NULL!= msg->request->nodeInfo, true);
+        msg->request->nodeInfo->nodeId = clone->srcNodeId[0];
+    }
+    else
+    {
+        for (size_t i = 0; i < requestLength; i++)
+        {
+            msg->requests[i] = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
+            EXPECT_EQ(NULL!= msg->requests[i], true);
+
+            msg->requests[i]->nodeInfo = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
+            EXPECT_EQ(NULL!= msg->requests[i]->nodeInfo, true);
+            msg->requests[i]->nodeInfo->nodeId = clone->srcNodeId[i];
+        }
+    }
+    msg->requestLength = requestLength;
+    msg->browseParam = &clone->browseParam;
+
+    msg->cpList = (EdgeContinuationPointList *)EdgeCalloc(1, sizeof(EdgeContinuationPointList));
+    EXPECT_EQ(NULL != msg->cpList, true);
+    msg->cpList->count = requestLength;
+    msg->cpList->cp = (EdgeContinuationPoint **)calloc(requestLength, sizeof(EdgeContinuationPoint *));
+    EXPECT_EQ(NULL != msg->cpList->cp, true);
+    for (size_t i = 0; i < requestLength; i++)
+    {
+        msg->cpList->cp[i] = &clone->cp[i];
+    }
+
+    sendRequest(msg);
+
+    // Free request or requests based on the request length.
+    if(requestLength == 1)
+    {
+        msg->request->nodeInfo->nodeId = NULL;
+    }
+    else
+    {
+        for (size_t i = 0; i < requestLength; i++)
+            msg->requests[i]->nodeInfo->nodeId = NULL;
+    }
+
+    // Free continuation point list
+    for (size_t i = 0; i < requestLength; i++)
+    {
+        msg->cpList->cp[i] = NULL;
+    }
+
+    msg->browseParam = NULL;
+    destroyEdgeMessage(msg);
+    destroyBrowseNextData(clone);
+
+    sleep(1);
+
+    /* Wait some time and check whether browse callback is received */
+    EXPECT_EQ(browseNodeFlag, true);
+    browseNodeFlag = false;
+}
+
 static void startClient(char *addr, int port, char *securityPolicyUri)
 {
     PRINT("                       Client connect            ");
@@ -828,13 +920,10 @@ static void stop_server()
 
     closeServer(epStop);
 
-    printf("b4 assert \n");
     //ASSERT_TRUE(startServerFlag == false);
-    printf("after assert \n");
 
     deleteMessage(NULL, epStop);
 
-    printf("clean cbs\n");
     cleanCallbacks();
 }
 
@@ -1183,6 +1272,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
 
     EXPECT_EQ(startServerFlag, true);
 
+#if 0
     EdgeNodeItem *item = NULL;
 
     // VARIABLE NODE with string variant:
@@ -1360,6 +1450,713 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     EdgeFree(edgeNodeId);
 
     deleteNodeItem(item);
+#endif
+
+    int index = 0;
+    EdgeNodeItem* item = NULL;
+    item = createVariableNodeItem("String1", String, (void*) "test1", VARIABLE_NODE);
+    VERIFY_NON_NULL_NR(item);
+    createNode(DEFAULT_NAMESPACE_VALUE, item);
+    printf("\n|------------[Added]  %s\n", item->browseName);
+    deleteNodeItem(item);
+
+    item = createVariableNodeItem("String2", String, (void*) "test2", VARIABLE_NODE);
+    VERIFY_NON_NULL_NR(item);
+    createNode(DEFAULT_NAMESPACE_VALUE, item);
+    printf("\n|------------[Added] %s\n", item->browseName);
+    deleteNodeItem(item);
+
+    item = createVariableNodeItem("String3", String, (void*) "test3", VARIABLE_NODE);
+    VERIFY_NON_NULL_NR(item);
+    createNode(DEFAULT_NAMESPACE_VALUE, item);
+    printf("\n|------------[Added] %s\n", item->browseName);
+    deleteNodeItem(item);
+
+    VERIFY_NON_NULL_NR(item);
+    printf("\n[%d] Variable node with XML ELEMENT variant: \n", ++index);
+    UA_XmlElement *xml_value = (UA_XmlElement *) EdgeMalloc(sizeof(UA_XmlElement));
+    if (IS_NOT_NULL(xml_value))
+    {
+        xml_value->length = 2;
+        xml_value->data = (UA_Byte *) "ab";
+        item = createVariableNodeItem("xml_value", XmlElement, (void *) xml_value, VARIABLE_NODE);
+        VERIFY_NON_NULL_NR(item);
+        createNode(DEFAULT_NAMESPACE_VALUE, item);
+        printf("\n|------------[Added] %s\n", item->browseName);
+        EdgeFree(xml_value);
+        deleteNodeItem(item);
+    }
+    else
+    {
+        printf("Error :: EdgeMalloc failed for UA_XmlElement in Test create Nodes\n");
+    }
+
+    printf("\n[%d] Variable node with localized text variant: \n", ++index);
+    UA_LocalizedText *lt_value = (UA_LocalizedText *) EdgeMalloc(sizeof(UA_LocalizedText));
+    if (IS_NOT_NULL(lt_value))
+    {
+        lt_value->locale = UA_STRING_ALLOC("COUNTRY");
+        lt_value->text = UA_STRING_ALLOC("INDIA");
+        item = createVariableNodeItem("LocalizedText", LocalizedText, (void *) lt_value,
+                VARIABLE_NODE);
+        VERIFY_NON_NULL_NR(item);
+        createNode(DEFAULT_NAMESPACE_VALUE, item);
+        printf("\n|------------[Added] %s\n", item->browseName);
+        EdgeFree(lt_value->locale.data);
+        EdgeFree(lt_value->text.data);
+        EdgeFree(lt_value);
+        deleteNodeItem(item);
+    }
+    else
+    {
+        printf("Error :: EdgeMalloc failed for UA_LocalizedText in Test create Nodes\n");
+    }
+
+    printf("\n[%d] Variable node with byte string variant: \n", ++index);
+    UA_ByteString *bs_value = (UA_ByteString *) EdgeMalloc(sizeof(UA_ByteString));
+    if (IS_NOT_NULL(bs_value))
+    {
+        bs_value->length = 7;
+        bs_value->data = (UA_Byte *) "samsung";
+        item = createVariableNodeItem("ByteString", ByteString, (void *) bs_value, VARIABLE_NODE);
+        VERIFY_NON_NULL_NR(item);
+        createNode(DEFAULT_NAMESPACE_VALUE, item);
+        printf("\n|------------[Added] %s\n", item->browseName);
+        EdgeFree(bs_value);
+        deleteNodeItem(item);
+    }
+    else
+    {
+        printf("Error :: EdgeMalloc failed for UA_ByteString in Test create Nodes\n");
+    }
+
+    printf("\n[%d] Variable node with byte variant: \n", ++index);
+    UA_Byte b_value = 2;
+    item = createVariableNodeItem("Byte", Byte, (void *) &b_value, VARIABLE_NODE);
+    VERIFY_NON_NULL_NR(item);
+    createNode(DEFAULT_NAMESPACE_VALUE, item);
+    printf("\n|------------[Added] %s\n", item->browseName);
+    deleteNodeItem(item);
+
+    printf("\n[%d] Variable node with float variant: \n", ++index);
+    float f_value = 4.4;
+    item = createVariableNodeItem("Float", Float, (void *) &f_value, VARIABLE_NODE);
+    VERIFY_NON_NULL_NR(item);
+    createNode(DEFAULT_NAMESPACE_VALUE, item);
+    printf("\n|------------[Added] %s\n", item->browseName);
+    deleteNodeItem(item);
+
+    printf("\n[%d] Variable node with int variant: \n", ++index);
+    int value = 30;
+    item = createVariableNodeItem("UInt16", UInt16, (void *) &value, VARIABLE_NODE);
+    VERIFY_NON_NULL_NR(item);
+    createNode(DEFAULT_NAMESPACE_VALUE, item);
+    printf("\n|------------[Added] %s\n", item->browseName);
+    deleteNodeItem(item);
+
+    printf("\n[%d] Variable node with UInt32 variant: \n", ++index);
+    value = 444;
+    item = createVariableNodeItem("UInt32", UInt32, (void *) &value, VARIABLE_NODE);
+    VERIFY_NON_NULL_NR(item);
+    createNode(DEFAULT_NAMESPACE_VALUE, item);
+    printf("\n|------------[Added] %s\n", item->browseName);
+    deleteNodeItem(item);
+
+    printf("\n[%d] Variable node with UInt64 variant: \n", ++index);
+    value = 3445516;
+    item = createVariableNodeItem("UInt64", UInt64, (void *) &value, VARIABLE_NODE);
+    VERIFY_NON_NULL_NR(item);
+    createNode(DEFAULT_NAMESPACE_VALUE, item);
+    printf("\n|------------[Added] %s\n", item->browseName);
+    deleteNodeItem(item);
+
+    printf("\n[%d] Variable node with Int16 variant: \n", ++index);
+    value = 4;
+    item = createVariableNodeItem("Int16", Int16, (void *) &value, VARIABLE_NODE);
+    VERIFY_NON_NULL_NR(item);
+    createNode(DEFAULT_NAMESPACE_VALUE, item);
+    printf("\n|------------[Added] %s\n", item->browseName);
+    deleteNodeItem(item);
+
+    printf("\n[%d] Variable node with Int32 variant: \n", ++index);
+    value = 40;
+    item = createVariableNodeItem("Int32", Int32, (void *) &value, VARIABLE_NODE);
+    VERIFY_NON_NULL_NR(item);
+    createNode(DEFAULT_NAMESPACE_VALUE, item);
+    printf("\n|------------[Added] %s\n", item->browseName);
+    deleteNodeItem(item);
+
+    item = (EdgeNodeItem *) EdgeCalloc(1, sizeof(EdgeNodeItem));
+    VERIFY_NON_NULL_NR(item);
+    printf("\n[%d] Variable node with Int64 variant: \n", ++index);
+    value = 32700;
+    item = createVariableNodeItem("Int64", Int64, (void *) &value, VARIABLE_NODE);
+    VERIFY_NON_NULL_NR(item);
+    createNode(DEFAULT_NAMESPACE_VALUE, item);
+    printf("\n|------------[Added] %s\n", item->browseName);
+    deleteNodeItem(item);
+
+    printf("\n[%d] Variable node with UInt32 variant: \n", ++index);
+    uint32_t int32_val = 4456;
+    item = createVariableNodeItem("UInt32writeonly", UInt32, (void *) &int32_val, VARIABLE_NODE);
+    VERIFY_NON_NULL_NR(item);
+    item->accessLevel = WRITE;
+    item->userAccessLevel = WRITE;
+    createNode(DEFAULT_NAMESPACE_VALUE, item);
+    printf("\n|------------[Added] %s\n", item->browseName);
+    deleteNodeItem(item);
+
+    printf("\n[%d] Variable node with UInt64 variant: \n", ++index);
+    int64_t int64_val = 3270000;
+    item = createVariableNodeItem("UInt64readonly", UInt64, (void *) &int64_val, VARIABLE_NODE);
+    VERIFY_NON_NULL_NR(item);
+    item->userAccessLevel = READ;
+    item->accessLevel = READ;
+    createNode(DEFAULT_NAMESPACE_VALUE, item);
+    printf("\n|------------[Added] %s\n", item->browseName);
+    deleteNodeItem(item);
+
+    printf("\n[%d] Variable node with double variant: \n", ++index);
+    double d_val = 50.4;
+    item = createVariableNodeItem("Double", Double, (void *) &d_val, VARIABLE_NODE);
+    VERIFY_NON_NULL_NR(item);
+    createNode(DEFAULT_NAMESPACE_VALUE, item);
+    printf("\n|------------[Added] %s\n", item->browseName);
+    deleteNodeItem(item);
+
+    printf("\n[%d] Variable node with boolean variant: \n", ++index);
+    bool flag = true;
+    item = createVariableNodeItem("Boolean", Boolean, (void *) &flag, VARIABLE_NODE);
+    VERIFY_NON_NULL_NR(item);
+    createNode(DEFAULT_NAMESPACE_VALUE, item);
+    printf("\n|------------[Added] %s\n", item->browseName);
+    deleteNodeItem(item);
+
+    printf("\n[%d] Variable node with dateTime variant: \n", ++index);
+    UA_DateTime time = UA_DateTime_now();
+    item = createVariableNodeItem("DateTime", DateTime, (void *) &time, VARIABLE_NODE);
+    VERIFY_NON_NULL_NR(item);
+    createNode(DEFAULT_NAMESPACE_VALUE, item);
+    printf("\n|------------[Added] %s\n", item->browseName);
+    deleteNodeItem(item);
+
+    printf("\n[%d] Variable node with SByte variant: \n", ++index);
+    UA_SByte sbyte = 2;
+    item = createVariableNodeItem("SByte", SByte, (void *) &sbyte, VARIABLE_NODE);
+    VERIFY_NON_NULL_NR(item);
+    createNode(DEFAULT_NAMESPACE_VALUE, item);
+    printf("\n|------------[Added] %s\n", item->browseName);
+    deleteNodeItem(item);
+
+    printf("\n[%d] Variable node with GUID variant: \n", ++index);
+    UA_Guid guid =
+    { 1, 0, 1,
+    { 0, 0, 0, 0, 1, 1, 1, 1 } };
+    item = createVariableNodeItem("Guid", Guid, (void *) &guid, VARIABLE_NODE);
+    VERIFY_NON_NULL_NR(item);
+    createNode(DEFAULT_NAMESPACE_VALUE, item);
+    printf("\n|------------[Added] %s\n", item->browseName);
+    deleteNodeItem(item);
+
+    printf("\n[%d] Variable node with qualified name variant: \n", ++index);
+    UA_QualifiedName *qn_value = (UA_QualifiedName *) EdgeMalloc(sizeof(UA_QualifiedName));
+    if (IS_NOT_NULL(qn_value))
+    {
+        UA_String str = UA_STRING_ALLOC("qualifiedName");
+        qn_value->namespaceIndex = 2;
+        qn_value->name = str;
+        item = createVariableNodeItem("QualifiedName", QualifiedName, (void *) qn_value,
+                VARIABLE_NODE);
+        VERIFY_NON_NULL_NR(item);
+        createNode(DEFAULT_NAMESPACE_VALUE, item);
+        printf("\n|------------[Added] %s\n", item->browseName);
+        EdgeFree(str.data);
+        EdgeFree(qn_value);
+        deleteNodeItem(item);
+    }
+    else
+    {
+        printf("Error :: EdgeMalloc failed for UA_QualifiedName in Test create Nodes\n");
+    }
+
+    printf("\n[%d] Variable node with NODEID variant: \n", ++index);
+    UA_NodeId node = UA_NODEID_NUMERIC(DEFAULT_NAMESPACE_INDEX, RootFolder);
+    item = createVariableNodeItem("NodeId", NodeId, (void *) &node, VARIABLE_NODE);
+    VERIFY_NON_NULL_NR(item);
+    createNode(DEFAULT_NAMESPACE_VALUE, item);
+    printf("\n|------------[Added] %s\n", item->browseName);
+    deleteNodeItem(item);
+
+    /******************* Array *********************/
+    printf("\n[Create Array Node]\n");
+    printf("\n[%d] Array node with ByteString values: \n", ++index);
+    UA_ByteString **dataArray = (UA_ByteString **) malloc(sizeof(UA_ByteString *) * 5);
+    if (IS_NOT_NULL(dataArray))
+    {
+        dataArray[0] = (UA_ByteString *) EdgeMalloc(sizeof(UA_ByteString));
+        dataArray[1] = (UA_ByteString *) EdgeMalloc(sizeof(UA_ByteString));
+        dataArray[2] = (UA_ByteString *) EdgeMalloc(sizeof(UA_ByteString));
+        dataArray[3] = (UA_ByteString *) EdgeMalloc(sizeof(UA_ByteString));
+        dataArray[4] = (UA_ByteString *) EdgeMalloc(sizeof(UA_ByteString));
+        if (IS_NOT_NULL(dataArray[0]) && IS_NOT_NULL(dataArray[1]) && IS_NOT_NULL(dataArray[2])
+        && IS_NOT_NULL(dataArray[3]) && IS_NOT_NULL(dataArray[4]))
+        {
+            *dataArray[0] = UA_BYTESTRING_ALLOC("abcde");
+            *dataArray[1] = UA_BYTESTRING_ALLOC("fghij");
+            *dataArray[2] = UA_BYTESTRING_ALLOC("klmno");
+            *dataArray[3] = UA_BYTESTRING_ALLOC("pqrst");
+            *dataArray[4] = UA_BYTESTRING_ALLOC("uvwxyz");
+            item = createVariableNodeItem("ByteStringArray", ByteString, (void *) dataArray,
+                    VARIABLE_NODE);
+            VERIFY_NON_NULL_NR(item);
+            item->nodeType = ARRAY_NODE;
+            item->arrayLength = 5;
+            createNode(DEFAULT_NAMESPACE_VALUE, item);
+            printf("\n|------------[Added] %s\n", item->browseName);
+        }
+        else
+        {
+            printf(
+                    "Error :: EdgeMalloc failed for UA_ByteString dataArray INDEX in Test create Nodes\n");
+        }
+
+        for (int i = 0; i < 5; i++)
+        {
+            UA_ByteString temp = *dataArray[i];
+            EdgeFree(temp.data);
+            EdgeFree(dataArray[i]);
+        }
+        EdgeFree(dataArray);
+        deleteNodeItem(item);
+    }
+    else
+    {
+        printf("Error :: EdgeMalloc failed for UA_ByteString dataArray in Test create Nodes\n");
+    }
+
+    printf("\n[%d] Array node with Boolean values: \n", ++index);
+    bool *arr = (bool *) EdgeMalloc(sizeof(bool) * 5);
+    if (IS_NOT_NULL(arr))
+    {
+        arr[0] = true;
+        arr[1] = false;
+        arr[2] = true;
+        arr[3] = false;
+        arr[4] = true;
+        item = createVariableNodeItem("BoolArray", Boolean, (void *) arr, VARIABLE_NODE);
+        VERIFY_NON_NULL_NR(item);
+        item->nodeType = ARRAY_NODE;
+        item->arrayLength = 5;
+        createNode(DEFAULT_NAMESPACE_VALUE, item);
+        printf("\n|------------[Added] %s\n", item->browseName);
+        EdgeFree(arr);
+        deleteNodeItem(item);
+    }
+    else
+    {
+        printf("Error :: EdgeMalloc failed for bool array in Test create Nodes\n");
+    }
+
+    printf("\n[%d] Array node with SByte values: \n", ++index);
+    UA_SByte *sbData = (UA_SByte *) EdgeMalloc(sizeof(UA_SByte) * 5);
+    if (IS_NOT_NULL(sbData))
+    {
+        sbData[0] = -128;
+        sbData[1] = 112;
+        sbData[2] = 120;
+        sbData[3] = 122;
+        sbData[4] = 127;
+        item = createVariableNodeItem("SByteArray", SByte, (void *) sbData, VARIABLE_NODE);
+        VERIFY_NON_NULL_NR(item);
+        item->nodeType = ARRAY_NODE;
+        item->arrayLength = 5;
+        createNode(DEFAULT_NAMESPACE_VALUE, item);
+        printf("\n|------------[Added] %s\n", item->browseName);
+        EdgeFree(sbData);
+        deleteNodeItem(item);
+    }
+    else
+    {
+        printf("Error :: EdgeMalloc failed for UA_SByte array in Test create Nodes\n");
+    }
+
+    printf("\n[%d] Array node with Int32 values: \n", ++index);
+    int *intData = (int *) EdgeMalloc(sizeof(int) * 7);
+    if (IS_NOT_NULL(intData))
+    {
+        intData[0] = 11;
+        intData[1] = 22;
+        intData[2] = 33;
+        intData[3] = 44;
+        intData[4] = 55;
+        intData[5] = 66;
+        intData[6] = 77;
+        item = createVariableNodeItem("int32Array", Int32, (void *) intData, VARIABLE_NODE);
+        VERIFY_NON_NULL_NR(item);
+        item->nodeType = ARRAY_NODE;
+        item->arrayLength = 7;
+        createNode(DEFAULT_NAMESPACE_VALUE, item);
+        printf("\n|------------[Added] %s\n", item->browseName);
+        EdgeFree(intData);
+        deleteNodeItem(item);
+    }
+    else
+    {
+        printf("Error :: EdgeMalloc failed for int Array in Test create Nodes\n");
+    }
+
+    printf("\n[%d] Array node with Int64 values: \n", ++index);
+    int *int64Data = (int *) EdgeMalloc(sizeof(int) * 5);
+    if (IS_NOT_NULL(int64Data))
+    {
+        int64Data[0] = 11111;
+        int64Data[1] = 22222;
+        int64Data[2] = 33333;
+        int64Data[3] = 44444;
+        int64Data[4] = 55555;
+        item = createVariableNodeItem("int64Array", Int64, (void *) int64Data, VARIABLE_NODE);
+        VERIFY_NON_NULL_NR(item);
+        item->nodeType = ARRAY_NODE;
+        item->arrayLength = 5;
+        createNode(DEFAULT_NAMESPACE_VALUE, item);
+        printf("\n|------------[Added] %s\n", item->browseName);
+        EdgeFree(int64Data);
+        deleteNodeItem(item);
+    }
+    else
+    {
+        printf("Error :: EdgeMalloc failed for int64Data Array in Test create Nodes\n");
+    }
+
+    printf("\n[%d] Array node with double values: \n", ++index);
+    double *data = (double *) EdgeMalloc(sizeof(double) * 5);
+    if (IS_NOT_NULL(data))
+    {
+        data[0] = 10.2;
+        data[1] = 20.2;
+        data[2] = 30.2;
+        data[3] = 40.2;
+        data[4] = 50.2;
+        item = createVariableNodeItem("DoubleArray", Double, (void *) data, VARIABLE_NODE);
+        VERIFY_NON_NULL_NR(item);
+        item->nodeType = ARRAY_NODE;
+        item->arrayLength = 5;
+        createNode(DEFAULT_NAMESPACE_VALUE, item);
+        printf("\n|------------[Added] %s\n", item->browseName);
+        EdgeFree(data);
+        deleteNodeItem(item);
+    }
+    else
+    {
+        printf("Error :: EdgeMalloc failed for double Array in Test create Nodes\n");
+    }
+
+    printf("\n[%d] Array node with string values: \n", ++index);
+    char **data1 = (char **) malloc(sizeof(char *) * 5);
+    if (IS_NOT_NULL(data1))
+    {
+        data1[0] = (char *) EdgeMalloc(10);
+        data1[1] = (char *) EdgeMalloc(10);
+        data1[2] = (char *) EdgeMalloc(10);
+        data1[3] = (char *) EdgeMalloc(10);
+        data1[4] = (char *) EdgeMalloc(10);
+
+        if (IS_NOT_NULL(data1[0]) && IS_NOT_NULL(data1[1]) && IS_NOT_NULL(data1[2])
+        && IS_NOT_NULL(data1[3]) && IS_NOT_NULL(data1[4]))
+        {
+            strncpy(data1[0], "apple", strlen("apple"));
+            data1[0][strlen("apple")] = '\0';
+            strncpy(data1[1], "ball", strlen("ball"));
+            data1[1][strlen("ball")] = '\0';
+            strncpy(data1[2], "cats", strlen("cats"));
+            data1[2][strlen("cats")] = '\0';
+            strncpy(data1[3], "dogs", strlen("dogs"));
+            data1[3][strlen("dogs")] = '\0';
+            strncpy(data1[4], "elephant", strlen("elephant"));
+            data1[4][strlen("elephant")] = '\0';
+
+            item = createVariableNodeItem("CharArray", String, (void *) data1, VARIABLE_NODE);
+            VERIFY_NON_NULL_NR(item);
+            item->nodeType = ARRAY_NODE;
+            item->arrayLength = 5;
+            createNode(DEFAULT_NAMESPACE_VALUE, item);
+            printf("\n|------------[Added] %s\n", item->browseName);
+
+            for (int i = 0; i < 5; i++)
+            {
+                EdgeFree(data1[i]);
+            }
+            EdgeFree(data1);
+            deleteNodeItem(item);
+        }
+        else
+        {
+            printf("Error :: EdgeMalloc failed for char dataArray in Test create Nodes\n");
+        }
+    }
+    else
+    {
+        printf("Error :: EdgeMalloc failed for char Array in Test create Nodes\n");
+    }
+
+    printf("\n[%d] Variable node with byte array variant: \n", ++index);
+    UA_Byte *b_arrvalue = (UA_Byte *) EdgeCalloc(1, sizeof(UA_Byte) * 5);
+    if (IS_NOT_NULL(b_arrvalue))
+    {
+        b_arrvalue[0] = 0x11;
+        b_arrvalue[1] = 0x22;
+        b_arrvalue[2] = 0x33;
+        b_arrvalue[3] = 0x44;
+        b_arrvalue[4] = 0x55;
+        item = createVariableNodeItem("ByteArray", Byte, (void *) b_arrvalue, VARIABLE_NODE);
+        VERIFY_NON_NULL_NR(item);
+        item->arrayLength = 5;
+        item->nodeType = ARRAY_NODE;
+        createNode(DEFAULT_NAMESPACE_VALUE, item);
+        printf("\n|------------[Added] %s\n", item->browseName);
+        EdgeFree(b_arrvalue);
+        deleteNodeItem(item);
+    }
+    else
+    {
+        printf("Error :: EdgeMalloc failed for UA_Byte Array in Test create Nodes\n");
+    }
+
+    /******************* Object Node *********************/
+    printf("\n[Create Object Node]\n");
+    printf("\n[%d] Object node : \"Object1\"\n", ++index);
+    EdgeNodeId *edgeNodeId = (EdgeNodeId *) EdgeCalloc(1, sizeof(EdgeNodeId));
+    if (IS_NOT_NULL(edgeNodeId))
+    {
+        item = createNodeItem("Object1", OBJECT_NODE, edgeNodeId);
+        VERIFY_NON_NULL_NR(item);
+        createNode(DEFAULT_NAMESPACE_VALUE, item);
+        printf("\n|------------[Added] %s\n", item->browseName);
+        EdgeFree(item->sourceNodeId);
+        deleteNodeItem(item);
+    }
+    else
+    {
+        printf("Error :: EdgeMalloc failed for Object1 in Test create Nodes\n");
+    }
+
+    printf("\n[%d] Object node : \"Object2\" with source Node \"Object1\"\n", ++index);
+    edgeNodeId = (EdgeNodeId *) EdgeMalloc(sizeof(EdgeNodeId));
+    if (IS_NOT_NULL(edgeNodeId))
+    {
+        edgeNodeId->nodeId = "Object1";
+        item = createNodeItem("Object2", OBJECT_NODE, edgeNodeId);
+        VERIFY_NON_NULL_NR(item);
+        createNode(DEFAULT_NAMESPACE_VALUE, item);
+        printf("\n|------------[Added] %s\n", item->browseName);
+        EdgeFree(edgeNodeId);
+        deleteNodeItem(item);
+    }
+    else
+    {
+        printf("Error :: EdgeMalloc failed for Object2 in Test create Nodes\n");
+    }
+
+    /******************* View Node *********************/
+    printf("\n[Create View Node]\n");
+    printf("\n[%d] View Node with ViewNode1\n", ++index);
+    edgeNodeId = (EdgeNodeId *) EdgeCalloc(1, sizeof(EdgeNodeId));
+    if (IS_NOT_NULL(edgeNodeId))
+    {
+        item = createNodeItem("ViewNode1", VIEW_NODE, edgeNodeId);
+        VERIFY_NON_NULL_NR(item);
+        createNode(DEFAULT_NAMESPACE_VALUE, item);
+        printf("\n|------------[Added] %s\n", item->browseName);
+        EdgeFree(edgeNodeId);
+        deleteNodeItem(item);
+    }
+    else
+    {
+        printf("Error :: EdgeMalloc failed for ViewNode1 in Test create Nodes\n");
+    }
+
+    printf("\n[%d] View Node with ViewNode2\n", ++index);
+    edgeNodeId = (EdgeNodeId *) EdgeMalloc(sizeof(EdgeNodeId));
+    if (IS_NOT_NULL(edgeNodeId))
+    {
+        edgeNodeId->nodeId = "ViewNode1";
+        item = createNodeItem("ViewNode2", VIEW_NODE, edgeNodeId);
+        VERIFY_NON_NULL_NR(item);
+        createNode(DEFAULT_NAMESPACE_VALUE, item);
+        printf("\n|------------[Added] %s\n", item->browseName);
+        EdgeFree(edgeNodeId);
+        deleteNodeItem(item);
+    }
+    else
+    {
+        printf("Error :: EdgeMalloc failed for ViewNode2 in Test create Nodes\n");
+    }
+
+    /******************* Object Type Node *********************/
+    printf("\n[Create Object Type Node]\n");
+    printf("\n[%d] Object Type node : \"ObjectType1\"\n", ++index);
+    edgeNodeId = (EdgeNodeId *) EdgeMalloc(sizeof(EdgeNodeId));
+    if (IS_NOT_NULL(edgeNodeId))
+    {
+        edgeNodeId->nodeId = NULL; // no source node
+        item = createNodeItem("ObjectType1", OBJECT_TYPE_NODE, edgeNodeId);
+        VERIFY_NON_NULL_NR(item);
+        createNode(DEFAULT_NAMESPACE_VALUE, item);
+        printf("\n|------------[Added] %s\n", item->browseName);
+        EdgeFree(edgeNodeId);
+        deleteNodeItem(item);
+    }
+    else
+    {
+        printf("Error :: EdgeMalloc failed for ObjectType1 in Test create Nodes\n");
+    }
+
+    printf("\n[%d] Object Type node : \"ObjectType2\" with source Node \"ObjectType1\"\n", ++index);
+    edgeNodeId = (EdgeNodeId *) EdgeMalloc(sizeof(EdgeNodeId));
+    if (IS_NOT_NULL(edgeNodeId))
+    {
+        edgeNodeId->nodeId = "ObjectType1";
+        item = createNodeItem("ObjectType2", OBJECT_TYPE_NODE, edgeNodeId);
+        VERIFY_NON_NULL_NR(item);
+        createNode(DEFAULT_NAMESPACE_VALUE, item);
+        printf("\n|------------[Added] %s\n", item->browseName);
+        EdgeFree(edgeNodeId);
+        deleteNodeItem(item);
+    }
+    else
+    {
+        printf("Error :: EdgeMalloc failed for ObjectType2 in Test create Nodes\n");
+    }
+
+    printf("\n[%d] Object Type node : \"ObjectType3\" with source Node \"ObjectType2\"\n", ++index);
+    edgeNodeId = (EdgeNodeId *) EdgeMalloc(sizeof(EdgeNodeId));
+    if (IS_NOT_NULL(edgeNodeId))
+    {
+        edgeNodeId->nodeId = "ObjectType1";
+        item = createNodeItem("ObjectType3", OBJECT_TYPE_NODE, edgeNodeId);
+        VERIFY_NON_NULL_NR(item);
+        createNode(DEFAULT_NAMESPACE_VALUE, item);
+        printf("\n|------------[Added] %s\n", item->browseName);
+        EdgeFree(edgeNodeId);
+        deleteNodeItem(item);
+    }
+    else
+    {
+        printf("Error :: EdgeMalloc failed for ObjectType3 in Test create Nodes\n");
+    }
+
+    printf("\n[%d] Object Type node : \"ObjectType4\" with source Node \"ObjectType3\"\n", ++index);
+    edgeNodeId = (EdgeNodeId *) EdgeMalloc(sizeof(EdgeNodeId));
+    if (IS_NOT_NULL(edgeNodeId))
+    {
+        edgeNodeId->nodeId = "ObjectType1";
+        item = createNodeItem("ObjectType4", OBJECT_TYPE_NODE, edgeNodeId);
+        VERIFY_NON_NULL_NR(item);
+        createNode(DEFAULT_NAMESPACE_VALUE, item);
+        printf("\n|------------[Added] %s\n", item->browseName);
+        EdgeFree(edgeNodeId);
+        deleteNodeItem(item);
+    }
+    else
+    {
+        printf("Error :: EdgeMalloc failed for ObjectType4 in Test create Nodes\n");
+    }
+
+    printf("\n[%d] Object Type node : \"ObjectType5\" with source Node \"ObjectType3\"\n", ++index);
+    edgeNodeId = (EdgeNodeId *) EdgeMalloc(sizeof(EdgeNodeId));
+    if (IS_NOT_NULL(edgeNodeId))
+    {
+        edgeNodeId->nodeId = "ObjectType1";
+        item = createNodeItem("ObjectType5", OBJECT_TYPE_NODE, edgeNodeId);
+        VERIFY_NON_NULL_NR(item);
+        createNode(DEFAULT_NAMESPACE_VALUE, item);
+        printf("\n|------------[Added] %s\n", item->browseName);
+        EdgeFree(edgeNodeId);
+        deleteNodeItem(item);
+    }
+    else
+    {
+        printf("Error :: EdgeMalloc failed for ObjectType5 in Test create Nodes\n");
+    }
+
+    /******************* Variable Type Node *********************/
+    printf("\n[Create Variable Type Node]\n");
+    printf("\n[%d] Variable Type Node with Double Variable Type \n", ++index);
+    double d[2] =
+    { 10.2, 20.2 };
+    item = createVariableNodeItem("DoubleVariableType", Double, (void *) d, VARIABLE_TYPE_NODE);
+    VERIFY_NON_NULL_NR(item);
+    item->arrayLength = 2;
+    createNode(DEFAULT_NAMESPACE_VALUE, item);
+    printf("\n|------------[Added] %s\n", item->browseName);
+    deleteNodeItem(item);
+
+    /******************* Data Type Node *********************/
+    printf("\n[%d] Data Type Node with DataType1\n", ++index);
+    edgeNodeId = (EdgeNodeId *) EdgeCalloc(1, sizeof(EdgeNodeId));
+    if (IS_NOT_NULL(edgeNodeId))
+    {
+        item = createNodeItem("DataType1", DATA_TYPE_NODE, edgeNodeId);
+        VERIFY_NON_NULL_NR(item);
+        createNode(DEFAULT_NAMESPACE_VALUE, item);
+        printf("\n|------------[Added] %s\n", item->browseName);
+        EdgeFree(edgeNodeId);
+        deleteNodeItem(item);
+    }
+    else
+    {
+        printf("Error :: EdgeMalloc failed for DataType1 in Test create Nodes\n");
+    }
+
+    printf("\n[%d] Data Type Node with DataType2\n", ++index);
+    edgeNodeId = (EdgeNodeId *) EdgeMalloc(sizeof(EdgeNodeId));
+    if (IS_NOT_NULL(edgeNodeId))
+    {
+        edgeNodeId->nodeId = "DataType1";
+        item = createNodeItem("DataType2", DATA_TYPE_NODE, edgeNodeId);
+        VERIFY_NON_NULL_NR(item);
+        createNode(DEFAULT_NAMESPACE_VALUE, item);
+        EdgeFree(edgeNodeId);
+    }
+    else
+    {
+        printf("Error :: EdgeMalloc failed for DataType2 in Test create Nodes\n");
+    }
+
+    /******************* Reference Type Node *********************/
+    printf("\n[Create Reference Type Node]\n");
+    printf("\n[%d] Reference Type Node with ReferenceTypeNode1", ++index);
+    edgeNodeId = (EdgeNodeId *) EdgeCalloc(1, sizeof(EdgeNodeId));
+    if (IS_NOT_NULL(edgeNodeId))
+    {
+        item = createNodeItem("ReferenceTypeNode1", REFERENCE_TYPE_NODE, edgeNodeId);
+        VERIFY_NON_NULL_NR(item);
+        createNode(DEFAULT_NAMESPACE_VALUE, item);
+        printf("\n|------------[Added] %s\n", item->browseName);
+        EdgeFree(edgeNodeId);
+    }
+    else
+    {
+        printf("Error :: EdgeMalloc failed for ReferenceTypeNode1 in Test create Nodes\n");
+    }
+
+    printf("\n[%d] Reference Type Node with source node\"ReferenceTypeNode1\"\n", ++index);
+    edgeNodeId = (EdgeNodeId *) EdgeMalloc(sizeof(EdgeNodeId));
+    if (IS_NOT_NULL(edgeNodeId))
+    {
+        edgeNodeId->nodeId = "ReferenceTypeNode1";
+        item = createNodeItem("ReferenceTypeNode2", REFERENCE_TYPE_NODE, edgeNodeId);
+        VERIFY_NON_NULL_NR(item);
+        createNode(DEFAULT_NAMESPACE_VALUE, item);
+        printf("\n|------------[Added] %s\n", item->browseName);
+        EdgeFree(edgeNodeId);
+    }
+    else
+    {
+        printf("Error :: EdgeMalloc failed for ReferenceTypeNode2 in Test create Nodes\n");
+    }
+
+    deleteNodeItem(item);
 
     //METHOD NODE
     EdgeNodeItem *methodNodeItem = (EdgeNodeItem *) EdgeMalloc(sizeof(EdgeNodeItem));
@@ -1387,7 +2184,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
         method->outArg[idx]->argType = Double;
         method->outArg[idx]->valType = SCALAR;
     }
-    result = createMethodNode(DEFAULT_NAMESPACE_VALUE, methodNodeItem, method);
+    EdgeResult result = createMethodNode(DEFAULT_NAMESPACE_VALUE, methodNodeItem, method);
     EXPECT_EQ(result.code, STATUS_OK);
     EdgeFree(methodNodeItem);
 
@@ -1426,7 +2223,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
 
     /* Method Node */
     EdgeNodeItem *methodNodeItem2 = (EdgeNodeItem *) EdgeMalloc(sizeof(EdgeNodeItem));
-    methodNodeItem2->browseName = "string_method(x)";
+    methodNodeItem2->browseName = "print_string_array(x)";
     methodNodeItem2->sourceNodeId = NULL;
 
     EdgeMethod *method2 = (EdgeMethod *) EdgeMalloc(sizeof(EdgeMethod));
@@ -1453,24 +2250,49 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     createMethodNode(DEFAULT_NAMESPACE_VALUE, methodNodeItem2, method2);
     EdgeFree(methodNodeItem2);
 
+    EdgeNodeItem *methodNodeItem3 = (EdgeNodeItem *) EdgeMalloc(sizeof(EdgeNodeItem));
+    VERIFY_NON_NULL_NR(methodNodeItem3);
+    methodNodeItem3->browseName = "print_string(x)";
+    methodNodeItem3->sourceNodeId = NULL;
 
-    //REFERENCE NODE
-    /*EdgeReference *reference = (EdgeReference *) EdgeMalloc(sizeof(EdgeReference));
-    reference->forward = true;
-    reference->sourceNamespace = DEFAULT_NAMESPACE_VALUE;
-    reference->sourcePath = "ViewNode1";
-    reference->targetNamespace = DEFAULT_NAMESPACE_VALUE;
-    reference->targetPath = "ObjectType1";
-    result = addReference(reference);
-    EXPECT_EQ(result.code, STATUS_OK);
-    EdgeFree(reference);*/
+    EdgeMethod *method3 = (EdgeMethod *) EdgeMalloc(sizeof(EdgeMethod));
+    method3->description = "print str";
+    method3->methodNodeName = "print";
+    method3->method_fn = test_method_print_string;
 
-//    deleteMessage(msg, ep);
+    method3->num_inpArgs = 1;
+    method3->inpArg = (EdgeArgument **) malloc(sizeof(EdgeArgument *) * method3->num_inpArgs);
+    if (IS_NULL(method3->inpArg))
+    {
+        EdgeFree(methodNodeItem3);
+        EdgeFree(method3);
+        printf("Error :: EdgeMalloc failed for method method3->inpArg  in Test create Nodes\n");
+        return;
+    }
+    method3->inpArg[0] = (EdgeArgument *) EdgeMalloc(sizeof(EdgeArgument));
+    if (IS_NULL(method))
+    {
+        EdgeFree(method3->inpArg);
+        EdgeFree(methodNodeItem3);
+        EdgeFree(method3);
+        printf("Error :: EdgeMalloc failed for method method3->inpArg[0]  in Test create Nodes\n");
+        return;
+    }
+    method3->inpArg[0]->argType = String;
+    method3->inpArg[0]->valType = SCALAR;
 
-//    cleanCallbacks();
-
-//    free(endpointConfig);
-//    free(appConfig);
+    method3->num_outArgs = 1;
+    method3->outArg = (EdgeArgument **) malloc(sizeof(EdgeArgument *) * method3->num_outArgs);
+    for (int idx = 0; idx < method3->num_outArgs; idx++)
+    {
+        method3->outArg[idx] = (EdgeArgument *) EdgeMalloc(sizeof(EdgeArgument));
+        method3->outArg[idx]->argType = String;
+        method3->outArg[idx]->valType = SCALAR;
+        method3->outArg[idx]->arrayLength = 0;
+    }
+    createMethodNode(DEFAULT_NAMESPACE_VALUE, methodNodeItem3, method3);
+    printf("\n|------------[Added] %s\n", methodNodeItem3->browseName);
+    EdgeFree(methodNodeItem3);
 
     if (epInfo->endpointUri != NULL)
     {
@@ -1501,7 +2323,6 @@ TEST_F(OPC_clientTests , InitializeClient_P)
 
 TEST_F(OPC_clientTests , StartClient_P)
 {
-    PRINT("=============== startClient ==================");
     EXPECT_EQ(startClientFlag, false);
 
     EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_GET_ENDPOINTS);
@@ -1520,8 +2341,6 @@ TEST_F(OPC_clientTests , StartClient_P)
 
 TEST_F(OPC_clientTests , ClientRead_P1)
 {
-    PRINT("=============== startClient ==================");
-
     EXPECT_EQ(startClientFlag, false);
 
     EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_GET_ENDPOINTS);
@@ -1544,8 +2363,6 @@ TEST_F(OPC_clientTests , ClientRead_P1)
 
 TEST_F(OPC_clientTests , ClientRead_P2)
 {
-    PRINT("=============== startClient ==================");
-
     EXPECT_EQ(startClientFlag, false);
 
     EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_GET_ENDPOINTS);
@@ -1568,8 +2385,6 @@ TEST_F(OPC_clientTests , ClientRead_P2)
 
 TEST_F(OPC_clientTests , ClientRead_P3)
 {
-    PRINT("=============== startClient ==================");
-
     EXPECT_EQ(startClientFlag, false);
 
     EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_GET_ENDPOINTS);
@@ -1592,8 +2407,6 @@ TEST_F(OPC_clientTests , ClientRead_P3)
 
 TEST_F(OPC_clientTests , ClientRead_P4)
 {
-    PRINT("=============== startClient ==================");
-
     EXPECT_EQ(startClientFlag, false);
 
     EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_GET_ENDPOINTS);
@@ -1616,8 +2429,6 @@ TEST_F(OPC_clientTests , ClientRead_P4)
 
 TEST_F(OPC_clientTests , ClientRead_N1)
 {
-    PRINT("=============== startClient ==================");
-
     EXPECT_EQ(startClientFlag, false);
 
     EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_GET_ENDPOINTS);
@@ -1640,8 +2451,6 @@ TEST_F(OPC_clientTests , ClientRead_N1)
 
 TEST_F(OPC_clientTests , ClientRead_N2)
 {
-    PRINT("=============== startClient ==================");
-
     EXPECT_EQ(startClientFlag, false);
 
     EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_GET_ENDPOINTS);
@@ -1664,8 +2473,6 @@ TEST_F(OPC_clientTests , ClientRead_N2)
 
 TEST_F(OPC_clientTests , ClientRead_N3)
 {
-    PRINT("=============== startClient ==================");
-
     EXPECT_EQ(startClientFlag, false);
 
     EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_GET_ENDPOINTS);
@@ -1808,8 +2615,6 @@ TEST_F(OPC_clientTests , ClientWrite_N3)
 
 TEST_F(OPC_clientTests , ClientBrowse_P)
 {
-    PRINT("=============== startClient ==================");
-
     EXPECT_EQ(startClientFlag, false);
 
     EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_GET_ENDPOINTS);
@@ -1828,10 +2633,28 @@ TEST_F(OPC_clientTests , ClientBrowse_P)
     EXPECT_EQ(startClientFlag, false);
 }
 
+TEST_F(OPC_clientTests , ClientBrowseNext_P)
+{
+    EXPECT_EQ(startClientFlag, false);
+
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_GET_ENDPOINTS);
+    EXPECT_EQ(NULL != msg, true);
+
+    EdgeResult res = getEndpointInfo(msg);
+    EXPECT_EQ(res.code, STATUS_OK);
+
+    EXPECT_EQ(startClientFlag, true);
+
+    destroyEdgeMessage(msg);
+
+    browse_next();
+
+    stop_client();
+    EXPECT_EQ(startClientFlag, false);
+}
+
 TEST_F(OPC_clientTests , ClientBrowseViews_P)
 {
-    PRINT("=============== startClient ==================");
-
     EXPECT_EQ(startClientFlag, false);
 
     EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_GET_ENDPOINTS);
@@ -1901,6 +2724,25 @@ TEST_F(OPC_clientTests , ClientMethodCall_P3)
 
     methodCallFlag = true;
     testMethod_P3(endpointUri);
+    methodCallFlag = false;
+
+    stop_client();
+    EXPECT_EQ(startClientFlag, false);
+}
+
+TEST_F(OPC_clientTests , ClientMethodCall_P4)
+{
+    EXPECT_EQ(startClientFlag, false);
+
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_GET_ENDPOINTS);
+    EXPECT_EQ(NULL != msg, true);
+    EdgeResult res = getEndpointInfo(msg);
+    EXPECT_EQ(res.code, STATUS_OK);
+    EXPECT_EQ(startClientFlag, true);
+    destroyEdgeMessage(msg);
+
+    methodCallFlag = true;
+    testMethod_P4(endpointUri);
     methodCallFlag = false;
 
     stop_client();
