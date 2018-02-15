@@ -45,51 +45,34 @@ static void sendErrorResponse(const EdgeMessage *msg, char *err_desc)
     resultMsg->responseLength = 1;
     resultMsg->message_id = msg->message_id;
 
-    EdgeResponse** responses = (EdgeResponse **) malloc(sizeof(EdgeResponse *) * resultMsg->responseLength);
+    resultMsg->responses = (EdgeResponse **) malloc(sizeof(EdgeResponse *) * resultMsg->responseLength);
     for (int i = 0; i < resultMsg->responseLength; i++)
     {
-        responses[i] = (EdgeResponse*) EdgeCalloc(1, sizeof(EdgeResponse));
-        EdgeVersatility *message = (EdgeVersatility *) EdgeCalloc(1, sizeof(EdgeVersatility));
-        if(IS_NULL(message))
+        resultMsg->responses[i] = (EdgeResponse*) EdgeCalloc(1, sizeof(EdgeResponse));
+        resultMsg->responses[i]->message = (EdgeVersatility *) EdgeCalloc(1, sizeof(EdgeVersatility));
+        if(IS_NULL(resultMsg->responses[i]->message))
         {
             EDGE_LOG(TAG, "Error : Malloc failed for EdgeVersatility sendErrorResponse\n");
             goto EXIT;
         }
         char* err_description = (char*) EdgeMalloc(strlen(err_desc) + 1);
-        strncpy(err_description, err_desc, strlen(err_desc)+1);
-        message->value = (void *) err_description;
-        responses[i]->message = message;
+        strncpy(err_description, err_desc, strlen(err_desc));
+        err_description[strlen(err_desc)] = '\0';
+        resultMsg->responses[i]->message->value = (void *) err_description;
     }
-    resultMsg->responses = responses;
-
-    EdgeResult *res = (EdgeResult *) EdgeMalloc(sizeof(EdgeResult));
-    if(IS_NULL(res))
+    resultMsg->result = (EdgeResult *) EdgeMalloc(sizeof(EdgeResult));
+    if(IS_NULL(resultMsg->result))
     {
         EDGE_LOG(TAG, "Error : Malloc failed for EdgeResult sendErrorResponse\n");
         goto EXIT;
     }
-    res->code = STATUS_ERROR;
-    resultMsg->result = res;
+    resultMsg->result->code = STATUS_ERROR;
 
     add_to_recvQ(resultMsg);
     return ;
 
     EXIT:
-    EdgeFree(res);
-    if(IS_NOT_NULL(resultMsg))
-    {
-        if(IS_NOT_NULL(resultMsg->responses))
-        {
-            for (int i = 0; i < resultMsg->responseLength; i++)
-            {
-                EdgeFree(resultMsg->responses[i]->message);
-                EdgeFree(resultMsg->responses[i]);
-            }
-            EdgeFree(resultMsg->responses);
-        }
-        EdgeFree(resultMsg->endpointInfo);
-        EdgeFree(resultMsg);
-    }
+    freeEdgeMessage(resultMsg);
 }
 
 static bool checkMaxAge(UA_DateTime timestamp, UA_DateTime now, double maxAge)

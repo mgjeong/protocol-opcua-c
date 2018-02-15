@@ -209,11 +209,11 @@ static void writeGroup(UA_Client *client, const EdgeMessage *msg)
             else if (type == UA_TYPES_BYTESTRING)
             {
                 int idx = 0;
-                UA_ByteString **dataArray = (UA_ByteString **) message->value;
+                char **dataArray = (char**) message->value;
                 UA_ByteString *array = (UA_ByteString *) UA_Array_new(message->arrayLength, &UA_TYPES[type]);
                 for (idx = 0; idx < message->arrayLength; idx++)
                 {
-                    char *data = (char *) dataArray[idx]->data;
+                    char *data = (char *) dataArray[idx];
                     array[idx] = UA_BYTESTRING_ALLOC(data);
                 }
                 UA_Variant_setArrayCopy(&myVariant[i], array, message->arrayLength, &UA_TYPES[type]);

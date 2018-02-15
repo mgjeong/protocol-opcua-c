@@ -97,8 +97,6 @@ extern "C"
 
     bool addListNode(List **head, void *data);
 
-    void deleteListNode(List **head, void *data);
-
     void deleteList(List **head);
 
     unsigned int getListSize(List *ptr);

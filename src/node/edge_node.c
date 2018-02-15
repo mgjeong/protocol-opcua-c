@@ -508,16 +508,28 @@ static UA_StatusCode methodCallback(UA_Server *server, const UA_NodeId *sessionI
             for (size_t i = 0; i < inputSize; i++)
             {
                 if (input[i].type == &UA_TYPES[UA_TYPES_STRING])
-                {
-                    UA_String* str = ((UA_String*) input[i].data);
-                    char **values = (char**) EdgeCalloc(input[i].arrayLength, sizeof(char*));
-                    for (size_t j = 0; j < input[i].arrayLength; j++)
+                {                    
+                    if (input[i].arrayLength == 0)
                     {
-                        values[j] = (char *) EdgeMalloc(str[j].length+1);
-                        strncpy(values[j], (char *) str[j].data, str[j].length);
-                        values[j][str[j].length] = '\0';
+                        /* Scalar string value */
+                        UA_String *str = ((UA_String*) input[i].data);
+                        char *values = (char*) EdgeMalloc(sizeof(char) * (str->length+1));
+                        strncpy(values, (char *) str->data, str->length);
+                        values[str->length] = '\0';
+                        inp[i] = (void*) values;
                     }
-                    inp[i] = (void*) values;
+                    else
+                    {
+                        UA_String* str = ((UA_String*) input[i].data);
+                        char **values = (char**) EdgeCalloc(input[i].arrayLength, sizeof(char*));
+                        for (size_t j = 0; j < input[i].arrayLength; j++)
+                        {
+                            values[j] = (char *) EdgeMalloc(str[j].length+1);
+                            strncpy(values[j], (char *) str[j].data, str[j].length);
+                            values[j][str[j].length] = '\0';
+                        }
+                        inp[i] = (void*) values;
+                    }
                 }
                 else
                 {
