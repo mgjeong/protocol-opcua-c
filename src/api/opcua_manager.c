@@ -501,7 +501,7 @@ EdgeNodeIdentifier getValueType(const char* nodeName)
 {
     int nsIdx = 0, valueType = 0;
     char nodeType;
-    char browseName[MAX_BROWSENAME_SIZE];
+    char browseName[MAX_BROWSENAME_SIZE+1];
     sscanf(nodeName, UNIQUE_NODE_PATH, &nsIdx, &nodeType, &valueType, browseName);
     return valueType;
 }
@@ -532,7 +532,7 @@ EdgeNodeInfo* createEdgeNodeInfo(const char* nodeName)
 {
     int nsIdx = 0, valueType = 0;
     char nodeType;
-    char browseName[MAX_BROWSENAME_SIZE];
+    char browseName[MAX_BROWSENAME_SIZE+1];
     sscanf(nodeName, UNIQUE_NODE_PATH, &nsIdx, &nodeType, &valueType, browseName);
 
     EdgeNodeInfo* nodeInfo = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));

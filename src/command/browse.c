@@ -807,29 +807,51 @@ unsigned char *getCompleteBrowsePath(char *browseName, UA_NodeId* nodeId, UA_Loc
         const int bufferSize = 20;
         browseNameLen = strlen(browseName);
         nodeIdInfo = (char *)EdgeCalloc(bufferSize, sizeof(char));
+        if(IS_NULL(nodeIdInfo))
+        {
+            EDGE_LOG(TAG, "Memory allocation failed.");
+            return NULL;
+        }
 
         char curType = getCharacterNodeIdType(nodeId->identifierType);
-        if (UA_NODEIDTYPE_STRING == nodeId->identifierType) {
+        if (UA_NODEIDTYPE_STRING == nodeId->identifierType)
+        {
             unsigned char *valueType = convertUAStringToUnsignedChar(&description.text);
-            if (0 == strncmp((const char*)valueType, "v=", 2)) {
-                snprintf(nodeIdInfo, bufferSize*sizeof(char), "{%d;%c;%s}", nodeId->namespaceIndex, curType, valueType);
-            } else {
-                snprintf(nodeIdInfo, bufferSize*sizeof(char), "{%d;%c}", nodeId->namespaceIndex, curType);
+            if(IS_NOT_NULL(valueType))
+            {
+                if (0 == strncmp((const char*)valueType, "v=", 2))
+                {
+                    snprintf(nodeIdInfo, bufferSize*sizeof(char), "{%d;%c;%s}", nodeId->namespaceIndex, curType, valueType);
+                }
+                else
+                {
+                    snprintf(nodeIdInfo, bufferSize*sizeof(char), "{%d;%c}", nodeId->namespaceIndex, curType);
+                }
+                EdgeFree(valueType);
             }
-            EdgeFree(valueType);
-        } else {
+        }
+        else
+        {
             snprintf(nodeIdInfo, bufferSize*sizeof(char), "{%d;%c}", nodeId->namespaceIndex, curType);
         }
 
         if(IS_NOT_NULL(nodeIdInfo))
         {
-                nodeIdInfoLen = strlen(nodeIdInfo);
+            nodeIdInfoLen = strlen(nodeIdInfo);
         }
     }
 
     unsigned char *browsePath = getCurrentBrowsePath();
     int pathLen = IS_NOT_NULL(browsePath) ? strlen((char *)browsePath) : 0;
     unsigned char *completePath = (unsigned char *)EdgeCalloc(pathLen+nodeIdInfoLen+browseNameLen + 2, sizeof(unsigned char));
+    if(IS_NULL(completePath))
+    {
+        EDGE_LOG(TAG, "Memory allocation failed.");
+        EdgeFree(nodeIdInfo);
+        EdgeFree(browsePath);
+        return NULL;
+    }
+
     if(pathLen > 0)
     {
         memcpy(completePath, browsePath, pathLen);
@@ -847,8 +869,8 @@ unsigned char *getCompleteBrowsePath(char *browseName, UA_NodeId* nodeId, UA_Loc
         pathLen += browseNameLen;
     }
     completePath[pathLen] = '\0';
-    EdgeFree(browsePath);
     EdgeFree(nodeIdInfo);
+    EdgeFree(browsePath);
     return completePath;
 }
 

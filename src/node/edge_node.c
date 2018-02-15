@@ -537,40 +537,49 @@ static UA_StatusCode methodCallback(UA_Server *server, const UA_NodeId *sessionI
                 }
             }
         }
+
+        bool hasError = false;
         void **out = NULL;
         if (outputSize > 0)
         {
             out = EdgeCalloc(outputSize, sizeof(void *));
-            if (IS_NULL(out))
+            if(IS_NULL(out))
             {
                 EDGE_LOG(TAG, "ERROR : out in methodCallback Malloc FAILED\n");
-
-                for (size_t i = 0; i < inputSize; i++)
-                {
-                    if (input[i].type == &UA_TYPES[UA_TYPES_STRING])
-                    {
-                        if (input[i].arrayLength == 0)
-                        {
-                            EdgeFree(inp[i]);
-                        }
-                        else
-                        {
-                            char **values = (char**) inp[i];
-                            for (size_t j = 0; j < input[i].arrayLength; j++)
-                            {
-                                EdgeFree(values[j]);
-                            }
-                            EdgeFree(values);
-                        }
-                    }
-                }
-                EdgeFree(inp);
-                return STATUS_ERROR;
+                hasError = true;
             }
         }
-        method_to_call(inputSize, inp, outputSize, out);
 
+        if(!hasError)
+        {
+            method_to_call(inputSize, inp, outputSize, out);
+        }
+
+        for (size_t i = 0; i < inputSize; i++)
+        {
+            if (input[i].type == &UA_TYPES[UA_TYPES_STRING])
+            {
+                if (input[i].arrayLength == 0)
+                {
+                    EdgeFree(inp[i]);
+                }
+                else
+                {
+                    char **values = (char**) inp[i];
+                    for (size_t j = 0; j < input[i].arrayLength; j++)
+                    {
+                        EdgeFree(values[j]);
+                    }
+                    EdgeFree(values);
+                }
+            }
+        }
         EdgeFree(inp);
+
+        if (hasError)
+        {
+            return STATUS_ERROR;
+        }
 
         for (size_t idx = 0; idx < outputSize; idx++)
         {
