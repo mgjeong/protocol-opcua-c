@@ -595,7 +595,7 @@ static void testCreateNodes()
     }
 
     printf("\n[%d] Array node with Int64 values: \n", ++index);
-    int *int64Data = (int *) EdgeMalloc(sizeof(int) * 5);
+    int64_t *int64Data = (int64_t *) EdgeMalloc(sizeof(int64_t) * 5);
     if (IS_NOT_NULL(int64Data))
     {
         int64Data[0] = 11111;

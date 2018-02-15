@@ -897,12 +897,12 @@ EdgeResult modifyNode(UA_Server *server, uint16_t nsIndex, char *nodeUri, EdgeVe
     {
         EDGE_LOG_V(TAG, "Error in modifying node value:: 0x%08x\n", retVal);
         result.code = STATUS_ERROR;
+        UA_Variant_delete(readval);
+        UA_Variant_delete(myVariant);
         return result;
     }
-    else
-    {
-        EDGE_LOG(TAG, "+++ write successful +++\n\n");
-    }
+
+    EDGE_LOG(TAG, "+++ write successful +++\n\n");
     UA_Variant_delete(myVariant);
     UA_Variant_delete(readval);
 
