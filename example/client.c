@@ -1143,7 +1143,12 @@ static void writeHelper(int num_requests, char *ep)
         printf("Enter number of elements to write (1 for scalar, > 1 for Array) : ");
         scanf("%d", &valueLen);
         void *value = getNewValuetoWrite(nodeType, valueLen);
-        insertWriteAccessNode(&msg, nodeName, value, valueLen);
+        EdgeResult res = insertWriteAccessNode(&msg, nodeName, value, valueLen);
+        if(STATUS_OK != res.code)
+        {
+            printf("Error : insertWriteAccessNode() failed (Status Code: %d).\n", res.code);
+            return;
+        }
     }
 
     printf("write node \n");

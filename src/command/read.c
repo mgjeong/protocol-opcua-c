@@ -691,7 +691,7 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg)
         }
     }
 
-    if (resultMsg->responseLength < 1)
+    if (reqLen > 1 && resultMsg->responseLength < 1)
     {
         EDGE_LOG(TAG, "There are no valid responses.");
         strncpy(errorDesc, "There are no valid responses.", ERROR_DESC_LENGTH);
