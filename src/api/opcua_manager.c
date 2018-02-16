@@ -362,6 +362,12 @@ EdgeResult sendRequest(EdgeMessage* msg)
     if (result.code == STATUS_OK)
     {
         EdgeMessage *msgCopy = cloneEdgeMessage(msg);
+        if(IS_NULL(msgCopy))
+        {
+            EDGE_LOG(TAG, "Failed to clone the edge message.");
+            result.code = STATUS_ERROR;
+            return result;
+        }
         bool ret = add_to_sendQ(msgCopy);
         result.code = (ret ? STATUS_OK : STATUS_ENQUEUE_ERROR);
     }

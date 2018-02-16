@@ -278,56 +278,102 @@ EdgeMethodRequestParams* cloneEdgeMethodRequestParams(EdgeMethodRequestParams *m
     EdgeMethodRequestParams* clone = (EdgeMethodRequestParams *) EdgeCalloc(1, sizeof(EdgeMethodRequestParams));
     VERIFY_NON_NULL(clone, NULL);
 
-    clone->num_inpArgs = methodParams->num_inpArgs;
+    clone->num_outArgs = methodParams->num_outArgs;
+
+    if(methodParams->num_inpArgs < 1)
+    {
+        return clone;
+    }
+
     clone->inpArg = (EdgeArgument**) EdgeCalloc(methodParams->num_inpArgs, sizeof(EdgeArgument*));
-    for (size_t i  = 0; i < methodParams->num_inpArgs; i++)
+    if(IS_NULL(clone->inpArg))
+    {
+        EDGE_LOG(TAG, "Memory allocation failed.");
+        goto ERROR;
+    }
+
+    clone->num_inpArgs = methodParams->num_inpArgs;
+    for (size_t i  = 0; i < clone->num_inpArgs; i++)
     {
         clone->inpArg[i] = (EdgeArgument*) EdgeCalloc(1, sizeof(EdgeArgument));
+        if(IS_NULL(clone->inpArg[i]))
+        {
+            EDGE_LOG(TAG, "Memory allocation failed.");
+            goto ERROR;
+        }
+
         clone->inpArg[i]->argType = methodParams->inpArg[i]->argType;
         clone->inpArg[i]->valType = methodParams->inpArg[i]->valType;
         clone->inpArg[i]->arrayLength = 0;
         clone->inpArg[i]->arrayData = NULL;
         if (SCALAR == methodParams->inpArg[i]->valType)
         {
-            size_t size = get_size(methodParams->inpArg[i]->argType, false);
-            clone->inpArg[i]->scalarValue = (void *) EdgeCalloc(1, size);
             if (methodParams->inpArg[i]->argType == String)
             {
                 clone->inpArg[i]->scalarValue = cloneString((char*) methodParams->inpArg[i]->scalarValue);
+                if(IS_NULL(clone->inpArg[i]->scalarValue))
+                {
+                    EDGE_LOG(TAG, "Memory allocation failed.");
+                    goto ERROR;
+                }
             }
             else
             {
+                size_t size = get_size(methodParams->inpArg[i]->argType, false);
+                clone->inpArg[i]->scalarValue = (void *) EdgeCalloc(1, size);
+                if(IS_NULL(clone->inpArg[i]->scalarValue))
+                {
+                    EDGE_LOG(TAG, "Memory allocation failed.");
+                    goto ERROR;
+                }
                 memcpy(clone->inpArg[i]->scalarValue, methodParams->inpArg[i]->scalarValue, size);
             }
         }
         else if (ARRAY_1D == methodParams->inpArg[i]->valType)
         {
-            size_t size = get_size(methodParams->inpArg[i]->argType, true);
             clone->inpArg[i]->arrayLength = methodParams->inpArg[i]->arrayLength;
             if (methodParams->inpArg[i]->argType == String)
             {
+                clone->inpArg[i]->arrayData = EdgeCalloc(methodParams->inpArg[i]->arrayLength, sizeof(char*));
+                if(IS_NULL(clone->inpArg[i]->arrayData))
+                {
+                    EDGE_LOG(TAG, "Memory allocation failed.");
+                    goto ERROR;
+                }
                 char **srcVal = (char**) methodParams->inpArg[i]->arrayData;
-                char **dstVal = (char **) EdgeCalloc(methodParams->inpArg[i]->arrayLength, sizeof(char*));
-                int len;
+                char **dstVal = (char **) clone->inpArg[i]->arrayData;
                 for (size_t j = 0; j < methodParams->inpArg[i]->arrayLength; j++)
                 {
-                    len = strlen(srcVal[j]);
-                    dstVal[j] = (char*) EdgeCalloc(1, sizeof(char) * (len+1));
+                    size_t len = strlen(srcVal[j]);
+                    dstVal[j] = (char*) EdgeCalloc(len+1, sizeof(char));
+                    if(IS_NULL(dstVal[j]))
+                    {
+                        EDGE_LOG(TAG, "Memory allocation failed.");
+                        goto ERROR;
+                    }
                     strncpy(dstVal[j], srcVal[j], len+1);
                 }
-                clone->inpArg[i]->arrayData = (void *) dstVal;
             }
             else
             {
+                size_t size = get_size(methodParams->inpArg[i]->argType, true);
                 clone->inpArg[i]->arrayData = (void *) EdgeCalloc(clone->inpArg[i]->arrayLength, size);
-                memcpy(clone->inpArg[i]->arrayData, methodParams->inpArg[i]->arrayData, get_size(methodParams->inpArg[i]->argType, false) * methodParams->inpArg[i]->arrayLength);
+                if(IS_NULL(clone->inpArg[i]->arrayData))
+                {
+                    EDGE_LOG(TAG, "Memory allocation failed.");
+                    goto ERROR;
+                }
+                memcpy(clone->inpArg[i]->arrayData, methodParams->inpArg[i]->arrayData,
+                        get_size(methodParams->inpArg[i]->argType, false) * methodParams->inpArg[i]->arrayLength);
             }
 
         }
     }
-    clone->num_outArgs = methodParams->num_outArgs;
-
     return clone;
+
+ERROR:
+    freeEdgeMethodRequestParams(clone);
+    return NULL;
 }
 
 EdgeEndpointConfig *cloneEdgeEndpointConfig(EdgeEndpointConfig *config)
@@ -546,8 +592,26 @@ void freeEdgeNodeInfo(EdgeNodeInfo *nodeInfo)
 void freeEdgeArgument(EdgeArgument *arg)
 {
     VERIFY_NON_NULL_NR(arg);
-    EdgeFree(arg->scalarValue);
-    EdgeFree(arg->arrayData);
+    if(SCALAR == arg->valType)
+    {
+        EdgeFree(arg->scalarValue);
+    }
+    else if(ARRAY_1D == arg->valType)
+    {
+        if(String == arg->argType)
+        {
+            char **val = (char **) arg->arrayData;
+            for (size_t i = 0; i < arg->arrayLength; ++i)
+            {
+                EdgeFree(val[i]);
+            }
+            EdgeFree(val);
+        }
+        else
+        {
+            EdgeFree(arg->arrayData);
+        }
+    }
     EdgeFree(arg);
 }
 

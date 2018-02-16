@@ -323,6 +323,11 @@ static void monitoredItemHandler(UA_UInt32 monId, UA_DataValue *value, void *con
             UA_String str = *((UA_String *) value->value.data);
             size_t len = str.length;
             response->message->value = (void *) EdgeCalloc(1, len+1);
+            if(IS_NULL(response->message->value))
+            {
+                EDGE_LOG(TAG, "Error : Malloc failed for String/ByteString SCALAR value in Read Group\n");
+                goto ERROR;
+            }
             strncpy(response->message->value, (char*) str.data, len);
             ((char*) response->message->value)[(int) len] = '\0';
         }
