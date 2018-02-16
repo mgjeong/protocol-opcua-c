@@ -28,6 +28,15 @@ void testWrite_P1(char *endpointUri)
     destroyEdgeMessage(msg);
     ASSERT_EQ(result.code, STATUS_OK);
     sleep(1);
+
+    msg = createEdgeAttributeMessage(endpointUri, 1, CMD_WRITE);
+    EXPECT_EQ(NULL!=msg, true);
+    double dVal = 22.32;
+    insertWriteAccessNode(&msg, node_arr[3], (void *) &dVal, 1);
+    result = sendRequest(msg);
+    destroyEdgeMessage(msg);
+    ASSERT_EQ(result.code, STATUS_OK);
+    sleep(1);
 }
 
 void testWrite_P2(char *endpointUri)
@@ -66,8 +75,6 @@ void testWrite_P2(char *endpointUri)
     ASSERT_EQ(result.code, STATUS_OK);
     sleep(1);
 
-
-
     msg = createEdgeAttributeMessage(endpointUri, 1, CMD_READ);
     insertReadAccessNode(&msg, node_arr[12]);
     result = sendRequest(msg);
@@ -75,6 +82,25 @@ void testWrite_P2(char *endpointUri)
     ASSERT_EQ(result.code, STATUS_OK);
     sleep(1);
 
+    msg = createEdgeAttributeMessage(endpointUri, 1, CMD_WRITE);
+    EXPECT_EQ(NULL!=msg, true);
+    double *d_values = (double *) EdgeMalloc(sizeof(double) * 5);
+    for (int i = 1; i <= 5; i++)
+    {
+        d_values[i] = i + 100.23;
+    }
+    insertWriteAccessNode(&msg, node_arr[10], d_values, 5);
+    result = sendRequest(msg);
+    destroyEdgeMessage(msg);
+    ASSERT_EQ(result.code, STATUS_OK);
+    sleep(1);
+
+    msg = createEdgeAttributeMessage(endpointUri, 1, CMD_READ);
+    insertReadAccessNode(&msg, node_arr[10]);
+    result = sendRequest(msg);
+    destroyEdgeMessage(msg);
+    ASSERT_EQ(result.code, STATUS_OK);
+    sleep(1);
 }
 
 void testWrite_P3(char *endpointUri)
@@ -84,6 +110,18 @@ void testWrite_P3(char *endpointUri)
     char *value = (char*) malloc(sizeof(char) * 10);
     strcpy(value, "test_str");
     insertWriteAccessNode(&msg, node_arr[8], value, 1);
+    EdgeResult result = sendRequest(msg);
+    destroyEdgeMessage(msg);
+    ASSERT_EQ(result.code, STATUS_OK);
+    sleep(1);
+}
+
+void testWrite_P4(char *endpointUri)
+{
+    EdgeMessage *msg = createEdgeAttributeMessage(endpointUri, 1, CMD_WRITE);
+    EXPECT_EQ(NULL!=msg, true);
+    double dVal = 22.22;
+    insertWriteAccessNode(&msg, "{2;S;v=11}InvalidNode", &dVal, 1);
     EdgeResult result = sendRequest(msg);
     destroyEdgeMessage(msg);
     ASSERT_EQ(result.code, STATUS_OK);

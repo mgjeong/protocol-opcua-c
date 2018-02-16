@@ -92,6 +92,14 @@ static void addVariableNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeI
 
         EdgeFree(val.data);
     }
+    else if (type == UA_TYPES_BYTESTRING)
+    {
+        UA_ByteString val = UA_BYTESTRING_ALLOC((char * ) item->variableData);
+        UA_Variant_setScalarCopy(&attr.value, &val, &UA_TYPES[type]);
+        UA_ByteString_deleteMembers(&val);
+
+        EdgeFree(val.data);
+    }
     else
     {
         UA_Variant_setScalarCopy(&attr.value, item->variableData, &UA_TYPES[type]);
@@ -174,12 +182,11 @@ static void addArrayNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem
     else if (type == UA_TYPES_BYTESTRING)
     {
         size_t idx = 0;
-        UA_ByteString **dataArray = (UA_ByteString **) item->variableData;
+        char **data1 = (char **) item->variableData;
         UA_ByteString *array = (UA_ByteString *) UA_Array_new(item->arrayLength, &UA_TYPES[type]);
         for (idx = 0; idx < item->arrayLength; idx++)
         {
-            char *itemData = (char *) dataArray[idx]->data;
-            array[idx] = UA_BYTESTRING_ALLOC(itemData);
+            array[idx] = UA_BYTESTRING_ALLOC(data1[idx]);
         }
         UA_Variant_setArrayCopy(&attr.value, array, item->arrayLength, &UA_TYPES[type]);
         for (idx = 0; idx < item->arrayLength; idx++)
@@ -927,12 +934,11 @@ EdgeResult modifyNode(UA_Server *server, uint16_t nsIndex, char *nodeUri, EdgeVe
         else if (type == &UA_TYPES[UA_TYPES_BYTESTRING])
         {
             size_t idx = 0;
-            UA_ByteString **dataArray = (UA_ByteString **) value->value;
+            char **data1 = (char **) value->value;
             UA_ByteString *array = (UA_ByteString *) UA_Array_new(value->arrayLength, type);
             for (idx = 0; idx < value->arrayLength; idx++)
             {
-                char *itemData = (char *) dataArray[idx]->data;
-                array[idx] = UA_BYTESTRING_ALLOC(itemData);
+                array[idx] = UA_BYTESTRING_ALLOC(data1[idx]);
             }
             UA_Variant_setArrayCopy(myVariant, array, value->arrayLength, type);
             for (idx = 0; idx < value->arrayLength; idx++)
