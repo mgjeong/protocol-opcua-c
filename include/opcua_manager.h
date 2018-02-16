@@ -49,7 +49,7 @@ void onStatusCallback(EdgeEndPointInfo *epInfo, EdgeStatusCode status);
 void onDiscoveryCallback(EdgeDevice *device);
 
 // Server
-__attribute__((visibility("default"))) void createServer(EdgeEndPointInfo *epInfo);
+__attribute__((visibility("default"))) EdgeResult createServer(EdgeEndPointInfo *epInfo);
 __attribute__((visibility("default"))) void closeServer(EdgeEndPointInfo *epInfo);
 
 // Client

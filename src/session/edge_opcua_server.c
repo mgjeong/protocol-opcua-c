@@ -110,18 +110,27 @@ static void* getNamespaceIndex(char *namespaceUri)
     return NULL;
 }
 
-void createNamespaceInServer(char *namespaceUri, char *rootNodeIdentifier, char *rootNodeBrowseName,
+EdgeResult createNamespaceInServer(char *namespaceUri, char *rootNodeIdentifier, char *rootNodeBrowseName,
         char *rootNodeDisplayName)
 {
+    EdgeResult result;
+    result.code = STATUS_OK;
+    if (!namespaceUri || !rootNodeIdentifier || !rootNodeBrowseName || !rootNodeDisplayName)
+    {
+        result.code = STATUS_PARAM_INVALID;
+        return result;
+    }
     if (namespaceType != URI_TYPE && namespaceType != DEFAULT_TYPE)
     {
-        return;
+        result.code = STATUS_ERROR;
+        return result;
     }
 
     if (getNamespaceIndex(namespaceUri))
     {
         EDGE_LOG(TAG, "Namespace already added\n");
-        return;
+        result.code = STATUS_PARAM_INVALID;
+        return result;
     }
 
     uint16_t idx = UA_Server_addNamespace(m_server, namespaceUri);
@@ -156,18 +165,25 @@ void createNamespaceInServer(char *namespaceUri, char *rootNodeIdentifier, char 
     if (namespaceMap == NULL)
         namespaceMap = createMap();
     insertMapElement(namespaceMap, (keyValue) namespaceUri, (keyValue) ns);
-    return;
+    return result;
 
 ERROR:
     EdgeFree(ns->rootNodeIdentifier);
     EdgeFree(ns->rootNodeBrowseName);
     EdgeFree(ns->rootNodeDisplayName);
     EdgeFree(ns);
+	result.code = STATUS_ERROR;
+    return result;
 }
 
 EdgeResult addNodesInServer(char *namespaceUri, EdgeNodeItem *item)
 {
     EdgeResult result;
+    if (!namespaceUri || !item)
+    {
+        result.code = STATUS_PARAM_INVALID;
+        return result;
+    }
     result.code = STATUS_ERROR;
     EdgeNamespace *ns = (EdgeNamespace*) getNamespaceIndex(namespaceUri);
     if (ns)
@@ -180,6 +196,11 @@ EdgeResult addNodesInServer(char *namespaceUri, EdgeNodeItem *item)
 EdgeResult modifyNodeInServer(char *namespaceUri, char *nodeUri, EdgeVersatility *value)
 {
     EdgeResult result;
+    if (!namespaceUri || !nodeUri || !value)
+    {
+        result.code = STATUS_PARAM_INVALID;
+        return result;
+    }
     result.code = STATUS_ERROR;
     EdgeNamespace *ns = (EdgeNamespace*) getNamespaceIndex(namespaceUri);
     if (ns)
@@ -191,13 +212,23 @@ EdgeResult modifyNodeInServer(char *namespaceUri, char *nodeUri, EdgeVersatility
 
 EdgeResult addReferenceInServer(EdgeReference *reference)
 {
+    EdgeResult result;
+    if (!reference)
+    {
+        result.code = STATUS_PARAM_INVALID;
+        return result;
+    }
+    if (!reference->sourceNamespace || !reference->targetNamespace)
+    {
+        result.code = STATUS_PARAM_INVALID;
+        return result;
+    }
+    result.code = STATUS_ERROR;
     EdgeNamespace *src_ns = (EdgeNamespace*) getNamespaceIndex(reference->sourceNamespace);
     EdgeNamespace *target_ns = (EdgeNamespace*) getNamespaceIndex(reference->targetNamespace);
-    EdgeResult result;
-    result.code = STATUS_ERROR;
     if (src_ns && target_ns)
     {
-        addReferences(m_server, reference, src_ns->ns_index, target_ns->ns_index);
+        result = addReferences(m_server, reference, src_ns->ns_index, target_ns->ns_index);
     }
     return result;
 }
@@ -205,6 +236,11 @@ EdgeResult addReferenceInServer(EdgeReference *reference)
 EdgeResult addMethodNodeInServer(char *namespaceUri, EdgeNodeItem *item, EdgeMethod *method)
 {
     EdgeResult result;
+    if (!namespaceUri || !item || !method)
+    {
+        result.code = STATUS_PARAM_INVALID;
+        return result;
+    }
     result.code = STATUS_ERROR;
     EdgeNamespace *ns = (EdgeNamespace*) getNamespaceIndex(namespaceUri);
     if (ns)
@@ -217,6 +253,10 @@ EdgeResult addMethodNodeInServer(char *namespaceUri, EdgeNodeItem *item, EdgeMet
 EdgeNodeItem* createVariableNodeItemImpl(char* name, EdgeNodeIdentifier type, void* data,
         EdgeIdentifier nodeType)
 {
+    if (!name)
+    {
+        return NULL;
+    }
     EdgeNodeItem* item = (EdgeNodeItem *) EdgeCalloc(1, sizeof(EdgeNodeItem));
     //VERIFY_NON_NULL_RET(item);
     item->nodeType = DEFAULT_NODE_TYPE;
@@ -235,6 +275,10 @@ EdgeNodeItem* createVariableNodeItemImpl(char* name, EdgeNodeIdentifier type, vo
 
 EdgeNodeItem* createNodeItemImpl(char* name, EdgeIdentifier nodeType, EdgeNodeId *sourceNodeId)
 {
+    if (!name)
+    {
+        return NULL;
+    }
     EdgeNodeItem* item = (EdgeNodeItem *) EdgeCalloc(1, sizeof(EdgeNodeItem));
     if(IS_NULL(item))
     {
@@ -277,7 +321,6 @@ static void *server_loop(void *ptr)
 
 EdgeResult start_server(EdgeEndPointInfo *epInfo)
 {
-
     EdgeResult result;
     result.code = STATUS_OK;
 
