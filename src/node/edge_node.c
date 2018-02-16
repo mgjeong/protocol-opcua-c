@@ -488,6 +488,35 @@ static keyValue getMethodMapElement(const edgeMap *map, keyValue key)
     return NULL;
 }
 
+static void destroyInputArgs(void **inp, size_t inputSize, const UA_Variant *input)
+{
+    if(IS_NULL(inp) || IS_NULL(input))
+    {
+        return;
+    }
+
+    for (size_t i = 0; i < inputSize; i++)
+    {
+        if (input[i].type == &UA_TYPES[UA_TYPES_STRING])
+        {
+            if (input[i].arrayLength == 0)
+            {
+                EdgeFree(inp[i]);
+            }
+            else
+            {
+                char **values = (char**) inp[i];
+                for (size_t j = 0; j < input[i].arrayLength; j++)
+                {
+                    EdgeFree(values[j]);
+                }
+                EdgeFree(values);
+            }
+        }
+    }
+    EdgeFree(inp);
+}
+
 static UA_StatusCode methodCallback(UA_Server *server, const UA_NodeId *sessionId,
         void *sessionContext, const UA_NodeId *methodId, void *methodContext,
         const UA_NodeId *objectId, void *objectContext, size_t inputSize, const UA_Variant *input,
@@ -503,7 +532,7 @@ static UA_StatusCode methodCallback(UA_Server *server, const UA_NodeId *sessionI
         void **inp = NULL;
         if (inputSize > 0)
         {
-            inp = EdgeMalloc(sizeof(void *) * inputSize);
+            inp = EdgeCalloc(inputSize, sizeof(void *));
             VERIFY_NON_NULL(inp, STATUS_ERROR);
             for (size_t i = 0; i < inputSize; i++)
             {
@@ -514,6 +543,11 @@ static UA_StatusCode methodCallback(UA_Server *server, const UA_NodeId *sessionI
                         /* Scalar string value */
                         UA_String *str = ((UA_String*) input[i].data);
                         char *values = (char*) EdgeMalloc(sizeof(char) * (str->length+1));
+                        if(IS_NULL(values))
+                        {
+                            destroyInputArgs(inp, i, input);
+                            return STATUS_ERROR;
+                        }
                         strncpy(values, (char *) str->data, str->length);
                         values[str->length] = '\0';
                         inp[i] = (void*) values;
@@ -522,9 +556,25 @@ static UA_StatusCode methodCallback(UA_Server *server, const UA_NodeId *sessionI
                     {
                         UA_String* str = ((UA_String*) input[i].data);
                         char **values = (char**) EdgeCalloc(input[i].arrayLength, sizeof(char*));
+                        if(IS_NULL(values))
+                        {
+                            destroyInputArgs(inp, i, input);
+                            return STATUS_ERROR;
+                        }
+
                         for (size_t j = 0; j < input[i].arrayLength; j++)
                         {
                             values[j] = (char *) EdgeMalloc(str[j].length+1);
+                            if(IS_NULL(values[j]))
+                            {
+                                destroyInputArgs(inp, i, input);
+                                for(size_t k = 0; k < j; ++k)
+                                {
+                                    EdgeFree(values[j]);
+                                }
+                                EdgeFree(values);
+                                return STATUS_ERROR;
+                            }
                             strncpy(values[j], (char *) str[j].data, str[j].length);
                             values[j][str[j].length] = '\0';
                         }
@@ -538,7 +588,6 @@ static UA_StatusCode methodCallback(UA_Server *server, const UA_NodeId *sessionI
             }
         }
 
-        bool hasError = false;
         void **out = NULL;
         if (outputSize > 0)
         {
@@ -546,40 +595,14 @@ static UA_StatusCode methodCallback(UA_Server *server, const UA_NodeId *sessionI
             if(IS_NULL(out))
             {
                 EDGE_LOG(TAG, "ERROR : out in methodCallback Malloc FAILED\n");
-                hasError = true;
+                destroyInputArgs(inp, inputSize, input);
+                return STATUS_ERROR;
             }
         }
 
-        if(!hasError)
-        {
-            method_to_call(inputSize, inp, outputSize, out);
-        }
+        method_to_call(inputSize, inp, outputSize, out);
 
-        for (size_t i = 0; i < inputSize; i++)
-        {
-            if (input[i].type == &UA_TYPES[UA_TYPES_STRING])
-            {
-                if (input[i].arrayLength == 0)
-                {
-                    EdgeFree(inp[i]);
-                }
-                else
-                {
-                    char **values = (char**) inp[i];
-                    for (size_t j = 0; j < input[i].arrayLength; j++)
-                    {
-                        EdgeFree(values[j]);
-                    }
-                    EdgeFree(values);
-                }
-            }
-        }
-        EdgeFree(inp);
-
-        if (hasError)
-        {
-            return STATUS_ERROR;
-        }
+        destroyInputArgs(inp, inputSize, input);
 
         for (size_t idx = 0; idx < outputSize; idx++)
         {

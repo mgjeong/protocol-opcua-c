@@ -1157,6 +1157,7 @@ static void writeHelper(int num_requests, char *ep)
         if(STATUS_OK != res.code)
         {
             printf("Error : insertWriteAccessNode() failed (Status Code: %d).\n", res.code);
+            destroyEdgeMessage(msg);
             return;
         }
     }
