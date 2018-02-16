@@ -113,31 +113,56 @@ static void* getNamespaceIndex(char *namespaceUri)
 void createNamespaceInServer(char *namespaceUri, char *rootNodeIdentifier, char *rootNodeBrowseName,
         char *rootNodeDisplayName)
 {
-    if (namespaceType == URI_TYPE || namespaceType == DEFAULT_TYPE)
+    if (namespaceType != URI_TYPE && namespaceType != DEFAULT_TYPE)
     {
-        if (getNamespaceIndex(namespaceUri))
-        {
-            EDGE_LOG(TAG, "Namespace already added\n");
-            return;
-        }
-
-        uint16_t idx = UA_Server_addNamespace(m_server, namespaceUri);
-        (void) idx;
-        EDGE_LOG_V(TAG, "[SERVER] Namespace Index :: [%d]\n", idx);EDGE_LOG(TAG, "[SERVER] Namespace created\n");
-
-        EdgeNamespace *ns = (EdgeNamespace*) EdgeMalloc(sizeof(EdgeNamespace));
-        ns->ns_index = idx;
-        ns->rootNodeIdentifier = (char*) EdgeMalloc(sizeof(char) * (strlen(rootNodeIdentifier)+1));
-        strncpy(ns->rootNodeIdentifier, rootNodeIdentifier, strlen(rootNodeIdentifier)+1);
-        ns->rootNodeBrowseName = (char*) EdgeMalloc(sizeof(char) * (strlen(rootNodeBrowseName)+1));
-        strncpy(ns->rootNodeBrowseName, rootNodeBrowseName, strlen(rootNodeBrowseName)+1);
-        ns->rootNodeDisplayName = (char*) EdgeMalloc(sizeof(char) * (strlen(rootNodeDisplayName)+1));
-        strncpy(ns->rootNodeDisplayName, rootNodeDisplayName, strlen(rootNodeDisplayName)+1);
-
-        if (namespaceMap == NULL)
-            namespaceMap = createMap();
-        insertMapElement(namespaceMap, (keyValue) namespaceUri, (keyValue) ns);
+        return;
     }
+
+    if (getNamespaceIndex(namespaceUri))
+    {
+        EDGE_LOG(TAG, "Namespace already added\n");
+        return;
+    }
+
+    uint16_t idx = UA_Server_addNamespace(m_server, namespaceUri);
+    EDGE_LOG_V(TAG, "[SERVER] Namespace with Index Created:: [%d]\n", idx);
+
+    EdgeNamespace *ns = (EdgeNamespace*) EdgeCalloc(1, sizeof(EdgeNamespace));
+    ns->ns_index = idx;
+    ns->rootNodeIdentifier = (char*) EdgeMalloc(sizeof(char) * (strlen(rootNodeIdentifier)+1));
+    if(IS_NULL(ns->rootNodeIdentifier))
+    {
+        EDGE_LOG(TAG, "Memory allocation failed.");
+        goto ERROR;
+    }
+    strncpy(ns->rootNodeIdentifier, rootNodeIdentifier, strlen(rootNodeIdentifier)+1);
+
+    ns->rootNodeBrowseName = (char*) EdgeMalloc(sizeof(char) * (strlen(rootNodeBrowseName)+1));
+    if(IS_NULL(ns->rootNodeBrowseName))
+    {
+        EDGE_LOG(TAG, "Memory allocation failed.");
+        goto ERROR;
+    }
+    strncpy(ns->rootNodeBrowseName, rootNodeBrowseName, strlen(rootNodeBrowseName)+1);
+
+    ns->rootNodeDisplayName = (char*) EdgeMalloc(sizeof(char) * (strlen(rootNodeDisplayName)+1));
+    if(IS_NULL(ns->rootNodeDisplayName))
+    {
+        EDGE_LOG(TAG, "Memory allocation failed.");
+        goto ERROR;
+    }
+    strncpy(ns->rootNodeDisplayName, rootNodeDisplayName, strlen(rootNodeDisplayName)+1);
+
+    if (namespaceMap == NULL)
+        namespaceMap = createMap();
+    insertMapElement(namespaceMap, (keyValue) namespaceUri, (keyValue) ns);
+    return;
+
+ERROR:
+    EdgeFree(ns->rootNodeIdentifier);
+    EdgeFree(ns->rootNodeBrowseName);
+    EdgeFree(ns->rootNodeDisplayName);
+    EdgeFree(ns);
 }
 
 EdgeResult addNodesInServer(char *namespaceUri, EdgeNodeItem *item)
@@ -211,6 +236,12 @@ EdgeNodeItem* createVariableNodeItemImpl(char* name, EdgeNodeIdentifier type, vo
 EdgeNodeItem* createNodeItemImpl(char* name, EdgeIdentifier nodeType, EdgeNodeId *sourceNodeId)
 {
     EdgeNodeItem* item = (EdgeNodeItem *) EdgeCalloc(1, sizeof(EdgeNodeItem));
+    if(IS_NULL(item))
+    {
+        EDGE_LOG(TAG, "Memory allocation failed.");
+        return NULL;
+    }
+
     //VERIFY_NON_NULL_RET(item);
     item->nodeType = DEFAULT_NODE_TYPE;
     item->accessLevel = READ_WRITE;
