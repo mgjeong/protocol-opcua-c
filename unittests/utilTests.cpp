@@ -155,6 +155,15 @@ TEST_F(OPC_util , cloneString_P)
     EXPECT_EQ(retStr == NULL, true);
 }
 
+TEST_F(OPC_util , cloneString_N)
+{
+    char *retStr = NULL;
+    EXPECT_EQ(retStr == NULL, true);
+
+    retStr = cloneString(NULL);
+    ASSERT_EQ(retStr == NULL, true);
+}
+
 TEST_F(OPC_util , cloneEdgeEndpoint_P)
 {
     EdgeEndPointInfo *retEndpoint = NULL;
@@ -253,6 +262,48 @@ TEST_F(OPC_util , cloneNode_P)
     EXPECT_EQ(nodeInfo == NULL, true);
     EXPECT_EQ(retNodeInfo == NULL, true);
 }
+
+TEST_F(OPC_util , convertUAStringToString_N)
+{
+    char *retStr = NULL;
+    EXPECT_EQ(retStr == NULL, true);
+
+    retStr = convertUAStringToString(NULL);
+    ASSERT_EQ(retStr == NULL, true);
+}
+
+TEST_F(OPC_util , edgeMalloc_P)
+{
+    int *ptr = (int*) EdgeMalloc(sizeof(int) * 5);
+    ASSERT_EQ(NULL != ptr, true);
+    free(ptr);
+}
+
+TEST_F(OPC_util , edgeMalloc_N)
+{
+    int *ptr = (int*) EdgeMalloc(0);
+    ASSERT_EQ(NULL, ptr);
+}
+
+TEST_F(OPC_util , edgeCalloc_P)
+{
+    int *ptr = (int*) EdgeCalloc(5, sizeof(int));
+    ASSERT_EQ(NULL != ptr, true);
+    free(ptr);
+}
+
+TEST_F(OPC_util , edgeCalloc_N1)
+{
+    int *ptr = (int*) EdgeCalloc(0, sizeof(int));
+    ASSERT_EQ(NULL, ptr);
+}
+
+TEST_F(OPC_util , edgeCalloc_N2)
+{
+    int *ptr = (int*) EdgeCalloc(5, 0);
+    ASSERT_EQ(NULL, ptr);
+}
+
 
 /*
  int main(int argc, char **argv) {

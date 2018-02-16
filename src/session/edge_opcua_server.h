@@ -30,7 +30,7 @@ extern "C"
 #endif
 
     /* Create and add namespace */
-    void createNamespaceInServer(char *namespaceUri, char *rootNodeIdentifier,
+    EdgeResult createNamespaceInServer(char *namespaceUri, char *rootNodeIdentifier,
             char *rootNodeBrowseName, char *rootNodeDisplayName);
 
     EdgeResult addNodesInServer(char *namespaceUri, EdgeNodeItem *item);

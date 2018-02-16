@@ -1160,6 +1160,87 @@ TEST_F(OPC_serverTests , StartStopServer_P)
         printf("false\n");
 }
 
+
+TEST_F(OPC_serverTests , StartServer_N1)
+{
+    int len = strlen(endpointUri);
+    epInfo->endpointUri = (char *) EdgeMalloc(len + 1);
+
+    strncpy(epInfo->endpointUri, endpointUri, len);
+    epInfo->endpointUri[len] = '\0';
+    configureCallbacks();
+
+    EdgeApplicationConfig *appConfig = (EdgeApplicationConfig *) EdgeCalloc(1, sizeof(EdgeApplicationConfig));
+    appConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
+    appConfig->applicationUri = (char *) DEFAULT_SERVER_APP_URI_VALUE;
+    appConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
+
+    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
+    ep->endpointUri = endpointUri;
+    ep->endpointConfig = NULL;
+    ep->appConfig = appConfig;
+
+    EdgeMessage *msg = (EdgeMessage *) EdgeMalloc(sizeof(EdgeMessage));
+    msg->endpointInfo = ep;
+    msg->command = CMD_START_SERVER;
+    msg->type = SEND_REQUEST;
+
+    EdgeResult result = createServer(ep);
+    ASSERT_EQ(result.code, STATUS_PARAM_INVALID);
+
+    cleanCallbacks();
+
+    free(appConfig);
+    if (epInfo->endpointUri != NULL)
+    {
+        free(epInfo->endpointUri);
+        epInfo->endpointUri = NULL;
+    }
+}
+
+TEST_F(OPC_serverTests , StartServer_N2)
+{
+    int len = strlen(endpointUri);
+    epInfo->endpointUri = (char *) EdgeMalloc(len + 1);
+
+    strncpy(epInfo->endpointUri, endpointUri, len);
+    epInfo->endpointUri[len] = '\0';
+    configureCallbacks();
+
+    EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) EdgeCalloc(1, sizeof(EdgeEndpointConfig));
+    endpointConfig->bindAddress = ipAddress;
+    endpointConfig->bindPort = 12686;
+    endpointConfig->serverName = (char *) DEFAULT_SERVER_NAME_VALUE;
+
+    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
+    ep->endpointUri = endpointUri;
+    ep->endpointConfig = endpointConfig;
+    ep->appConfig = NULL;
+
+    EdgeMessage *msg = (EdgeMessage *) EdgeMalloc(sizeof(EdgeMessage));
+    msg->endpointInfo = ep;
+    msg->command = CMD_START_SERVER;
+    msg->type = SEND_REQUEST;
+
+    EdgeResult result = createServer(ep);
+    ASSERT_EQ(result.code, STATUS_PARAM_INVALID);
+
+    cleanCallbacks();
+
+    free(endpointConfig);
+    if (epInfo->endpointUri != NULL)
+    {
+        free(epInfo->endpointUri);
+        epInfo->endpointUri = NULL;
+    }
+}
+
+TEST_F(OPC_serverTests , StartServer_N3)
+{
+    EdgeResult result = createServer(NULL);
+    ASSERT_EQ(result.code, STATUS_PARAM_INVALID);
+}
+
 TEST_F(OPC_serverTests , StartServer_P)
 {
     int len = strlen(endpointUri);
@@ -1221,19 +1302,204 @@ TEST_F(OPC_serverTests , ServerCreateNamespace_P)
     DEFAULT_ROOT_NODE_INFO_VALUE);
 
     EXPECT_EQ(result.code, STATUS_OK);
+}
 
-//    deleteMessage(msg, ep);
+TEST_F(OPC_serverTests , ServerCreateNamespace_N1)
+{
+    EdgeResult result = createNamespace(NULL,
+    DEFAULT_ROOT_NODE_INFO_VALUE,
+    DEFAULT_ROOT_NODE_INFO_VALUE,
+    DEFAULT_ROOT_NODE_INFO_VALUE);
+    EXPECT_EQ(result.code, STATUS_PARAM_INVALID);
+}
 
-//    cleanCallbacks();
+TEST_F(OPC_serverTests , ServerCreateNamespace_N2)
+{
+    EdgeResult result = createNamespace(DEFAULT_NAMESPACE_VALUE,
+    NULL,
+    DEFAULT_ROOT_NODE_INFO_VALUE,
+    DEFAULT_ROOT_NODE_INFO_VALUE);
+    ASSERT_EQ(result.code, STATUS_PARAM_INVALID);
 
-//    free(endpointConfig);
-//    free(appConfig);
+    result = createNamespace(DEFAULT_NAMESPACE_VALUE,
+    DEFAULT_ROOT_NODE_INFO_VALUE,
+    NULL,
+    DEFAULT_ROOT_NODE_INFO_VALUE);
+    ASSERT_EQ(result.code, STATUS_PARAM_INVALID);
 
-//    if (epInfo->endpointUri != NULL)
-//    {
-//        free(epInfo->endpointUri);
-//        epInfo->endpointUri = NULL;
-//    }
+    result = createNamespace(DEFAULT_NAMESPACE_VALUE,
+    DEFAULT_ROOT_NODE_INFO_VALUE,
+    DEFAULT_ROOT_NODE_INFO_VALUE,
+    NULL);
+    ASSERT_EQ(result.code, STATUS_PARAM_INVALID);
+}
+
+TEST_F(OPC_serverTests , ServerCreateNamespace_N3)
+{
+    EdgeResult result = createNamespace(DEFAULT_NAMESPACE_VALUE,
+    NULL,
+    NULL,
+    NULL);
+    ASSERT_EQ(result.code, STATUS_PARAM_INVALID);
+}
+
+TEST_F(OPC_serverTests , ServerCreateVariableNodeItem_P)
+{
+    EdgeNodeItem* item = NULL;
+    item = createVariableNodeItem("String1", String, (void*) "test1", VARIABLE_NODE);
+    ASSERT_EQ(NULL != item, true);
+    EdgeFree(item);
+}
+
+TEST_F(OPC_serverTests , ServerCreateVariableNodeItem_N)
+{
+    EdgeNodeItem* item = NULL;
+    item = createVariableNodeItem(NULL, String, (void*) "test1", VARIABLE_NODE);
+    ASSERT_EQ(NULL != item, false);
+}
+
+TEST_F(OPC_serverTests , ServerCreateNodeItem_P)
+{
+    EdgeNodeId *edgeNodeId = (EdgeNodeId *) EdgeMalloc(sizeof(EdgeNodeId));
+    ASSERT_EQ(NULL != edgeNodeId, true);
+
+    EdgeNodeItem* item = NULL;
+    item = createNodeItem("Object1", OBJECT_NODE, edgeNodeId);
+    ASSERT_EQ(NULL != item, true);
+    EdgeFree(item);
+
+    item = NULL;
+    item = createNodeItem("ObjectType1", OBJECT_TYPE_NODE, edgeNodeId);
+    ASSERT_EQ(NULL != item, true);
+    EdgeFree(item);
+
+    item = NULL;
+    item = createNodeItem("DataType1", DATA_TYPE_NODE, edgeNodeId);
+    ASSERT_EQ(NULL != item, true);
+    EdgeFree(item);
+
+    item = NULL;
+    item = createNodeItem("View1", VIEW_NODE, edgeNodeId);
+    ASSERT_EQ(NULL != item, true);
+    EdgeFree(item);
+}
+
+TEST_F(OPC_serverTests , ServerCreateNodeItem_N)
+{
+    EdgeNodeId *edgeNodeId = (EdgeNodeId *) EdgeMalloc(sizeof(EdgeNodeId));
+    ASSERT_EQ(NULL != edgeNodeId, true);
+
+    EdgeNodeItem* item = NULL;
+    item = createNodeItem(NULL, OBJECT_NODE, edgeNodeId);
+    ASSERT_EQ(NULL != item, false);
+
+    item = createNodeItem(NULL, OBJECT_TYPE_NODE, edgeNodeId);
+    ASSERT_EQ(NULL != item, false);
+
+    item = createNodeItem(NULL, DATA_TYPE_NODE, edgeNodeId);
+    ASSERT_EQ(NULL != item, false);
+
+    item = createNodeItem(NULL, VIEW_NODE, edgeNodeId);
+    ASSERT_EQ(NULL != item, false);
+}
+
+TEST_F(OPC_serverTests , ServerAddReference_N1)
+{
+    EdgeReference *reference = (EdgeReference *) EdgeCalloc(1, sizeof(EdgeReference));
+    ASSERT_EQ(NULL != reference, true);
+    reference->forward = true;
+    reference->sourceNamespace = NULL;
+    reference->sourcePath = "ViewNode1";
+    reference->targetNamespace = DEFAULT_NAMESPACE_VALUE;
+    reference->targetPath = "robot_name";
+    /* default reference ID : Organizes */
+    EdgeResult result = addReference(reference);
+    ASSERT_EQ(result.code, STATUS_PARAM_INVALID);
+    EdgeFree(reference);
+}
+
+TEST_F(OPC_serverTests , ServerAddReference_N2)
+{
+    EdgeReference *reference = (EdgeReference *) EdgeCalloc(1, sizeof(EdgeReference));
+    ASSERT_EQ(NULL != reference, true);
+    reference->forward = true;
+    reference->sourceNamespace = DEFAULT_NAMESPACE_VALUE;
+    reference->sourcePath = "ViewNode1";
+    reference->targetNamespace = NULL;
+    reference->targetPath = "robot_name";
+    /* default reference ID : Organizes */
+    EdgeResult result = addReference(reference);
+    ASSERT_EQ(result.code, STATUS_PARAM_INVALID);
+    EdgeFree(reference);
+}
+
+TEST_F(OPC_serverTests , ServerAddReference_N3)
+{
+    EdgeReference *reference = (EdgeReference *) EdgeCalloc(1, sizeof(EdgeReference));
+    ASSERT_EQ(NULL != reference, true);
+    reference->forward = true;
+    reference->sourceNamespace = NULL;
+    reference->sourcePath = "ViewNode1";
+    reference->targetNamespace = NULL;
+    reference->targetPath = "robot_name";
+    /* default reference ID : Organizes */
+    EdgeResult result = addReference(reference);
+    ASSERT_EQ(result.code, STATUS_PARAM_INVALID);
+    EdgeFree(reference);
+}
+
+TEST_F(OPC_serverTests , ServerAddReference_N4)
+{
+    EdgeResult result = addReference(NULL);
+    ASSERT_EQ(result.code, STATUS_PARAM_INVALID);
+}
+
+TEST_F(OPC_serverTests , ServerAddMethodNode_N1)
+{
+    EdgeNodeItem *methodNodeItem = (EdgeNodeItem *) EdgeMalloc(sizeof(EdgeNodeItem));
+    ASSERT_EQ(NULL != methodNodeItem, true);
+    EdgeMethod *method = (EdgeMethod *) EdgeMalloc(sizeof(EdgeMethod));
+    ASSERT_EQ(NULL != method, true);
+    EdgeResult result = createMethodNode(NULL, methodNodeItem, method);
+    ASSERT_EQ(result.code, STATUS_PARAM_INVALID);
+    EdgeFree(methodNodeItem);
+    EdgeFree(method);
+}
+
+TEST_F(OPC_serverTests , ServerAddMethodNode_N2)
+{
+    EdgeMethod *method = (EdgeMethod *) EdgeMalloc(sizeof(EdgeMethod));
+    ASSERT_EQ(NULL != method, true);
+    EdgeResult result = createMethodNode(DEFAULT_NAMESPACE_VALUE, NULL, method);
+    ASSERT_EQ(result.code, STATUS_PARAM_INVALID);
+    EdgeFree(method);
+}
+
+TEST_F(OPC_serverTests , ServerAddMethodNode_N3)
+{
+    EdgeNodeItem *methodNodeItem = (EdgeNodeItem *) EdgeMalloc(sizeof(EdgeNodeItem));
+    ASSERT_EQ(NULL != methodNodeItem, true);
+    EdgeResult result = createMethodNode(DEFAULT_NAMESPACE_VALUE, methodNodeItem, NULL);
+    ASSERT_EQ(result.code, STATUS_PARAM_INVALID);
+    EdgeFree(methodNodeItem);
+}
+
+TEST_F(OPC_serverTests , ServerAddMethodNode_N4)
+{
+    EdgeResult result = createMethodNode(NULL, NULL, NULL);
+    ASSERT_EQ(result.code, STATUS_PARAM_INVALID);
+}
+
+TEST_F(OPC_serverTests , ServerCreateNode_N1)
+{
+    EdgeResult result = createNode(DEFAULT_NAMESPACE_VALUE, NULL);
+    ASSERT_EQ(result.code, STATUS_PARAM_INVALID);
+}
+
+TEST_F(OPC_serverTests , ServerCreateNode_N2)
+{
+    EdgeResult result = createNode(DEFAULT_NAMESPACE_VALUE, NULL);
+    ASSERT_EQ(result.code, STATUS_PARAM_INVALID);
 }
 
 TEST_F(OPC_serverTests , ServerAddNodes_P)
@@ -2092,6 +2358,39 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
         free(epInfo->endpointUri);
         epInfo->endpointUri = NULL;
     }
+
+    EdgeReference *reference = (EdgeReference *) EdgeCalloc(1, sizeof(EdgeReference));
+    EXPECT_EQ(NULL != reference, true);
+    reference->forward = true;
+    reference->sourceNamespace = DEFAULT_NAMESPACE_VALUE;
+    reference->sourcePath = "ViewNode1";
+    reference->targetNamespace = DEFAULT_NAMESPACE_VALUE;
+    reference->targetPath = "robot_name";
+    /* default reference ID : Organizes */
+    addReference(reference);
+    EdgeFree(reference);
+
+    reference = (EdgeReference *) EdgeCalloc(1, sizeof(EdgeReference));
+    EXPECT_EQ(NULL != reference, true);
+    reference->forward = true;
+    reference->sourceNamespace = DEFAULT_NAMESPACE_VALUE;
+    reference->sourcePath = "ViewNode1";
+    reference->targetNamespace = DEFAULT_NAMESPACE_VALUE;
+    reference->targetPath = "robot_id";
+    /* default reference ID : Organizes */
+    addReference(reference);
+    EdgeFree(reference);
+
+    reference = (EdgeReference *) EdgeCalloc(1, sizeof(EdgeReference));
+    EXPECT_EQ(NULL != reference, true);
+    reference->forward = true;
+    reference->sourceNamespace = DEFAULT_NAMESPACE_VALUE;
+    reference->sourcePath = "ViewNode1";
+    reference->targetNamespace = DEFAULT_NAMESPACE_VALUE;
+    reference->targetPath = "robot_position";
+    /* default reference ID : Organizes */
+    addReference(reference);
+    EdgeFree(reference);
 }
 
 TEST_F(OPC_clientTests , ServerModifyVariableNode_P)
@@ -2976,6 +3275,11 @@ TEST_F(OPC_clientTests , ClientSubscribe_N3)
 
     stop_client();
     EXPECT_EQ(startClientFlag, false);
+}
+
+TEST_F(OPC_clientTests , ClientShowNodeList_P)
+{
+    showNodeList();
 }
 
 int main(int argc, char **argv)

@@ -74,10 +74,8 @@ void configure(EdgeConfigure *config)
 
 EdgeResult createNamespace(char *name, char *rootNodeId, char *rootBrowseName,
         char *rootDisplayName)
-{
-    createNamespaceInServer(name, rootNodeId, rootBrowseName, rootDisplayName);
-    EdgeResult result;
-    result.code = STATUS_OK;
+{    
+    EdgeResult result = createNamespaceInServer(name, rootNodeId, rootBrowseName, rootDisplayName);
     return result;
 }
 
@@ -107,24 +105,35 @@ EdgeResult createMethodNode(char *namespaceUri, EdgeNodeItem *item, EdgeMethod *
     return result;
 }
 
-void createServer(EdgeEndPointInfo *epInfo)
-{
+EdgeResult createServer(EdgeEndPointInfo *epInfo)
+{    
     EDGE_LOG(TAG, "[Received command] :: Server start.");
+    EdgeResult result;
+    if (IS_NULL(epInfo))
+    {
+        result.code = STATUS_PARAM_INVALID;
+        return result;
+    }
     if (b_serverInitialized)
     {
         EDGE_LOG(TAG, "Server already initialized.");
-        return;
+        result.code = STATUS_ALREADY_INIT;
+        return result;
     }
-
-    EdgeResult result = start_server(epInfo);
+    result = start_server(epInfo);
     if (result.code == STATUS_OK)
     {
         b_serverInitialized = true;
     }
+    return result;
 }
 
 void closeServer(EdgeEndPointInfo *epInfo)
-{
+{    
+    if (IS_NULL(epInfo))
+    {
+        return;
+    }
     if (b_serverInitialized)
     {
         stop_server(epInfo);
@@ -156,6 +165,10 @@ EdgeResult findServers(const char *endpointUri, size_t serverUrisSize, unsigned 
 
 void disconnectClient(EdgeEndPointInfo *epInfo)
 {
+    if (IS_NULL(epInfo))
+    {
+        return;
+    }
     EDGE_LOG(TAG, "[Received command] :: Client disconnect.");
     disconnect_client(epInfo);
 }
