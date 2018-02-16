@@ -768,7 +768,7 @@ static void browse_next()
     EdgeBrowseParameter param = {DIRECTION_FORWARD, maxReferencesPerNode};
     insertBrowseParameter(&msg, nodeInfo, param);
 
-    browseNextData = initBrowseNextData(browseNextData, msg->browseParam, 1000, -1);
+    browseNextData = initBrowseNextData(browseNextData, msg->browseParam, 1000, 0);
     EXPECT_EQ(browseNodeFlag, false);
     sendRequest(msg);
     destroyEdgeMessage(msg);
@@ -780,8 +780,8 @@ static void browse_next()
 
     EdgeBrowseNextData *clone = cloneBrowseNextData(browseNextData);
     EXPECT_EQ(NULL != clone, true);
-    browseNextData = initBrowseNextData(browseNextData, &browseNextData->browseParam, 1000, -1);
-    size_t requestLength = clone->last_used + 1;
+    browseNextData = initBrowseNextData(browseNextData, &browseNextData->browseParam, 1000, 0);
+    size_t requestLength = clone->next_free;
     msg = createEdgeMessage(endpointUri, requestLength, CMD_BROWSENEXT);
 
     if(requestLength == 1)

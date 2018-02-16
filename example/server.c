@@ -375,8 +375,6 @@ static void testCreateNodes()
     printf("\n|------------[Added] %s\n", item->browseName);
     deleteNodeItem(item);
 
-    item = (EdgeNodeItem *) EdgeCalloc(1, sizeof(EdgeNodeItem));
-    VERIFY_NON_NULL_NR(item);
     printf("\n[%d] Variable node with Int64 variant: \n", ++index);
     value = 32700;
     item = createVariableNodeItem("Int64", Int64, (void *) &value, VARIABLE_NODE);
@@ -906,6 +904,7 @@ static void testCreateNodes()
         VERIFY_NON_NULL_NR(item);
         createNode(DEFAULT_NAMESPACE_VALUE, item);
         EdgeFree(edgeNodeId);
+        deleteNodeItem(item);
     }
     else
     {
@@ -923,6 +922,7 @@ static void testCreateNodes()
         createNode(DEFAULT_NAMESPACE_VALUE, item);
         printf("\n|------------[Added] %s\n", item->browseName);
         EdgeFree(edgeNodeId);
+        deleteNodeItem(item);
     }
     else
     {
@@ -939,13 +939,12 @@ static void testCreateNodes()
         createNode(DEFAULT_NAMESPACE_VALUE, item);
         printf("\n|------------[Added] %s\n", item->browseName);
         EdgeFree(edgeNodeId);
+        deleteNodeItem(item);
     }
     else
     {
         printf("Error :: EdgeMalloc failed for ReferenceTypeNode2 in Test create Nodes\n");
     }
-
-    deleteNodeItem(item);
 
     /******************* Method Node *********************/
     printf(COLOR_GREEN"\n[Create Method Node]\n"COLOR_RESET);
@@ -1002,6 +1001,11 @@ static void testCreateNodes()
     method->outArg = (EdgeArgument **) malloc(sizeof(EdgeArgument *) * method->num_outArgs);
     if (IS_NULL(method->outArg))
     {
+        for (int idx = 0; idx < method->num_inpArgs; idx++)
+        {
+            EdgeFree(method->inpArg[idx]);
+        }
+        EdgeFree(method->inpArg);
         EdgeFree(methodNodeItem);
         EdgeFree(method);
         printf("Error :: EdgeMalloc failed for method method->outArg  in Test create Nodes\n");
@@ -1232,7 +1236,7 @@ static void testCreateNodes()
         return;
     }
     method4->outArg[0] = (EdgeArgument *) EdgeMalloc(sizeof(EdgeArgument));
-    if (IS_NULL(method))
+    if (IS_NULL(method4->outArg[0]))
     {
         EdgeFree(method4->outArg);
         EdgeFree(methodNodeItem4);
@@ -1384,63 +1388,91 @@ static void testModifyNode()
     if (option == 1)
     {
         scanf("%s", s_value);
-        strcpy(name, "String1");
+        strncpy(name, "String1", sizeof(name)-1);
+        name[sizeof(name)-1] = '\0';
         new_value = (void *) s_value;
     }
     else if (option == 2)
     {
         scanf("%s", s_value);
-        strcpy(name, "String2");
+        strncpy(name, "String2", sizeof(name)-1);
+        name[sizeof(name)-1] = '\0';
         new_value = (void *) s_value;
     }
     else if (option == 3)
     {
         scanf("%s", s_value);
-        strcpy(name, "String3");
+        strncpy(name, "String3", sizeof(name)-1);
+        name[sizeof(name)-1] = '\0';
         new_value = (void *) s_value;
     }
     else if (option == 4)
     {
         scanf("%lf", &d_value);
-        strcpy(name, "Double");
+        strncpy(name, "Double", sizeof(name)-1);
+        name[sizeof(name)-1] = '\0';
         new_value = (void *) &d_value;
     }
     else if (option == 5)
     {
         scanf("%d", &i_value);
-        strcpy(name, "Int32");
+        strncpy(name, "Int32", sizeof(name)-1);
+        name[sizeof(name)-1] = '\0';
         new_value = (void *) &i_value;
     }
     else if (option == 6)
     {
         scanf("%u", &u_value);
-        strcpy(name, "UInt16");
+        strncpy(name, "UInt16", sizeof(name)-1);
+        name[sizeof(name)-1] = '\0';
         new_value = (void *) &u_value;
     }
     else if (option == 7)
     {
         scanf("%s", s_value);
-        strcpy(name, "ByteString");
+        strncpy(name, "ByteString", sizeof(name)-1);
+        name[sizeof(name)-1] = '\0';
         new_value = (void *) s_value;
     }
     else if (option == 8)
     {
-        strncpy(name, "CharArray", strlen("CharArray"));
-        name[strlen("CharArray")] = '\0';
+        strncpy(name, "CharArray", sizeof(name)-1);
+        name[sizeof(name)-1] = '\0';
 
-        int num_values;
+        unsigned int num_values;
         printf("Enter number of string elements :  ");
-        scanf("%d", &num_values);
+        scanf("%u", &num_values);
+        if(num_values < 1)
+        {
+            printf("Number of elements cannot be less than 1.\n");
+            return;
+        }
 
-        char **new_str = (char**) malloc(sizeof(char*) * num_values);
+        char **new_str = (char**) EdgeCalloc(num_values, sizeof(char*));
+        if(IS_NULL(new_str))
+        {
+            printf("Memory allocation failed.\n");
+            return;
+        }
+
         int len;
         char val[MAX_ADDRESS_SIZE];
-        for (int i = 0; i < num_values; i++)
+        for (unsigned int i = 0; i < num_values; i++)
         {
-            printf("Enter string #%d :  ", (i+1));
+            printf("Enter string #%u :  ", (i+1));
             scanf("%s", val);
             len  = strlen(val);
             new_str[i] = (char *) EdgeMalloc(len + 1);
+            if(IS_NULL(new_str[i]))
+            {
+                printf("Memory allocation failed.\n");
+                for(unsigned int j=0;j<i;j++)
+                {
+                    EdgeFree(new_str[j]);
+                }
+                EdgeFree(new_str);
+                return;
+            }
             strncpy(new_str[i], val, len);
             new_str[i][len] = '\0';
         }
@@ -1459,6 +1491,11 @@ static void testModifyNode()
         {
             printf("Error :: EdgeMalloc failed for CharArray EdgeVersatility in Test Modify Nodes\n");
         }
+        for (int i = 0; i < num_values; i++)
+        {
+            EdgeFree(new_str[i]);
+        }
+        EdgeFree(new_str);
         return ;
     }
     else if (option == 9)
