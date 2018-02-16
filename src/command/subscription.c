@@ -174,7 +174,8 @@ static void monitoredItemHandler(UA_UInt32 monId, UA_DataValue *value, void *con
         return;
     }
 
-    EDGE_LOG_V(TAG, "value is present, monId :: %d\n", monId);
+    EDGE_LOG_V(TAG, "Notification received. Value is present, monId :: %d\n", monId);
+    logCurrentTimeStamp();
 
     client_valueAlias *client_alias = (client_valueAlias*) context;
     char *valueAlias = client_alias->valueAlias;

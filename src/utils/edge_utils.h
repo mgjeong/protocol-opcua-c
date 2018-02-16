@@ -101,6 +101,8 @@ extern "C"
 
     unsigned int getListSize(List *ptr);
 
+    void logCurrentTimeStamp();
+
     char *cloneString(const char *str);
 
     void *cloneData(const void *src, int lenInbytes);

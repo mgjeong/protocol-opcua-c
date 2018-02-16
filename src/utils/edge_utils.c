@@ -22,6 +22,8 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <sys/time.h>
+#include <time.h>
 
 #include "open62541.h"
 #include "edge_logger.h"
@@ -149,6 +151,18 @@ void deleteList(List **head)
         ptr = next;
     }
     *head = NULL;
+}
+
+void logCurrentTimeStamp()
+{
+#if DEBUG
+    struct timeval curTime;
+    gettimeofday(&curTime, NULL);
+
+    char buffer[15];
+    strftime(buffer, sizeof(buffer), "%m/%d %H:%M:%S", localtime(&curTime.tv_sec));
+    EDGE_LOG_V(TAG, "Current time: %s.%03d\n", buffer, (int)(curTime.tv_usec / 1000));
+#endif
 }
 
 char *cloneString(const char *str)
