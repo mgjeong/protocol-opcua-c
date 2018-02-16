@@ -86,7 +86,7 @@ void testReadWithoutEndpoint()
 {
     int num_requests  = 1;
     EdgeMessage *msg = createEdgeAttributeMessage(NULL, num_requests, CMD_READ);
-    EXPECT_EQ(NULL != msg, true);
+    ASSERT_EQ(NULL != msg, false);
 
     for (int i = 0; i < num_requests; i++)
     {
@@ -102,7 +102,7 @@ void testReadWithoutValueAlias(char *endpointUri)
 {
     int num_requests  = 1;
     EdgeMessage *msg = createEdgeAttributeMessage(endpointUri, num_requests, CMD_READ);
-    EXPECT_EQ(NULL != msg, true);
+    ASSERT_EQ(NULL != msg, true);
     insertReadAccessNode(&msg, NULL);
     EdgeResult result = sendRequest(msg);
     destroyEdgeMessage(msg);

@@ -131,7 +131,7 @@ void testWrite_P4(char *endpointUri)
 void testWriteWithoutEndpoint()
 {
     EdgeMessage *msg = createEdgeAttributeMessage(NULL, 1, CMD_WRITE);
-    EXPECT_EQ(NULL!=msg, true);
+    ASSERT_EQ(NULL!=msg, false);
     char *value = (char*) malloc(sizeof(char) * 10);
     strcpy(value, "test_str");
     insertWriteAccessNode(&msg, node_arr[0], value, 1);

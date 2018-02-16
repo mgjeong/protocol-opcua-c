@@ -114,11 +114,11 @@ void testMethod_P4(char *endpointUri)
 void testMethodWithoutEndpoint()
 {
     EdgeMessage *msg = createEdgeMessage(NULL, 1, CMD_METHOD);
-    EXPECT_EQ(NULL != msg, true);
+    ASSERT_EQ(NULL != msg, false);
 
     double input = 16.0;
     EdgeResult ret = insertEdgeMethodParameter(&msg, "{2;S;v=0}square(x)", 1, Double, SCALAR, (void *) &input, NULL, 0);
-    ASSERT_EQ(ret.code, STATUS_OK);
+    ASSERT_EQ(ret.code, STATUS_PARAM_INVALID);
     EdgeResult result = sendRequest(msg);
     ASSERT_EQ(result.code, STATUS_PARAM_INVALID);
 }
@@ -126,7 +126,7 @@ void testMethodWithoutEndpoint()
 void testMethodWithoutValueAlias(char *endpointUri)
 {
     EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_METHOD);
-    EXPECT_EQ(NULL != msg, true);
+    ASSERT_EQ(NULL != msg, true);
 
     double input = 16.0;
     EdgeResult ret = insertEdgeMethodParameter(&msg, NULL, 1, Double, SCALAR, (void *) &input, NULL, 0);
