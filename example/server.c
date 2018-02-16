@@ -869,8 +869,7 @@ static void testCreateNodes()
     /******************* Variable Type Node *********************/
     printf(COLOR_GREEN"\n[Create Variable Type Node]\n"COLOR_RESET);
     printf("\n[%d] Variable Type Node with Double Variable Type \n", ++index);
-    double d[2] =
-    { 10.2, 20.2 };
+    double d[2] = { 10.2, 20.2 };
     item = createVariableNodeItem("DoubleVariableType", Double, (void *) d, VARIABLE_TYPE_NODE);
     VERIFY_NON_NULL_NR(item);
     item->arrayLength = 2;
@@ -1194,7 +1193,7 @@ static void testCreateNodes()
         return;
     }
     method3->inpArg[0] = (EdgeArgument *) EdgeMalloc(sizeof(EdgeArgument));
-    if (IS_NULL(method))
+    if (IS_NULL(method3->inpArg[0]))
     {
         EdgeFree(method3->inpArg);
         EdgeFree(methodNodeItem3);
@@ -1461,13 +1460,12 @@ static void testModifyNode()
             return;
         }
 
-        int len;
         char val[MAX_ADDRESS_SIZE];
         for (unsigned int i = 0; i < num_values; i++)
         {
             printf("Enter string #%u :  ", (i+1));
             scanf("%s", val);
-            len  = strlen(val);
+            size_t len  = strlen(val);
             new_str[i] = (char *) EdgeMalloc(len + 1);
             if(IS_NULL(new_str[i]))
             {
