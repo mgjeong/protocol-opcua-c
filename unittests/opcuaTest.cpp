@@ -2670,6 +2670,45 @@ TEST_F(OPC_clientTests , FindServers_N3)
     EdgeFree(registeredServers);;
 }
 
+TEST_F(OPC_clientTests , createEdgeMessage_P)
+{
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_GET_ENDPOINTS);
+    EXPECT_EQ(NULL != msg, true);
+    EdgeFree(msg);
+}
+
+TEST_F(OPC_clientTests , createEdgeMessage_N)
+{
+    EdgeMessage *msg = createEdgeMessage(NULL, 1, CMD_GET_ENDPOINTS);
+    EXPECT_EQ(NULL != msg, false);
+}
+
+TEST_F(OPC_clientTests , createEdgeAttributeMessage_P)
+{
+    EdgeMessage *msg = createEdgeAttributeMessage(endpointUri, 1, CMD_READ);
+    EXPECT_EQ(NULL != msg, true);
+    EdgeFree(msg);
+}
+
+TEST_F(OPC_clientTests , createEdgeAttributeMessage_N)
+{
+    EdgeMessage *msg = createEdgeAttributeMessage(NULL, 1, CMD_READ);
+    EXPECT_EQ(NULL != msg, false);
+}
+
+TEST_F(OPC_clientTests , createEdgeSubMessage_P)
+{
+    EdgeMessage *msg = createEdgeSubMessage(endpointUri, node_arr[0], 1, Edge_Create_Sub);
+    EXPECT_EQ(NULL != msg, true);
+    EdgeFree(msg);
+}
+
+TEST_F(OPC_clientTests , createEdgeSubMessage_N)
+{
+    EdgeMessage *msg = createEdgeSubMessage(NULL, node_arr[0], 1, Edge_Create_Sub);
+    EXPECT_EQ(NULL != msg, false);
+}
+
 TEST_F(OPC_clientTests , StartClient_P)
 {
     EXPECT_EQ(startClientFlag, false);

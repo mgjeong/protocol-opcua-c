@@ -663,6 +663,11 @@ EdgeResult insertSubParameter(EdgeMessage **msg, const char* nodeName, EdgeNodeI
 EdgeMessage* createEdgeSubMessage(const char *endpointUri, const char* nodeName, size_t requestSize,
         EdgeNodeIdentifier subType)
 {
+    if (!endpointUri)
+    {
+        EDGE_LOG(TAG, "Error : endpointUri is empty");
+        return NULL;
+    }
     EdgeMessage *msg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
     if (IS_NULL(msg))
     {
@@ -718,6 +723,11 @@ EdgeMessage* createEdgeSubMessage(const char *endpointUri, const char* nodeName,
 EdgeMessage* createEdgeAttributeMessage(const char *endpointUri, size_t requestSize,
         EdgeCommand cmd)
 {
+    if (!endpointUri)
+    {
+        EDGE_LOG(TAG, "Error : endpointUri is empty");
+        return NULL;
+    }
     EdgeMessage *msg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
     if (IS_NULL(msg))
     {
@@ -751,6 +761,11 @@ EdgeMessage* createEdgeAttributeMessage(const char *endpointUri, size_t requestS
 
 EdgeMessage* createEdgeMessage(const char *endpointUri, size_t requestSize, EdgeCommand cmd)
 {
+    if (!endpointUri)
+    {
+        EDGE_LOG(TAG, "Error : endpointUri is empty");
+        return NULL;
+    }
     EdgeMessage *msg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
     if (IS_NULL(msg))
     {

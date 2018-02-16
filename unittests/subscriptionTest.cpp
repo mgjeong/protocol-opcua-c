@@ -151,11 +151,12 @@ void testSubscriptionWithoutEndpoint()
 {
     /* Create Subscription */
     EdgeMessage* msg = createEdgeSubMessage(NULL, node_arr[0], 1, Edge_Create_Sub);
-    EXPECT_EQ(NULL!=msg, true);
+    EXPECT_EQ(NULL!=msg, false);
 
     double samplingInterval = 100.0;
     int keepalivetime = (1 > (int) (ceil(10000.0 / 0.0))) ? 1 : (int) ceil(10000.0 / 0.0);
-    insertSubParameter(&msg, node_arr[0], Edge_Create_Sub, samplingInterval, 0.0, keepalivetime, 10000, 1, true, 0, 50);
+    EdgeResult ret = insertSubParameter(&msg, node_arr[0], Edge_Create_Sub, samplingInterval, 0.0, keepalivetime, 10000, 1, true, 0, 50);
+    ASSERT_EQ(ret.code, STATUS_PARAM_INVALID);
 
     EdgeResult result = sendRequest(msg);
     destroyEdgeMessage (msg);
@@ -166,11 +167,12 @@ void testSubscriptionWithoutValueAlias(char *endpointUri)
 {
     /* Create Subscription */
     EdgeMessage* msg = createEdgeSubMessage(endpointUri, NULL, 1, Edge_Create_Sub);
-    EXPECT_EQ(NULL!=msg, true);
+    ASSERT_EQ(NULL!=msg, true);
 
     double samplingInterval = 100.0;
     int keepalivetime = (1 > (int) (ceil(10000.0 / 0.0))) ? 1 : (int) ceil(10000.0 / 0.0);
-    insertSubParameter(&msg, NULL, Edge_Create_Sub, samplingInterval, 0.0, keepalivetime, 10000, 1, true, 0, 50);
+    EdgeResult ret = insertSubParameter(&msg, NULL, Edge_Create_Sub, samplingInterval, 0.0, keepalivetime, 10000, 1, true, 0, 50);
+    ASSERT_EQ(ret.code, STATUS_PARAM_INVALID);
 
     EdgeResult result = sendRequest(msg);
     destroyEdgeMessage (msg);
