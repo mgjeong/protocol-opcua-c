@@ -74,6 +74,7 @@ extern void testReadWithoutMessage();
 extern void testWrite_P1(char *endpointUri);
 extern void testWrite_P2(char *endpointUri);
 extern void testWrite_P3(char *endpointUri);
+extern void testWrite_P4(char *endpointUri);
 extern void testWriteWithoutEndpoint();
 extern void testWriteWithoutValueAlias(char *endpointUri);
 extern void testWriteWithoutMessage();
@@ -728,6 +729,11 @@ static void deleteMessage(EdgeMessage *msg, EdgeEndPointInfo *ep)
     }
 }
 
+static void testFindServers()
+{
+
+}
+
 static void browseNodes()
 {
     int  maxReferencesPerNode = 0;
@@ -882,7 +888,7 @@ static void start_server()
 
     EdgeApplicationConfig *appConfig = (EdgeApplicationConfig *) EdgeCalloc(1, sizeof(EdgeApplicationConfig));
     appConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
-    appConfig->applicationUri = (char *) DEFAULT_SERVER_URI_VALUE;
+    appConfig->applicationUri = (char *) DEFAULT_SERVER_APP_URI_VALUE;
     appConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
 
     EdgeEndPointInfo *ep = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
@@ -1170,7 +1176,7 @@ TEST_F(OPC_serverTests , StartServer_P)
 
     EdgeApplicationConfig *appConfig = (EdgeApplicationConfig *) EdgeCalloc(1, sizeof(EdgeApplicationConfig));
     appConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
-    appConfig->applicationUri = (char *) DEFAULT_SERVER_URI_VALUE;
+    appConfig->applicationUri = (char *) DEFAULT_SERVER_APP_URI_VALUE;
     appConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
 
     EdgeEndPointInfo *ep = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
@@ -1207,42 +1213,6 @@ TEST_F(OPC_serverTests , StartServer_P)
 
 TEST_F(OPC_serverTests , ServerCreateNamespace_P)
 {
-#ifdef TO_BE_REMOVED
-
-    int len = strlen(endpointUri);
-    epInfo->endpointUri = (char *) EdgeMalloc(len + 1);
-
-    strncpy(epInfo->endpointUri, endpointUri, len);
-    epInfo->endpointUri[len] = '\0';
-
-    configureCallbacks();
-
-    EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) EdgeCalloc(1, sizeof(EdgeEndpointConfig));
-    endpointConfig->bindAddress = ipAddress;
-    endpointConfig->bindPort = 12686;
-    endpointConfig->serverName = (char *) DEFAULT_SERVER_NAME_VALUE;
-
-    EdgeApplicationConfig *appConfig = (EdgeApplicationConfig *) EdgeCalloc(1, sizeof(EdgeApplicationConfig));
-    appConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
-    appConfig->applicationUri = (char *) DEFAULT_SERVER_URI_VALUE;
-    appConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
-
-    EdgeEndPointInfo *ep = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    ep->endpointUri = endpointUri;
-    ep->endpointConfig = endpointConfig;
-    ep->appConfig = appConfig;
-
-    EdgeMessage *msg = (EdgeMessage *) EdgeMalloc(sizeof(EdgeMessage));
-    msg->endpointInfo = ep;
-    msg->command = CMD_START_SERVER;
-    msg->type = SEND_REQUEST;
-
-    PRINT("--- START SERVER ----");
-
-    createServer(ep);
-
-#endif
-
     EXPECT_EQ(startServerFlag, true);
 
     EdgeResult result = createNamespace(DEFAULT_NAMESPACE_VALUE,
@@ -1271,186 +1241,6 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     start_server();
 
     EXPECT_EQ(startServerFlag, true);
-
-#if 0
-    EdgeNodeItem *item = NULL;
-
-    // VARIABLE NODE with string variant:
-    item = createVariableNodeItem("String1", String, (void *)"test1", VARIABLE_NODE);
-    EdgeResult result = createNode(DEFAULT_NAMESPACE_VALUE, item);
-    EXPECT_EQ(result.code, STATUS_OK);
-    deleteNodeItem(item);
-
-    item = createVariableNodeItem("String2", String, (void *)"test2", VARIABLE_NODE);
-    result = createNode(DEFAULT_NAMESPACE_VALUE, item);
-    EXPECT_EQ(result.code, STATUS_OK);
-    deleteNodeItem(item);
-
-    // VARIABLE NODE with Double variant:
-    double d_val = 50.4;
-    item = createVariableNodeItem("Double", Double, (void *) &d_val, VARIABLE_NODE);
-    VERIFY_NON_NULL_NR(item);
-    createNode(DEFAULT_NAMESPACE_VALUE, item);
-    printf("\n|------------[Added] %s\n", item->browseName);
-    deleteNodeItem(item);
-
-    // VARIABLE NODE with UInt16 variant:
-    int value = 30;
-    item = createVariableNodeItem("UInt16", UInt16, (void *) &value, VARIABLE_NODE);
-    result = createNode(DEFAULT_NAMESPACE_VALUE, item);
-    EXPECT_EQ(result.code, STATUS_OK);
-    deleteNodeItem(item);
-
-    //modify value for this node
-    value = 43;
-    char *name = "UInt16";
-    EdgeVersatility *message = (EdgeVersatility *) EdgeMalloc(sizeof(EdgeVersatility));
-    message->value = (void *) &value;
-    result = modifyVariableNode(DEFAULT_NAMESPACE_VALUE, name, message);
-    EXPECT_EQ(result.code, STATUS_OK);
-    EdgeFree(message);
-
-    //Array Nodes with double values
-    double *data = (double *) EdgeMalloc(sizeof(double) * 2);
-    data[0] = 10.2;
-    data[1] = 20.2;
-    item = createVariableNodeItem("DoubleArray", Double, (void *) data, VARIABLE_NODE);
-    item->nodeType = ARRAY_NODE;
-    item->arrayLength = 2;
-    result = createNode(DEFAULT_NAMESPACE_VALUE, item);
-    EXPECT_EQ(result.code, STATUS_OK);
-    EdgeFree(data);
-    deleteNodeItem(item);
-
-    // Guid
-    UA_Guid guid =
-    { 1, 0, 1,
-    { 0, 0, 0, 0, 1, 1, 1, 1 } };
-    item = createVariableNodeItem("Guid", Guid, (void *) &guid, VARIABLE_NODE);
-    VERIFY_NON_NULL_NR(item);
-    createNode(DEFAULT_NAMESPACE_VALUE, item);
-    printf("\n|------------[Added] %s\n", item->browseName);
-    deleteNodeItem(item);
-
-    //Array Nodes with ByteString values
-    UA_ByteString **dataArray = (UA_ByteString **) malloc(sizeof(UA_ByteString *) * 5);
-    dataArray[0] = (UA_ByteString *) EdgeMalloc(sizeof(UA_ByteString));
-    *dataArray[0] = UA_BYTESTRING_ALLOC("abcde");
-    dataArray[1] = (UA_ByteString *) EdgeMalloc(sizeof(UA_ByteString));
-    *dataArray[1] = UA_BYTESTRING_ALLOC("fghij");
-    dataArray[2] = (UA_ByteString *) EdgeMalloc(sizeof(UA_ByteString));
-    *dataArray[2] = UA_BYTESTRING_ALLOC("klmno");
-    dataArray[3] = (UA_ByteString *) EdgeMalloc(sizeof(UA_ByteString));
-    *dataArray[3] = UA_BYTESTRING_ALLOC("pqrst");
-    dataArray[4] = (UA_ByteString *) EdgeMalloc(sizeof(UA_ByteString));
-    *dataArray[4] = UA_BYTESTRING_ALLOC("uvwxyz");
-    item = createVariableNodeItem("ByteStringArray", ByteString, (void *) dataArray, VARIABLE_NODE);
-    item->nodeType = ARRAY_NODE;
-    item->arrayLength = 5;
-    result = createNode(DEFAULT_NAMESPACE_VALUE, item);
-    EXPECT_EQ(result.code, STATUS_OK);
-    deleteNodeItem(item);
-
-    //Array Nodes with String values
-    char **data1 = (char **) malloc(sizeof(char *) * 5);
-    data1[0] = (char *) EdgeMalloc(10);
-    strcpy(data1[0], "apple");
-    data1[1] = (char *) EdgeMalloc(10);
-    strcpy(data1[1], "ball");
-    data1[2] = (char *) EdgeMalloc(10);
-    strcpy(data1[2], "cats");
-    data1[3] = (char *) EdgeMalloc(10);
-    strcpy(data1[3], "dogs");
-    data1[4] = (char *) EdgeMalloc(10);
-    strcpy(data1[4], "elephant");
-    item = createVariableNodeItem("CharArray", String, (void *) data1, VARIABLE_NODE);
-    item->nodeType = ARRAY_NODE;
-    item->arrayLength = 5;
-    result = createNode(DEFAULT_NAMESPACE_VALUE, item);
-    EXPECT_EQ(result.code, STATUS_OK);
-    deleteNodeItem(item);
-
-    //OBJECT NODE
-    EdgeNodeId *edgeNodeId = (EdgeNodeId *) EdgeCalloc(1, sizeof(EdgeNodeId));
-    item = createNodeItem("Object1", OBJECT_NODE, edgeNodeId);
-    result = createNode(DEFAULT_NAMESPACE_VALUE, item);
-    EXPECT_EQ(result.code, STATUS_OK);
-    EdgeFree(edgeNodeId);
-    deleteNodeItem(item);
-
-    edgeNodeId = (EdgeNodeId *) EdgeMalloc(sizeof(EdgeNodeId));
-    edgeNodeId->nodeId = "Object1";
-    item = createNodeItem("Object2", OBJECT_NODE, edgeNodeId);
-    result = createNode(DEFAULT_NAMESPACE_VALUE, item);
-    EXPECT_EQ(result.code, STATUS_OK);
-    EdgeFree(edgeNodeId);
-    deleteNodeItem(item);
-
-    //OBJECT TYPE NDOE
-    edgeNodeId = (EdgeNodeId *) EdgeMalloc(sizeof(EdgeNodeId));
-    edgeNodeId->nodeId = NULL; // no source node
-    item = createNodeItem("ObjectType1", OBJECT_TYPE_NODE, edgeNodeId);
-    result = createNode(DEFAULT_NAMESPACE_VALUE, item);
-    EXPECT_EQ(result.code, STATUS_OK);
-    EdgeFree(edgeNodeId);
-    deleteNodeItem(item);
-
-    edgeNodeId = (EdgeNodeId *) EdgeMalloc(sizeof(EdgeNodeId));
-    edgeNodeId->nodeId = "ObjectType1";
-    item = createNodeItem("ObjectType2", OBJECT_TYPE_NODE, edgeNodeId);
-    result = createNode(DEFAULT_NAMESPACE_VALUE, item);
-    EXPECT_EQ(result.code, STATUS_OK);
-    EdgeFree(edgeNodeId);
-    deleteNodeItem(item);
-
-    //DATA TYPE NODE
-    edgeNodeId = (EdgeNodeId *) EdgeCalloc(1, sizeof(EdgeNodeId));
-    item = createNodeItem("DataType1", DATA_TYPE_NODE, edgeNodeId);
-    result = createNode(DEFAULT_NAMESPACE_VALUE, item);
-    EXPECT_EQ(result.code, STATUS_OK);
-    EdgeFree(edgeNodeId);
-    deleteNodeItem(item);
-
-    edgeNodeId = (EdgeNodeId *) EdgeMalloc(sizeof(EdgeNodeId));
-    edgeNodeId->nodeId = "DataType1";
-    item = createNodeItem("DataType2", DATA_TYPE_NODE, edgeNodeId);
-    result = createNode(DEFAULT_NAMESPACE_VALUE, item);
-    EXPECT_EQ(result.code, STATUS_OK);
-    EdgeFree(edgeNodeId);
-    deleteNodeItem(item);
-
-    //VIEW NODE
-    edgeNodeId = (EdgeNodeId *) EdgeCalloc(1, sizeof(EdgeNodeId));
-    item = createNodeItem("ViewNode1", VIEW_NODE, edgeNodeId);
-    result = createNode(DEFAULT_NAMESPACE_VALUE, item);
-    EXPECT_EQ(result.code, STATUS_OK);
-    EdgeFree(edgeNodeId);
-    deleteNodeItem(item);
-
-    edgeNodeId = (EdgeNodeId *) EdgeMalloc(sizeof(EdgeNodeId));
-    edgeNodeId->nodeId = "ViewNode1";
-    item = createNodeItem("ViewNode2", VIEW_NODE, edgeNodeId);
-    result = createNode(DEFAULT_NAMESPACE_VALUE, item);
-    EXPECT_EQ(result.code, STATUS_OK);
-    EdgeFree(edgeNodeId);
-    deleteNodeItem(item);
-
-    //REFERENCE TYPE NODE
-    edgeNodeId = (EdgeNodeId *) EdgeCalloc(1, sizeof(EdgeNodeId));
-    item = createNodeItem("ReferenceTypeNode1", REFERENCE_TYPE_NODE, edgeNodeId);
-    result = createNode(DEFAULT_NAMESPACE_VALUE, item);
-    EXPECT_EQ(result.code, STATUS_OK);
-    EdgeFree(edgeNodeId);
-
-    edgeNodeId = (EdgeNodeId *) EdgeMalloc(sizeof(EdgeNodeId));
-    edgeNodeId->nodeId = "ReferenceTypeNode1";
-    item = createNodeItem("ReferenceTypeNode2", REFERENCE_TYPE_NODE, edgeNodeId);
-    result = createNode(DEFAULT_NAMESPACE_VALUE, item);
-    EXPECT_EQ(result.code, STATUS_OK);
-    EdgeFree(edgeNodeId);
-
-    deleteNodeItem(item);
-#endif
 
     int index = 0;
     EdgeNodeItem* item = NULL;
@@ -1513,11 +1303,11 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     }
 
     printf("\n[%d] Variable node with byte string variant: \n", ++index);
-    UA_ByteString *bs_value = (UA_ByteString *) EdgeMalloc(sizeof(UA_ByteString));
+    char *bs_value = (char *) EdgeMalloc(sizeof(char) * 10);
     if (IS_NOT_NULL(bs_value))
-    {
-        bs_value->length = 7;
-        bs_value->data = (UA_Byte *) "samsung";
+    {        
+        strncpy(bs_value, "samsung", strlen("samsung"));
+        bs_value[strlen("samsung")] = '\0';
         item = createVariableNodeItem("ByteString", ByteString, (void *) bs_value, VARIABLE_NODE);
         VERIFY_NON_NULL_NR(item);
         createNode(DEFAULT_NAMESPACE_VALUE, item);
@@ -1690,22 +1480,27 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     /******************* Array *********************/
     printf("\n[Create Array Node]\n");
     printf("\n[%d] Array node with ByteString values: \n", ++index);
-    UA_ByteString **dataArray = (UA_ByteString **) malloc(sizeof(UA_ByteString *) * 5);
+    char **dataArray = (char **) malloc(sizeof(char *) * 5);
     if (IS_NOT_NULL(dataArray))
     {
-        dataArray[0] = (UA_ByteString *) EdgeMalloc(sizeof(UA_ByteString));
-        dataArray[1] = (UA_ByteString *) EdgeMalloc(sizeof(UA_ByteString));
-        dataArray[2] = (UA_ByteString *) EdgeMalloc(sizeof(UA_ByteString));
-        dataArray[3] = (UA_ByteString *) EdgeMalloc(sizeof(UA_ByteString));
-        dataArray[4] = (UA_ByteString *) EdgeMalloc(sizeof(UA_ByteString));
+        dataArray[0] = (char *) EdgeMalloc(sizeof(char) * 10);
+        dataArray[1] = (char *) EdgeMalloc(sizeof(char) * 10);
+        dataArray[2] = (char *) EdgeMalloc(sizeof(char) * 10);
+        dataArray[3] = (char *) EdgeMalloc(sizeof(char) * 10);
+        dataArray[4] = (char *) EdgeMalloc(sizeof(char) * 10);
         if (IS_NOT_NULL(dataArray[0]) && IS_NOT_NULL(dataArray[1]) && IS_NOT_NULL(dataArray[2])
         && IS_NOT_NULL(dataArray[3]) && IS_NOT_NULL(dataArray[4]))
         {
-            *dataArray[0] = UA_BYTESTRING_ALLOC("abcde");
-            *dataArray[1] = UA_BYTESTRING_ALLOC("fghij");
-            *dataArray[2] = UA_BYTESTRING_ALLOC("klmno");
-            *dataArray[3] = UA_BYTESTRING_ALLOC("pqrst");
-            *dataArray[4] = UA_BYTESTRING_ALLOC("uvwxyz");
+            strncpy(dataArray[0],"abcde", strlen("abcde"));
+            dataArray[0][strlen("abcde")] = '\0';
+            strncpy(dataArray[1], "fghij", strlen("fghij"));
+            dataArray[1][strlen("fghij")] = '\0';
+            strncpy(dataArray[2], "klmno", strlen("klmno"));
+            dataArray[2][strlen("klmno")] = '\0';
+            strncpy(dataArray[3], "pqrst", strlen("pqrst"));
+            dataArray[3][strlen("pqrst")] = '\0';
+            strncpy(dataArray[4], "uvwxyz", strlen("uvwxyz"));
+            dataArray[4][strlen("uvwxyz")] = '\0';
             item = createVariableNodeItem("ByteStringArray", ByteString, (void *) dataArray,
                     VARIABLE_NODE);
             VERIFY_NON_NULL_NR(item);
@@ -1722,8 +1517,6 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
 
         for (int i = 0; i < 5; i++)
         {
-            UA_ByteString temp = *dataArray[i];
-            EdgeFree(temp.data);
             EdgeFree(dataArray[i]);
         }
         EdgeFree(dataArray);
@@ -2301,6 +2094,98 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     }
 }
 
+TEST_F(OPC_clientTests , ServerModifyVariableNode_P)
+{
+    EdgeVersatility *message = (EdgeVersatility *) EdgeMalloc(sizeof(EdgeVersatility));
+    EXPECT_EQ(NULL != message, true);
+
+    // Int32
+    int32_t val = 60;
+    message->value = &val;
+    EdgeResult result = modifyVariableNode(DEFAULT_NAMESPACE_VALUE, "Int32", message);
+    EXPECT_EQ(result.code, STATUS_OK);
+    EdgeFree(message);
+    usleep(500 * 1000);
+
+    // Double
+    message = (EdgeVersatility *) EdgeMalloc(sizeof(EdgeVersatility));
+    EXPECT_EQ(NULL != message, true);
+    double d_val = 60.656;
+    message->value = &d_val;
+    result = modifyVariableNode(DEFAULT_NAMESPACE_VALUE, "Double", message);
+    EXPECT_EQ(result.code, STATUS_OK);
+    EdgeFree(message);
+    usleep(500 * 1000);
+
+    // String1
+    message = (EdgeVersatility *) EdgeMalloc(sizeof(EdgeVersatility));
+    EXPECT_EQ(NULL != message, true);
+    char str[128];
+    strncpy(str, "changed_str", strlen("changed_str"));
+    str[strlen("changed_str")] = '\0';
+    message->value = &str;
+    result = modifyVariableNode(DEFAULT_NAMESPACE_VALUE, "String1", message);
+    EXPECT_EQ(result.code, STATUS_OK);
+    EdgeFree(message);
+    usleep(500 * 1000);
+
+    // ByteString
+    message = (EdgeVersatility *) EdgeMalloc(sizeof(EdgeVersatility));
+    EXPECT_EQ(NULL != message, true);
+    strncpy(str, "changed_bytestring", strlen("changed_bytestring"));
+    str[strlen("changed_bytestring")] = '\0';
+    message->value = &str;
+    result = modifyVariableNode(DEFAULT_NAMESPACE_VALUE, "ByteString", message);
+    EXPECT_EQ(result.code, STATUS_OK);
+    EdgeFree(message);
+    usleep(500 * 1000);
+
+    // CharArray
+    int num_values = 3;
+    char **new_str = (char**) malloc(sizeof(char*) * num_values);
+    for (int i = 0; i < num_values; i++)
+    {
+        new_str[i] = (char*) malloc(sizeof(char) * 15);
+        snprintf(new_str[i], 128, "CharArray%d", i+1);
+    }
+    message = (EdgeVersatility *) EdgeMalloc(sizeof(EdgeVersatility));
+    EXPECT_EQ(NULL != message, true);
+    message->arrayLength = num_values;
+    message->isArray = true;
+    message->value = (void *) new_str;
+    modifyVariableNode(DEFAULT_NAMESPACE_VALUE, "CharArray", message);
+    EdgeFree(message);
+    usleep(500 * 1000);
+    for (int i = 0; i < num_values; i++)
+    {
+        EdgeFree(new_str[i]);
+    }
+    EdgeFree(new_str);
+
+    // ByteString Array
+    num_values = 3;
+    new_str = (char**) malloc(sizeof(char*) * num_values);
+    for (int i = 0; i < num_values; i++)
+    {
+        new_str[i] = (char*) malloc(sizeof(char) * 15);
+        snprintf(new_str[i], 128, "bs%d", i+1);
+    }
+    message = (EdgeVersatility *) EdgeMalloc(sizeof(EdgeVersatility));
+    EXPECT_EQ(NULL != message, true);
+    message->arrayLength = num_values;
+    message->isArray = true;
+    message->value = (void *) new_str;
+    modifyVariableNode(DEFAULT_NAMESPACE_VALUE, "ByteStringArray", message);
+    EdgeFree(message);
+    usleep(500 * 1000);
+    for (int i = 0; i < num_values; i++)
+    {
+        EdgeFree(new_str[i]);
+    }
+    EdgeFree(new_str);
+
+}
+
 TEST_F(OPC_clientTests , ConfigureClient_P)
 {
     EXPECT_EQ(NULL == config, false);
@@ -2319,6 +2204,171 @@ TEST_F(OPC_clientTests , InitializeClient_P)
     EXPECT_EQ(strcmp(endpointUri, ENDPOINT_URI) == 0, false);
 
     EXPECT_EQ(strcmp(endpointUri, ipAddress) == 0, true);
+}
+
+TEST_F(OPC_clientTests , FindServers_P1)
+{
+    size_t serverUrisSize = 0;
+    unsigned char **serverUris = NULL;
+    size_t localeIdsSize = 0;
+    unsigned char **localeIds = NULL;
+    EdgeApplicationConfig *registeredServers = NULL;
+    size_t registeredServersSize = 0;
+    EdgeResult res = findServers(endpointUri, serverUrisSize, serverUris, localeIdsSize, localeIds, &registeredServersSize, &registeredServers);
+    EXPECT_EQ(res.code,STATUS_OK);
+
+    printf("\nTotal number of registered servers at the given server: %zu\n", registeredServersSize);
+    for(size_t idx = 0; idx < registeredServersSize ; ++idx)
+    {
+        printf("Server[%zu] -> Application URI: %s\n", idx+1, registeredServers[idx].applicationUri);
+        printf("Server[%zu] -> Product URI: %s\n", idx+1, registeredServers[idx].productUri);
+        printf("Server[%zu] -> Application Name: %s\n", idx+1, registeredServers[idx].applicationName);
+        printf("Server[%zu] -> Application Type: %u\n", idx+1, registeredServers[idx].applicationType);
+        printf("Server[%zu] -> Gateway Server URI: %s\n", idx+1, registeredServers[idx].gatewayServerUri);
+        printf("Server[%zu] -> Discovery Profile URI: %s\n", idx+1, registeredServers[idx].discoveryProfileUri);
+        for(size_t i = 0; i < registeredServers[idx].discoveryUrlsSize; ++i)
+        {
+            printf("Server[%zu] -> Discovery URL[%zu]: %s\n", idx+1, i+1, registeredServers[idx].discoveryUrls[i]);
+        }
+    }
+
+    // Application has to deallocate the memory for EdgeApplicationConfig array and its members.
+    for(size_t idx = 0; idx < registeredServersSize ; ++idx)
+    {
+        destroyEdgeApplicationConfigMembers(&registeredServers[idx]);
+    }
+    EdgeFree(registeredServers);
+}
+
+TEST_F(OPC_clientTests , FindServers_P2)
+{
+    size_t serverUrisSize = 2;
+    unsigned char *serverUris[2] = {NULL};
+    serverUris[0] = (unsigned char *)"urn:digitalpetri:opcua:client";
+    serverUris[1] = (unsigned char *)"urn:digitalpetri:opcua:invalid_client";
+    size_t localeIdsSize = 0;
+    unsigned char **localeIds = NULL;
+    EdgeApplicationConfig *registeredServers = NULL;
+    size_t registeredServersSize = 0;
+    EdgeResult res = findServers(endpointUri, serverUrisSize, serverUris, localeIdsSize, localeIds, &registeredServersSize, &registeredServers);
+    EXPECT_EQ(res.code,STATUS_OK);
+
+    printf("\nTotal number of registered servers at the given server: %zu\n", registeredServersSize);
+    for(size_t idx = 0; idx < registeredServersSize ; ++idx)
+    {
+        printf("Server[%zu] -> Application URI: %s\n", idx+1, registeredServers[idx].applicationUri);
+        printf("Server[%zu] -> Product URI: %s\n", idx+1, registeredServers[idx].productUri);
+        printf("Server[%zu] -> Application Name: %s\n", idx+1, registeredServers[idx].applicationName);
+        printf("Server[%zu] -> Application Type: %u\n", idx+1, registeredServers[idx].applicationType);
+        printf("Server[%zu] -> Gateway Server URI: %s\n", idx+1, registeredServers[idx].gatewayServerUri);
+        printf("Server[%zu] -> Discovery Profile URI: %s\n", idx+1, registeredServers[idx].discoveryProfileUri);
+        for(size_t i = 0; i < registeredServers[idx].discoveryUrlsSize; ++i)
+        {
+            printf("Server[%zu] -> Discovery URL[%zu]: %s\n", idx+1, i+1, registeredServers[idx].discoveryUrls[i]);
+        }
+    }
+
+    // Application has to deallocate the memory for EdgeApplicationConfig array and its members.
+    for(size_t idx = 0; idx < registeredServersSize ; ++idx)
+    {
+        destroyEdgeApplicationConfigMembers(&registeredServers[idx]);
+    }
+    EdgeFree(registeredServers);
+}
+
+TEST_F(OPC_clientTests , FindServers_P3)
+{
+    size_t serverUrisSize = 0;
+   unsigned char **serverUris = NULL;
+   size_t localeIdsSize = 1;
+   unsigned char *localeIds[1] = {NULL};
+   localeIds[0] = (unsigned char *)"en-US";
+    EdgeApplicationConfig *registeredServers = NULL;
+    size_t registeredServersSize = 0;
+    EdgeResult res = findServers(endpointUri, serverUrisSize, serverUris, localeIdsSize, localeIds, &registeredServersSize, &registeredServers);
+    EXPECT_EQ(res.code,STATUS_OK);
+
+    printf("\nTotal number of registered servers at the given server: %zu\n", registeredServersSize);
+    for(size_t idx = 0; idx < registeredServersSize ; ++idx)
+    {
+        printf("Server[%zu] -> Application URI: %s\n", idx+1, registeredServers[idx].applicationUri);
+        printf("Server[%zu] -> Product URI: %s\n", idx+1, registeredServers[idx].productUri);
+        printf("Server[%zu] -> Application Name: %s\n", idx+1, registeredServers[idx].applicationName);
+        printf("Server[%zu] -> Application Type: %u\n", idx+1, registeredServers[idx].applicationType);
+        printf("Server[%zu] -> Gateway Server URI: %s\n", idx+1, registeredServers[idx].gatewayServerUri);
+        printf("Server[%zu] -> Discovery Profile URI: %s\n", idx+1, registeredServers[idx].discoveryProfileUri);
+        for(size_t i = 0; i < registeredServers[idx].discoveryUrlsSize; ++i)
+        {
+            printf("Server[%zu] -> Discovery URL[%zu]: %s\n", idx+1, i+1, registeredServers[idx].discoveryUrls[i]);
+        }
+    }
+
+    // Application has to deallocate the memory for EdgeApplicationConfig array and its members.
+    for(size_t idx = 0; idx < registeredServersSize ; ++idx)
+    {
+        destroyEdgeApplicationConfigMembers(&registeredServers[idx]);
+    }
+    EdgeFree(registeredServers);
+}
+
+TEST_F(OPC_clientTests , FindServers_N1)
+{
+    // Invalid Endpoint
+    size_t serverUrisSize = 0;
+    unsigned char **serverUris = NULL;
+    size_t localeIdsSize = 0;
+    unsigned char **localeIds = NULL;
+    EdgeApplicationConfig *registeredServers = NULL;
+    size_t registeredServersSize = 0;
+    EdgeResult res = findServers("opc.tcp://localhost:4842", serverUrisSize, serverUris, localeIdsSize, localeIds, &registeredServersSize, &registeredServers);
+    EXPECT_EQ(res.code,STATUS_SERVICE_RESULT_BAD);
+
+    // Application has to deallocate the memory for EdgeApplicationConfig array and its members.
+    for(size_t idx = 0; idx < registeredServersSize ; ++idx)
+    {
+        destroyEdgeApplicationConfigMembers(&registeredServers[idx]);
+    }
+    EdgeFree(registeredServers);;
+}
+
+TEST_F(OPC_clientTests , FindServers_N2)
+{
+    // Invalid Endpoint
+    size_t serverUrisSize = 1;
+    unsigned char **serverUris = NULL;
+    size_t localeIdsSize = 0;
+    unsigned char **localeIds = NULL;
+    EdgeApplicationConfig *registeredServers = NULL;
+    size_t registeredServersSize = 0;
+    EdgeResult res = findServers(endpointUri, serverUrisSize, serverUris, localeIdsSize, localeIds, &registeredServersSize, &registeredServers);
+    EXPECT_EQ(res.code,STATUS_PARAM_INVALID);
+
+    // Application has to deallocate the memory for EdgeApplicationConfig array and its members.
+    for(size_t idx = 0; idx < registeredServersSize ; ++idx)
+    {
+        destroyEdgeApplicationConfigMembers(&registeredServers[idx]);
+    }
+    EdgeFree(registeredServers);;
+}
+
+TEST_F(OPC_clientTests , FindServers_N3)
+{
+    // Invalid Endpoint
+    size_t serverUrisSize = 0;
+    unsigned char **serverUris = NULL;
+    size_t localeIdsSize = 1;
+    unsigned char **localeIds = NULL;
+    EdgeApplicationConfig *registeredServers = NULL;
+    size_t registeredServersSize = 0;
+    EdgeResult res = findServers(endpointUri, serverUrisSize, serverUris, localeIdsSize, localeIds, &registeredServersSize, &registeredServers);
+    EXPECT_EQ(res.code,STATUS_PARAM_INVALID);
+
+    // Application has to deallocate the memory for EdgeApplicationConfig array and its members.
+    for(size_t idx = 0; idx < registeredServersSize ; ++idx)
+    {
+        destroyEdgeApplicationConfigMembers(&registeredServers[idx]);
+    }
+    EdgeFree(registeredServers);;
 }
 
 TEST_F(OPC_clientTests , StartClient_P)
@@ -2548,6 +2598,26 @@ TEST_F(OPC_clientTests , ClientWrite_P3)
     destroyEdgeMessage(msg);
 
     testWrite_P3(endpointUri);
+
+    stop_client();
+    EXPECT_EQ(startClientFlag, false);
+}
+
+TEST_F(OPC_clientTests , ClientWrite_P4)
+{
+    EXPECT_EQ(startClientFlag, false);
+
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_GET_ENDPOINTS);
+    EXPECT_EQ(NULL != msg, true);
+
+    EdgeResult res = getEndpointInfo(msg);
+    EXPECT_EQ(res.code, STATUS_OK);
+
+    EXPECT_EQ(startClientFlag, true);
+
+    destroyEdgeMessage(msg);
+
+    testWrite_P4(endpointUri);
 
     stop_client();
     EXPECT_EQ(startClientFlag, false);
