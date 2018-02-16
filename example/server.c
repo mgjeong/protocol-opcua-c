@@ -500,6 +500,7 @@ static void testCreateNodes()
             item->arrayLength = 5;
             createNode(DEFAULT_NAMESPACE_VALUE, item);
             printf("\n|------------[Added] %s\n", item->browseName);
+            deleteNodeItem(item);
         }
         else
         {
@@ -514,7 +515,6 @@ static void testCreateNodes()
             EdgeFree(dataArray[i]);
         }
         EdgeFree(dataArray);
-        deleteNodeItem(item);
     }
     else
     {
@@ -966,7 +966,7 @@ static void testCreateNodes()
     method->methodNodeName = "square_root";
     method->method_fn = test_method_sqrt;
     method->num_inpArgs = 1;
-    method->inpArg = (EdgeArgument **) malloc(sizeof(EdgeArgument *) * method->num_inpArgs);
+    method->inpArg = (EdgeArgument **) EdgeCalloc(method->num_inpArgs, sizeof(EdgeArgument *));
     if (IS_NULL(method->inpArg))
     {
         EdgeFree(methodNodeItem);
@@ -1023,8 +1023,14 @@ static void testCreateNodes()
                     EdgeFree(method->outArg[j]);
                 }
             }
-
             EdgeFree(method->outArg);
+
+            for (int inpIdx = 0; inpIdx < method->num_inpArgs; inpIdx++)
+            {
+                EdgeFree(method->inpArg[idx]);
+            }
+            EdgeFree(method->inpArg);
+
             EdgeFree(methodNodeItem);
             EdgeFree(method);
             printf("Error :: EdgeMalloc failed for method method->outArg[%d]  in Test create Nodes\n",
