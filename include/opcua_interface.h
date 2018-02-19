@@ -42,68 +42,150 @@ extern "C"
 {
 #endif
 
+/**
+  * @brief Structure which represents the BrowseNext request data
+  *
+  */
 typedef struct EdgeBrowseNextData
 {
+    /**< Browse parameter */
     EdgeBrowseParameter browseParam;
+
+    /**< Manimum number of continuation points */
     size_t count;
+
+    /**< Index where the next continuation point will be added */
     size_t next_free;
-    EdgeContinuationPoint *cp; // Continuation point List. Size of list = next_free.
-    EdgeNodeId **srcNodeId; // Id of source node of every continuation point. Size of list = next_free.
+
+    /** <Continuation point List. Size of list = next_free. */
+    EdgeContinuationPoint *cp;
+
+    /**< Source Node Id of every continuation point. Size of list = next_free.*/
+    EdgeNodeId **srcNodeId;
 } EdgeBrowseNextData;
 
-/* Recevied Message callbacks */
+/**
+ * @brief Response Message callback which represents the response message of requested operation
+ *
+ */
 typedef void (*response_msg_cb_t) (EdgeMessage *data);
+
+/**
+ * @brief Monitored Message callback which represents the data change notification
+ *
+ */
 typedef void (*monitored_msg_cb_t) (EdgeMessage *data);
+
+/**
+ * @brief Error Message callback which represents the occurence of error in requested operation
+ *
+ */
 typedef void (*error_msg_cb_t) (EdgeMessage *data);
+
+/**
+ * @brief Browse Message callback which represents the browse name as a result of BROWSE operaton
+ *
+ */
 typedef void (*browse_msg_cb_t) (EdgeMessage *data);
 
-/* status callbacks */
+/**
+ * @brief Status callback representing the START status of client/server
+ *
+ */
 typedef void (*status_start_cb_t) (EdgeEndPointInfo *epInfo, EdgeStatusCode status);
+
+/**
+ * @brief Status callback representing the STOP status of client/server
+ *
+ */
 typedef void (*status_stop_cb_t) (EdgeEndPointInfo *epInfo, EdgeStatusCode status);
+
+/**
+ * @brief Status callback representing the network status of client/server
+ *
+ */
 typedef void (*status_network_cb_t) (EdgeEndPointInfo *epInfo, EdgeStatusCode status);
 
-/* discovery callback */
+/**
+ * @brief Endpoint callback representing the endpoint result information for GetEndpoints request
+ *
+ */
 typedef void (*endpoint_found_cb_t) (EdgeDevice *device);
+
+/**
+ * @brief Device callback representing the device information
+ *
+ */
 typedef void (*device_found_cb_t) (EdgeDevice *device);
 
+/**
+ * @brief Received Message callback structure which contains the callback functions
+ *
+ */
 typedef struct ReceivedMessageCallback
 {
+    /**< General Response callback */
     response_msg_cb_t resp_msg_cb;
+
+    /**< Monitored Response callback for subscription */
     monitored_msg_cb_t monitored_msg_cb;
+
+    /**< Error responsecallback */
     error_msg_cb_t error_msg_cb;
+
+    /**< Browse response callback */
     browse_msg_cb_t browse_msg_cb;
 } ReceivedMessageCallback;
 
+/**
+ * @brief Status callback structure which contains the callback functions for server/client status
+ *
+ */
 typedef struct StatusCallback
 {
+    /**< Server/Client start status callback */
     status_start_cb_t start_cb;
+
+    /**< Server/Client stop status callback */
     status_stop_cb_t stop_cb;
+
+    /**< Server/Client network status callback */
     status_network_cb_t network_cb;
 } StatusCallback;
 
+/**
+ * @brief Discovery callback structure which contains the callback functions for discovery request
+ *
+ */
 typedef struct DiscoveryCallback
 {
+    /**< Endpoint information callback */
     endpoint_found_cb_t endpoint_found_cb;
+
+    /**< Device information callback  */
     device_found_cb_t device_found_cb;
 } DiscoveryCallback;
 
+/**
+ * @brief EdgeConfigure structure which contains the initial configuration for client/server
+ *
+ */
 typedef struct EdgeConfigure
 {
-    /** Supported Server Application Types.
+    /**< Supported Server Application Types.
     EdgeApplicationType represents the application types.
     More than one application type can be set by doing bitwise-or.
     Ex: EDGE_APPLICATIONTYPE_SERVER | EDGE_APPLICATIONTYPE_DISCOVERYSERVER */
     uint8_t supportedApplicationTypes;
 
-    /** ReceivedMessageCallback.*/
+    /**< Received Message Callback.*/
     ReceivedMessageCallback *recvCallback;
 
-    /** StatusCallback.*/
+    /**< Status Callback.*/
     StatusCallback  *statusCallback;
 
-    /** DiscoveryCallback.*/
+    /**< Discovery Callback.*/
     DiscoveryCallback *discoveryCallback;
-
 } EdgeConfigure_t;
 
 #ifdef __cplusplus

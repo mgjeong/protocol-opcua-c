@@ -713,9 +713,6 @@ void freeEdgeResponse(EdgeResponse *response)
     if(IS_NOT_NULL(response->message))
         freeEdgeVersatilityByType(response->message, response->type);
 
-    if(IS_NOT_NULL(response->value))
-        EdgeFree(response->value);
-
     if(IS_NOT_NULL(response->nodeInfo))
         freeEdgeNodeInfo(response->nodeInfo);
 

@@ -18,6 +18,12 @@
  *
  ******************************************************************/
 
+/**
+ * @file command_adapter.h
+ * @brief This file contains the callback functions
+ *
+ */
+
 #ifndef EDGE_CMD_ADAPTER_H
 #define EDGE_CMD_ADAPTER_H
 
@@ -28,9 +34,29 @@ extern "C"
 {
 #endif
 
+/**
+ * @brief Callback Function to register for receiving the response
+ * @param[out]  data Result EdgeMessage
+ */
 typedef void (*response_cb_t) (EdgeMessage *data);
+
+/**
+ * @brief Callback Function to register for sending the request data
+ * @param[out]  data Result EdgeMessage
+ */
 typedef void (*send_cb_t) (EdgeMessage *data);
+
+/**
+ * @brief Callback Function to register for receiving the status response
+ * @param  epInfo Endpoint information
+ * @param  status Status code
+ */
 typedef void (*status_cb_t) (EdgeEndPointInfo *epInfo, EdgeStatusCode status);
+
+/**
+ * @brief Callback Function to register for receiving the discovery info
+ * @param[out]  device Result EdgeDevice
+ */
 typedef void (*discovery_cb_t) (EdgeDevice *device);
 
 #ifdef __cplusplus
