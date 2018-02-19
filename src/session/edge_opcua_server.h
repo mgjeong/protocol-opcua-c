@@ -18,6 +18,12 @@
  *
  ******************************************************************/
 
+/**
+ * @file edge_opcua_server.h
+ *
+ * @brief This file contains the definition, types and APIs for server requests
+ */
+
 #ifndef EDGE_OPCUA_SERVER_H
 #define EDGE_OPCUA_SERVER_H
 
@@ -29,28 +35,122 @@ extern "C"
 {
 #endif
 
-    /* Create and add namespace */
-    EdgeResult createNamespaceInServer(char *namespaceUri, char *rootNodeIdentifier,
-            char *rootNodeBrowseName, char *rootNodeDisplayName);
+/**
+ * @brief Send the request to server for creating namespace
+ * @param[in]  namespaceUri Namespace Uri.
+ * @param[in]  rootNodeIdentifier Root Node identifier
+ * @param[in]  rootNodeBrowseName Root Node browse name.
+ * @param[in]  rootNodeDisplayName Root Node display name.
+ * @return @c EdgeResult code is 0 on success, otherwise an error value
+ * @retval #STATUS_OK Successful
+ * @retval #STATUS_PARAM_INVALID Invalid parameter
+ * @retval #STATUS_ERROR Operation failed
+ */
+EdgeResult createNamespaceInServer(char *namespaceUri, char *rootNodeIdentifier,
+        char *rootNodeBrowseName, char *rootNodeDisplayName);
 
-    EdgeResult addNodesInServer(char *namespaceUri, EdgeNodeItem *item);
-    EdgeResult modifyNodeInServer(char *namespaceUri, char *nodeUri, EdgeVersatility *value);
-    EdgeResult addReferenceInServer(EdgeReference *reference);
-    EdgeResult addMethodNodeInServer(char *namespaceUri, EdgeNodeItem *item, EdgeMethod *method);
+/**
+ * @brief Send the request to create/add node
+ * @param[in]  namespaceUri Namespace Uri to add new node
+ * @param[in]  item Node item information
+ * @return @c EdgeResult code is 0 on success, otherwise an error value
+ * @retval #STATUS_OK Successful
+ * @retval #STATUS_PARAM_INVALID Invalid parameter
+ * @retval #STATUS_ERROR Operation failed
+ */
+EdgeResult addNodesInServer(char *namespaceUri, EdgeNodeItem *item);
 
-    /* Start the Server */
-    EdgeResult start_server(EdgeEndPointInfo *epInfo);
+/**
+ * @brief Send the request for modify node
+ * @param[in]  namespaceUri Namespace Uri to add new node
+ * @param[in]  nodeUri Node Uri
+ * @param[in]  value New data
+ * @return @c EdgeResult code is 0 on success, otherwise an error value
+ * @retval #STATUS_OK Successful
+ * @retval #STATUS_PARAM_INVALID Invalid parameter
+ * @retval #STATUS_ERROR Operation failed
+ */
+EdgeResult modifyNodeInServer(char *namespaceUri, char *nodeUri, EdgeVersatility *value);
 
-    /* Stop the server */
-    void stop_server(EdgeEndPointInfo *epInfo);
+/**
+ * @brief Send the request for adding reference
+ * @param[in]  reference Node reference information
+ * @return @c EdgeResult code is 0 on success, otherwise an error value
+ * @retval #STATUS_OK Successful
+ * @retval #STATUS_PARAM_INVALID Invalid parameter
+ * @retval #STATUS_ERROR Operation failed
+ */
+EdgeResult addReferenceInServer(EdgeReference *reference);
 
-    /* Create and delete node item */
-    EdgeNodeItem* createNodeItemImpl(char* name, EdgeIdentifier nodeType, EdgeNodeId *sourceNodeId);
-    EdgeNodeItem* createVariableNodeItemImpl(char* name, EdgeNodeIdentifier type, void* data,
-            EdgeIdentifier nodeType);
-    EdgeResult deleteNodeItemImpl(EdgeNodeItem* item);
-    void printNodeListInServer();
-    void resgisterServerCallback(status_cb_t statusCallback);
+/**
+ * @brief Send the request to create/add method node
+ * @param[in]  namespaceUri Namespace Uri to add new node
+ * @param[in]  item Node item information
+ * @param[in]  method Method and argument information
+ * @return @c EdgeResult code is 0 on success, otherwise an error value
+ * @retval #STATUS_OK Successful
+ * @retval #STATUS_PARAM_INVALID Invalid parameter
+ * @retval #STATUS_ERROR Operation failed
+ */
+EdgeResult addMethodNodeInServer(char *namespaceUri, EdgeNodeItem *item, EdgeMethod *method);
+
+/**
+ * @brief Send the request to create and start the server
+ * @param[in]  epInfo Endpoint information
+ * @return @c EdgeResult code is 0 on success, otherwise an error value
+ * @retval #STATUS_OK Successful
+ * @retval #STATUS_PARAM_INVALID Invalid parameter
+ * @retval #STATUS_ERROR Operation failed
+ */
+EdgeResult start_server(EdgeEndPointInfo *epInfo);
+
+/**
+ * @brief Send the request to stop the server
+ * @param[in]  epInfo Endpoint information
+ */
+void stop_server(EdgeEndPointInfo *epInfo);
+
+/**
+ * @brief Creates and Initialises the node with default values
+ * @param[in]  name Node browse name
+ * @param[in]  nodeType Type of node (Variable/Array/Object etc.)
+ * @param[in]  sourceNodeId Source Node Id information
+ * @return EdgeNodeItem created on success, otherwise return NULL in case of error
+ */
+EdgeNodeItem* createNodeItemImpl(char* name, EdgeIdentifier nodeType, EdgeNodeId *sourceNodeId);
+
+/**
+ * @brief Creates and Initialises the variable node with default values
+ * @param[in]  name Node browse name
+ * @param[in]  type data type of node
+ * @param[in]  data Data item of the node
+ * @param[in]  nodeType Type of node (Variable/Array etc.)
+ * @return EdgeNodeItem created on success, otherwise return NULL in case of error
+ */
+EdgeNodeItem* createVariableNodeItemImpl(char* name, EdgeNodeIdentifier type, void* data,
+        EdgeIdentifier nodeType);
+
+/**
+ * @brief Deinitialised and deallocates the node item
+ * @param[in]  item Node item to be deleted
+ * @return @c EdgeResult code is 0 on success, otherwise an error value
+ * @retval #STATUS_OK Successful
+ * @retval #STATUS_PARAM_INVALID Invalid parameter
+ * @retval #STATUS_ERROR Operation failed
+ */
+EdgeResult deleteNodeItemImpl(EdgeNodeItem* item);
+
+/**
+ * @brief Print node list
+ * @param[in]  reference Source and Target node information to create reference
+ */
+void printNodeListInServer();
+
+/**
+ * @brief Register Server Callback
+ * @param[in]  statusCallback server status callback
+ */
+void resgisterServerCallback(status_cb_t statusCallback);
 
 #ifdef __cplusplus
 }

@@ -21,7 +21,7 @@
 /**
  * @file subscription.h
  *
- * This file contains the definition, types and APIs for SUBSCRIPTION command request.
+ * @brief This file contains the definition, types and APIs for SUBSCRIPTION command request.
  */
 
 #ifndef EDGE_SUBSCRIPTION_H

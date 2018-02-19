@@ -21,7 +21,7 @@
 /**
  * @file opcua_manager.h
  *
- * This file contains the top level functions for OPC UA adapter
+ * @brief This file contains the top level functions for OPC UA adapter
  */
 
 #ifndef EDGE_OPCUA_MANAGER_H
@@ -78,6 +78,8 @@ __attribute__((visibility("default"))) void closeServer(EdgeEndPointInfo *epInfo
  * @param[in]  serverUris Optional filter for specific server uris
  * @param[in]  localeIdsSize Optional indication which locale you prefer
  * @param[in]  localeIds Optional indication which locale you prefer
+ * @param[out]  registeredServersSize Number of registered Servers matching the filter criteria
+ * @param[out]  registeredServers Application configuration information of the servers matching the filter criteria
  * @return @c EdgeResult code is 0 on success, otherwise an error value
  * @retval #STATUS_OK Successful
  * @retval #STATUS_PARAM_INVALID Invalid parameter

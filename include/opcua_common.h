@@ -21,7 +21,7 @@
 /**
  * @file opcua_common.h
  *
- * This file contains the definition, types and structures common for both client and server
+ * @brief This file contains the definition, types and structures common for both client and server
  */
 
 #ifndef EDGE_COMMON_H

@@ -21,7 +21,7 @@
 /**
  * @file browse.h
  *
- * This file contains the definition, types and APIs for BROWSE command request.
+ * @brief This file contains the definition, types and APIs for BROWSE command request.
  */
 
 #ifndef EDGE_BROWSE_H

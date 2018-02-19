@@ -18,6 +18,12 @@
  *
  ******************************************************************/
 
+/**
+ * @file message_dispatcher.h
+ *
+ * @brief This file contains the definition, types and APIs for Message handler
+ */
+
 #ifndef EDGE_MESSAGE_DISPATCHER_H
 #define EDGE_MESSAGE_DISPATCHER_H
 
@@ -26,9 +32,34 @@
 
 #include <stdbool.h>
 
+/**
+ * @brief Add the EdgeMessage data to receiver Queue to send it to application
+ * @param[in]  msg EdgeMessage data
+ * @return @c true on success, false on failure
+ * @retval #true Successful (Queue is empty)
+ * @retval #false Failure (Queue is not empty)
+ */
 bool add_to_recvQ(EdgeMessage *msg);
+
+/**
+ * @brief Add the EdgeMessage data to send Queue to send it to server for processing
+ * @param[in]  msg EdgeMessage data
+ * @return @c true on success, false on failure
+ * @retval #true Successful (Queue is empty)
+ * @retval #false Failure (Queue is not empty)
+ */
 bool add_to_sendQ(EdgeMessage *msg);
+
+/**
+ * @brief Deletes and destroys the send and receiver queue
+ */
 void delete_queue();
+
+/**
+ * @brief Registers the callback for response and message handling
+ * @param[in]  resCallback Callback for handling response message
+ * @param[in]  sendCallback Callback for handling send request
+ */
 void resgisterMQCallback(response_cb_t resCallback, send_cb_t sendCallback);
 
 #endif  // EDGE_MESSAGE_DISPATCHER_H

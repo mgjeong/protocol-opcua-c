@@ -36,6 +36,8 @@ bool isFull(Queue *queue)
 Queue *createQueue(int capacity)
 {
     Queue *queue = (Queue *) EdgeMalloc(sizeof(Queue));
+    if (queue == NULL)
+        return NULL;
     queue->size = 0;
     queue->capacity = capacity;
     queue->front = 0;

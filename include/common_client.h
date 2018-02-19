@@ -21,7 +21,7 @@
 /**
  * @file common_client.h
  *
- * This file contains the definition, types and structures for the client
+ * @brief This file contains the definition, types and structures for the client
  */
 
 #ifndef EDGE_COMMON_CLIENT_H_

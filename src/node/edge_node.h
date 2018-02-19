@@ -18,6 +18,12 @@
  *
  ******************************************************************/
 
+/**
+ * @file edge_node.h
+ *
+ * @brief This file contains the definition, types and APIs for manage nodes in server.
+ */
+
 #ifndef EDGE_NODE_H
 #define EDGE_NODE_H
 
@@ -30,11 +36,56 @@ extern "C"
 {
 #endif
 
-    EdgeResult addNodes(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem *item);
-    EdgeResult addMethodNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem *item, EdgeMethod *method);
-    EdgeResult modifyNode(UA_Server *server, uint16_t nsIndex, char *nodeUri, EdgeVersatility *value);
-    EdgeResult modifyNode2(EdgeNodeIdentifier nodeType);
-    EdgeResult addReferences(UA_Server *server, EdgeReference *reference, uint16_t src_nsIndex, uint16_t target_nsIndex);
+/**
+ * @brief Create/add node in server
+ * @param[in]  server Server Handle
+ * @param[in]  nsIndex Namespace Index
+ * @param[in]  item Node item information
+ * @return @c EdgeResult code is 0 on success, otherwise an error value
+ * @retval #STATUS_OK Successful
+ * @retval #STATUS_PARAM_INVALID Invalid parameter
+ * @retval #STATUS_ERROR Operation failed
+ */
+EdgeResult addNodes(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem *item);
+
+/**
+ * @brief Create/add method node in server
+ * @param[in]  server Server Handle
+ * @param[in]  nsIndex Namespace Index
+ * @param[in]  item Node item information
+ * @param[in]  method Method and argument data information
+ * @return @c EdgeResult code is 0 on success, otherwise an error value
+ * @retval #STATUS_OK Successful
+ * @retval #STATUS_PARAM_INVALID Invalid parameter
+ * @retval #STATUS_ERROR Operation failed
+ */
+EdgeResult addMethodNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem *item, EdgeMethod *method);
+
+/**
+ * @brief Modify node in server
+ * @param[in]  server Server Handle
+ * @param[in]  nsIndex Namespace Index
+ * @param[in]  nodeUri Node Uri
+ * @param[in]  value New data
+ * @return @c EdgeResult code is 0 on success, otherwise an error value
+ * @retval #STATUS_OK Successful
+ * @retval #STATUS_PARAM_INVALID Invalid parameter
+ * @retval #STATUS_ERROR Operation failed
+ */
+EdgeResult modifyNode(UA_Server *server, uint16_t nsIndex, char *nodeUri, EdgeVersatility *value);
+
+/**
+ * @brief Add node reference in server
+ * @param[in]  server Server Handle
+ * @param[in]  reference Node reference information
+ * @param[in]  src_nsIndex Source Namespace Index
+ * @param[in]  target_nsIndex Target Namespace Index
+ * @return @c EdgeResult code is 0 on success, otherwise an error value
+ * @retval #STATUS_OK Successful
+ * @retval #STATUS_PARAM_INVALID Invalid parameter
+ * @retval #STATUS_ERROR Operation failed
+ */
+EdgeResult addReferences(UA_Server *server, EdgeReference *reference, uint16_t src_nsIndex, uint16_t target_nsIndex);
 
 #ifdef __cplusplus
 }

@@ -21,7 +21,7 @@
 /**
  * @file common_server.h
  *
- * This file contains the definition, types and structure for server
+ * @brief This file contains the definition, types and structure for server
  */
 
 #ifndef EDGE_COMMON_SERVER_H_
