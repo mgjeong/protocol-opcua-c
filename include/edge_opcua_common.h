@@ -21,7 +21,7 @@
 /**
  * @file
  *
- * This file contains the definition, types and APIs for resource= s be implemented.
+ * @brief This file contains the definition, types and APIs for resource= s be implemented.
  */
 
 #ifndef EDGE_OPC_UA_COMMON_H_

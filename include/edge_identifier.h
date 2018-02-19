@@ -19,9 +19,9 @@
  ******************************************************************/
 
 /**
- * @file
+ * @file edge_identifier.h
  *
- * This file contains the definition, types and APIs for resource= s be implemented.
+ * @brief This file contains the definition, types and APIs for resource= s be implemented.
  */
 
 #ifndef EDGE_IDENTIFIER_H_

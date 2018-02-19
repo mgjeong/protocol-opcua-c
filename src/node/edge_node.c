@@ -979,11 +979,4 @@ EdgeResult modifyNode(UA_Server *server, uint16_t nsIndex, char *nodeUri, EdgeVe
     result.code = STATUS_OK;
     return result;
 }
-
-EdgeResult modifyNode2(EdgeNodeIdentifier nodeType)
-{
-    EdgeResult result;
-    result.code = STATUS_OK;
-    return result;
-}
 /***********************************************************************************/

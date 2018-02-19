@@ -18,6 +18,12 @@
  *
  ******************************************************************/
 
+/**
+ * @file queue.h
+ *
+ * @brief This file contains the definition, types and APIs for queue handling
+ */
+
 #ifndef EDGE_QUEUE_H
 #define EDGE_QUEUE_H
 
@@ -30,20 +36,69 @@ extern "C"
 {
 #endif
 
-    typedef struct Queue
-    {
-        int front;
-        int rear;
-        int size;
-        int capacity;
-        EdgeMessage **message;
-    } Queue;
+/**
+  * @brief Structure to store the elements in queue
+  *
+  */
+typedef struct Queue
+{
+    /**< Front element index */
+    int front;
 
-    bool isEmpty(Queue *queue);
-    bool isFull(Queue *queue);
-    Queue *createQueue(int size);
-    bool enqueue(Queue *queue, EdgeMessage *msg);
-    EdgeMessage *dequeue(Queue *queue);
+    /**Rear element index */
+    int rear;
+
+    /**< Queue size */
+    int size;
+
+    /**< Queue capacity */
+    int capacity;
+
+    /**< EdgeMessage request data */
+    EdgeMessage **message;
+} Queue;
+
+/**
+ * @brief Check whether queue is empty
+ * @param[in]  queue Queue to check
+ * @return @c true on success, false on failure
+ * @retval #true Successful (Queue is empty)
+ * @retval #false Failure (Queue is not empty)
+ */
+bool isEmpty(Queue *queue);
+
+/**
+ * @brief Check whether queue is full
+ * @param[in]  queue Queue to check
+ * @return @c true on success, false on failure
+ * @retval #true Successful (Queue is full)
+ * @retval #false Failure (Queue is not full)
+ */
+bool isFull(Queue *queue);
+
+/**
+ * @brief Creates the queue
+ * @param[in]  size size of the queue to be created
+ * @return Queue on success, NULL in case of error
+ */
+Queue *createQueue(int size);
+
+/**
+ * @brief Inserts the edge message data to the queue
+ * @param[in]  queue Queue to add
+ * @param[in]  msg Edge Message data to be added
+ * @return @c true on success, false on failure
+ * @retval #true Successful
+ * @retval #false Failure
+ */
+bool enqueue(Queue *queue, EdgeMessage *msg);
+
+/**
+ * @brief Dequeues the edge message data from the front index in the queue
+ * @param[in]  queue Queue to remove
+ * @return EdgeMessage on success, NULL in case of empty queue or failure
+ */
+EdgeMessage *dequeue(Queue *queue);
 
 #ifdef __cplusplus
 }

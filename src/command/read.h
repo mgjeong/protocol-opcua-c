@@ -21,7 +21,7 @@
 /**
  * @file read.h
  *
- * This file contains the definition, types and APIs for Read command request.
+ * @brief This file contains the definition, types and APIs for Read command request.
  */
 
 #ifndef EDGE_READ_H

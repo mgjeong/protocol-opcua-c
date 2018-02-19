@@ -21,7 +21,7 @@
 /**
  * @file method.h
  *
- * This file contains the definition, types and APIs for METHOD command request.
+ * @brief This file contains the definition, types and APIs for METHOD command request.
  */
 
 #ifndef EDGE_METHOD_H

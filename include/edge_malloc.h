@@ -19,9 +19,9 @@
  ******************************************************************/
 
 /**
- * @file
+ * @file edge_malloc.h
  *
- * This file contains the utilities APIs for use in OPCUA module be implemented.
+ * @brief This file contains the utilities APIs for use in OPCUA module be implemented.
  */
 
 #ifndef EDGE_MALLOC_H_

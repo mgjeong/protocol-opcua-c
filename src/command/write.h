@@ -21,7 +21,7 @@
 /**
  * @file write.h
  *
- * This file contains the definition, types and APIs for WRITE command request.
+ * @brief This file contains the definition, types and APIs for WRITE command request.
  */
 
 #ifndef EDGE_WRITE_H
