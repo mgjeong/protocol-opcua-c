@@ -19,7 +19,9 @@
  ******************************************************************/
 
 /**
- * @file This file contains the utilities APIs for use in OPCUA module be implemented.
+ * @file
+ *
+ * This file contains the utilities APIs for use in OPCUA module be implemented.
  */
 
 #ifndef EDGE_UTILS_H_
@@ -38,11 +40,15 @@ extern "C"
      */
     typedef struct List
     {
-        void *data; /** Generic data of list.*/
-        struct List *link; /** Link to next generic data.*/
+        /** Generic data of list.*/
+        void *data;
+
+        /** Link to next generic data.*/
+        struct List *link;
     } List;
 
-    typedef void *keyValue; /** Generic pointer to represent key/value.*/
+    /** Generic pointer to represent key/value.*/
+    typedef void *keyValue;
 
     /**
      * @brief Structure for a node in the list of generic key-value pairs.
