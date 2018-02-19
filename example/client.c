@@ -999,7 +999,6 @@ static void testBrowseViews(char* endpointUri)
     destroyEdgeMessage(msg);
 }
 
-
 static void testBrowse(char* endpointUri)
 {
     printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET);

@@ -21,7 +21,7 @@
 /**
  * @file
  *
- * This file contains the definition, types and APIs for resource= s be implemented.
+ * This file contains various message types and text descriptions.
  */
 
 #ifndef EDGE_MESSAGE_TYPE_H_
@@ -32,36 +32,64 @@ extern "C"
 {
 #endif
 
+/**
+ * Declares the different types of messages sent between OPC UA wrapper and application.
+ */
 typedef enum
 {
+    /** Server information.*/
     SERVER_INFO = 0,
+
+    /** Server product URI for device.*/
     SERVER_INFO_PRODUCT_URI = 1,
+
+    /** Response for read, write & method operations.*/
     GENERAL_RESPONSE = 10,
+
+    /** Response for browse, browse-view, browse-next and browse-multi operations.*/
     BROWSE_RESPONSE = 11,
+
+    /** Response for subscription notifications.*/
     REPORT = 20,
+
+    /** Sampling data.*/
     SAMPLING = 21,
+
+    /** Message with single request.*/
     SEND_REQUEST = 30,
+
+    /** Message with multiple requests.*/
     SEND_REQUESTS = 31,
+
+    /** Error message.*/
     ERROR = 40
 } EdgeMessageType;
 
-
+/** Server Info - Description.*/
 #define SERVER_INFO_DESC                                "server information"
 
+/** Server Info Product URI - Description.*/
 #define SERVER_INFO_PRODUCT_URI_DESC          "specific product uri for device"
 
+/** General reponse - Description.*/
 #define GENERAL_RESPONSE_DESC                         "General Data"
 
+/** Browse response - Description.*/
 #define BROWSE_RESPONSE_DESC                     "Browse Response"
 
+/** Report - Description.*/
 #define REPORT_DESC                                       "Report Data"
 
+/** Sampling - Description.*/
 #define SAMPLING_DESC                                     "sampleing data"
 
+/** Send request - Description.*/
 #define SEND_REQUEST_DESC                            "send message"
 
+/** Send requests - Description.*/
 #define SEND_REQUESTS_DESC                        "send multi-messages"
 
+/** Error - Description.*/
 #define ERROR_DESC                                        "error message"
 
 #ifdef __cplusplus
