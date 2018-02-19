@@ -18,6 +18,12 @@
  *
  ******************************************************************/
 
+/**
+ * @file write.h
+ *
+ * This file contains the definition, types and APIs for WRITE command request.
+ */
+
 #ifndef EDGE_WRITE_H
 #define EDGE_WRITE_H
 
@@ -31,7 +37,16 @@ extern "C"
 {
 #endif
 
-    EdgeResult executeWrite(UA_Client *client, const EdgeMessage *msg);
+/**
+ * @brief Executes Write operation
+ * @param[in]  client Client Handle.
+ * @param[in]  msg EdgeMessage request data
+ * @return @c EdgeResult code is 0 on success, otherwise an error value
+ * @retval #STATUS_OK Successful
+ * @retval #STATUS_PARAM_INVALID Invalid parameter
+ * @retval #STATUS_ERROR Operation failed
+ */
+EdgeResult executeWrite(UA_Client *client, const EdgeMessage *msg);
 
 #ifdef __cplusplus
 }

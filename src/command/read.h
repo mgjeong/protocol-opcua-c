@@ -18,6 +18,12 @@
  *
  ******************************************************************/
 
+/**
+ * @file read.h
+ *
+ * This file contains the definition, types and APIs for Read command request.
+ */
+
 #ifndef EDGE_READ_H
 #define EDGE_READ_H
 
@@ -31,7 +37,16 @@ extern "C"
 {
 #endif
 
-    EdgeResult executeRead(UA_Client *client, const EdgeMessage *msg);
+/**
+ * @brief Executes Read operation
+ * @param[in]  client Client Handle.
+ * @param[in]  msg EdgeMessage request data
+ * @return @c EdgeResult code is 0 on success, otherwise an error value
+ * @retval #STATUS_OK Successful
+ * @retval #STATUS_PARAM_INVALID Invalid parameter
+ * @retval #STATUS_ERROR Operation failed
+ */
+EdgeResult executeRead(UA_Client *client, const EdgeMessage *msg);
 
 #ifdef __cplusplus
 }

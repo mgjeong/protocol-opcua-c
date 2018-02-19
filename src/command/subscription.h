@@ -18,6 +18,12 @@
  *
  ******************************************************************/
 
+/**
+ * @file subscription.h
+ *
+ * This file contains the definition, types and APIs for SUBSCRIPTION command request.
+ */
+
 #ifndef EDGE_SUBSCRIPTION_H
 #define EDGE_SUBSCRIPTION_H
 
@@ -31,8 +37,16 @@ extern "C"
 {
 #endif
 
-    EdgeResult executeSub(UA_Client *client, const EdgeMessage *msg);
-    void sendPublishRequest(UA_Client *client);
+/**
+ * @brief Executes Subscription operation
+ * @param[in]  client Client Handle.
+ * @param[in]  msg EdgeMessage request data
+ * @return @c EdgeResult code is 0 on success, otherwise an error value
+ * @retval #STATUS_OK Successful
+ * @retval #STATUS_PARAM_INVALID Invalid parameter
+ * @retval #STATUS_ERROR Operation failed
+ */
+EdgeResult executeSub(UA_Client *client, const EdgeMessage *msg);
 
 #ifdef __cplusplus
 }

@@ -179,9 +179,7 @@ static bool checkInvalidTime(UA_DateTime serverTime, UA_DateTime sourceTime, int
 static void *checkValidation(UA_DataValue *value, const EdgeMessage *msg, UA_TimestampsToReturn stamp,
         double maxAge)
 {
-
     // if (!checkNaN(value))
-
     if (!checkInvalidTime(value->serverTimestamp, value->sourceTimestamp, 86400000, stamp))
     {
         // Error message handling
