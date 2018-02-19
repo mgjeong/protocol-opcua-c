@@ -19,9 +19,9 @@
  ******************************************************************/
 
 /**
- * @file
+ * @file common_client.h
  *
- * This file contains the definition, types and APIs for resource= s be implemented.
+ * This file contains the definition, types and structures for the client
  */
 
 #ifndef EDGE_COMMON_CLIENT_H_
@@ -41,96 +41,108 @@ extern "C"
 typedef struct EdgeNodeInfo EdgeNodeInfo;
 typedef struct EdgeResult EdgeResult;
 
+/**
+  * @brief Structure which represents the data
+  *
+  */
 typedef struct EdgeVersatility
 {
-    /** data*/
+    /**< Scalar/Array data. */
     void *value;
 
-    /** Array/Scalar type */
+    /**< Scalar/Array type. */
     bool isArray;
 
-    /** Array Size */
+    /**< Array Length */
     size_t arrayLength;
-
 } EdgeVersatility;
 
+/**
+  * @brief Structure which represents the diagnostic information
+  *
+  */
 typedef struct EdgeDiagnosticInfo
 {
 
-    /** Symbolic Id */
+    /**< Symbolic Id used to identify vendor-specific error or condition; typically the result of some server internal operation */
     int symbolicId;
 
-    /** Namespace Uri */
+    /**< Namespace Uri */
     int namespaceUri;
 
-    /** Localized Text */
+    /**< Localized Text string that describes the s ymbolic id */
     int localizedText;
 
-    /** Locale */
+    /**< Locale part of vendor-specific localized text describing the symbolic id */
     int locale;
 
-    /** additional info */
+    /**< Diagnostic information */
     char *additionalInfo;
 
-    /** Inner Diagnostics */
+    /**< Diagnostic information associated with inner status code */
     void *innerDiagnosticInfo;
 
-    /** msg */
+    /**< Description of diagnostic info */
     char *msg;
 
 } EdgeDiagnosticInfo;
 
+/**
+  * @brief Structure which represents the response data
+  *
+  */
 typedef struct EdgeResponse
 {
-    /** EdgeVersatility.*/
+    /**< EdgeVersatility message */
     EdgeVersatility *message;
 
-    void *value;
-
-    /** EdgeNodeIdentifier */
+    /**< EdgeNodeIdentifier type */
     EdgeNodeIdentifier type;
 
-    /** EdgeNodeInfo.*/
+    /**< Node information */
     EdgeNodeInfo *nodeInfo;
 
-    /** EdgeResult.*/
+    /**< EdgeResult representing the status of the operation */
     EdgeResult *result;
 
-    /** requestId.*/
+    /**< request id */
     int requestId;
 
-    /** EdgeDiagnosticInfo.*/
+    /**< Diagnostic information */
     EdgeDiagnosticInfo *m_diagnosticInfo;
 } EdgeResponse;
 
-
+/**
+  * @brief Structure which represents the Subscription Request data
+  *
+  */
 typedef struct EdgeSubRequest
 {
-    /** EdgeNodeIdentifier */
+    /**< EdgeNodeIdentifier type */
     EdgeNodeIdentifier subType;
 
-    /** sampling interval */
+    /**< sampling interval */
     double samplingInterval;
 
-    /** Publishing Interval */
+    /**< Publishing Interval */
     double publishingInterval;
 
-    /** Lifetime count */
+    /**< Lifetime count */
     int lifetimeCount;
 
-    /** max keepalive count */
+    /**< max keepalive count */
     int maxKeepAliveCount;
 
-    /** Max Notifications per Publish */
+    /**< Max Notifications in a single Publish response */
     int maxNotificationsPerPublish;
 
-    /** Publishing enabled ? */
+    /**< Publishing enable/disable */
     bool publishingEnabled;
 
-    /** Priority */
+    /**< Priority of the subscription */
     int priority;
 
-    /** Queue Size */
+    /**< Size of MonitoredItem queue */
     uint32_t queueSize;
 } EdgeSubRequest;
 

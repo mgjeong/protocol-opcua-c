@@ -19,9 +19,9 @@
  ******************************************************************/
 
 /**
- * @file
+ * @file common_server.h
  *
- * This file contains the definition, types and APIs for resource= s be implemented.
+ * This file contains the definition, types and structure for server
  */
 
 #ifndef EDGE_COMMON_SERVER_H_
@@ -36,129 +36,160 @@ extern "C"
 
 typedef struct EdgeNodeId EdgeNodeId;
 
+/**
+  * @brief Structure which represents the Node information
+  *
+  */
 typedef struct EdgeNodeItem
 {
-    /** browseName.*/
+    /**< Browse name of Node.*/
     char *browseName;
 
-    /** displayName.*/
+    /**< Display name of Node */
     char *displayName;
 
-    /** EdgeIdentifier.*/
+    /** EdgeIdentifier type.*/
     EdgeIdentifier nodeType;
 
-    /** EdgeNodeIdentifier.*/
-    EdgeNodeIdentifier daNodeIdentifier;
-
-    /** accessLevel.*/
+    /**< Access level. */
     int accessLevel;
 
-    /** userAccessLevel.*/
+    /**< User access level. */
     int userAccessLevel;
 
-    /** writeMask.*/
+    /**< write mask.*/
     int writeMask;
 
-    /** userWriteMask.*/
+    /**< write mask with user access rights.*/
     int userWriteMask;
 
-    /** forward.*/
+    /**< forward reference.*/
     bool forward;
 
-    /** variableItemSet.*/
-    //Object[][] variableItemSet;
-
-    /** EdgeNodeIdentifier.*/
+    /**< EdgeNodeIdentifier type for node data.*/
     EdgeNodeIdentifier variableIdentifier;
 
-    /** variableData.*/
+    /**< Node data information. */
     void *variableData;
 
-    /** array length **/
+    /**< Array Length **/
     size_t arrayLength;
 
-    /** EdgeNodeId.*/
+    /**< Source node information. */
     EdgeNodeId *sourceNodeId;
 } EdgeNodeItem;
 
-
+/**
+  * @brief Structure which represents the references between Nodes
+  *
+  */
 typedef struct EdgeReference
 {
-    /** sourcePath.*/
+    /**< Source node browse path.*/
     char *sourcePath;
 
-    /** sourceNamespace.*/
+    /**< Source node Namespace Uri .*/
     char *sourceNamespace;
 
-    /** targetPath.*/
+    /**< Target Node Browse path.*/
     char *targetPath;
 
-    /** targetNamespace.*/
+    /**< Target node Namespace Uri.*/
     char *targetNamespace;
 
-    /** EdgeNodeIdentifier.*/
+    /**< Reference type id.*/
     EdgeNodeIdentifier referenceId;
 
-    /** forward.*/
+    /**< forward reference.*/
     bool forward;
 } EdgeReference;
 
+/**
+  * @brief Enum which represents the argument types
+  *
+  */
 typedef enum EdgeArgumentType
 {
+    /**< In/Out Argument type. */
     IN_OUT_ARGUMENTS = 1,
+    /**< Input argument type. */
     IN_ARGUMENT = 2,
+    /**< Output Argument type. */
     OUT_ARGUMENT = 3,
+    /**< No argument type. */
     VOID_ARGUMENT = 4
 } EdgeArgumentType;
 
+/**
+  * @brief Enum which represents the value type of argument
+  *
+  */
 typedef enum EdgeArgValType
 {
+    /**< Scalar value. */
     SCALAR = 0,
+    /**< One Dimensional array value. */
     ARRAY_1D = 1,
+    /**< Two Dimensional array value. Not supported yet */
     ARRAY_2D = 2
 } EdgeArgValType;
 
+/**
+  * @brief Structure which represents the arguments information.
+  *
+  */
 typedef struct EdgeArgument
 {
-    /** Argument data type */
+    /**< Argument data type */
     EdgeNodeIdentifier argType;
 
-    /** Argument value type */
+    /**< Argument value type */
     EdgeArgValType valType;
 
-    /** Argument scalar data */
+    /**< Argument scalar value data */
     void *scalarValue;
 
-    /* Number of elements if array */
+    /**< Number of elements if valType is array */
     size_t arrayLength;
 
-    /** Argument array data */
+    /**< Argument array value data */
     void *arrayData;
 } EdgeArgument;
 
+/**
+  * @brief Method callback function.
+  * @param[in]  inpSize Number of input arguments.
+  * @param[in]  input Input data.
+  * @param[in]  outSize Number of output arguments.
+  * @param[out]  outout Output data.
+  */
 typedef void (*method_func) (int inpSize, void **input, int outSize, void **output);
 
+/**
+  * @brief Structure which represents the method request data.
+  *
+  */
 typedef struct EdgeMethod
 {
-    /** Method name to browse for */
+    /**< Method Node name to browse for */
     char *methodNodeName;
 
-    /** Method description */
+    /**< Method description */
     char *description;
 
-    /** number of input arguments */
+    /**< Number of input arguments */
     size_t num_inpArgs;
 
-    /** Input arguments */
+    /**< Input arguments data */
     EdgeArgument **inpArg;
 
-    /** number of output arguments */
+    /**< Number of output arguments */
     size_t num_outArgs;
 
-    /** Input arguments */
+    /**< Output arguments */
     EdgeArgument **outArg;
 
-    /** Method */
+    /**< Method callback function */
     method_func method_fn;
 } EdgeMethod;
 

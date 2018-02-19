@@ -19,9 +19,9 @@
  ******************************************************************/
 
 /**
- * @file
+ * @file opcua_common.h
  *
- * This file contains the definition, types and APIs for resource= s be implemented.
+ * This file contains the definition, types and structures common for both client and server
  */
 
 #ifndef EDGE_COMMON_H
@@ -53,278 +53,349 @@ extern "C"
 #define MAX_DISPLAYNAME_SIZE (1000)
 #define UNIQUE_NODE_PATH     "{%d;%c;v=%d}%1000s"
 
+/**
+  * @brief Structure which represents the result response for Browse request
+  *
+  */
 typedef struct EdgeBrowseResult
 {
-    /** browseName.*/
+    /**< Node browse name.*/
     char *browseName;
 
 } EdgeBrowseResult;
 
+/**
+  * @brief Enum which represents the browse direction
+  *
+  */
 typedef enum
 {
+    /**< Forward direction. */
     DIRECTION_FORWARD,
+    /**< Inverse direction. */
     DIRECTION_INVERSE,
+    /**< Both direction */
     DIRECTION_BOTH
 } EdgeBrowseDirection;
 
+/**
+  * @brief Structure which represents the parameters for Browse request data
+  *
+  */
 typedef struct EdgeBrowseParameter
 {
+    /**< Browse direction. */
     EdgeBrowseDirection direction;
+    /**< Max references per node to browse. */
     int maxReferencesPerNode;
 } EdgeBrowseParameter;
 
+/**
+  * @brief Structure which represents the endpoint configuratino information
+  *
+  */
 typedef struct EdgeEndpointConfig
 {
-    /** requestTimeout.*/
+    /**< Request timeout.*/
     int requestTimeout;
 
-    /** serverName.*/
+    /**< Server name.*/
     char *serverName;
 
-    /** bindAddress.*/
+    /**< Bind Address.*/
     char *bindAddress;
 
-    /** bindPort.*/
+    /**< Port.*/
     uint16_t bindPort;
 } EdgeEndpointConfig;
 
-/** The types of applications. */
+/**
+  * @brief Enum which represents the application type
+  *
+  */
 typedef enum {
+    /**< Server Application type */
     EDGE_APPLICATIONTYPE_SERVER = 1,
+    /**< Client Application type */
     EDGE_APPLICATIONTYPE_CLIENT = 2,
+    /**< Client and Server Application type */
     EDGE_APPLICATIONTYPE_CLIENTANDSERVER = 4,
+    /**< DiscoveryServer Application type */
     EDGE_APPLICATIONTYPE_DISCOVERYSERVER = 8
 } EdgeApplicationType;
 
+/**
+  * @brief Structure which represents the application configuration information
+  *
+  */
 typedef struct EdgeApplicationConfig
 {
-    /** applicationUri.*/
+    /**< Application URI.*/
     char *applicationUri;
 
-    /** productUri.*/
+    /**< Product URI .*/
     char *productUri;
 
-    /** applicationName.*/
+    /**< Application name.*/
     char *applicationName;
 
-    /** Type of application. */
+    /**< Application type. */
     EdgeApplicationType applicationType;
 
-    /** Gateway Server's URL.*/
+    /** Gateway Server URI.*/
     char *gatewayServerUri;
 
-    /** Discovery Profile URL.*/
+    /**< Discovery Profile URI.*/
     char *discoveryProfileUri;
 
-    /** Discovery Endpoint URL.*/
+    /**< Discovery Endpoint URL.*/
     char **discoveryUrls;
 
-    /** Number of discovery endpoint URLs.*/
+    /**< Number of discovery endpoint URLs.*/
     size_t discoveryUrlsSize;
 } EdgeApplicationConfig;
 
-/** The type of security to use on a message.*/
+/**
+  * @brief Enum which represents the message security mode
+  *
+  */
 typedef enum
 {
+    /**< Invalid message security mode */
     EDGE_MESSAGESECURITYMODE_INVALID = 0,
+    /**< NONE message security mode */
     EDGE_MESSAGESECURITYMODE_NONE = 1,
+    /**< SIGN message security mode */
     EDGE_MESSAGESECURITYMODE_SIGN = 2,
+    /**< SIGN and ENCRYPT message security mode */
     EDGE_MESSAGESECURITYMODE_SIGNANDENCRYPT = 3,
+    /**< Unknown message security mode */
     EDGE_MESSAGESECURITYMODE_UNKNOWN = 0x7fffffff
 } EdgeSecurityMode;
 
+/**
+  * @brief Structure which represents the endpoint information
+  *
+  */
 typedef struct EdgeEndPointInfo
 {
-    /** endpointUri.*/
+    /**< Endpoint Uri.*/
     char *endpointUri;
 
-    /** EdgeEndpointConfig.*/
+    /**< Endpoint configuration .*/
     EdgeEndpointConfig *endpointConfig;
 
-    /** EdgeApplicationConfig.*/
+    /**< Application configuration .*/
     EdgeApplicationConfig *appConfig;
 
-    /** Security mode of messages.*/
+    /**< Message Security mode.*/
     EdgeSecurityMode securityMode;
 
-    /** securityPolicyUri.*/
+    /**< Security Policy Uri.*/
     char *securityPolicyUri;
 
-    /** transportProfileUri.*/
+    /**< Transport Profile Uri.*/
     char *transportProfileUri;
 
-    /** securityLevel.*/
+    /**<  Security Level.*/
     int securityLevel;
 } EdgeEndPointInfo;
 
+/**
+  * @brief Structure which represents the device information
+  *
+  */
 typedef struct EdgeDevice
 {
-    /** browseName.*/
+    /**< Address.*/
     char *address;
 
-    /** port.*/
+    /**< Port.*/
     uint16_t port;
 
-    /** serverName.*/
+    /**< Server Name.*/
     char *serverName;
 
-    /** EdgeEndPointInfo.*/
+    /**< Endpoint information.*/
     EdgeEndPointInfo **endpointsInfo;
 
-    /** Number of Endpoints */
+    /**< Number of endpoints */
     size_t num_endpoints;
-
 } EdgeDevice;
 
+/**
+  * @brief Structure which represents the Node Id information
+  *
+  */
 typedef struct EdgeNodeId
 {
-    /** nameSpace.*/
+    /**< Namespace index.*/
     uint16_t nameSpace;
 
-    /** nodeUri.*/
+    /**< Node Uri.*/
     char *nodeUri;
 
-    /** EdgeNodeIdentifier.*/
+    /**< EdgeNodeIdentifier type.*/
     EdgeNodeIdentifier nodeIdentifier;
 
-    /** EdgeNodeIdType.*/
+    /**< EdgeNodeId Type.*/
     EdgeNodeIdType type;
 
-    /** NodeId.*/
+    /**< Node browse name.*/
     char *nodeId;
 
+    /**< Integer Node id */
     int integerNodeId;
-
 } EdgeNodeId;
 
-
+/**
+  * @brief Structure which represents the Node information
+  *
+  */
 typedef struct EdgeNodeInfo
 {
-    /** methodName.*/
+    /**< Method Name.*/
     char *methodName;
 
-    /** EdgeNodeId.*/
+    /**< Node Id.*/
     EdgeNodeId *nodeId;
 
-    /** valueAlias.*/
+    /**< Node Value Alias.*/
     char *valueAlias;
-
 } EdgeNodeInfo;
 
+/**
+  * @brief Structure which represents the parameters in method request data
+  *
+  */
 typedef struct EdgeMethodRequestParams
 {
-    /** number of input arguments */
+    /**< Number of input arguments */
     size_t num_inpArgs;
 
-    /** Input arguments */
+    /**< Input arguments */
     EdgeArgument **inpArg;
 
-    /** number of output arguments */
+    /**< Number of output arguments */
     size_t num_outArgs;
 
-    /** Input arguments */
+    /**< Input arguments */
     EdgeArgument **outArg;
-
 } EdgeMethodRequestParams;
 
-
+/**
+  * @brief Structure which represents the Request data
+  *
+  */
 typedef struct EdgeRequest
 {
-    /** EdgeVersatility.*/
+    /**< EdgeVersatility data.*/
     void *value;
 
+    /**< data type */
     EdgeNodeIdentifier type;
 
-    /** EdgeSubRequest.*/
+    /**< Subscription Request.*/
     EdgeSubRequest *subMsg;
 
-    /** EdgeMethodRequest */
+    /**< Method Request */
     EdgeMethodRequestParams *methodParams;
 
-    /** EdgeNodeInfo.*/
+    /**< Node information.*/
     EdgeNodeInfo *nodeInfo;
 
-    /** requestId.*/
+    /**< Request id.*/
     int requestId;
 
-    /** returnDiagnostic.*/
+    /**< Return Diagnostics.*/
     int returnDiagnostic;
-
-    /** browseName.*/
-    //int seed;
 } EdgeRequest;
 
+/**
+  * @brief Structure which represents the result of requested operation
+  *
+  */
 typedef struct EdgeResult
 {
-    /** EdgeNodeInfo.*/
 //    EdgeNodeInfo *endpoint;
 
-    /** EdgeStatusCode.*/
+    /**< Status code of requested operation.*/
     EdgeStatusCode code;
 } EdgeResult;
 
+/**
+  * @brief Structure which represents the ContinuationPoints in Browse request data
+  *
+  */
 typedef struct EdgeContinuationPoint
 {
-    /** Length of continuation point **/
+    /**< Length of continuation point **/
     size_t length;
 
-    /** Continuation point **/
+    /**< Continuation point **/
     unsigned char *continuationPoint;
 } EdgeContinuationPoint;
 
+/**
+  * @brief Structure which represents the List of ContinuationPoints in Browse request data
+  *
+  */
 typedef struct EdgeContinuationPointList
 {
-    /** Total number of continuation points **/
+    /**< Total number of continuation points **/
     size_t count;
 
-    /** List of continuation points **/
+    /**< List of continuation points **/
     EdgeContinuationPoint **cp;
 } EdgeContinuationPointList;
 
+/**
+  * @brief Structure which represents the request and response data
+  *
+  */
 typedef struct EdgeMessage
 {
-    /** EdgeMessageType.*/
+    /**< Message type.*/
     EdgeMessageType type;
 
-    /** EdgeCommand.*/
+    /**< Command type.*/
     EdgeCommand command;
 
-    /** EdgeEndPointInfo.*/
+    /**< Endpoint information.*/
     EdgeEndPointInfo *endpointInfo;
 
-    /** EdgeRequest.*/
+    /**< Single request data.*/
     EdgeRequest *request;
 
-    /** EdgeRequests.*/
+    /**< Group requests.*/
     EdgeRequest **requests;
 
-    /** Number of requests */
+    /**< Number of requests */
     size_t requestLength;
 
-    /** EdgeResponse.*/
+    /**< Response message data.*/
     EdgeResponse **responses;
 
-    /** Response length */
+    /**< Response length */
     size_t responseLength;
 
-    /** EdgeResult.*/
+    /**< Status code of requested operation.*/
     EdgeResult *result;
 
-    /** EdgeBrowseParameter.*/
+    /**< Browse parameter for Browse request.*/
     EdgeBrowseParameter *browseParam;
 
-    /** EdgeBrowseResult.*/
+    /**< Browse response containing the browse node name.*/
     EdgeBrowseResult *browseResult;
 
-    /** Total number of browse result objects **/
+    /**< Total number of browse result objects **/
     size_t browseResultLength;
 
-    /** List of continuation point **/
+    /**< List of continuation point **/
     EdgeContinuationPointList *cpList;
 
-    /** message id **/
+    /**< Message Id **/
     uint32_t message_id;
-
 } EdgeMessage;
 
 #ifdef __cplusplus
