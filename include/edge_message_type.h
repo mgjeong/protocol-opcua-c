@@ -19,9 +19,8 @@
  ******************************************************************/
 
 /**
- * @file
- *
- * This file contains various message types and text descriptions.
+ * @file edge_message_type.h
+ * @brief This file contains various message types and text descriptions.
  */
 
 #ifndef EDGE_MESSAGE_TYPE_H_

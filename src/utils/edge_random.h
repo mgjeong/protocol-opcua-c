@@ -18,6 +18,11 @@
  *
  ******************************************************************/
 
+/**
+ * @file edge_random.h
+ * @brief This file contains functions to generate random numbers.
+ */
+
 #ifndef EDGE_RANDOM_H
 #define EDGE_RANDOM_H
 
@@ -30,20 +35,17 @@ extern "C" {
 #endif
 
 /**
- * Generate a uniformly distributed 32-bit random number.
- * @retval On success, it returns the random value.
+ * @brief Generate a uniformly distributed 32-bit random number.
+ * @return On success, it returns the random value, otherwise 0.
  */
 uint32_t EdgeGetRandom();
 
 /**
- * Generate an array of uniformly distributed random bytes.
- * @param[out] output
- *              Array to fill with random bytes
- * @param[in] len
- *              Length of array
- * @retval true for success, otherwise false and an error is logged
+ * @brief Generate an array of uniformly distributed random bytes.
+ * @param[out] output Array to fill with random bytes
+ * @param[in] len Length of array
+ * @return true for success, otherwise false and an error is logged
  */
 bool EdgeGetRandomBytes(uint8_t * output, size_t len);
-
 
 #endif      // EDGE_RANDOM_H

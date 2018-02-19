@@ -19,9 +19,8 @@
  ******************************************************************/
 
 /**
- * @file
- *
- * This file contains various command types and text descriptions.
+ * @file edge_command_type.h
+ * @brief This file contains various command types and text descriptions.
  */
 
 #ifndef EDGE_COMMAND_TYPE_H_

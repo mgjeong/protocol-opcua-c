@@ -19,9 +19,8 @@
  ******************************************************************/
 
 /**
- * @file
- *
- * This file contains various status codes and error message descriptions.
+ * @file edge_status_code.h
+ * @brief This file contains various status codes and error message descriptions.
  */
 
 #ifndef EDGE_STATUS_CODE_H_

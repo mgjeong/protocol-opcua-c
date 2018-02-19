@@ -19,9 +19,8 @@
  ******************************************************************/
 
 /**
- * @file
- *
- * This file contains the utilities APIs for use in OPCUA module be implemented.
+ * @file edge_utils.h
+ * @brief This file contains the utilities APIs for use in OPCUA module be implemented.
  */
 
 #ifndef EDGE_UTILS_H_

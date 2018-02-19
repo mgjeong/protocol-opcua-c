@@ -19,9 +19,8 @@
  ******************************************************************/
 
 /**
- * @file
- *
- * This file contains various identifiers of standard-defined nodes in namespace zero.
+ * @file edge_node_identifier.h
+ * @brief This file contains various identifiers of standard-defined nodes in namespace zero.
  */
 
 #ifndef EDGE_NODE_IDENTIFIER_H_
