@@ -21,7 +21,7 @@
 /**
  * @file
  *
- * This file contains the definition, types and APIs for resource= s be implemented.
+ * This file contains the declaration for various NodeId types.
  */
 
 #ifndef EDGE_NODE_TYPE_H_
@@ -32,12 +32,22 @@ extern "C"
 {
 #endif
 
-#define DEFAULT_NODE_TYPE (VARIABLE_NODE)
+/**
+ * Declares the various types of Node IDs.
+ * A Node ID can be any one of these types.
+ */
 typedef enum
 {
+    /** String type Node ID.*/
     STRING = 1,
+
+    /** Numeric type Node ID.*/
     INTEGER = 2,
+
+    /** UUID(ie., GUID) type Node ID.*/
     UUID = 3,
+
+    /** ByteString type Node ID.*/
     BYTESTRING = 4
 } EdgeNodeIdType;
 

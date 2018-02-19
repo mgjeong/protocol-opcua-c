@@ -21,7 +21,7 @@
 /**
  * @file
  *
- * This file contains the definition, types and APIs for resource= s be implemented.
+ * This file contains various identifiers of standard-defined nodes in namespace zero.
  */
 
 #ifndef EDGE_NODE_IDENTIFIER_H_
@@ -32,6 +32,9 @@ extern "C"
 {
 #endif
 
+/**
+ * Numeric identifiers of standard-defined nodes in namespace zero.
+ */
 typedef enum
 {
     Boolean = 1,

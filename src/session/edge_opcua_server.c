@@ -259,7 +259,6 @@ EdgeNodeItem* createVariableNodeItemImpl(char* name, EdgeNodeIdentifier type, vo
     }
     EdgeNodeItem* item = (EdgeNodeItem *) EdgeCalloc(1, sizeof(EdgeNodeItem));
     //VERIFY_NON_NULL_RET(item);
-    item->nodeType = DEFAULT_NODE_TYPE;
     item->accessLevel = READ_WRITE;
     item->userAccessLevel = READ_WRITE;
     item->writeMask = 0;
@@ -287,7 +286,6 @@ EdgeNodeItem* createNodeItemImpl(char* name, EdgeIdentifier nodeType, EdgeNodeId
     }
 
     //VERIFY_NON_NULL_RET(item);
-    item->nodeType = DEFAULT_NODE_TYPE;
     item->accessLevel = READ_WRITE;
     item->userAccessLevel = READ_WRITE;
     item->writeMask = 0;
