@@ -18,6 +18,12 @@
  *
  ******************************************************************/
 
+/**
+ * @file opcua_manager.h
+ *
+ * This file contains the top level functions for OPC UA adapter
+ */
+
 #ifndef EDGE_OPCUA_MANAGER_H
 #define EDGE_OPCUA_MANAGER_H
 

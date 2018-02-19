@@ -18,6 +18,12 @@
  *
  ******************************************************************/
 
+/**
+ * @file browse.h
+ *
+ * This file contains the definition, types and APIs for BROWSE command request.
+ */
+
 #ifndef EDGE_BROWSE_H
 #define EDGE_BROWSE_H
 
@@ -32,11 +38,34 @@ extern "C"
 {
 #endif
 
-    EdgeResult executeBrowse(UA_Client *client, EdgeMessage *msg, bool browseNext);
+/**
+ * @brief Executes Browse operation
+ * @param[in]  client Client Handle.
+ * @param[in]  msg EdgeMessage request data
+ * @param[in]  browseNext flag to indicate whether its browse or browseNext operation
+ * @return @c EdgeResult code is 0 on success, otherwise an error value
+ * @retval #STATUS_OK Successful
+ * @retval #STATUS_PARAM_INVALID Invalid parameter
+ * @retval #STATUS_ERROR Operation failed
+ */
+EdgeResult executeBrowse(UA_Client *client, EdgeMessage *msg, bool browseNext);
 
-    EdgeResult executeBrowseViews(UA_Client *client, EdgeMessage *msg);
+/**
+ * @brief Executes Browse View operation
+ * @param[in]  client Client Handle.
+ * @param[in]  msg EdgeMessage request data
+ * @return @c EdgeResult code is 0 on success, otherwise an error value
+ * @retval #STATUS_OK Successful
+ * @retval #STATUS_PARAM_INVALID Invalid parameter
+ * @retval #STATUS_ERROR Operation failed
+ */
+EdgeResult executeBrowseViews(UA_Client *client, EdgeMessage *msg);
 
-    void resgisterBrowseResponseCallback(response_cb_t callback);
+/**
+ * @brief Register callback for browse response
+ * @param[in]  callback response callback
+ */
+void resgisterBrowseResponseCallback(response_cb_t callback);
 
 #ifdef __cplusplus
 }
