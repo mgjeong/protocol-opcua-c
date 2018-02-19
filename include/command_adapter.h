@@ -21,7 +21,6 @@
 /**
  * @file command_adapter.h
  * @brief This file contains the callback functions
- *
  */
 
 #ifndef EDGE_CMD_ADAPTER_H

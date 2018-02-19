@@ -19,9 +19,8 @@
  ******************************************************************/
 
 /**
- * @file
- *
- * This file contains the declaration for various NodeId types.
+ * @file edge_node_type.h
+ * @brief This file contains the declaration for various NodeId types.
  */
 
 #ifndef EDGE_NODE_TYPE_H_

@@ -18,6 +18,11 @@
  *
  ******************************************************************/
 
+/**
+ * @file edge_logger.h
+ * @brief This file contains logger related macro definitions.
+ */
+
 #ifndef EDGE_LOGGER_H_
 #define EDGE_LOGGER_H_
 
@@ -29,12 +34,19 @@ extern "C"
 {
 #endif
 
-//#define DEBUG 1
 #if DEBUG
+
+/** Log the given tag and a string parameter.*/
 #define EDGE_LOG(tag, param) printf("[%s] %s\n", tag, param)
+
+/** Log the given tag and a variable number of arguments.*/
 #define EDGE_LOG_V(tag, param, ...) fprintf(stdout, param, __VA_ARGS__)
 #else
+
+/** Log nothing.*/
 #define EDGE_LOG(tag, param)
+
+/** Log nothing.*/
 #define EDGE_LOG_V(tag, param, ...)
 #endif
 
