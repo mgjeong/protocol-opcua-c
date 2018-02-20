@@ -884,7 +884,7 @@ static void testBrowseNext()
         return;
     }
 
-    browseNextData = initBrowseNextData(browseNextData, &browseNextData->browseParam, MAX_CP_LIST_COUNT, 0);
+    browseNextData = initBrowseNextData(browseNextData, &browseNextData->browseParam, MAX_CP_LIST_COUNT);
     printf("Total number of continuation points: %zu.\n", clone->next_free);
 
     // SEND_REQUESTS : There can be one or more continuation points.
@@ -992,7 +992,7 @@ static void testBrowseViews(char* endpointUri)
     printf("\n" COLOR_YELLOW "********** Browse Views under RootFolder node in system namespace **********"
            COLOR_RESET "\n");
 
-    browseNextData = initBrowseNextData(browseNextData, msg->browseParam, MAX_CP_LIST_COUNT, 0);
+    browseNextData = initBrowseNextData(browseNextData, msg->browseParam, MAX_CP_LIST_COUNT);
 
     sendRequest(msg);
 
@@ -1019,7 +1019,7 @@ static void testBrowse(char* endpointUri)
     printf("\n\n" COLOR_YELLOW "********** Browse RootFolder node in system namespace **********"
            COLOR_RESET "\n");
 
-    browseNextData = initBrowseNextData(browseNextData, msg->browseParam, MAX_CP_LIST_COUNT, 0);
+    browseNextData = initBrowseNextData(browseNextData, msg->browseParam, MAX_CP_LIST_COUNT);
 
     sendRequest(msg);
 
@@ -1053,7 +1053,7 @@ static void testBrowses(char* endpointUri)
            "********** Browse RootFolder, ObjectsFolder nodes in system namespace and Object1 in namespace 1 **********"
            COLOR_RESET "\n");
 
-    browseNextData = initBrowseNextData(browseNextData, msg->browseParam, MAX_CP_LIST_COUNT, 0);
+    browseNextData = initBrowseNextData(browseNextData, msg->browseParam, MAX_CP_LIST_COUNT);
 
     sendRequest(msg);
 
