@@ -22,11 +22,12 @@ void testMethod_P1(char *endpointUri)
     EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_METHOD);
     EXPECT_EQ(NULL != msg, true);
 
-    double input = 16.0;
-    EdgeResult ret = insertEdgeMethodParameter(&msg, "{2;S;v=0}square(x)", 1, Double, SCALAR, (void *) &input, NULL, 0);
+    double *input = (double*) EdgeCalloc(1, sizeof(double));                       //  16.0;
+    *input = 16.0;
+    EdgeResult ret = insertEdgeMethodParameter(&msg, "{2;S;v=0}square(x)", 1, Double, SCALAR, (void *) input, NULL, 0);
     EXPECT_EQ(ret.code, STATUS_OK);
     sendRequest(msg);
-    //destroyEdgeMessage(msg);
+    destroyEdgeMessage(msg);
 
     msg = createEdgeMessage(endpointUri, 1, CMD_METHOD);
     ASSERT_EQ(NULL != msg, true);

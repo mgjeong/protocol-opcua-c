@@ -21,6 +21,7 @@
 #include "message_dispatcher.h"
 #include "queue.h"
 #include "edge_utils.h"
+#include "edge_malloc.h"
 #include "edge_logger.h"
 
 #include <stdio.h>
@@ -66,7 +67,8 @@ void delete_queue()
         pthread_mutex_unlock(&sendMutex);
         pthread_mutex_destroy(&sendMutex);
 
-        free(sendQueue);
+        EdgeFree(sendQueue->message);
+        EdgeFree(sendQueue);
         sendQueue = NULL;
     }
 
@@ -81,7 +83,8 @@ void delete_queue()
         pthread_mutex_unlock(&recvMutex);
         pthread_mutex_destroy(&recvMutex);
 
-        free(recvQueue);
+        EdgeFree(recvQueue->message);
+        EdgeFree(recvQueue);
         recvQueue = NULL;
     }
 }

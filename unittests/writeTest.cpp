@@ -85,7 +85,7 @@ void testWrite_P2(char *endpointUri)
     msg = createEdgeAttributeMessage(endpointUri, 1, CMD_WRITE);
     EXPECT_EQ(NULL!=msg, true);
     double *d_values = (double *) EdgeMalloc(sizeof(double) * 5);
-    for (int i = 1; i <= 5; i++)
+    for (int i = 0; i < 5; i++)
     {
         d_values[i] = i + 100.23;
     }
