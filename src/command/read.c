@@ -569,7 +569,7 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg)
             else
             {
                 size_t size = get_size(response->type, true);
-                if (response->type == String || response->type == XmlElement)
+                if (response->type == String || response->type == ByteString || response->type == XmlElement)
                 {
                     // String Array
                     UA_String *str = ((UA_String *) val.data);
@@ -583,46 +583,18 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg)
                     }
 
                     char **values = (char **) versatility->value;
-                    for (int i = 0; i < val.arrayLength; i++)
+                    for (int j = 0; j < val.arrayLength; j++)
                     {
-                        values[i] = (char *) EdgeMalloc(str[i].length+1);
-                        if(IS_NULL(values[i]))
-                        {
-                            EDGE_LOG_V(TAG, "Error : Malloc failed for String Array value %d in Read Group\n", i);
-                            strncpy(errorDesc, "Memory allocation failed.", ERROR_DESC_LENGTH);
-                            freeEdgeResponse(response);
-                            goto EXIT;
-                        }
-                        strncpy(values[i], (char *) str[i].data, str[i].length);
-                        values[i][str[i].length] = '\0';
-                    }
-                }
-                else if (response->type == ByteString)
-                {
-                    // ByteString Array
-                    UA_ByteString *str = ((UA_ByteString *) val.data);
-                    versatility->value = EdgeCalloc(val.arrayLength, sizeof(char *));
-                    if(IS_NULL(versatility->value))
-                    {
-                        EDGE_LOG(TAG, "Error : Malloc failed for ByteString Array value in Read Group\n");
-                        strncpy(errorDesc, "Memory allocation failed.", ERROR_DESC_LENGTH);
-                        freeEdgeResponse(response);
-                        goto EXIT;
-                    }
-
-                    char **values = (char **) versatility->value;
-                    for (int i = 0; i < val.arrayLength; i++)
-                    {
-                        values[i] = (char *) EdgeMalloc(str[i].length + 1);
-                        if(IS_NULL(values[i]))
+                        values[j] = (char *) EdgeMalloc(str[j].length + 1);
+                        if(IS_NULL(values[j]))
                         {
                             EDGE_LOG_V(TAG, "Error : Malloc failed for ByteString Array value %d in Read Group\n", i);
                             strncpy(errorDesc, "Memory allocation failed.", ERROR_DESC_LENGTH);
                             freeEdgeResponse(response);
                             goto EXIT;
                         }
-                        strncpy(values[i], (char *) str[i].data, str[i].length);
-                        values[i][str[i].length] = '\0';
+                        strncpy(values[j], (char *) str[j].data, str[j].length);
+                        values[j][str[j].length] = '\0';
                     }
                 }
                 else if (response->type == Guid)
@@ -639,10 +611,10 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg)
                     }
 
                     char **values = (char **) versatility->value;
-                    for (int i = 0; i < val.arrayLength; i++)
+                    for (int j = 0; j < val.arrayLength; j++)
                     {
-                        values[i] = (char *) EdgeMalloc(GUID_LENGTH + 1);
-                        if(IS_NULL(values[i]))
+                        values[j] = (char *) EdgeMalloc(GUID_LENGTH + 1);
+                        if(IS_NULL(values[j]))
                         {
                             EDGE_LOG_V(TAG, "Error : Malloc failed for Guid Array value %d in Read Group\n", i);
                             strncpy(errorDesc, "Memory allocation failed.", ERROR_DESC_LENGTH);
@@ -650,11 +622,11 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg)
                             goto EXIT;
                         }
 
-                        snprintf(values[i], GUID_LENGTH + 1, "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x",
-                                str[i].data1, str[i].data2, str[i].data3, str[i].data4[0], str[i].data4[1], str[i].data4[2],
-                                str[i].data4[3], str[i].data4[4], str[i].data4[5], str[i].data4[6], str[i].data4[7]);
+                        snprintf(values[j], GUID_LENGTH + 1, "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x",
+                                str[j].data1, str[j].data2, str[j].data3, str[j].data4[0], str[j].data4[1], str[j].data4[2],
+                                str[j].data4[3], str[j].data4[4], str[j].data4[5], str[j].data4[6], str[j].data4[7]);
 
-                        EDGE_LOG_V(TAG, "%s\n", values[i]);
+                        EDGE_LOG_V(TAG, "%s\n", values[j]);
                     }
                 }
                 else

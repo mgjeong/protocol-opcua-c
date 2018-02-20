@@ -810,7 +810,6 @@ static void startClient(char *addr, int port, char *securityPolicyUri, char *end
     msg->endpointInfo->endpointConfig->serverName = copyString(DEFAULT_SERVER_NAME_VALUE);
     msg->endpointInfo->endpointConfig->bindAddress = copyString(addr);
     msg->endpointInfo->endpointConfig->bindPort = port;
-    msg->endpointInfo->endpointUri = copyString(endpointUri);
     msg->endpointInfo->securityPolicyUri = copyString(securityPolicyUri);
 
     sendRequest(msg);
@@ -830,7 +829,6 @@ static void stopClient()
             printf("Error : Malloc failed for EdgeMessage in test Method\n");
             return;
         }
-        msg->endpointInfo->endpointUri = copyString(temp->endpoint);
         printf("\n" COLOR_YELLOW "********************** stop client **********************"
            COLOR_RESET"\n");
         disconnectClient(msg->endpointInfo);

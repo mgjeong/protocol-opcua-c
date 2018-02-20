@@ -477,22 +477,27 @@ static void testCreateNodes()
     /******************* Array *********************/
     printf(COLOR_GREEN "\n[Create Array Node]\n" COLOR_RESET);
     printf("\n[%d] Array node with ByteString values: \n", ++index);
-    UA_ByteString **dataArray = (UA_ByteString **) malloc(sizeof(UA_ByteString *) * 5);
+    char **dataArray = (char **) malloc(sizeof(char *) * 5);
     if (IS_NOT_NULL(dataArray))
     {
-        dataArray[0] = (UA_ByteString *) EdgeMalloc(sizeof(UA_ByteString));
-        dataArray[1] = (UA_ByteString *) EdgeMalloc(sizeof(UA_ByteString));
-        dataArray[2] = (UA_ByteString *) EdgeMalloc(sizeof(UA_ByteString));
-        dataArray[3] = (UA_ByteString *) EdgeMalloc(sizeof(UA_ByteString));
-        dataArray[4] = (UA_ByteString *) EdgeMalloc(sizeof(UA_ByteString));
+        dataArray[0] = (char *) EdgeMalloc(sizeof(char) * 10);
+        dataArray[1] = (char *) EdgeMalloc(sizeof(char) * 10);
+        dataArray[2] = (char *) EdgeMalloc(sizeof(char) * 10);
+        dataArray[3] = (char *) EdgeMalloc(sizeof(char) * 10);
+        dataArray[4] = (char *) EdgeMalloc(sizeof(char) * 10);
         if (IS_NOT_NULL(dataArray[0]) && IS_NOT_NULL(dataArray[1]) && IS_NOT_NULL(dataArray[2])
         && IS_NOT_NULL(dataArray[3]) && IS_NOT_NULL(dataArray[4]))
         {
-            *dataArray[0] = UA_BYTESTRING_ALLOC("abcde");
-            *dataArray[1] = UA_BYTESTRING_ALLOC("fghij");
-            *dataArray[2] = UA_BYTESTRING_ALLOC("klmno");
-            *dataArray[3] = UA_BYTESTRING_ALLOC("pqrst");
-            *dataArray[4] = UA_BYTESTRING_ALLOC("uvwxyz");
+            strncpy(dataArray[0],"abcde", strlen("abcde"));
+            dataArray[0][strlen("abcde")] = '\0';
+            strncpy(dataArray[1], "fghij", strlen("fghij"));
+            dataArray[1][strlen("fghij")] = '\0';
+            strncpy(dataArray[2], "klmno", strlen("klmno"));
+            dataArray[2][strlen("klmno")] = '\0';
+            strncpy(dataArray[3], "pqrst", strlen("pqrst"));
+            dataArray[3][strlen("pqrst")] = '\0';
+            strncpy(dataArray[4], "uvwxyz", strlen("uvwxyz"));
+            dataArray[4][strlen("uvwxyz")] = '\0';
             item = createVariableNodeItem("ByteStringArray", ByteString, (void *) dataArray,
                     VARIABLE_NODE);
             VERIFY_NON_NULL_NR(item);
@@ -510,8 +515,6 @@ static void testCreateNodes()
 
         for (int i = 0; i < 5; i++)
         {
-            UA_ByteString temp = *dataArray[i];
-            EdgeFree(temp.data);
             EdgeFree(dataArray[i]);
         }
         EdgeFree(dataArray);
