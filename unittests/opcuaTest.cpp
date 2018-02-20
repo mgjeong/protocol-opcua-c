@@ -774,7 +774,7 @@ static void browse_next()
     EdgeBrowseParameter param = {DIRECTION_FORWARD, maxReferencesPerNode};
     insertBrowseParameter(&msg, nodeInfo, param);
 
-    browseNextData = initBrowseNextData(browseNextData, msg->browseParam, 1000, 0);
+    browseNextData = initBrowseNextData(browseNextData, msg->browseParam, 1000);
     EXPECT_EQ(browseNodeFlag, false);
     sendRequest(msg);
     destroyEdgeMessage(msg);
@@ -786,7 +786,7 @@ static void browse_next()
 
     EdgeBrowseNextData *clone = cloneBrowseNextData(browseNextData);
     EXPECT_EQ(NULL != clone, true);
-    browseNextData = initBrowseNextData(browseNextData, &browseNextData->browseParam, 1000, 0);
+    browseNextData = initBrowseNextData(browseNextData, &browseNextData->browseParam, 1000);
     size_t requestLength = clone->next_free;
     msg = createEdgeMessage(endpointUri, requestLength, CMD_BROWSENEXT);
 
@@ -1571,7 +1571,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     printf("\n[%d] Variable node with byte string variant: \n", ++index);
     char *bs_value = (char *) EdgeMalloc(sizeof(char) * 10);
     if (IS_NOT_NULL(bs_value))
-    {        
+    {
         strncpy(bs_value, "samsung", strlen("samsung"));
         bs_value[strlen("samsung")] = '\0';
         item = createVariableNodeItem("ByteString", ByteString, (void *) bs_value, VARIABLE_NODE);

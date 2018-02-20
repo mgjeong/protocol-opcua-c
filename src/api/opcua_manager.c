@@ -74,7 +74,7 @@ void configure(EdgeConfigure *config)
 
 EdgeResult createNamespace(char *name, char *rootNodeId, char *rootBrowseName,
         char *rootDisplayName)
-{    
+{
     EdgeResult result = createNamespaceInServer(name, rootNodeId, rootBrowseName, rootDisplayName);
     return result;
 }
@@ -106,7 +106,7 @@ EdgeResult createMethodNode(char *namespaceUri, EdgeNodeItem *item, EdgeMethod *
 }
 
 EdgeResult createServer(EdgeEndPointInfo *epInfo)
-{    
+{
     EDGE_LOG(TAG, "[Received command] :: Server start.");
     EdgeResult result;
     if (IS_NULL(epInfo))
@@ -129,7 +129,7 @@ EdgeResult createServer(EdgeEndPointInfo *epInfo)
 }
 
 void closeServer(EdgeEndPointInfo *epInfo)
-{    
+{
     if (IS_NULL(epInfo))
     {
         return;
@@ -1074,7 +1074,7 @@ void destroyBrowseNextData(EdgeBrowseNextData *data)
 }
 
 EdgeBrowseNextData* initBrowseNextData(EdgeBrowseNextData *browseNextData,
-        EdgeBrowseParameter *browseParam, size_t count, size_t next_free)
+        EdgeBrowseParameter *browseParam, size_t count)
 {
     destroyBrowseNextData(browseNextData);
     browseNextData = (EdgeBrowseNextData *) EdgeCalloc(1, sizeof(EdgeBrowseNextData));
@@ -1088,7 +1088,7 @@ EdgeBrowseNextData* initBrowseNextData(EdgeBrowseNextData *browseNextData,
         browseNextData->browseParam = *browseParam;
     }
     browseNextData->count = count;
-    browseNextData->next_free = next_free;
+    browseNextData->next_free = 0;
     browseNextData->cp = (EdgeContinuationPoint *) EdgeCalloc(browseNextData->count,
             sizeof(EdgeContinuationPoint));
     if (NULL == browseNextData->cp)

@@ -494,11 +494,10 @@ __attribute__((visibility("default"))) void destroyBrowseNextDataElements(EdgeBr
  * @param[in]  data EdgeBrowseNextData data used for BrowseNext
  * @param[in]  browseParam Browse parameter
  * @param[in]  count Countinuation point list count
- * @param[in]  next_free Next Index to copy the ContinuationPoint to.
  * @return Create EdgeBrowseNextData request
  */
 __attribute__((visibility("default"))) EdgeBrowseNextData* initBrowseNextData(EdgeBrowseNextData *browseNextData,
-        EdgeBrowseParameter *browseParam, size_t count, size_t next_free);
+        EdgeBrowseParameter *browseParam, size_t count);
 
 /**
  * @brief Add the BrowseNext data
