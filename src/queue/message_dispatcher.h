@@ -60,6 +60,6 @@ void delete_queue();
  * @param[in]  resCallback Callback for handling response message
  * @param[in]  sendCallback Callback for handling send request
  */
-void resgisterMQCallback(response_cb_t resCallback, send_cb_t sendCallback);
+void registerMQCallback(response_cb_t resCallback, send_cb_t sendCallback);
 
 #endif  // EDGE_MESSAGE_DISPATCHER_H

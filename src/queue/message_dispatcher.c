@@ -169,7 +169,7 @@ static void handleMessage(EdgeMessage *data)
     }
 }
 
-void resgisterMQCallback(response_cb_t resCallback, send_cb_t sendCallback)
+void registerMQCallback(response_cb_t resCallback, send_cb_t sendCallback)
 {
     g_responseCallback = resCallback;
     g_sendCallback = sendCallback;

@@ -111,32 +111,8 @@ EdgeResult writeNodesInServer(EdgeMessage *msg);
 /**
  * @brief Send the browse request data to server
  * @param[in]  msg EdgeMessage request data.
- * @return @c EdgeResult code is 0 on success, otherwise an error value
- * @retval #STATUS_OK Successful
- * @retval #STATUS_PARAM_INVALID Invalid parameter
- * @retval #STATUS_ERROR Operation failed
  */
-EdgeResult browseNodesInServer(EdgeMessage *msg);
-
-/**
- * @brief Send the browse view request data to server
- * @param[in]  msg EdgeMessage request data.
- * @return @c EdgeResult code is 0 on success, otherwise an error value
- * @retval #STATUS_OK Successful
- * @retval #STATUS_PARAM_INVALID Invalid parameter
- * @retval #STATUS_ERROR Operation failed
- */
-EdgeResult browseViewsInServer(EdgeMessage *msg);
-
-/**
- * @brief Send the browse next request data to server
- * @param[in]  msg EdgeMessage request data.
- * @return @c EdgeResult code is 0 on success, otherwise an error value
- * @retval #STATUS_OK Successful
- * @retval #STATUS_PARAM_INVALID Invalid parameter
- * @retval #STATUS_ERROR Operation failed
- */
-EdgeResult browseNextInServer(EdgeMessage *msg);
+void browseNodesInServer(EdgeMessage *msg);
 
 /**
  * @brief Send the Method Call request data to server
@@ -164,7 +140,7 @@ EdgeResult executeSubscriptionInServer(EdgeMessage *msg);
  * @param[in]  statusCallback status callback
  * @param[in]  discoveryCallback Discovery callback
  */
-void resgisterClientCallback(response_cb_t resCallback, status_cb_t statusCallback, discovery_cb_t discoveryCallback);
+void registerClientCallback(response_cb_t resCallback, status_cb_t statusCallback, discovery_cb_t discoveryCallback);
 
 #ifdef __cplusplus
 }

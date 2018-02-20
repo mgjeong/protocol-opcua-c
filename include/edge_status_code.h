@@ -238,7 +238,7 @@ typedef enum
 #define STATUS_INTERNAL_ERROR_VALUE        ""
 
 /** STATUS_PARAM_INVALID - Description.*/
-#define STATUS_PARAM_INVALID_VALUE         ""
+#define STATUS_PARAM_INVALID_VALUE         "Invalid parameter"
 
 /** STATUS_NOT_ACCESS_PERMISSION - Description.*/
 #define STATUS_NOT_ACCESS_PERMISSION_VALUE         ""

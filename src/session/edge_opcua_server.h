@@ -150,7 +150,7 @@ void printNodeListInServer();
  * @brief Register Server Callback
  * @param[in]  statusCallback server status callback
  */
-void resgisterServerCallback(status_cb_t statusCallback);
+void registerServerCallback(status_cb_t statusCallback);
 
 #ifdef __cplusplus
 }
