@@ -67,9 +67,9 @@ void configure(EdgeConfigure *config)
 
     setSupportedApplicationTypes(config->supportedApplicationTypes);
 
-    resgisterClientCallback(onResponseMessage, onStatusCallback, onDiscoveryCallback);
-    resgisterServerCallback(onStatusCallback);
-    resgisterMQCallback(onResponseMessage, onSendMessage);
+    registerClientCallback(onResponseMessage, onStatusCallback, onDiscoveryCallback);
+    registerServerCallback(onStatusCallback);
+    registerMQCallback(onResponseMessage, onSendMessage);
 }
 
 EdgeResult createNamespace(char *name, char *rootNodeId, char *rootBrowseName,
@@ -441,20 +441,11 @@ void onSendMessage(EdgeMessage* msg)
         EDGE_LOG(TAG, "\n[Received command] :: SUB \n");
         executeSubscriptionInServer(msg);
     }
-    else if (msg->command == CMD_BROWSE)
+    else if (msg->command == CMD_BROWSE || msg->command == CMD_BROWSE_VIEW
+            || msg->command == CMD_BROWSENEXT)
     {
         EDGE_LOG(TAG, "\n[Received command] :: BROWSE \n");
         browseNodesInServer(msg);
-    }
-    else if (msg->command == CMD_BROWSE_VIEW)
-    {
-        EDGE_LOG(TAG, "\n[Received command] :: BROWSE \n");
-        browseViewsInServer(msg);
-    }
-    else if (msg->command == CMD_BROWSENEXT)
-    {
-        EDGE_LOG(TAG, "\n[Received command] :: BROWSE \n");
-        browseNextInServer(msg);
     }
 }
 

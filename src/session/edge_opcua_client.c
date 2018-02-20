@@ -151,25 +151,9 @@ EdgeResult writeNodesInServer(EdgeMessage *msg)
     return result;
 }
 
-EdgeResult browseNodesInServer(EdgeMessage *msg)
+void browseNodesInServer(EdgeMessage *msg)
 {
-    EdgeResult result = executeBrowse((UA_Client*) getSessionClient(msg->endpointInfo->endpointUri),
-            msg, false);
-    return result;
-}
-
-EdgeResult browseViewsInServer(EdgeMessage *msg)
-{
-    EdgeResult result = executeBrowseViews(
-            (UA_Client*) getSessionClient(msg->endpointInfo->endpointUri), msg);
-    return result;
-}
-
-EdgeResult browseNextInServer(EdgeMessage *msg)
-{
-    EdgeResult result = executeBrowse((UA_Client*) getSessionClient(msg->endpointInfo->endpointUri),
-            msg, true);
-    return result;
+    executeBrowse((UA_Client*) getSessionClient(msg->endpointInfo->endpointUri), msg);
 }
 
 EdgeResult callMethodInServer(EdgeMessage *msg)
@@ -1262,9 +1246,9 @@ EdgeResult getClientEndpoints(char *endpointUri)
     return result;
 }
 
-void resgisterClientCallback(response_cb_t resCallback, status_cb_t statusCallback, discovery_cb_t discoveryCallback)
+void registerClientCallback(response_cb_t resCallback, status_cb_t statusCallback, discovery_cb_t discoveryCallback)
 {
-    resgisterBrowseResponseCallback(resCallback);
+    registerBrowseResponseCallback(resCallback);
     g_statusCallback = statusCallback;
     g_discoveryCallback = discoveryCallback;
 }

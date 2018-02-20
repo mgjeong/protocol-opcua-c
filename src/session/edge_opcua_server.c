@@ -404,7 +404,7 @@ void stop_server(EdgeEndPointInfo *epInfo)
     g_statusCallback(epInfo, STATUS_STOP_SERVER);
 }
 
-void resgisterServerCallback(status_cb_t statusCallback)
+void registerServerCallback(status_cb_t statusCallback)
 {
     g_statusCallback = statusCallback;
 }
