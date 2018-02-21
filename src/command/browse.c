@@ -345,7 +345,10 @@ static void invokeErrorCb(uint32_t srcMsgId, EdgeNodeId *srcNodeId,
         g_responseCallback(resultMsg);
     }
 
-    resultMsg->responses[0]->nodeInfo->nodeId = NULL;
+    if (resultMsg->responses[0]->nodeInfo != NULL)
+    {
+        resultMsg->responses[0]->nodeInfo->nodeId = NULL;
+    }
 
 EXIT:
     freeEdgeMessage(resultMsg);
