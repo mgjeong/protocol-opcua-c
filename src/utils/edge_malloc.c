@@ -20,17 +20,13 @@
 
 #include "edge_malloc.h"
 
-#include "edge_logger.h"
-
-#define TAG "edge_malloc"
-
 void *EdgeMalloc(size_t size)
 {
     if (0 == size)
     {
         return NULL;
     }
-    
+
     return malloc(size);
 }
 

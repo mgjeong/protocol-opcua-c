@@ -50,14 +50,6 @@ typedef enum
     BYTESTRING = 4
 } EdgeNodeIdType;
 
-//  typedef enum
-//  {
-//      Edge_Node_Classical_DataAccess_Type = 1,
-//      Edge_Node_ServerInfo_Type = 2,
-//      Edge_Node_Custom_Type = 3,
-//      Edge_Node_Method_Type = 4
-//  } EdgeNodeTypeServer;
-
 #ifdef __cplusplus
 }
 #endif

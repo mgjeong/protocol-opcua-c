@@ -26,13 +26,24 @@
 #ifndef EDGE_UTILS_H_
 #define EDGE_UTILS_H_
 
-#include "open62541.h"
+#include "edge_logger.h"
 #include "opcua_common.h"
+#include "open62541.h"
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
+
+#define FREE(arg) if(arg) {free(arg); arg=NULL; }
+
+#define IS_NULL(arg) ((arg == NULL) ? true : false)
+#define IS_NOT_NULL(arg) ((arg != NULL) ? true : false)
+
+#define VERIFY_NON_NULL(arg, retVal) { if (!(arg)) { EDGE_LOG(TAG, \
+             #arg " is NULL"); return (retVal); } }
+#define VERIFY_NON_NULL_NR(arg) { if (!(arg)) { EDGE_LOG(TAG, \
+             #arg " is NULL"); return; } }
 
     /**
      * @brief Structure for a generic single linked list.

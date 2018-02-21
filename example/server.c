@@ -7,14 +7,18 @@
 #include <pthread.h>
 #include <unistd.h>
 
-#include <opcua_manager.h>
+#include "opcua_manager.h"
 #include "opcua_common.h"
 #include "edge_identifier.h"
-#include "edge_logger.h"
 #include "edge_malloc.h"
 #include "open62541.h"
 
 #define TAG "SAMPLE_SERVER"
+
+#define IS_NULL(arg) ((arg == NULL) ? true : false)
+#define IS_NOT_NULL(arg) ((arg != NULL) ? true : false)
+#define VERIFY_NON_NULL_NR(arg) { if (!(arg)) { printf( \
+             #arg " is NULL"); return; } }
 
 #define COLOR_GREEN        "\x1b[32m"
 #define COLOR_YELLOW      "\x1b[33m"

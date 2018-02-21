@@ -6,10 +6,15 @@
 
 #include "opcua_manager.h"
 #include "opcua_common.h"
-#include "edge_logger.h"
 #include "edge_malloc.h"
 
 #define TAG "SAMPLE_CLIENT"
+
+#define IS_NULL(arg) ((arg == NULL) ? true : false)
+#define VERIFY_NON_NULL(arg, retVal) { if (!(arg)) { printf( \
+             #arg " is NULL"); return (retVal); } }
+#define VERIFY_NON_NULL_NR(arg) { if (!(arg)) { printf( \
+             #arg " is NULL"); return; } }
 
 #define TEST_WITH_REFERENCE_SERVER 0
 
@@ -1163,35 +1168,7 @@ static void writeHelper(int num_requests, char *ep)
     printf("write node \n");
     sendRequest(msg);
     printf("write node call success \n");
-//
-//    if (IS_NOT_NULL(msg->requests))
-//    {
-//        for (int i = 0; i < num_requests; i++)
-//        {
-//            if(IS_NOT_NULL(msg->requests[i]))
-//            {
-//                EdgeVersatility *message = (EdgeVersatility*) msg->requests[i]->value;
-//                if (IS_NOT_NULL(message))
-//                {
-//                    if (msg->requests[i]->type == (int) String)
-//                    {
-//                        char **data = (char**) message->value;
-//                        for (int j = 0; j < message->arrayLength; j++)
-//                        {
-//                            EdgeFree(data[j]);
-//                        }
-//                        EdgeFree(data);
-//                    }
-//                    else
-//                    {
-//                        EdgeFree(message->value);
-//                    }
-//                }
-//            }
-//        }
-//    }
     destroyEdgeMessage(msg);
-
 }
 
 static void testWrite()
