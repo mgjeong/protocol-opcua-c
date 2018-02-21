@@ -1333,7 +1333,15 @@ static EdgeStatusCode browse(UA_Client *client, EdgeMessage *msg, bool browseNex
                             statusCode = STATUS_INTERNAL_ERROR;
                             goto EXIT;
                         }
-                        browseResult->browseName = convertUAStringToString(&ref->browseName.name);
+
+                        if (UA_NODEIDTYPE_STRING == ref->nodeId.nodeId.identifierType)
+                        {
+                            browseResult->browseName = convertUAStringToString(&ref->browseName.name);
+                        }
+                        else
+                        {
+                            browseResult->browseName = convertUAStringToString(&ref->nodeId.nodeId.identifier.string);
+                        }
                         if (!browseResult->browseName)
                         {
                             EDGE_LOG(TAG, "Memory allocation failed.");
