@@ -58,27 +58,6 @@ typedef enum
     MILTI_FOLDER_NODE_TYPE = 1009
 } EdgeIdentifier;
 
-//    char* convertAccessLevel(int level)
-//    {
-//        char* accessLevel = NULL;
-//        switch (level)
-//        {
-//          case 1:
-//            accessLevel = "Read";
-//            break;
-//          case 2:
-//            accessLevel = "Write";
-//            break;
-//          case 3:
-//            accessLevel = "ReadWrite";
-//            break;
-//          default:
-//            break;
-//        }
-//        return accessLevel;
-
-//    }
-
 #ifdef __cplusplus
 }
 #endif

@@ -26,8 +26,7 @@
 #ifndef EDGE_LOGGER_H_
 #define EDGE_LOGGER_H_
 
-#include "open62541.h"
-#include "opcua_common.h"
+#include <stdio.h>
 
 #ifdef __cplusplus
 extern "C"

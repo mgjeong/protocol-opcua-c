@@ -35,6 +35,8 @@
 extern "C" {
 #endif
 
+#define EXPORT __attribute__((visibility("default")))
+
 typedef struct EdgeConfigure EdgeConfigure;
 typedef struct EdgeResult EdgeResult;
 typedef struct EdgeMessage EdgeMessage;
@@ -62,13 +64,13 @@ void onDiscoveryCallback(EdgeDevice *device);
  * @retval #STATUS_PARAM_INVALID Invalid parameter
  * @retval #STATUS_ALREADY_INIT Server already initialized
  */
-__attribute__((visibility("default"))) EdgeResult createServer(EdgeEndPointInfo *epInfo);
+EXPORT EdgeResult createServer(EdgeEndPointInfo *epInfo);
 
 /**
  * @brief Function for closing the server connection
  * @param[in]  epInfo End point information for server.
  */
-__attribute__((visibility("default"))) void closeServer(EdgeEndPointInfo *epInfo);
+EXPORT void closeServer(EdgeEndPointInfo *epInfo);
 
 /**
  * @brief Gets a list of all registered servers at the given server. Application has to free the memory \n
@@ -85,7 +87,7 @@ __attribute__((visibility("default"))) void closeServer(EdgeEndPointInfo *epInfo
  * @retval #STATUS_PARAM_INVALID Invalid parameter
  * @retval #STATUS_ERROR Operation failed
  */
-__attribute__((visibility("default"))) EdgeResult findServers(const char *endpointUri, size_t serverUrisSize,
+EXPORT EdgeResult findServers(const char *endpointUri, size_t serverUrisSize,
         unsigned char **serverUris, size_t localeIdsSize, unsigned char **localeIds,
         size_t *registeredServersSize, EdgeApplicationConfig **registeredServers);
 
@@ -97,19 +99,19 @@ __attribute__((visibility("default"))) EdgeResult findServers(const char *endpoi
  * @retval #STATUS_PARAM_INVALID Invalid parameter
  * @retval #STATUS_ERROR Operation failed
  */
-__attribute__((visibility("default"))) EdgeResult getEndpointInfo(EdgeMessage *msg);
+EXPORT EdgeResult getEndpointInfo(EdgeMessage *msg);
 
 /**
  * @brief Disconnect the client connection
  * @param[in]  epInfo End point information for server.
  */
-__attribute__((visibility("default"))) void disconnectClient(EdgeEndPointInfo *epInfo);
+EXPORT void disconnectClient(EdgeEndPointInfo *epInfo);
 
 /**
  * @brief Set either server/client configuration
  * @param[in]  config Configuration information.
  */
-__attribute__((visibility("default"))) void configure(EdgeConfigure *config);
+EXPORT void configure(EdgeConfigure *config);
 
 /**
  * @brief Add a new namespace to the server.
@@ -122,7 +124,7 @@ __attribute__((visibility("default"))) void configure(EdgeConfigure *config);
  * @retval #STATUS_PARAM_INVALID Invalid parameter
  * @retval #STATUS_ERROR Operation failed
  */
-__attribute__((visibility("default"))) EdgeResult createNamespace(char *name, char *rootNodeId,
+EXPORT EdgeResult createNamespace(char *name, char *rootNodeId,
         char *rootBrowseName, char *rootDisplayName);
 
 /**
@@ -134,7 +136,7 @@ __attribute__((visibility("default"))) EdgeResult createNamespace(char *name, ch
  * @retval #STATUS_PARAM_INVALID Invalid parameter
  * @retval #STATUS_ERROR Operation failed
  */
-__attribute__((visibility("default"))) EdgeResult createNode(char *namespaceUri,
+EXPORT EdgeResult createNode(char *namespaceUri,
         EdgeNodeItem *item);
 
 /**
@@ -147,7 +149,7 @@ __attribute__((visibility("default"))) EdgeResult createNode(char *namespaceUri,
  * @retval #STATUS_PARAM_INVALID Invalid parameter
  * @retval #STATUS_ERROR Operation failed
  */
-__attribute__((visibility("default"))) EdgeNodeItem* createNodeItem(char* name, EdgeIdentifier nodeType,
+EXPORT EdgeNodeItem* createNodeItem(char* name, EdgeIdentifier nodeType,
         EdgeNodeId *sourceNodeId);
 
 /**
@@ -161,7 +163,7 @@ __attribute__((visibility("default"))) EdgeNodeItem* createNodeItem(char* name, 
  * @retval #STATUS_PARAM_INVALID Invalid parameter
  * @retval #STATUS_ERROR Operation failed
  */
-__attribute__((visibility("default"))) EdgeNodeItem* createVariableNodeItem(char* name,
+EXPORT EdgeNodeItem* createVariableNodeItem(char* name,
         EdgeNodeIdentifier type, void* data, EdgeIdentifier nodeType);
 
 /**
@@ -172,7 +174,7 @@ __attribute__((visibility("default"))) EdgeNodeItem* createVariableNodeItem(char
  * @retval #STATUS_PARAM_INVALID Invalid parameter
  * @retval #STATUS_ERROR Operation failed
  */
-__attribute__((visibility("default"))) EdgeResult deleteNodeItem(EdgeNodeItem* item);
+EXPORT EdgeResult deleteNodeItem(EdgeNodeItem* item);
 
 /**
  * @brief Modify a Variable/Array node
@@ -184,7 +186,7 @@ __attribute__((visibility("default"))) EdgeResult deleteNodeItem(EdgeNodeItem* i
  * @retval #STATUS_PARAM_INVALID Invalid parameter
  * @retval #STATUS_ERROR Operation failed
  */
-__attribute__((visibility("default"))) EdgeResult modifyVariableNode(char *namespaceUri,
+EXPORT EdgeResult modifyVariableNode(char *namespaceUri,
         char *nodeUri, EdgeVersatility *value);
 
 /**
@@ -197,7 +199,7 @@ __attribute__((visibility("default"))) EdgeResult modifyVariableNode(char *names
  * @retval #STATUS_PARAM_INVALID Invalid parameter
  * @retval #STATUS_ERROR Operation failed
  */
-__attribute__((visibility("default"))) EdgeResult createMethodNode(char *namespaceUri,
+EXPORT EdgeResult createMethodNode(char *namespaceUri,
         EdgeNodeItem *item, EdgeMethod *method);
 
 /**
@@ -208,12 +210,12 @@ __attribute__((visibility("default"))) EdgeResult createMethodNode(char *namespa
  * @retval #STATUS_PARAM_INVALID Invalid parameter
  * @retval #STATUS_ERROR Operation failed
  */
-__attribute__((visibility("default"))) EdgeResult addReference(EdgeReference *reference);
+EXPORT EdgeResult addReference(EdgeReference *reference);
 
 /**
  * @brief Show list of nodes
  */
-__attribute__((visibility("default"))) void showNodeList(void);
+EXPORT void showNodeList(void);
 
 /**
  * @brief Send the EdgeMessage request to queue for processing
@@ -223,77 +225,77 @@ __attribute__((visibility("default"))) void showNodeList(void);
  * @retval #STATUS_PARAM_INVALID Invalid parameter
  * @retval #STATUS_ERROR Operation failed
  */
-__attribute__((visibility("default"))) EdgeResult sendRequest(EdgeMessage* msg);
+EXPORT EdgeResult sendRequest(EdgeMessage* msg);
 
 /**
  * @brief Deallocates the dynamic memory for EdgeResult. \n
                   Behaviour is undefined if EdgeResult is not dynamically allocated.
  * @param[in]  res EdgeResult data
  */
-__attribute__((visibility("default"))) void destroyEdgeResult(EdgeResult *res);
+EXPORT void destroyEdgeResult(EdgeResult *res);
 
 /**
  * @brief Deallocates the dynamic memory for EdgeVersatility. \n
                    Behaviour is undefined if EdgeVersatility is not dynamically allocated.
  * @param[in]  versatileValue EdgeVersatility data
  */
-__attribute__((visibility("default"))) void destroyEdgeVersatility(EdgeVersatility *versatileValue);
+EXPORT void destroyEdgeVersatility(EdgeVersatility *versatileValue);
 
 /**
  * @brief Deallocates the dynamic memory for EdgeArgument. \n
                    Behaviour is undefined if EdgeArgument is not dynamically allocated.
  * @param[in]  res EdgeArgument data
  */
-__attribute__((visibility("default"))) void destroyEdgeArgument(EdgeArgument *res);
+EXPORT void destroyEdgeArgument(EdgeArgument *res);
 
 /**
  * @brief Deallocates the dynamic memory for EdgeMethodRequestParams. \n
                    Behaviour is undefined if EdgeMethodRequestParams is not dynamically allocated.
  * @param[in]  res EdgeMethodRequestParams data
  */
-__attribute__((visibility("default"))) void destroyEdgeMethodRequestParams(EdgeMethodRequestParams *res);
+EXPORT void destroyEdgeMethodRequestParams(EdgeMethodRequestParams *res);
 
 /**
  * @brief Deallocates the dynamic memory for EdgeNodeId. \n
                    Behaviour is undefined if EdgeNodeId is not dynamically allocated.
  * @param[in]  nodeId EdgeNodeId data
  */
-__attribute__((visibility("default"))) void destroyEdgeNodeId(EdgeNodeId *nodeId);
+EXPORT void destroyEdgeNodeId(EdgeNodeId *nodeId);
 
 /**
  * @brief Deallocates the dynamic memory for EdgeEndpointConfig. \n
                    Behaviour is undefined if EdgeEndpointConfig is not dynamically allocated.
  * @param[in]  epConfig EdgeEndpointConfig data
  */
-__attribute__((visibility("default"))) void destroyEdgeEndpointConfig(EdgeEndpointConfig *epConfig);
+EXPORT void destroyEdgeEndpointConfig(EdgeEndpointConfig *epConfig);
 
 /**
  * @brief Deallocates the dynamic memory for EdgeNodeInfo. \n
                    Behaviour is undefined if EdgeNodeInfo is not dynamically allocated.
  * @param[in]  nodeInfo EdgeNodeInfo data
  */
-__attribute__((visibility("default"))) void destroyEdgeNodeInfo(EdgeNodeInfo *nodeInfo);
+EXPORT void destroyEdgeNodeInfo(EdgeNodeInfo *nodeInfo);
 
 /**
  * @brief Deallocates the dynamic memory for EdgeEndPointInfo. \n
                    Behaviour is undefined if EdgeEndPointInfo is not dynamically allocated.
  * @param[in]  endpointInfo EdgeEndPointInfo data
  */
-__attribute__((visibility("default"))) void destroyEdgeEndpointInfo(EdgeEndPointInfo *endpointInfo);
+EXPORT void destroyEdgeEndpointInfo(EdgeEndPointInfo *endpointInfo);
 
 /**
  * @brief Deallocates the dynamic memory for EdgeApplicationConfig. \n
                    Behaviour is undefined if EdgeApplicationConfig is not dynamically allocated.
  * @param[in]  config EdgeApplicationConfig data
  */
-__attribute__((visibility("default"))) void destroyEdgeApplicationConfigMembers(EdgeApplicationConfig *config);
+EXPORT void destroyEdgeApplicationConfigMembers(EdgeApplicationConfig *config);
 
 /**
  * @brief Deallocates the dynamic memory for EdgeContinuationPoint. \n
  *                Behaviour is undefined if EdgeContinuationPoint is not dynamically allocated.
  * @param[in]  cp EdgeContinuationPoint data
  */
-__attribute__((visibility("default"))) void destroyEdgeContinuationPoint(EdgeContinuationPoint *cp);
+EXPORT void destroyEdgeContinuationPoint(EdgeContinuationPoint *cp);
 
 /**
  * @brief Deallocates the dynamic memory for EdgeContinuationPointList and its members. \n
@@ -302,28 +304,28 @@ __attribute__((visibility("default"))) void destroyEdgeContinuationPoint(EdgeCon
  *                Behaviour is undefined if EdgeContinuationPoint is not dynamically allocated.
  * @param[in]  cpList EdgeContinuationPointList data
  */
-__attribute__((visibility("default"))) void destroyEdgeContinuationPointList(EdgeContinuationPointList *cpList);
+EXPORT void destroyEdgeContinuationPointList(EdgeContinuationPointList *cpList);
 
 /**
  * @brief Deallocates the dynamic memory for EdgeResponse. \n
  *                 Behaviour is undefined if EdgeResponse is not dynamically allocated.
  * @param[in]  resp EdgeResponse data
  */
-__attribute__((visibility("default"))) void destroyEdgeResponse(EdgeResponse *resp);
+EXPORT void destroyEdgeResponse(EdgeResponse *resp);
 
 /**
  * @brief Deallocates the dynamic memory for EdgeRequest. \n
  *                Behaviour is undefined if EdgeRequest is not dynamically allocated.
  * @param[in]  req EdgeRequest data
  */
-__attribute__((visibility("default"))) void destroyEdgeRequest(EdgeRequest *req);
+EXPORT void destroyEdgeRequest(EdgeRequest *req);
 
 /**
  * @brief Deallocates the dynamic memory for EdgeMessage. \n
                    Behaviour is undefined if EdgeMessage is not dynamically allocated.
  * @param[in]  msg EdgeMessage data
  */
-__attribute__((visibility("default"))) void destroyEdgeMessage(EdgeMessage *msg);
+EXPORT void destroyEdgeMessage(EdgeMessage *msg);
 
 /* Allocates memory and copies the string. Application has to free the memory. */
 /**
@@ -332,7 +334,7 @@ __attribute__((visibility("default"))) void destroyEdgeMessage(EdgeMessage *msg)
  * @return @c Copied string value,
  *                          Otherwise NULL if str is not valid
  */
-__attribute__((visibility("default"))) char *copyString(const char *str);
+EXPORT char *copyString(const char *str);
 
 /**
  * @brief Create EdgeNodeInfo object
@@ -340,7 +342,7 @@ __attribute__((visibility("default"))) char *copyString(const char *str);
  * @return EdgeNodeInfo object on success
  *                  NULL in case of error
  */
-__attribute__((visibility("default"))) EdgeNodeInfo* createEdgeNodeInfo(const char* nodeName);
+EXPORT EdgeNodeInfo* createEdgeNodeInfo(const char* nodeName);
 
 /**
  * @brief Create EdgeNodeInfo object
@@ -350,7 +352,7 @@ __attribute__((visibility("default"))) EdgeNodeInfo* createEdgeNodeInfo(const ch
  * @return EdgeNodeInfo object on success
  *                   NULL in case of error
  */
-__attribute__((visibility("default"))) EdgeNodeInfo* createEdgeNodeInfoForNodeId(EdgeNodeIdType type,
+EXPORT EdgeNodeInfo* createEdgeNodeInfoForNodeId(EdgeNodeIdType type,
         int nodeId, uint16_t nameSpace);
 
 /**
@@ -370,7 +372,7 @@ __attribute__((visibility("default"))) EdgeNodeInfo* createEdgeNodeInfoForNodeId
  * @retval #STATUS_PARAM_INVALID Invalid parameter
  * @retval #STATUS_ERROR Operation failed
  */
-__attribute__((visibility("default"))) EdgeResult insertSubParameter(EdgeMessage **msg, const char* nodeName,
+EXPORT EdgeResult insertSubParameter(EdgeMessage **msg, const char* nodeName,
         EdgeNodeIdentifier subType, double samplingInterval, double publishingInterval, int maxKeepAliveCount,
         int lifetimeCount, int maxNotificationsPerPublish, bool publishingEnabled, int priority,
         uint32_t queueSize);
@@ -384,7 +386,7 @@ __attribute__((visibility("default"))) EdgeResult insertSubParameter(EdgeMessage
  * @return EdgeMessage object on success
  *                  NULL in case of error
  */
-__attribute__((visibility("default"))) EdgeMessage* createEdgeSubMessage(const char *endpointUri,
+EXPORT EdgeMessage* createEdgeSubMessage(const char *endpointUri,
         const char* nodeName, size_t requestSize, EdgeNodeIdentifier subType);
 
 /**
@@ -395,7 +397,7 @@ __attribute__((visibility("default"))) EdgeMessage* createEdgeSubMessage(const c
  * @return EdgeMessage object on success
  *                  NULL in case of error
  */
-__attribute__((visibility("default"))) EdgeMessage* createEdgeAttributeMessage(const char *endpointUri,
+EXPORT EdgeMessage* createEdgeAttributeMessage(const char *endpointUri,
         size_t requestSize, EdgeCommand cmd);
 
 /**
@@ -406,7 +408,7 @@ __attribute__((visibility("default"))) EdgeMessage* createEdgeAttributeMessage(c
  * @return EdgeMessage object on success
  *                  NULL in case of error
  */
-__attribute__((visibility("default"))) EdgeMessage* createEdgeMessage(const char *endpointUri, size_t requestSize, EdgeCommand cmd);
+EXPORT EdgeMessage* createEdgeMessage(const char *endpointUri, size_t requestSize, EdgeCommand cmd);
 
 /**
  * @brief Insert Read Access to the EdgeMessage request data
@@ -418,7 +420,7 @@ __attribute__((visibility("default"))) EdgeMessage* createEdgeMessage(const char
  * @retval #STATUS_PARAM_INVALID Invalid parameter
  * @retval #STATUS_ERROR Operation failed
  */
-__attribute__((visibility("default"))) EdgeResult insertReadAccessNode(EdgeMessage **msg, const char* nodeName);
+EXPORT EdgeResult insertReadAccessNode(EdgeMessage **msg, const char* nodeName);
 
 /**
  * @brief Insert Write Access to the EdgeMessage request data
@@ -430,7 +432,7 @@ __attribute__((visibility("default"))) EdgeResult insertReadAccessNode(EdgeMessa
  * @retval #STATUS_PARAM_INVALID Invalid parameter
  * @retval #STATUS_ERROR Operation failed
  */
-__attribute__((visibility("default"))) EdgeResult insertWriteAccessNode(EdgeMessage **msg, const char* nodeName,
+EXPORT EdgeResult insertWriteAccessNode(EdgeMessage **msg, const char* nodeName,
         void* value, size_t valueLen);
 
 /**
@@ -449,7 +451,7 @@ __attribute__((visibility("default"))) EdgeResult insertWriteAccessNode(EdgeMess
  * @retval #STATUS_PARAM_INVALID Invalid parameter
  * @retval #STATUS_ERROR Operation failed
  */
-__attribute__((visibility("default"))) EdgeResult insertEdgeMethodParameter(EdgeMessage **msg, const char* nodeName,
+EXPORT EdgeResult insertEdgeMethodParameter(EdgeMessage **msg, const char* nodeName,
         size_t inputParameterSize, EdgeNodeIdentifier argType, EdgeArgValType valType,
         void *scalarValue, void *arrayData, size_t arrayLength);
 
@@ -464,7 +466,7 @@ __attribute__((visibility("default"))) EdgeResult insertEdgeMethodParameter(Edge
  * @retval #STATUS_PARAM_INVALID Invalid parameter
  * @retval #STATUS_ERROR Operation failed
  */
-__attribute__((visibility("default"))) EdgeResult insertBrowseParameter(EdgeMessage **msg, EdgeNodeInfo* nodeInfo,
+EXPORT EdgeResult insertBrowseParameter(EdgeMessage **msg, EdgeNodeInfo* nodeInfo,
         EdgeBrowseParameter parameter);
 
 /* Get the value type of the variable node */
@@ -473,21 +475,21 @@ __attribute__((visibility("default"))) EdgeResult insertBrowseParameter(EdgeMess
  * @param[in]  nodeName Node information
  * @return EdgeNodeIdentifier - Node Identifier type
  */
-__attribute__((visibility("default"))) EdgeNodeIdentifier getValueType(const char* nodeName);
+EXPORT EdgeNodeIdentifier getValueType(const char* nodeName);
 
 /**
  * @brief Deallocates the dynamic memory for EdgeBrowseNextData. \n
                    Behaviour is undefined if EdgeBrowseNextData is not dynamically allocated.
  * @param[in]  data EdgeBrowseNextData data used for BrowseNext
  */
-__attribute__((visibility("default"))) void destroyBrowseNextData(EdgeBrowseNextData *data);
+EXPORT void destroyBrowseNextData(EdgeBrowseNextData *data);
 
 /**
  * @brief Deallocates the dynamic memory for EdgeBrowseNextData. \n
                    Behaviour is undefined if EdgeBrowseNextData is not dynamically allocated.
  * @param[in]  data EdgeBrowseNextDataElements data used for BrowseNext
  */
-__attribute__((visibility("default"))) void destroyBrowseNextDataElements(EdgeBrowseNextData *data);
+EXPORT void destroyBrowseNextDataElements(EdgeBrowseNextData *data);
 
 /**
  * @brief Initialize the BrowseNextData request to be used in BrowseNext
@@ -496,7 +498,7 @@ __attribute__((visibility("default"))) void destroyBrowseNextDataElements(EdgeBr
  * @param[in]  count Countinuation point list count
  * @return Create EdgeBrowseNextData request
  */
-__attribute__((visibility("default"))) EdgeBrowseNextData* initBrowseNextData(EdgeBrowseNextData *browseNextData,
+EXPORT EdgeBrowseNextData* initBrowseNextData(EdgeBrowseNextData *browseNextData,
         EdgeBrowseParameter *browseParam, size_t count);
 
 /**
@@ -510,7 +512,7 @@ __attribute__((visibility("default"))) EdgeBrowseNextData* initBrowseNextData(Ed
  * @retval #STATUS_PARAM_INVALID Invalid parameter
  * @retval #STATUS_ERROR Operation failed
  */
-__attribute__((visibility("default"))) EdgeResult addBrowseNextData(EdgeBrowseNextData **data, EdgeContinuationPoint *cp,
+EXPORT EdgeResult addBrowseNextData(EdgeBrowseNextData **data, EdgeContinuationPoint *cp,
         EdgeNodeId *nodeId);
 
 /**
@@ -519,7 +521,7 @@ __attribute__((visibility("default"))) EdgeResult addBrowseNextData(EdgeBrowseNe
  * @return Cloned EdgeBrowseNextData request,
  *                   NULL in case of any error
  */
-__attribute__((visibility("default"))) EdgeBrowseNextData *cloneBrowseNextData(EdgeBrowseNextData* browseNextData);
+EXPORT EdgeBrowseNextData *cloneBrowseNextData(EdgeBrowseNextData* browseNextData);
 
 #ifdef __cplusplus
 }

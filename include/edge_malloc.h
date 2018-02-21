@@ -27,22 +27,14 @@
 #ifndef EDGE_MALLOC_H_
 #define EDGE_MALLOC_H_
 
-#include <stdio.h>
+#include <malloc.h>
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-#define FREE(arg) if(arg) {free(arg); arg=NULL; }
-
-#define IS_NULL(arg) ((arg == NULL) ? true : false)
-#define IS_NOT_NULL(arg) ((arg != NULL) ? true : false)
-
-#define VERIFY_NON_NULL(arg, retVal) { if (!(arg)) { EDGE_LOG(TAG, \
-             #arg " is NULL"); return (retVal); } }
-#define VERIFY_NON_NULL_NR(arg) { if (!(arg)) { EDGE_LOG(TAG, \
-             #arg " is NULL"); return; } }
+#define EXPORT __attribute__((visibility("default")))
 
 /**
  * Allocates a block of size bytes, returning a pointer to the beginning of
@@ -57,7 +49,7 @@ extern "C"
  *     on success, a pointer to the allocated memory block
  *     on failure, a null pointer is returned
  */
-__attribute__((visibility("default"))) void *EdgeMalloc(size_t size);
+EXPORT void *EdgeMalloc(size_t size);
 
 /**
  * Re-allocates a block of memory, pointed to by ptr to the size specified
@@ -77,7 +69,7 @@ __attribute__((visibility("default"))) void *EdgeMalloc(size_t size);
  *      on success, a pointer to the newly sized memory block
  *      on failure, a null pointer is returned, and the memory pointed to by *ptr is untouched
  */
-__attribute__((visibility("default"))) void *EdgeRealloc(void *ptr, size_t size);
+EXPORT void *EdgeRealloc(void *ptr, size_t size);
 
 /**
  * Allocates a block of memory for an array of num elements, each of them
@@ -90,7 +82,7 @@ __attribute__((visibility("default"))) void *EdgeRealloc(void *ptr, size_t size)
  *     on success, a pointer to the allocated memory block
  *     on failure, a null pointer is returned
  */
-__attribute__((visibility("default"))) void *EdgeCalloc(size_t num, size_t size);
+EXPORT void *EdgeCalloc(size_t num, size_t size);
 
 /**
  * Deallocate a block of memory previously allocated by a call to OICMalloc.
@@ -101,7 +93,7 @@ __attribute__((visibility("default"))) void *EdgeCalloc(size_t num, size_t size)
  * @param ptr - Pointer to block of memory previously allocated by OICMalloc.
  *              If ptr is a null pointer, the function does nothing.
  */
-__attribute__((visibility("default"))) void EdgeFree(void *ptr);
+EXPORT void EdgeFree(void *ptr);
 
 #ifdef __cplusplus
 }
