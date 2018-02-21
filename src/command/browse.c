@@ -846,7 +846,7 @@ unsigned char *getCompleteBrowsePath(char *browseName, UA_NodeId* nodeId, UA_Loc
                 }
                 else
                 {
-                    snprintf(nodeIdInfo, bufferSize*sizeof(char), "{%d;%c}", nodeId->namespaceIndex, curType);
+                    snprintf(nodeIdInfo, bufferSize*sizeof(char), "{%d;%c;v=0}", nodeId->namespaceIndex, curType);
                 }
                 EdgeFree(valueType);
             }
