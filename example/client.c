@@ -419,6 +419,7 @@ static void error_msg_cb (EdgeMessage *data)
     printf("================================================\n");
     printf("EdgeStatusCode: %d\n", data->result->code);
     int responseLength = data->responseLength;
+    printf("ResponseLength: %d\n", responseLength);
     for (int i = 0; i < responseLength; ++i)
     {
         EdgeResponse *response = data->responses[i];
