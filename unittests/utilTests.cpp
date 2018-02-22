@@ -28,6 +28,7 @@ extern "C"
 #include "edge_identifier.h"
 #include "edge_malloc.h"
 #include "edge_utils.h"
+#include "queue.h"
 }
 
 #define PRINT(str) std::cout<<str<<std::endl
@@ -304,6 +305,28 @@ TEST_F(OPC_util , edgeCalloc_N2)
     ASSERT_EQ(NULL, ptr);
 }
 
+TEST_F(OPC_util , createQueue_P)
+{
+    Queue *queue = createQueue(100);
+    ASSERT_EQ(queue != NULL, true);
+
+    EdgeFree(queue->message);
+    EdgeFree(queue);
+}
+
+TEST_F(OPC_util , enqueue_N)
+{
+    EdgeMessage *msg = (EdgeMessage*) EdgeMalloc(sizeof(EdgeMessage));
+    bool ret = enqueue(NULL, msg);
+    ASSERT_EQ(ret, false);
+    EdgeFree(msg);
+}
+
+TEST_F(OPC_util ,dequeue_N)
+{
+    EdgeMessage *msg = dequeue(NULL);
+    ASSERT_EQ(msg == NULL, true);
+}
 
 /*
  int main(int argc, char **argv) {
