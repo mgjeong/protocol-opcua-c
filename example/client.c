@@ -826,10 +826,12 @@ static void startClient(char *addr, int port, char *securityPolicyUri, char *end
 
 static void stopClient()
 {
+    EndPointList *next = NULL;
     EndPointList *temp = epList;
     while (temp)
     {
-        EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_STOP_CLIENT);
+        next = temp->next;
+        EdgeMessage *msg = createEdgeMessage(temp->endpoint, 1, CMD_STOP_CLIENT);
         if(IS_NULL(msg))
         {
             printf("Error : Malloc failed for EdgeMessage in test Method\n");
@@ -838,9 +840,8 @@ static void stopClient()
         printf("\n" COLOR_YELLOW "********************** stop client **********************"
            COLOR_RESET"\n");
         disconnectClient(msg->endpointInfo);
-        temp = temp->next;
-
         destroyEdgeMessage(msg);
+        temp = next;
     }
 }
 
