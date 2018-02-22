@@ -38,7 +38,7 @@ createBuildDir = 'mkdir -p ' + buildDir
 env.do__(createBuildDir )
 
 
-env['CPPPATH'] = [incPath, '../extlib', gtestIncDir, '../src/utils']
+env['CPPPATH'] = [incPath, '../extlib', gtestIncDir, '../src/utils', '../src/queue']
 print env['CPPPATH']
 
 env.PrependUnique(CCFLAGS=['-g', '-Wno-write-strings'])

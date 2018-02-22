@@ -1306,14 +1306,26 @@ TEST_F(OPC_serverTests , ServerCreateNamespace_P)
 
 TEST_F(OPC_serverTests , ServerCreateNamespace_N1)
 {
-    EdgeResult result = createNamespace(NULL,
+    EXPECT_EQ(startServerFlag, true);
+
+    EdgeResult result = createNamespace(DEFAULT_NAMESPACE_VALUE,
     DEFAULT_ROOT_NODE_INFO_VALUE,
     DEFAULT_ROOT_NODE_INFO_VALUE,
     DEFAULT_ROOT_NODE_INFO_VALUE);
+
     EXPECT_EQ(result.code, STATUS_PARAM_INVALID);
 }
 
 TEST_F(OPC_serverTests , ServerCreateNamespace_N2)
+{
+    EdgeResult result = createNamespace(NULL,
+    DEFAULT_ROOT_NODE_INFO_VALUE,
+    DEFAULT_ROOT_NODE_INFO_VALUE,
+    DEFAULT_ROOT_NODE_INFO_VALUE);
+    ASSERT_EQ(result.code, STATUS_PARAM_INVALID);
+}
+
+TEST_F(OPC_serverTests , ServerCreateNamespace_N3)
 {
     EdgeResult result = createNamespace(DEFAULT_NAMESPACE_VALUE,
     NULL,
@@ -1334,7 +1346,7 @@ TEST_F(OPC_serverTests , ServerCreateNamespace_N2)
     ASSERT_EQ(result.code, STATUS_PARAM_INVALID);
 }
 
-TEST_F(OPC_serverTests , ServerCreateNamespace_N3)
+TEST_F(OPC_serverTests , ServerCreateNamespace_N4)
 {
     EdgeResult result = createNamespace(DEFAULT_NAMESPACE_VALUE,
     NULL,
@@ -2482,7 +2494,30 @@ TEST_F(OPC_clientTests , ServerModifyVariableNode_P)
         EdgeFree(new_str[i]);
     }
     EdgeFree(new_str);
+}
 
+TEST_F(OPC_clientTests , ServerModifyVariableNode_N1)
+{
+    EdgeVersatility *message = (EdgeVersatility *) EdgeMalloc(sizeof(EdgeVersatility));
+    ASSERT_EQ(NULL != message, true);
+    EdgeResult result = modifyVariableNode(NULL, "ByteStringArray", message);
+    ASSERT_EQ(result.code, STATUS_PARAM_INVALID);
+    EdgeFree(message);
+}
+
+TEST_F(OPC_clientTests , ServerModifyVariableNode_N2)
+{
+    EdgeVersatility *message = (EdgeVersatility *) EdgeMalloc(sizeof(EdgeVersatility));
+    ASSERT_EQ(NULL != message, true);
+    EdgeResult result = modifyVariableNode(DEFAULT_NAMESPACE_VALUE, NULL, message);
+    ASSERT_EQ(result.code, STATUS_PARAM_INVALID);
+    EdgeFree(message);
+}
+
+TEST_F(OPC_clientTests , ServerModifyVariableNode_N3)
+{
+    EdgeResult result = modifyVariableNode(DEFAULT_NAMESPACE_VALUE, "ByteStringArray", NULL);
+    ASSERT_EQ(result.code, STATUS_PARAM_INVALID);
 }
 
 TEST_F(OPC_clientTests , ConfigureClient_P)
@@ -2707,6 +2742,28 @@ TEST_F(OPC_clientTests , createEdgeSubMessage_N)
 {
     EdgeMessage *msg = createEdgeSubMessage(NULL, node_arr[0], 1, Edge_Create_Sub);
     EXPECT_EQ(NULL != msg, false);
+}
+
+TEST_F(OPC_clientTests , getEndpointInfo_N1)
+{
+    EXPECT_EQ(startClientFlag, false);
+
+    EdgeResult res = getEndpointInfo(NULL);
+    EXPECT_EQ(res.code, STATUS_PARAM_INVALID);
+}
+
+TEST_F(OPC_clientTests , getEndpointInfo_N2)
+{
+    EXPECT_EQ(startClientFlag, false);
+
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_GET_ENDPOINTS);
+    EXPECT_EQ(NULL != msg, true);
+    free(msg->endpointInfo);
+    msg->endpointInfo = NULL;
+
+    EdgeResult res = getEndpointInfo(msg);
+    EXPECT_EQ(res.code, STATUS_PARAM_INVALID);
+    destroyEdgeMessage(msg);
 }
 
 TEST_F(OPC_clientTests , StartClient_P)
@@ -3319,6 +3376,24 @@ TEST_F(OPC_clientTests , ClientSubscribe_N3)
 TEST_F(OPC_clientTests , ClientShowNodeList_P)
 {
     showNodeList();
+}
+
+TEST_F(OPC_clientTests , destroy_N)
+{
+    destroyEdgeResult(NULL);
+    destroyEdgeEndpointConfig(NULL);
+    destroyEdgeApplicationConfigMembers(NULL);
+    destroyEdgeVersatility(NULL);
+    destroyEdgeNodeId(NULL);
+    destroyEdgeArgument(NULL);
+    destroyEdgeMethodRequestParams(NULL);
+    destroyEdgeNodeInfo(NULL);
+    destroyEdgeContinuationPoint(NULL);
+    destroyEdgeContinuationPointList(NULL);
+    destroyEdgeEndpointInfo(NULL);
+    destroyEdgeRequest(NULL);
+    destroyEdgeResponse(NULL);
+    destroyEdgeMessage(NULL);
 }
 
 int main(int argc, char **argv)

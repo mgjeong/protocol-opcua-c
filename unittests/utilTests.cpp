@@ -28,6 +28,7 @@ extern "C"
 #include "edge_identifier.h"
 #include "edge_malloc.h"
 #include "edge_utils.h"
+#include "queue.h"
 }
 
 #define PRINT(str) std::cout<<str<<std::endl
@@ -164,6 +165,100 @@ TEST_F(OPC_util , cloneString_N)
     ASSERT_EQ(retStr == NULL, true);
 }
 
+TEST_F(OPC_util , cloneData_DataNull)
+{
+    void *retVal = cloneData(NULL, 10);
+    ASSERT_EQ(retVal == NULL, true);
+}
+
+TEST_F(OPC_util , cloneData_ZeroLength)
+{
+    void *retVal = cloneData(WELL_KNOWN_DISCOVERY_VALUE, 0);
+    ASSERT_EQ(retVal == NULL, true);
+}
+
+TEST_F(OPC_util , addListNode_HeadNull)
+{
+    int dummyData = 10;
+    void *data = (void *) &dummyData;
+    ASSERT_EQ(addListNode(NULL, data), false);
+}
+
+TEST_F(OPC_util , addListNode_DataNull)
+{
+    List list;
+    List *head = &list;
+    ASSERT_EQ(addListNode(&head, NULL), false);
+}
+
+TEST_F(OPC_util , getListSize_NullListPointer)
+{
+    ASSERT_EQ(getListSize(NULL), 0);
+}
+
+TEST_F(OPC_util , freeEdgeResult_P)
+{
+    int dummy = 1;
+    EdgeResult *res = (EdgeResult *) EdgeCalloc(1, sizeof(EdgeResult));
+    freeEdgeResult(res);
+
+    // Control should come here. If it comes here, then there is no problem with freeEdgeResult().
+    ASSERT_EQ(dummy==1, true);
+}
+
+TEST_F(OPC_util , freeEdgeVersatility_P)
+{
+    int dummy = 1;
+    EdgeVersatility *versatileValue = (EdgeVersatility *) EdgeCalloc(1, sizeof(EdgeVersatility));
+    ASSERT_EQ(versatileValue  != NULL, true);
+    versatileValue->value = malloc(1);
+    freeEdgeVersatility(versatileValue);
+
+    // Control should come here. If it comes here, then there is no problem with freeEdgeVersatility().
+    ASSERT_EQ(dummy==1, true);
+}
+
+TEST_F(OPC_util , isNodeClassValid_N)
+{
+    UA_NodeClass invalidNodeClass = (UA_NodeClass) -1;
+    ASSERT_EQ(isNodeClassValid(invalidNodeClass), false);
+}
+
+TEST_F(OPC_util , getEdgeNodeIdType_P)
+{
+    ASSERT_EQ(getEdgeNodeIdType('N'), INTEGER);
+    ASSERT_EQ(getEdgeNodeIdType('S'), STRING);
+    ASSERT_EQ(getEdgeNodeIdType('B'), BYTESTRING);
+    ASSERT_EQ(getEdgeNodeIdType('G'), UUID);
+}
+
+TEST_F(OPC_util , getCharacterNodeIdType_P)
+{
+    ASSERT_EQ(getCharacterNodeIdType(UA_NODEIDTYPE_NUMERIC), 'N');
+    ASSERT_EQ(getCharacterNodeIdType(UA_NODEIDTYPE_STRING), 'S');
+    ASSERT_EQ(getCharacterNodeIdType(UA_NODEIDTYPE_BYTESTRING), 'B');
+    ASSERT_EQ(getCharacterNodeIdType(UA_NODEIDTYPE_GUID), 'G');
+}
+
+TEST_F(OPC_util , get_size_P)
+{
+    ASSERT_EQ(get_size(Boolean, false) != -1, true);
+    ASSERT_EQ(get_size(SByte, false) != -1, true);
+    ASSERT_EQ(get_size(Byte, false) != -1, true);
+    ASSERT_EQ(get_size(Int16, false) != -1, true);
+    ASSERT_EQ(get_size(UInt16, false) != -1, true);
+    ASSERT_EQ(get_size(Int32, false) != -1, true);
+    ASSERT_EQ(get_size(UInt32, false) != -1, true);
+    ASSERT_EQ(get_size(Int64, false) != -1, true);
+    ASSERT_EQ(get_size(UInt64, false) != -1, true);
+    ASSERT_EQ(get_size(Float, false) != -1, true);
+    ASSERT_EQ(get_size(Double, false) != -1, true);
+    ASSERT_EQ(get_size(String, false) != -1, true);
+
+    EdgeNodeIdentifier invalidValue = (EdgeNodeIdentifier) -1;
+    ASSERT_EQ(get_size(invalidValue, false) == -1, true);
+}
+
 TEST_F(OPC_util , cloneEdgeEndpoint_P)
 {
     EdgeEndPointInfo *retEndpoint = NULL;
@@ -176,11 +271,16 @@ TEST_F(OPC_util , cloneEdgeEndpoint_P)
     EXPECT_EQ(endpointConfig  != NULL, true);
 
     EdgeApplicationConfig *appConfig = (EdgeApplicationConfig *) EdgeCalloc(1, sizeof(EdgeApplicationConfig));
+    ASSERT_EQ(appConfig  != NULL, true);
     appConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
     appConfig->applicationUri = (char *) DEFAULT_SERVER_URI_VALUE;
     appConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
+    appConfig->gatewayServerUri = (char *) DEFAULT_SERVER_URI_VALUE;
+    appConfig->discoveryProfileUri  = (char *) DEFAULT_SERVER_URI_VALUE;
 
-    EXPECT_EQ(appConfig  != NULL, true);
+    char *discoveryUrls[1] = {DEFAULT_SERVER_URI_VALUE};
+    appConfig->discoveryUrlsSize = 1;
+    appConfig->discoveryUrls = discoveryUrls;
 
     EdgeEndPointInfo *ep = (EdgeEndPointInfo *) EdgeMalloc(sizeof(EdgeEndPointInfo));
     ep->endpointUri = "opc.tcp://107.108.81.116:12686/edge-opc-server";
@@ -304,6 +404,28 @@ TEST_F(OPC_util , edgeCalloc_N2)
     ASSERT_EQ(NULL, ptr);
 }
 
+TEST_F(OPC_util , createQueue_P)
+{
+    Queue *queue = createQueue(100);
+    ASSERT_EQ(queue != NULL, true);
+
+    EdgeFree(queue->message);
+    EdgeFree(queue);
+}
+
+TEST_F(OPC_util , enqueue_N)
+{
+    EdgeMessage *msg = (EdgeMessage*) EdgeMalloc(sizeof(EdgeMessage));
+    bool ret = enqueue(NULL, msg);
+    ASSERT_EQ(ret, false);
+    EdgeFree(msg);
+}
+
+TEST_F(OPC_util ,dequeue_N)
+{
+    EdgeMessage *msg = dequeue(NULL);
+    ASSERT_EQ(msg == NULL, true);
+}
 
 /*
  int main(int argc, char **argv) {

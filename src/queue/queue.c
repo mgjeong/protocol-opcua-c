@@ -48,7 +48,7 @@ Queue *createQueue(int capacity)
 
 bool enqueue(Queue *queue, EdgeMessage *msg)
 {
-    if (isFull(queue))
+    if (!queue || isFull(queue))
         return false;
 
     queue->rear = (queue->rear + 1) % queue->capacity;
@@ -59,7 +59,7 @@ bool enqueue(Queue *queue, EdgeMessage *msg)
 
 EdgeMessage *dequeue(Queue *queue)
 {
-    if (isEmpty(queue))
+    if (!queue || isEmpty(queue))
         return NULL;
 
     EdgeMessage *msg = queue->message[queue->front];
