@@ -2744,6 +2744,28 @@ TEST_F(OPC_clientTests , createEdgeSubMessage_N)
     EXPECT_EQ(NULL != msg, false);
 }
 
+TEST_F(OPC_clientTests , getEndpointInfo_N1)
+{
+    EXPECT_EQ(startClientFlag, false);
+
+    EdgeResult res = getEndpointInfo(NULL);
+    EXPECT_EQ(res.code, STATUS_PARAM_INVALID);
+}
+
+TEST_F(OPC_clientTests , getEndpointInfo_N2)
+{
+    EXPECT_EQ(startClientFlag, false);
+
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_GET_ENDPOINTS);
+    EXPECT_EQ(NULL != msg, true);
+    free(msg->endpointInfo);
+    msg->endpointInfo = NULL;
+
+    EdgeResult res = getEndpointInfo(msg);
+    EXPECT_EQ(res.code, STATUS_PARAM_INVALID);
+    destroyEdgeMessage(msg);
+}
+
 TEST_F(OPC_clientTests , StartClient_P)
 {
     EXPECT_EQ(startClientFlag, false);
@@ -3354,6 +3376,24 @@ TEST_F(OPC_clientTests , ClientSubscribe_N3)
 TEST_F(OPC_clientTests , ClientShowNodeList_P)
 {
     showNodeList();
+}
+
+TEST_F(OPC_clientTests , destroy_N)
+{
+    destroyEdgeResult(NULL);
+    destroyEdgeEndpointConfig(NULL);
+    destroyEdgeApplicationConfigMembers(NULL);
+    destroyEdgeVersatility(NULL);
+    destroyEdgeNodeId(NULL);
+    destroyEdgeArgument(NULL);
+    destroyEdgeMethodRequestParams(NULL);
+    destroyEdgeNodeInfo(NULL);
+    destroyEdgeContinuationPoint(NULL);
+    destroyEdgeContinuationPointList(NULL);
+    destroyEdgeEndpointInfo(NULL);
+    destroyEdgeRequest(NULL);
+    destroyEdgeResponse(NULL);
+    destroyEdgeMessage(NULL);
 }
 
 int main(int argc, char **argv)
