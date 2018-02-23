@@ -31,6 +31,6 @@ $ ./build.sh
 	
 3. Run the server and client :
 
-        a. server : `./server`
+        1. server : `./server`
 
-        b. client : `./client`
+        2. client : `./client`
