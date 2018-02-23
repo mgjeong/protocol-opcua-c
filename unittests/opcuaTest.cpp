@@ -741,7 +741,8 @@ static void browseNodes()
     EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_BROWSE);
     EXPECT_EQ(NULL != msg, true);
 
-    EdgeNodeInfo* nodeInfo = createEdgeNodeInfoForNodeId(INTEGER, RootFolder, SYSTEM_NAMESPACE_INDEX);
+    EdgeNodeInfo* nodeInfo = createEdgeNodeInfoForNodeId(INTEGER, EDGE_NODEID_ROOTFOLDER,
+    		SYSTEM_NAMESPACE_INDEX);
     EdgeBrowseParameter param = {DIRECTION_FORWARD, maxReferencesPerNode};
     insertBrowseParameter(&msg, nodeInfo, param);
 
@@ -771,7 +772,8 @@ static void browse_next()
     EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_BROWSE);
     EXPECT_EQ(NULL != msg, true);
 
-    EdgeNodeInfo* nodeInfo = createEdgeNodeInfoForNodeId(INTEGER, RootFolder, SYSTEM_NAMESPACE_INDEX);
+    EdgeNodeInfo* nodeInfo = createEdgeNodeInfoForNodeId(INTEGER, EDGE_NODEID_ROOTFOLDER,
+    		SYSTEM_NAMESPACE_INDEX);
     EdgeBrowseParameter param = {DIRECTION_FORWARD, maxReferencesPerNode};
     insertBrowseParameter(&msg, nodeInfo, param);
 
@@ -1749,7 +1751,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     }
 
     printf("\n[%d] Variable node with NODEID variant: \n", ++index);
-    UA_NodeId node = UA_NODEID_NUMERIC(DEFAULT_NAMESPACE_INDEX, RootFolder);
+    UA_NodeId node = UA_NODEID_NUMERIC(DEFAULT_NAMESPACE_INDEX, EDGE_NODEID_ROOTFOLDER);
     item = createVariableNodeItem("NodeId", NodeId, (void *) &node, VARIABLE_NODE);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);

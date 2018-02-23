@@ -453,73 +453,74 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg)
 
             if (val.type == &UA_TYPES[UA_TYPES_BOOLEAN])
             {
-                response->type = Boolean;
+                response->type = UA_NS0ID_BOOLEAN;
             }
             else if (val.type == &UA_TYPES[UA_TYPES_INT16])
             {
-                response->type = Int16;
+                response->type = UA_NS0ID_INT16;
             }
             else if (val.type == &UA_TYPES[UA_TYPES_UINT16])
             {
-                response->type = UInt16;
+                response->type = UA_NS0ID_UINT16;
             }
             else if (val.type == &UA_TYPES[UA_TYPES_INT32])
             {
-                response->type = Int32;
+                response->type = UA_NS0ID_INT32;
             }
             else if (val.type == &UA_TYPES[UA_TYPES_UINT32])
             {
-                response->type = UInt32;
+                response->type = UA_NS0ID_UINT32;
             }
             else if (val.type == &UA_TYPES[UA_TYPES_INT64])
             {
-                response->type = Int64;
+                response->type = UA_NS0ID_INT64;
             }
             else if (val.type == &UA_TYPES[UA_TYPES_UINT64])
             {
-                response->type = UInt64;
+                response->type = UA_NS0ID_UINT64;
             }
             else if (val.type == &UA_TYPES[UA_TYPES_FLOAT])
             {
-                response->type = Float;
+                response->type = UA_NS0ID_FLOAT;
             }
             else if (val.type == &UA_TYPES[UA_TYPES_DOUBLE])
             {
-                response->type = Double;
+                response->type = UA_NS0ID_DOUBLE;
             }
             else if (val.type == &UA_TYPES[UA_TYPES_STRING])
             {
-                response->type = String;
+                response->type = UA_NS0ID_STRING;
             }
             else if (val.type == &UA_TYPES[UA_TYPES_BYTESTRING])
             {
-                response->type = ByteString;
+                response->type = UA_NS0ID_BYTESTRING;
             }
             else if (val.type == &UA_TYPES[UA_TYPES_GUID])
             {
-                response->type = Guid;
+                response->type = UA_NS0ID_GUID;
             }
             else if (val.type == &UA_TYPES[UA_TYPES_SBYTE])
             {
-                response->type = SByte;
+                response->type = UA_NS0ID_SBYTE;
             }
             else if (val.type == &UA_TYPES[UA_TYPES_BYTE])
             {
-                response->type = Byte;
+                response->type = UA_NS0ID_BYTE;
             }
             else if (val.type == &UA_TYPES[UA_TYPES_DATETIME])
             {
-                response->type = DateTime;
+                response->type = UA_NS0ID_DATETIME;
             }
             else if (val.type == &UA_TYPES[UA_TYPES_XMLELEMENT])
             {
-                response->type = XmlElement;
+                response->type = UA_NS0ID_XMLELEMENT;
             }
 
             if (isScalar)
             {
                 size_t size = get_size(response->type, false);
-                if ((response->type == String) || (response->type == ByteString) || (response->type == XmlElement))
+                if ((response->type == UA_NS0ID_STRING) || (response->type == UA_NS0ID_BYTESTRING)
+                		|| (response->type == UA_NS0ID_XMLELEMENT))
                 {
                     UA_String str = *((UA_String *) val.data);
                     size_t len = str.length;
@@ -534,7 +535,7 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg)
                     strncpy(versatility->value, (char*) str.data, len);
                    ((char*) versatility->value)[(int) len] = '\0';
                 }
-                else if (response->type == Guid)
+                else if (response->type == UA_NS0ID_GUID)
                 {
                     UA_Guid str = *((UA_Guid *) val.data);
                     char *value = (char *) EdgeMalloc(GUID_LENGTH + 1);
@@ -569,7 +570,8 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg)
             else
             {
                 size_t size = get_size(response->type, true);
-                if (response->type == String || response->type == ByteString || response->type == XmlElement)
+                if (response->type == UA_NS0ID_STRING || response->type == UA_NS0ID_BYTESTRING
+                		|| response->type == UA_NS0ID_XMLELEMENT)
                 {
                     // String Array
                     UA_String *str = ((UA_String *) val.data);
@@ -597,7 +599,7 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg)
                         values[j][str[j].length] = '\0';
                     }
                 }
-                else if (response->type == Guid)
+                else if (response->type == UA_NS0ID_GUID)
                 {
                     // Guid Array
                     UA_Guid *str = ((UA_Guid *) val.data);

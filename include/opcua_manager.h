@@ -164,7 +164,7 @@ EXPORT EdgeNodeItem* createNodeItem(const char* name, EdgeIdentifier nodeType,
  * @retval #STATUS_ERROR Operation failed
  */
 EXPORT EdgeNodeItem* createVariableNodeItem(const char* name,
-        EdgeNodeIdentifier type, void* data, EdgeIdentifier nodeType);
+        int type, void* data, EdgeIdentifier nodeType);
 
 /**
  * @brief Delete a node item
@@ -373,7 +373,7 @@ EXPORT EdgeNodeInfo* createEdgeNodeInfoForNodeId(EdgeNodeIdType type,
  * @retval #STATUS_ERROR Operation failed
  */
 EXPORT EdgeResult insertSubParameter(EdgeMessage **msg, const char* nodeName,
-        EdgeNodeIdentifier subType, double samplingInterval, double publishingInterval, int maxKeepAliveCount,
+        EdgeNodeType subType, double samplingInterval, double publishingInterval, int maxKeepAliveCount,
         int lifetimeCount, int maxNotificationsPerPublish, bool publishingEnabled, int priority,
         uint32_t queueSize);
 
@@ -387,7 +387,7 @@ EXPORT EdgeResult insertSubParameter(EdgeMessage **msg, const char* nodeName,
  *                  NULL in case of error
  */
 EXPORT EdgeMessage* createEdgeSubMessage(const char *endpointUri,
-        const char* nodeName, size_t requestSize, EdgeNodeIdentifier subType);
+        const char* nodeName, size_t requestSize, EdgeNodeType subType);
 
 /**
  * @brief Create EdgeMessage for Attribute Services such as Read, Write
@@ -452,7 +452,7 @@ EXPORT EdgeResult insertWriteAccessNode(EdgeMessage **msg, const char* nodeName,
  * @retval #STATUS_ERROR Operation failed
  */
 EXPORT EdgeResult insertEdgeMethodParameter(EdgeMessage **msg, const char* nodeName,
-        size_t inputParameterSize, EdgeNodeIdentifier argType, EdgeArgValType valType,
+        size_t inputParameterSize, int argType, EdgeArgValType valType,
         void *scalarValue, void *arrayData, size_t arrayLength);
 
 /**
@@ -473,9 +473,9 @@ EXPORT EdgeResult insertBrowseParameter(EdgeMessage **msg, EdgeNodeInfo* nodeInf
 /**
  * @brief Get the value type of the variable node
  * @param[in]  nodeName Node information
- * @return EdgeNodeIdentifier - Node Identifier type
+ * @return Node Identifier type
  */
-EXPORT EdgeNodeIdentifier getValueType(const char* nodeName);
+EXPORT int getValueType(const char* nodeName);
 
 /**
  * @brief Deallocates the dynamic memory for EdgeBrowseNextData. \n

@@ -233,63 +233,63 @@ EdgeResult executeMethod(UA_Client *client, const EdgeMessage *msg)
 
             if (output[i].type == &UA_TYPES[UA_TYPES_BOOLEAN])
             {
-                resultMsg->responses[i]->type = Boolean;
+                resultMsg->responses[i]->type = UA_NS0ID_BOOLEAN;
             }
             else if (output[i].type == &UA_TYPES[UA_TYPES_INT16])
             {
-                resultMsg->responses[i]->type = Int16;
+                resultMsg->responses[i]->type = UA_NS0ID_INT16;
             }
             else if (output[i].type == &UA_TYPES[UA_TYPES_UINT16])
             {
-                resultMsg->responses[i]->type = UInt16;
+                resultMsg->responses[i]->type = UA_NS0ID_UINT16;
             }
             else if (output[i].type == &UA_TYPES[UA_TYPES_INT32])
             {
-                resultMsg->responses[i]->type = Int32;
+                resultMsg->responses[i]->type = UA_NS0ID_INT32;
             }
             else if (output[i].type == &UA_TYPES[UA_TYPES_UINT32])
             {
-                resultMsg->responses[i]->type = UInt32;
+                resultMsg->responses[i]->type = UA_NS0ID_UINT32;
             }
             else if (output[i].type == &UA_TYPES[UA_TYPES_INT64])
             {
-                resultMsg->responses[i]->type = Int64;
+                resultMsg->responses[i]->type = UA_NS0ID_INT64;
             }
             else if (output[i].type == &UA_TYPES[UA_TYPES_UINT64])
             {
-                resultMsg->responses[i]->type = UInt64;
+                resultMsg->responses[i]->type = UA_NS0ID_UINT64;
             }
             else if (output[i].type == &UA_TYPES[UA_TYPES_FLOAT])
             {
-                resultMsg->responses[i]->type = Float;
+                resultMsg->responses[i]->type = UA_NS0ID_FLOAT;
             }
             else if (output[i].type == &UA_TYPES[UA_TYPES_DOUBLE])
             {
-                resultMsg->responses[i]->type = Double;
+                resultMsg->responses[i]->type = UA_NS0ID_DOUBLE;
             }
             else if (output[i].type == &UA_TYPES[UA_TYPES_STRING])
             {
-                resultMsg->responses[i]->type = String;
+                resultMsg->responses[i]->type = UA_NS0ID_STRING;
             }
             else if (output[i].type == &UA_TYPES[UA_TYPES_BYTESTRING])
             {
-                resultMsg->responses[i]->type = ByteString;
+                resultMsg->responses[i]->type = UA_NS0ID_BYTESTRING;
             }
             else if (output[i].type == &UA_TYPES[UA_TYPES_GUID])
             {
-                resultMsg->responses[i]->type = Guid;
+                resultMsg->responses[i]->type = UA_NS0ID_GUID;
             }
             else if (output[i].type == &UA_TYPES[UA_TYPES_SBYTE])
             {
-                resultMsg->responses[i]->type = SByte;
+                resultMsg->responses[i]->type = UA_NS0ID_SBYTE;
             }
             else if (output[i].type == &UA_TYPES[UA_TYPES_BYTE])
             {
-                resultMsg->responses[i]->type = Byte;
+                resultMsg->responses[i]->type = UA_NS0ID_BYTE;
             }
             else if (output[i].type == &UA_TYPES[UA_TYPES_DATETIME])
             {
-                resultMsg->responses[i]->type = DateTime;
+                resultMsg->responses[i]->type = UA_NS0ID_DATETIME;
             }
 
             resultMsg->responses[i]->message = (EdgeVersatility *) EdgeCalloc(1, sizeof(EdgeVersatility));
@@ -307,7 +307,7 @@ EdgeResult executeMethod(UA_Client *client, const EdgeMessage *msg)
                 versatility->arrayLength = 0;
                 versatility->isArray = false;
                 size_t size = get_size(resultMsg->responses[i]->type, false);
-                if ((resultMsg->responses[i]->type == String) || (resultMsg->responses[i]->type == ByteString))
+                if ((resultMsg->responses[i]->type == UA_NS0ID_STRING) || (resultMsg->responses[i]->type == UA_NS0ID_BYTESTRING))
                 {
                     UA_String str = *((UA_String *) output[i].data);
                     size_t len = str.length;
@@ -320,7 +320,7 @@ EdgeResult executeMethod(UA_Client *client, const EdgeMessage *msg)
                     strncpy(versatility->value, (char*) str.data, len);
                    ((char*) versatility->value)[(int) len] = '\0';
                 }
-                else if (resultMsg->responses[i]->type == Guid)
+                else if (resultMsg->responses[i]->type == UA_NS0ID_GUID)
                 {
                     UA_Guid str = *((UA_Guid *) output[i].data);
                     char *value = (char *) EdgeMalloc(GUID_LENGTH + 1);
@@ -354,7 +354,7 @@ EdgeResult executeMethod(UA_Client *client, const EdgeMessage *msg)
                 versatility->arrayLength = output[i].arrayLength;
                 versatility->isArray = true;
                 size_t size = get_size(resultMsg->responses[i]->type, true);
-                if (resultMsg->responses[i]->type == String || resultMsg->responses[i]->type == ByteString)
+                if (resultMsg->responses[i]->type == UA_NS0ID_STRING || resultMsg->responses[i]->type == UA_NS0ID_BYTESTRING)
                 {
                     // String Array
                     UA_String *str = ((UA_String *) output[i].data);
@@ -378,7 +378,7 @@ EdgeResult executeMethod(UA_Client *client, const EdgeMessage *msg)
                         values[j][str[j].length] = '\0';
                     }
                 }
-                else if (resultMsg->responses[i]->type == Guid)
+                else if (resultMsg->responses[i]->type == UA_NS0ID_GUID)
                 {
                     // Guid Array
                     UA_Guid *str = ((UA_Guid *) output[i].data);

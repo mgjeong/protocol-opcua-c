@@ -132,8 +132,8 @@ static void writeGroup(UA_Client *client, const EdgeMessage *msg)
     for (size_t i = 0; i < reqLen; i++)
     {
         EDGE_LOG_V(TAG, "[WRITEGROUP] Node to write :: %s\n", msg->requests[i]->nodeInfo->valueAlias);
-        EdgeNodeIdentifier Nodeid = msg->requests[i]->type;
-        uint32_t type = (uint32_t) Nodeid - 1;
+        uint32_t Nodeid = (uint32_t)(msg->requests[i]->type);
+        uint32_t type = Nodeid - 1;
         UA_WriteValue_init(&wv[i]);
         UA_Variant_init(&myVariant[i]);
         wv[i].attributeId = UA_ATTRIBUTEID_VALUE;

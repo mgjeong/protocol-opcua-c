@@ -97,7 +97,10 @@ typedef struct EdgeResponse
     EdgeVersatility *message;
 
     /**< EdgeNodeIdentifier type */
-    EdgeNodeIdentifier type;
+//    EdgeNodeIdentifier type;
+
+    /**< identifiers type */
+    int type;
 
     /**< Node information */
     EdgeNodeInfo *nodeInfo;
@@ -118,8 +121,8 @@ typedef struct EdgeResponse
   */
 typedef struct EdgeSubRequest
 {
-    /**< EdgeNodeIdentifier type */
-    EdgeNodeIdentifier subType;
+    /**< EdgeNodeType type */
+    EdgeNodeType subType;
 
     /**< sampling interval */
     double samplingInterval;

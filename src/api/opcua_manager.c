@@ -173,7 +173,7 @@ void disconnectClient(EdgeEndPointInfo *epInfo)
     disconnect_client(epInfo);
 }
 
-EdgeNodeItem* createVariableNodeItem(const char* name, EdgeNodeIdentifier type, void* data,
+EdgeNodeItem* createVariableNodeItem(const char* name, int type, void* data,
         EdgeIdentifier nodeType)
 {
     return createVariableNodeItemImpl(name, type, data, nodeType);
@@ -507,7 +507,7 @@ void onStatusCallback(EdgeEndPointInfo *epInfo, EdgeStatusCode status)
     }
 }
 
-EdgeNodeIdentifier getValueType(const char* nodeName)
+int getValueType(const char* nodeName)
 {
     int nsIdx = 0, valueType = 0;
     char nodeType;
@@ -567,7 +567,7 @@ EdgeNodeInfo* createEdgeNodeInfo(const char* nodeName)
     return nodeInfo;
 }
 
-EdgeResult insertSubParameter(EdgeMessage **msg, const char* nodeName, EdgeNodeIdentifier subType,
+EdgeResult insertSubParameter(EdgeMessage **msg, const char* nodeName, EdgeNodeType subType,
         double samplingInterval, double publishingInterval, int maxKeepAliveCount,
         int lifetimeCount, int maxNotificationsPerPublish, bool publishingEnabled, int priority,
         uint32_t queueSize)
@@ -652,7 +652,7 @@ EdgeResult insertSubParameter(EdgeMessage **msg, const char* nodeName, EdgeNodeI
 }
 
 EdgeMessage* createEdgeSubMessage(const char *endpointUri, const char* nodeName, size_t requestSize,
-        EdgeNodeIdentifier subType)
+        EdgeNodeType subType)
 {
     if (!endpointUri)
     {
@@ -905,7 +905,7 @@ EdgeResult insertWriteAccessNode(EdgeMessage **msg, const char* nodeName, void* 
 }
 
 EdgeResult insertEdgeMethodParameter(EdgeMessage **msg, const char* nodeName,
-        size_t inputParameterSize, EdgeNodeIdentifier argType, EdgeArgValType valType,
+        size_t inputParameterSize, int argType, EdgeArgValType valType,
         void *scalarValue, void *arrayData, size_t arrayLength)
 {
     EdgeResult result;

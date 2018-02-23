@@ -961,7 +961,7 @@ static EdgeRequest *getEdgeRequestForViewBrowse()
         return NULL;
     }
     nodeInfo->nodeId->type = INTEGER;
-    nodeInfo->nodeId->integerNodeId = ViewsFolder;
+    nodeInfo->nodeId->integerNodeId = UA_NS0ID_VIEWSFOLDER;
     nodeInfo->nodeId->nameSpace = SYSTEM_NAMESPACE_INDEX;
 
     EdgeRequest *request = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
