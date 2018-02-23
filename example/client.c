@@ -75,7 +75,7 @@ static void add_to_endpoint_list(char *endpoint);
 static EndPointList *remove_from_endpoint_list(char *endpoint);
 
 static void startClient(char *addr, int port, char *securityPolicyUri, char *endpoint);
-static void *getNewValuetoWrite(EdgeNodeIdentifier type, int num_values);
+static void *getNewValuetoWrite(int type, int num_values);
 
 static void response_msg_cb (EdgeMessage *data)
 {
@@ -1039,7 +1039,7 @@ static void testBrowse(char* endpointUri)
         return;
     }
 
-    EdgeNodeInfo* nodeInfo = createEdgeNodeInfoForNodeId(INTEGER, RootFolder, SYSTEM_NAMESPACE_INDEX);
+    EdgeNodeInfo* nodeInfo = createEdgeNodeInfoForNodeId(INTEGER, EDGE_NODEID_ROOTFOLDER, SYSTEM_NAMESPACE_INDEX);
     EdgeBrowseParameter param = {DIRECTION_FORWARD, maxReferencesPerNode};
     insertBrowseParameter(&msg, nodeInfo, param);
     printf("\n\n" COLOR_YELLOW "********** Browse RootFolder node in system namespace **********"
@@ -1067,10 +1067,10 @@ static void testBrowses(char* endpointUri)
         return;
     }
 
-    EdgeNodeInfo* nodeInfo = createEdgeNodeInfoForNodeId(INTEGER, RootFolder, SYSTEM_NAMESPACE_INDEX);
+    EdgeNodeInfo* nodeInfo = createEdgeNodeInfoForNodeId(INTEGER, EDGE_NODEID_ROOTFOLDER, SYSTEM_NAMESPACE_INDEX);
     EdgeBrowseParameter param = {DIRECTION_FORWARD, maxReferencesPerNode};
     insertBrowseParameter(&msg, nodeInfo, param);
-    nodeInfo = createEdgeNodeInfoForNodeId(INTEGER, ObjectsFolder, SYSTEM_NAMESPACE_INDEX);
+    nodeInfo = createEdgeNodeInfoForNodeId(INTEGER, EDGE_NODEID_OBJECTSFOLDER, SYSTEM_NAMESPACE_INDEX);
     insertBrowseParameter(&msg, nodeInfo, param);
     nodeInfo = createEdgeNodeInfo("{2;S;v=0}Object1");
     insertBrowseParameter(&msg, nodeInfo, param);
@@ -1167,7 +1167,7 @@ static void writeHelper(int num_requests, char *ep)
         printf("\nEnter the node #%d name to write :: ", (i + 1));
         scanf("%s", nodeName);
 
-        EdgeNodeIdentifier nodeType = getValueType(nodeName);
+        int nodeType = getValueType(nodeName);
         printf("Enter number of elements to write (1 for scalar, > 1 for Array) : ");
         scanf("%d", &valueLen);
         void *value = getNewValuetoWrite(nodeType, valueLen);
@@ -1513,7 +1513,7 @@ static void testSubDelete()
     destroyEdgeMessage(msg);
 }
 
-static void *getNewValuetoWrite(EdgeNodeIdentifier type, int num_values)
+static void *getNewValuetoWrite(int type, int num_values)
 {
     if(num_values < 1)
     {

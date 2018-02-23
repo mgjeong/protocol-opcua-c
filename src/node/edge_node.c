@@ -44,7 +44,7 @@ static void getDisplayInfo(const EdgeNodeItem *item, char* displayInfo) {
 static void addVariableNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem *item)
 {
     char *name = item->browseName;
-    EdgeNodeIdentifier id = item->variableIdentifier;
+    int id = item->variableIdentifier;
     int accessLevel = item->accessLevel;
     int userAccessLevel = item->userAccessLevel;
 
@@ -123,7 +123,7 @@ static void addVariableNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeI
 static void addArrayNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem *item)
 {
     char *name = item->browseName;
-    EdgeNodeIdentifier id = item->variableIdentifier;
+    int id = item->variableIdentifier;
 
     UA_VariableAttributes attr = UA_VariableAttributes_default;
     char displayInfo[MAX_DISPLAYNAME_SIZE] = {};
@@ -289,7 +289,7 @@ static void addObjectTypeNode(UA_Server *server, uint16_t nsIndex, const EdgeNod
 static void addVariableTypeNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem *item)
 {
     char *name = item->browseName;
-    EdgeNodeIdentifier id = item->variableIdentifier;
+    int id = item->variableIdentifier;
 
     UA_VariableTypeAttributes attr = UA_VariableTypeAttributes_default;
     char displayInfo[MAX_DISPLAYNAME_SIZE] = {};
@@ -422,7 +422,7 @@ EdgeResult addReferences(UA_Server *server, EdgeReference *reference, uint16_t s
 
     if (!reference->referenceId)
     {
-        reference->referenceId = Organizes;
+        reference->referenceId = UA_NS0ID_ORGANIZES;
     }
 
     UA_ExpandedNodeId expanded_nodeId = UA_EXPANDEDNODEID_STRING(target_nsIndex, reference->targetPath);

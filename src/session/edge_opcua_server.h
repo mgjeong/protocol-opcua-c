@@ -127,7 +127,7 @@ EdgeNodeItem* createNodeItemImpl(const char* name, EdgeIdentifier nodeType, Edge
  * @param[in]  nodeType Type of node (Variable/Array etc.)
  * @return EdgeNodeItem created on success, otherwise return NULL in case of error
  */
-EdgeNodeItem* createVariableNodeItemImpl(const char* name, EdgeNodeIdentifier type, void* data,
+EdgeNodeItem* createVariableNodeItemImpl(const char* name, int type, void* data,
         EdgeIdentifier nodeType);
 
 /**

@@ -250,7 +250,7 @@ EdgeResult addMethodNodeInServer(const char *namespaceUri, EdgeNodeItem *item, E
     return result;
 }
 
-EdgeNodeItem* createVariableNodeItemImpl(const char* name, EdgeNodeIdentifier type, void* data,
+EdgeNodeItem* createVariableNodeItemImpl(const char* name, int type, void* data,
         EdgeIdentifier nodeType)
 {
     if (!name)

@@ -492,7 +492,7 @@ static void testCreateNodes()
     }
 
     printf("\n[%d] Variable node with NODEID variant: \n", ++index);
-    UA_NodeId node = UA_NODEID_NUMERIC(DEFAULT_NAMESPACE_INDEX, RootFolder);
+    UA_NodeId node = UA_NODEID_NUMERIC(DEFAULT_NAMESPACE_INDEX, EDGE_NODEID_ROOTFOLDER);
     item = createVariableNodeItem("NodeId", NodeId, (void *) &node, VARIABLE_NODE);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);

@@ -265,7 +265,7 @@ extern "C"
      * @param[in]  versatileValue Pointer to EdgeVersatility which needs to be freed.
      * @param[in]  type Type of the value in EdgeVersatility.
      */
-    void freeEdgeVersatilityByType(EdgeVersatility *versatileValue, EdgeNodeIdentifier type);
+    void freeEdgeVersatilityByType(EdgeVersatility *versatileValue, int type);
 
     /**
      * @brief De-allocates the memory consumed by EdgeResponse and its members.
@@ -379,7 +379,7 @@ extern "C"
      * @param[in]  isArray Indicates whether size is required for an array or single element.
      * @return Size of the node of a given type.
      */
-    size_t get_size(EdgeNodeIdentifier type, bool isArray);
+    size_t get_size(int type, bool isArray);
 
     /**
      * @brief To get the enum equivalent for the given node type.

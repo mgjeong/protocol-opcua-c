@@ -67,7 +67,7 @@ typedef struct EdgeNodeItem
     bool forward;
 
     /**< EdgeNodeIdentifier type for node data.*/
-    EdgeNodeIdentifier variableIdentifier;
+    int variableIdentifier;
 
     /**< Node data information. */
     void *variableData;
@@ -98,7 +98,7 @@ typedef struct EdgeReference
     char *targetNamespace;
 
     /**< Reference type id.*/
-    EdgeNodeIdentifier referenceId;
+    int referenceId;
 
     /**< forward reference.*/
     bool forward;
@@ -141,7 +141,7 @@ typedef enum EdgeArgValType
 typedef struct EdgeArgument
 {
     /**< Argument data type */
-    EdgeNodeIdentifier argType;
+    int argType;
 
     /**< Argument value type */
     EdgeArgValType valType;

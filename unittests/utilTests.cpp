@@ -256,7 +256,7 @@ TEST_F(OPC_util , get_size_P)
     ASSERT_EQ(get_size(Double, false) != -1, true);
     ASSERT_EQ(get_size(String, false) != -1, true);
 
-    EdgeNodeIdentifier invalidValue = (EdgeNodeIdentifier) -1;
+    int invalidValue = -1;
     ASSERT_EQ(get_size(invalidValue, false) == -1, true);
 }
 
@@ -334,7 +334,7 @@ TEST_F(OPC_util , cloneNode_P)
     nodeInfo->valueAlias[strlen(nodeName)] = '\0';
     nodeInfo->methodName = "methodName";
     nodeInfo->nodeId->type = INTEGER;
-    nodeInfo->nodeId->integerNodeId = RootFolder;
+    nodeInfo->nodeId->integerNodeId = EDGE_NODEID_ROOTFOLDER;
     nodeInfo->nodeId->nameSpace = SYSTEM_NAMESPACE_INDEX;
 
     EdgeNodeInfo *retNodeInfo = NULL;

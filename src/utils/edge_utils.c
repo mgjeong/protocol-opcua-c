@@ -322,7 +322,7 @@ EdgeMethodRequestParams* cloneEdgeMethodRequestParams(EdgeMethodRequestParams *m
         clone->inpArg[i]->arrayData = NULL;
         if (SCALAR == methodParams->inpArg[i]->valType)
         {
-            if (methodParams->inpArg[i]->argType == String)
+            if (methodParams->inpArg[i]->argType == UA_NS0ID_STRING)
             {
                 clone->inpArg[i]->scalarValue = cloneString((char*) methodParams->inpArg[i]->scalarValue);
                 if(IS_NULL(clone->inpArg[i]->scalarValue))
@@ -346,7 +346,7 @@ EdgeMethodRequestParams* cloneEdgeMethodRequestParams(EdgeMethodRequestParams *m
         else if (ARRAY_1D == methodParams->inpArg[i]->valType)
         {
             clone->inpArg[i]->arrayLength = methodParams->inpArg[i]->arrayLength;
-            if (methodParams->inpArg[i]->argType == String)
+            if (methodParams->inpArg[i]->argType == UA_NS0ID_STRING)
             {
                 clone->inpArg[i]->arrayData = EdgeCalloc(methodParams->inpArg[i]->arrayLength, sizeof(char*));
                 if(IS_NULL(clone->inpArg[i]->arrayData))
@@ -612,7 +612,7 @@ void freeEdgeArgument(EdgeArgument *arg)
     }
     else if(ARRAY_1D == arg->valType)
     {
-        if(String == arg->argType)
+        if(UA_NS0ID_STRING == arg->argType)
         {
             char **val = (char **) arg->arrayData;
             for (size_t i = 0; i < arg->arrayLength; ++i)
@@ -673,11 +673,12 @@ void freeEdgeVersatility(EdgeVersatility *versatileValue)
     EdgeFree(versatileValue);
 }
 
-void freeEdgeVersatilityByType(EdgeVersatility *versatileValue, EdgeNodeIdentifier type)
+void freeEdgeVersatilityByType(EdgeVersatility *versatileValue, int type)
 {
     VERIFY_NON_NULL_NR(versatileValue);
 
-    if (versatileValue->isArray && (type == String || type == ByteString || type == Guid))
+    if (versatileValue->isArray && (type == UA_NS0ID_STRING || type == UA_NS0ID_BYTESTRING
+    		|| type == UA_NS0ID_GUID))
     {
         // Free String array
         char **values = versatileValue->value;
@@ -888,67 +889,67 @@ EdgeNodeInfo *cloneEdgeNodeInfo(EdgeNodeInfo *nodeInfo)
     return clone;
 }
 
-size_t get_size(EdgeNodeIdentifier type, bool isArray)
+size_t get_size(int type, bool isArray)
 {
     size_t size = -1;
     switch (type)
     {
-        case Boolean:
+        case UA_NS0ID_BOOLEAN:
             {
                 size = (isArray) ? sizeof(bool*) : sizeof(bool);
             }
             break;
-        case SByte:
+        case UA_NS0ID_SBYTE:
             {
                 size = (isArray) ? sizeof(int8_t*) : sizeof(int8_t);
             }
             break;
-        case Byte:
+        case UA_NS0ID_BYTE:
             {
                 size = (isArray) ? sizeof(uint8_t*) : sizeof(uint8_t);
             }
             break;
-        case Int16:
+        case UA_NS0ID_INT16:
             {
                 size = (isArray) ? sizeof(int16_t*) : sizeof(int16_t);
             }
             break;
-        case UInt16:
+        case UA_NS0ID_UINT16:
             {
                 size = (isArray) ? sizeof(uint16_t*) : sizeof(uint16_t);
             }
             break;
-        case Int32:
+        case UA_NS0ID_INT32:
             {
                 size = (isArray) ? sizeof(int32_t*) : sizeof(int32_t);
             }
             break;
-        case UInt32:
+        case UA_NS0ID_UINT32:
             {
                 size = (isArray) ? sizeof(uint32_t*) : sizeof(uint32_t);
             }
             break;
-        case Int64:
+        case UA_NS0ID_INT64:
             {
                 size = (isArray) ? sizeof(int64_t*) : sizeof(int64_t);
             }
             break;
-        case UInt64:
+        case UA_NS0ID_UINT64:
             {
                 size = (isArray) ? sizeof(uint64_t*) : sizeof(uint64_t);
             }
             break;
-        case Float:
+        case UA_NS0ID_FLOAT:
             {
                 size = (isArray) ? sizeof(float*) : sizeof(float);
             }
             break;
-        case Double:
+        case UA_NS0ID_DOUBLE:
             {
                 size = (isArray) ? sizeof(double*) : sizeof(double);
             }
             break;
-        case String:
+        case UA_NS0ID_STRING:
             {
                 size = (isArray) ? sizeof(char*) : sizeof(char);
             }
@@ -1120,7 +1121,7 @@ EdgeMessage* cloneEdgeMessage(EdgeMessage *msg)
                         cloneVersatility->arrayLength = srcVersatility->arrayLength;
                         cloneVersatility->isArray = srcVersatility->isArray;
                         size_t size = get_size(msg->requests[i]->type, srcVersatility->isArray);
-                        if (msg->requests[i]->type == String)
+                        if (msg->requests[i]->type == UA_NS0ID_STRING)
                         {
                             size_t len = strlen((char *) srcVersatility->value);
                             cloneVersatility->value = (void *) EdgeCalloc(1, len+1);
@@ -1149,7 +1150,7 @@ EdgeMessage* cloneEdgeMessage(EdgeMessage *msg)
                         cloneVersatility->arrayLength = srcVersatility->arrayLength;
                         cloneVersatility->isArray = srcVersatility->isArray;
                         size_t size = get_size(msg->requests[i]->type, srcVersatility->isArray);
-                        if (msg->requests[i]->type == String || msg->requests[i]->type == ByteString)
+                        if (msg->requests[i]->type == UA_NS0ID_STRING || msg->requests[i]->type == UA_NS0ID_BYTESTRING)
                         {
                             char **srcVal = (char**) srcVersatility->value;
                             cloneVersatility->value = EdgeCalloc(srcVersatility->arrayLength, sizeof(char*));
