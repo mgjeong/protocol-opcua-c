@@ -24,6 +24,9 @@
 #include <math.h>
 #include <inttypes.h>
 
+#include <sys/time.h>
+#include <time.h>
+
 #include "opcua_manager.h"
 #include "opcua_common.h"
 #include "edge_malloc.h"
@@ -274,12 +277,20 @@ static void monitored_msg_cb (EdgeMessage *data)
 {
     if (data->type == REPORT)
     {
+        struct timeval val;
+        struct tm *lt;
+
+        gettimeofday(&val, NULL);
+        lt = localtime(&val.tv_sec);
+
         printf("[Application response Callback] Monitored Item Response received\n");
         int len = data->responseLength;
         int idx = 0;
         for (idx = 0; idx < len; idx++)
         {
             printf("Msg id : [%" PRIu32 "] , [Node Name] : %s\n", data->message_id, data->responses[idx]->nodeInfo->valueAlias);
+            printf("Monitored Time : [%d-%02d-%02d %02d:%02d:%02d.%03ld]\n",
+                       lt->tm_year+1900, lt->tm_mon, lt->tm_mday, lt->tm_hour, lt->tm_min, lt->tm_sec, val.tv_usec);
             if (data->responses[idx]->message == NULL)
             {
                 printf("data->responses[%d]->message is NULL\n", idx);
