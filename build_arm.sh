@@ -19,7 +19,7 @@
 echo "Start edge opcua build"
 
 scons -c
-scons TARGET_ARCH=arm TEST=1
+scons TARGET_ARCH=arm TEST=1 AUTO_DOWNLOAD_DEP_LIBS=1
 cp /usr/bin/qemu-arm-static .
 
 echo "End of edge opcua build"
