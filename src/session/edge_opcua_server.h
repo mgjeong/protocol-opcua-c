@@ -46,8 +46,8 @@ extern "C"
  * @retval #STATUS_PARAM_INVALID Invalid parameter
  * @retval #STATUS_ERROR Operation failed
  */
-EdgeResult createNamespaceInServer(char *namespaceUri, char *rootNodeIdentifier,
-        char *rootNodeBrowseName, char *rootNodeDisplayName);
+EdgeResult createNamespaceInServer(const char *namespaceUri, const char *rootNodeIdentifier,
+		    const char *rootNodeBrowseName, const char *rootNodeDisplayName);
 
 /**
  * @brief Send the request to create/add node
@@ -58,7 +58,7 @@ EdgeResult createNamespaceInServer(char *namespaceUri, char *rootNodeIdentifier,
  * @retval #STATUS_PARAM_INVALID Invalid parameter
  * @retval #STATUS_ERROR Operation failed
  */
-EdgeResult addNodesInServer(char *namespaceUri, EdgeNodeItem *item);
+EdgeResult addNodesInServer(const char *namespaceUri, EdgeNodeItem *item);
 
 /**
  * @brief Send the request for modify node
@@ -70,7 +70,7 @@ EdgeResult addNodesInServer(char *namespaceUri, EdgeNodeItem *item);
  * @retval #STATUS_PARAM_INVALID Invalid parameter
  * @retval #STATUS_ERROR Operation failed
  */
-EdgeResult modifyNodeInServer(char *namespaceUri, char *nodeUri, EdgeVersatility *value);
+EdgeResult modifyNodeInServer(const char *namespaceUri, const char *nodeUri, EdgeVersatility *value);
 
 /**
  * @brief Send the request for adding reference
@@ -92,7 +92,7 @@ EdgeResult addReferenceInServer(EdgeReference *reference);
  * @retval #STATUS_PARAM_INVALID Invalid parameter
  * @retval #STATUS_ERROR Operation failed
  */
-EdgeResult addMethodNodeInServer(char *namespaceUri, EdgeNodeItem *item, EdgeMethod *method);
+EdgeResult addMethodNodeInServer(const char *namespaceUri, EdgeNodeItem *item, EdgeMethod *method);
 
 /**
  * @brief Send the request to create and start the server
@@ -117,7 +117,7 @@ void stop_server(EdgeEndPointInfo *epInfo);
  * @param[in]  sourceNodeId Source Node Id information
  * @return EdgeNodeItem created on success, otherwise return NULL in case of error
  */
-EdgeNodeItem* createNodeItemImpl(char* name, EdgeIdentifier nodeType, EdgeNodeId *sourceNodeId);
+EdgeNodeItem* createNodeItemImpl(const char* name, EdgeIdentifier nodeType, EdgeNodeId *sourceNodeId);
 
 /**
  * @brief Creates and Initialises the variable node with default values
@@ -127,7 +127,7 @@ EdgeNodeItem* createNodeItemImpl(char* name, EdgeIdentifier nodeType, EdgeNodeId
  * @param[in]  nodeType Type of node (Variable/Array etc.)
  * @return EdgeNodeItem created on success, otherwise return NULL in case of error
  */
-EdgeNodeItem* createVariableNodeItemImpl(char* name, EdgeNodeIdentifier type, void* data,
+EdgeNodeItem* createVariableNodeItemImpl(const char* name, EdgeNodeIdentifier type, void* data,
         EdgeIdentifier nodeType);
 
 /**

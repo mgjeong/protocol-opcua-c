@@ -72,7 +72,7 @@ EdgeResult addMethodNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem
  * @retval #STATUS_PARAM_INVALID Invalid parameter
  * @retval #STATUS_ERROR Operation failed
  */
-EdgeResult modifyNode(UA_Server *server, uint16_t nsIndex, char *nodeUri, EdgeVersatility *value);
+EdgeResult modifyNode(UA_Server *server, uint16_t nsIndex, const char *nodeUri, EdgeVersatility *value);
 
 /**
  * @brief Add node reference in server

@@ -72,21 +72,21 @@ void configure(EdgeConfigure *config)
     registerMQCallback(onResponseMessage, onSendMessage);
 }
 
-EdgeResult createNamespace(char *name, char *rootNodeId, char *rootBrowseName,
-        char *rootDisplayName)
+EdgeResult createNamespace(const char *name, const char *rootNodeId, const char *rootBrowseName,
+		const char *rootDisplayName)
 {
     EdgeResult result = createNamespaceInServer(name, rootNodeId, rootBrowseName, rootDisplayName);
     return result;
 }
 
-EdgeResult createNode(char *namespaceUri, EdgeNodeItem *item)
+EdgeResult createNode(const char *namespaceUri, EdgeNodeItem *item)
 {
     // add Nodes in server
     EdgeResult result = addNodesInServer(namespaceUri, item);
     return result;
 }
 
-EdgeResult modifyVariableNode(char *namespaceUri, char *nodeUri, EdgeVersatility *value)
+EdgeResult modifyVariableNode(const char *namespaceUri, const char *nodeUri, EdgeVersatility *value)
 {
     // modify variable nodes
     EdgeResult result = modifyNodeInServer(namespaceUri, nodeUri, value);
@@ -99,7 +99,7 @@ EdgeResult addReference(EdgeReference *reference)
     return result;
 }
 
-EdgeResult createMethodNode(char *namespaceUri, EdgeNodeItem *item, EdgeMethod *method)
+EdgeResult createMethodNode(const char *namespaceUri, EdgeNodeItem *item, EdgeMethod *method)
 {
     EdgeResult result = addMethodNodeInServer(namespaceUri, item, method);
     return result;
@@ -173,13 +173,13 @@ void disconnectClient(EdgeEndPointInfo *epInfo)
     disconnect_client(epInfo);
 }
 
-EdgeNodeItem* createVariableNodeItem(char* name, EdgeNodeIdentifier type, void* data,
+EdgeNodeItem* createVariableNodeItem(const char* name, EdgeNodeIdentifier type, void* data,
         EdgeIdentifier nodeType)
 {
     return createVariableNodeItemImpl(name, type, data, nodeType);
 }
 
-EdgeNodeItem* createNodeItem(char* name, EdgeIdentifier nodeType, EdgeNodeId *sourceNodeId)
+EdgeNodeItem* createNodeItem(const char* name, EdgeIdentifier nodeType, EdgeNodeId *sourceNodeId)
 {
     return createNodeItemImpl(name, nodeType, sourceNodeId);
 }

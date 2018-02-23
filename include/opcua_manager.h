@@ -124,8 +124,8 @@ EXPORT void configure(EdgeConfigure *config);
  * @retval #STATUS_PARAM_INVALID Invalid parameter
  * @retval #STATUS_ERROR Operation failed
  */
-EXPORT EdgeResult createNamespace(char *name, char *rootNodeId,
-        char *rootBrowseName, char *rootDisplayName);
+EXPORT EdgeResult createNamespace(const char *name, const char *rootNodeId,
+	    	const char *rootBrowseName, const char *rootDisplayName);
 
 /**
  * @brief Add the node in the server.
@@ -136,7 +136,7 @@ EXPORT EdgeResult createNamespace(char *name, char *rootNodeId,
  * @retval #STATUS_PARAM_INVALID Invalid parameter
  * @retval #STATUS_ERROR Operation failed
  */
-EXPORT EdgeResult createNode(char *namespaceUri,
+EXPORT EdgeResult createNode(const char *namespaceUri,
         EdgeNodeItem *item);
 
 /**
@@ -149,7 +149,7 @@ EXPORT EdgeResult createNode(char *namespaceUri,
  * @retval #STATUS_PARAM_INVALID Invalid parameter
  * @retval #STATUS_ERROR Operation failed
  */
-EXPORT EdgeNodeItem* createNodeItem(char* name, EdgeIdentifier nodeType,
+EXPORT EdgeNodeItem* createNodeItem(const char* name, EdgeIdentifier nodeType,
         EdgeNodeId *sourceNodeId);
 
 /**
@@ -163,7 +163,7 @@ EXPORT EdgeNodeItem* createNodeItem(char* name, EdgeIdentifier nodeType,
  * @retval #STATUS_PARAM_INVALID Invalid parameter
  * @retval #STATUS_ERROR Operation failed
  */
-EXPORT EdgeNodeItem* createVariableNodeItem(char* name,
+EXPORT EdgeNodeItem* createVariableNodeItem(const char* name,
         EdgeNodeIdentifier type, void* data, EdgeIdentifier nodeType);
 
 /**
@@ -186,8 +186,8 @@ EXPORT EdgeResult deleteNodeItem(EdgeNodeItem* item);
  * @retval #STATUS_PARAM_INVALID Invalid parameter
  * @retval #STATUS_ERROR Operation failed
  */
-EXPORT EdgeResult modifyVariableNode(char *namespaceUri,
-        char *nodeUri, EdgeVersatility *value);
+EXPORT EdgeResult modifyVariableNode(const char *namespaceUri,
+		    const char *nodeUri, EdgeVersatility *value);
 
 /**
  * @brief Create a Method node
@@ -199,7 +199,7 @@ EXPORT EdgeResult modifyVariableNode(char *namespaceUri,
  * @retval #STATUS_PARAM_INVALID Invalid parameter
  * @retval #STATUS_ERROR Operation failed
  */
-EXPORT EdgeResult createMethodNode(char *namespaceUri,
+EXPORT EdgeResult createMethodNode(const char *namespaceUri,
         EdgeNodeItem *item, EdgeMethod *method);
 
 /**

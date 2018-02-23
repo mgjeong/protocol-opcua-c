@@ -868,7 +868,7 @@ EdgeResult addMethodNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem
     return result;
 }
 
-EdgeResult modifyNode(UA_Server *server, uint16_t nsIndex, char *nodeUri, EdgeVersatility *value)
+EdgeResult modifyNode(UA_Server *server, uint16_t nsIndex, const char *nodeUri, EdgeVersatility *value)
 {
     EdgeResult result;
     result.code = STATUS_ERROR;
@@ -876,7 +876,7 @@ EdgeResult modifyNode(UA_Server *server, uint16_t nsIndex, char *nodeUri, EdgeVe
     VERIFY_NON_NULL(server, result);
 
     // read the value;
-    UA_NodeId node = UA_NODEID_STRING(nsIndex, nodeUri);
+    UA_NodeId node = UA_NODEID_STRING(nsIndex, (char*)nodeUri);
     UA_Variant *readval = UA_Variant_new();
     VERIFY_NON_NULL(readval, result);
 

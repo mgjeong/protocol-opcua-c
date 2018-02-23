@@ -93,7 +93,7 @@ void printNodeListInServer()
     m_serverConfig->nodestore.iterate(m_serverConfig->nodestore.context, NULL, printNode);
 }
 
-static void* getNamespaceIndex(char *namespaceUri)
+static void* getNamespaceIndex(const char *namespaceUri)
 {
     if (namespaceMap)
     {
@@ -110,8 +110,8 @@ static void* getNamespaceIndex(char *namespaceUri)
     return NULL;
 }
 
-EdgeResult createNamespaceInServer(char *namespaceUri, char *rootNodeIdentifier, char *rootNodeBrowseName,
-        char *rootNodeDisplayName)
+EdgeResult createNamespaceInServer(const char *namespaceUri, const char *rootNodeIdentifier,
+		const char *rootNodeBrowseName,	const char *rootNodeDisplayName)
 {
     EdgeResult result;
     result.code = STATUS_OK;
@@ -176,7 +176,7 @@ ERROR:
     return result;
 }
 
-EdgeResult addNodesInServer(char *namespaceUri, EdgeNodeItem *item)
+EdgeResult addNodesInServer(const char *namespaceUri, EdgeNodeItem *item)
 {
     EdgeResult result;
     if (!namespaceUri || !item)
@@ -193,7 +193,7 @@ EdgeResult addNodesInServer(char *namespaceUri, EdgeNodeItem *item)
     return result;
 }
 
-EdgeResult modifyNodeInServer(char *namespaceUri, char *nodeUri, EdgeVersatility *value)
+EdgeResult modifyNodeInServer(const char *namespaceUri, const char *nodeUri, EdgeVersatility *value)
 {
     EdgeResult result;
     if (!namespaceUri || !nodeUri || !value)
@@ -233,7 +233,7 @@ EdgeResult addReferenceInServer(EdgeReference *reference)
     return result;
 }
 
-EdgeResult addMethodNodeInServer(char *namespaceUri, EdgeNodeItem *item, EdgeMethod *method)
+EdgeResult addMethodNodeInServer(const char *namespaceUri, EdgeNodeItem *item, EdgeMethod *method)
 {
     EdgeResult result;
     if (!namespaceUri || !item || !method)
@@ -250,7 +250,7 @@ EdgeResult addMethodNodeInServer(char *namespaceUri, EdgeNodeItem *item, EdgeMet
     return result;
 }
 
-EdgeNodeItem* createVariableNodeItemImpl(char* name, EdgeNodeIdentifier type, void* data,
+EdgeNodeItem* createVariableNodeItemImpl(const char* name, EdgeNodeIdentifier type, void* data,
         EdgeIdentifier nodeType)
 {
     if (!name)
@@ -265,14 +265,14 @@ EdgeNodeItem* createVariableNodeItemImpl(char* name, EdgeNodeIdentifier type, vo
     item->userWriteMask = 0;
     item->nodeType = nodeType;
     item->forward = true;
-    item->browseName = name;
+    item->browseName = (char*)name;
     item->variableIdentifier = type;
     item->variableData = data;
 
     return item;
 }
 
-EdgeNodeItem* createNodeItemImpl(char* name, EdgeIdentifier nodeType, EdgeNodeId *sourceNodeId)
+EdgeNodeItem* createNodeItemImpl(const char* name, EdgeIdentifier nodeType, EdgeNodeId *sourceNodeId)
 {
     if (!name)
     {
@@ -292,7 +292,7 @@ EdgeNodeItem* createNodeItemImpl(char* name, EdgeIdentifier nodeType, EdgeNodeId
     item->userWriteMask = 0;
     item->nodeType = nodeType;
     item->forward = true;
-    item->browseName = name;
+    item->browseName = (char*)name;
     item->sourceNodeId = sourceNodeId;
 
     return item;

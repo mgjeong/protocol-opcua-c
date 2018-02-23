@@ -32,6 +32,7 @@ extern "C"
 #include "edge_logger.h"
 #include "edge_malloc.h"
 #include "open62541.h"
+#include "test_common.h"
 }
 
 #define TAG "TC"
@@ -1442,7 +1443,7 @@ TEST_F(OPC_serverTests , ServerAddReference_N1)
     reference->forward = true;
     reference->sourceNamespace = NULL;
     reference->sourcePath = "ViewNode1";
-    reference->targetNamespace = DEFAULT_NAMESPACE_VALUE;
+    reference->targetNamespace = copyString(DEFAULT_NAMESPACE_VALUE);
     reference->targetPath = "robot_name";
     /* default reference ID : Organizes */
     EdgeResult result = addReference(reference);
@@ -1455,7 +1456,7 @@ TEST_F(OPC_serverTests , ServerAddReference_N2)
     EdgeReference *reference = (EdgeReference *) EdgeCalloc(1, sizeof(EdgeReference));
     ASSERT_EQ(NULL != reference, true);
     reference->forward = true;
-    reference->sourceNamespace = DEFAULT_NAMESPACE_VALUE;
+    reference->sourceNamespace = copyString(DEFAULT_NAMESPACE_VALUE);
     reference->sourcePath = "ViewNode1";
     reference->targetNamespace = NULL;
     reference->targetPath = "robot_name";
@@ -2394,9 +2395,9 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     EdgeReference *reference = (EdgeReference *) EdgeCalloc(1, sizeof(EdgeReference));
     EXPECT_EQ(NULL != reference, true);
     reference->forward = true;
-    reference->sourceNamespace = DEFAULT_NAMESPACE_VALUE;
+    reference->sourceNamespace = copyString(DEFAULT_NAMESPACE_VALUE);
     reference->sourcePath = "ViewNode1";
-    reference->targetNamespace = DEFAULT_NAMESPACE_VALUE;
+    reference->targetNamespace = copyString(DEFAULT_NAMESPACE_VALUE);
     reference->targetPath = "robot_name";
     /* default reference ID : Organizes */
     addReference(reference);
@@ -2405,9 +2406,9 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     reference = (EdgeReference *) EdgeCalloc(1, sizeof(EdgeReference));
     EXPECT_EQ(NULL != reference, true);
     reference->forward = true;
-    reference->sourceNamespace = DEFAULT_NAMESPACE_VALUE;
+    reference->sourceNamespace = copyString(DEFAULT_NAMESPACE_VALUE);
     reference->sourcePath = "ViewNode1";
-    reference->targetNamespace = DEFAULT_NAMESPACE_VALUE;
+    reference->targetNamespace = copyString(DEFAULT_NAMESPACE_VALUE);
     reference->targetPath = "robot_id";
     /* default reference ID : Organizes */
     addReference(reference);
@@ -2416,9 +2417,9 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     reference = (EdgeReference *) EdgeCalloc(1, sizeof(EdgeReference));
     EXPECT_EQ(NULL != reference, true);
     reference->forward = true;
-    reference->sourceNamespace = DEFAULT_NAMESPACE_VALUE;
+    reference->sourceNamespace = copyString(DEFAULT_NAMESPACE_VALUE);
     reference->sourcePath = "ViewNode1";
-    reference->targetNamespace = DEFAULT_NAMESPACE_VALUE;
+    reference->targetNamespace = copyString(DEFAULT_NAMESPACE_VALUE);
     reference->targetPath = "robot_position";
     /* default reference ID : Organizes */
     addReference(reference);
