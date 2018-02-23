@@ -7,6 +7,7 @@
 #include "opcua_manager.h"
 #include "opcua_common.h"
 #include "edge_malloc.h"
+#include "sample_common.h"
 
 #define TAG "SAMPLE_CLIENT"
 

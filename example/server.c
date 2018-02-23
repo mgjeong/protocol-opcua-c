@@ -12,6 +12,7 @@
 #include "edge_identifier.h"
 #include "edge_malloc.h"
 #include "open62541.h"
+#include "sample_common.h"
 
 #define TAG "SAMPLE_SERVER"
 
@@ -186,7 +187,7 @@ static void startServer()
     VERIFY_NON_NULL_NR(endpointConfig);
     endpointConfig->bindAddress = ipAddress;
     endpointConfig->bindPort = 12686;
-    endpointConfig->serverName = DEFAULT_SERVER_NAME_VALUE;
+    endpointConfig->serverName = copyString(DEFAULT_SERVER_NAME_VALUE);
     //endpointConfig->requestTimeout = 60000;
 
     printf(COLOR_GREEN "[Endpoint Configuration]\n" COLOR_RESET);
@@ -201,9 +202,9 @@ static void startServer()
         EdgeFree(endpointConfig);
         return;
     }
-    appConfig->applicationName = DEFAULT_SERVER_APP_NAME_VALUE;
-    appConfig->applicationUri = DEFAULT_SERVER_APP_URI_VALUE;
-    appConfig->productUri = DEFAULT_PRODUCT_URI_VALUE;
+    appConfig->applicationName = copyString(DEFAULT_SERVER_APP_NAME_VALUE);
+    appConfig->applicationUri = copyString(DEFAULT_SERVER_APP_URI_VALUE);
+    appConfig->productUri = copyString(DEFAULT_PRODUCT_URI_VALUE);
 
     printf(COLOR_GREEN "\n[Application Configuration]\n" COLOR_RESET);
     printf("\nApplication Name : %s", appConfig->applicationName);
@@ -1305,9 +1306,9 @@ static void testCreateNodes()
     if (IS_NOT_NULL(reference))
     {
         reference->forward = true;
-        reference->sourceNamespace = DEFAULT_NAMESPACE_VALUE;
+        reference->sourceNamespace = copyString(DEFAULT_NAMESPACE_VALUE);
         reference->sourcePath = "ViewNode1";
-        reference->targetNamespace = DEFAULT_NAMESPACE_VALUE;
+        reference->targetNamespace = copyString(DEFAULT_NAMESPACE_VALUE);
         reference->targetPath = "robot_name";
         /* default reference ID : Organizes */
         addReference(reference);
@@ -1323,9 +1324,9 @@ static void testCreateNodes()
     if (IS_NOT_NULL(reference))
     {
         reference->forward = true;
-        reference->sourceNamespace = DEFAULT_NAMESPACE_VALUE;
+        reference->sourceNamespace = copyString(DEFAULT_NAMESPACE_VALUE);
         reference->sourcePath = "ViewNode1";
-        reference->targetNamespace = DEFAULT_NAMESPACE_VALUE;
+        reference->targetNamespace = copyString(DEFAULT_NAMESPACE_VALUE);
         reference->targetPath = "robot_id";
         /* default reference ID : Organizes */
         addReference(reference);
@@ -1341,9 +1342,9 @@ static void testCreateNodes()
     if (IS_NOT_NULL(reference))
     {
         reference->forward = true;
-        reference->sourceNamespace = DEFAULT_NAMESPACE_VALUE;
+        reference->sourceNamespace = copyString(DEFAULT_NAMESPACE_VALUE);
         reference->sourcePath = "ViewNode1";
-        reference->targetNamespace = DEFAULT_NAMESPACE_VALUE;
+        reference->targetNamespace = copyString(DEFAULT_NAMESPACE_VALUE);
         reference->targetPath = "robot_position";
         /* default reference ID : Organizes */
         addReference(reference);

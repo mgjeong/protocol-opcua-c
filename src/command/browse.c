@@ -37,6 +37,8 @@ static const int VIEW_NODECLASS_MASK = UA_NODECLASS_OBJECT | UA_NODECLASS_VIEW;
 static const int SHOW_SPECIFIC_NODECLASS_MASK = UA_NODECLASS_VARIABLE | UA_NODECLASS_VIEW | UA_NODECLASS_METHOD;
 static const int SHOW_SPECIFIC_NODECLASS = false;
 
+static const char WELL_KNOWN_LOCALHOST_URI_VALUE[] = "opc.tcp://localhost";
+
 static response_cb_t g_responseCallback = NULL;
 
 typedef struct ViewNodeInfo
