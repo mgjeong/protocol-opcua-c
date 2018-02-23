@@ -25,9 +25,12 @@ $ ./build.sh
 
 1. Go to 'example/out' folder.
 
-2. Export 'libopcua-adapter.so' library path for executables: 
+2. Export 'libopcua-adapter.so' library path for executables:
+
 	Run command : `export LD_LIBRARY_PATH=../../build`
 	
 3. Run the server and client :
+
         a. server : `./server`
-	b. client : `./client`
+
+        b. client : `./client`
