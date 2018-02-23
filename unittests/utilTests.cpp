@@ -29,6 +29,7 @@ extern "C"
 #include "edge_malloc.h"
 #include "edge_utils.h"
 #include "queue.h"
+#include "test_common.h"
 }
 
 #define PRINT(str) std::cout<<str<<std::endl
@@ -272,13 +273,13 @@ TEST_F(OPC_util , cloneEdgeEndpoint_P)
 
     EdgeApplicationConfig *appConfig = (EdgeApplicationConfig *) EdgeCalloc(1, sizeof(EdgeApplicationConfig));
     ASSERT_EQ(appConfig  != NULL, true);
-    appConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
-    appConfig->applicationUri = (char *) DEFAULT_SERVER_URI_VALUE;
-    appConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
-    appConfig->gatewayServerUri = (char *) DEFAULT_SERVER_URI_VALUE;
-    appConfig->discoveryProfileUri  = (char *) DEFAULT_SERVER_URI_VALUE;
+    appConfig->applicationName = copyString(DEFAULT_SERVER_APP_NAME_VALUE);
+    appConfig->applicationUri = copyString(DEFAULT_SERVER_URI_VALUE);
+    appConfig->productUri = copyString(DEFAULT_PRODUCT_URI_VALUE);
+    appConfig->gatewayServerUri = copyString(DEFAULT_SERVER_URI_VALUE);
+    appConfig->discoveryProfileUri  = copyString(DEFAULT_SERVER_URI_VALUE);
 
-    char *discoveryUrls[1] = {DEFAULT_SERVER_URI_VALUE};
+    char *discoveryUrls[1] = {copyString(DEFAULT_SERVER_URI_VALUE)};
     appConfig->discoveryUrlsSize = 1;
     appConfig->discoveryUrls = discoveryUrls;
 
