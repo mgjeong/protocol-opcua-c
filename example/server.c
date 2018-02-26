@@ -110,7 +110,7 @@ static void *server_sample_loop(void *ptr)
         message = (EdgeVersatility *) EdgeMalloc(sizeof(EdgeVersatility));
         if (IS_NOT_NULL(message))
         {
-            int *posArray = (int *) EdgeMalloc(sizeof(int) * 3);
+            int posArray[3];
             if (IS_NOT_NULL(posArray))
             {
                 posArray[0] = getRandom(rorot_pos_key);
@@ -207,7 +207,7 @@ static void startServer()
     VERIFY_NON_NULL_NR(endpointConfig);
     endpointConfig->bindAddress = ipAddress;
     endpointConfig->bindPort = 12686;
-    endpointConfig->serverName = copyString(DEFAULT_SERVER_NAME_VALUE);
+    endpointConfig->serverName = (char *) DEFAULT_SERVER_NAME_VALUE;
     //endpointConfig->requestTimeout = 60000;
 
     printf(COLOR_GREEN "[Endpoint Configuration]\n" COLOR_RESET);
@@ -222,9 +222,9 @@ static void startServer()
         EdgeFree(endpointConfig);
         return;
     }
-    appConfig->applicationName = copyString(DEFAULT_SERVER_APP_NAME_VALUE);
-    appConfig->applicationUri = copyString(DEFAULT_SERVER_APP_URI_VALUE);
-    appConfig->productUri = copyString(DEFAULT_PRODUCT_URI_VALUE);
+    appConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
+    appConfig->applicationUri = (char *) DEFAULT_SERVER_APP_URI_VALUE;
+    appConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
 
     printf(COLOR_GREEN "\n[Application Configuration]\n" COLOR_RESET);
     printf("\nApplication Name : %s", appConfig->applicationName);
@@ -1326,9 +1326,9 @@ static void testCreateNodes()
     if (IS_NOT_NULL(reference))
     {
         reference->forward = true;
-        reference->sourceNamespace = copyString(DEFAULT_NAMESPACE_VALUE);
+        reference->sourceNamespace = (char *) DEFAULT_NAMESPACE_VALUE;
         reference->sourcePath = "ViewNode1";
-        reference->targetNamespace = copyString(DEFAULT_NAMESPACE_VALUE);
+        reference->targetNamespace = (char *) DEFAULT_NAMESPACE_VALUE;
         reference->targetPath = "robot_name";
         /* default reference ID : Organizes */
         addReference(reference);
@@ -1344,9 +1344,9 @@ static void testCreateNodes()
     if (IS_NOT_NULL(reference))
     {
         reference->forward = true;
-        reference->sourceNamespace = copyString(DEFAULT_NAMESPACE_VALUE);
+        reference->sourceNamespace = (char *) DEFAULT_NAMESPACE_VALUE;
         reference->sourcePath = "ViewNode1";
-        reference->targetNamespace = copyString(DEFAULT_NAMESPACE_VALUE);
+        reference->targetNamespace = (char *) DEFAULT_NAMESPACE_VALUE;
         reference->targetPath = "robot_id";
         /* default reference ID : Organizes */
         addReference(reference);
@@ -1362,9 +1362,9 @@ static void testCreateNodes()
     if (IS_NOT_NULL(reference))
     {
         reference->forward = true;
-        reference->sourceNamespace = copyString(DEFAULT_NAMESPACE_VALUE);
+        reference->sourceNamespace = (char *) DEFAULT_NAMESPACE_VALUE;
         reference->sourcePath = "ViewNode1";
-        reference->targetNamespace = copyString(DEFAULT_NAMESPACE_VALUE);
+        reference->targetNamespace = (char *) DEFAULT_NAMESPACE_VALUE;
         reference->targetPath = "robot_position";
         /* default reference ID : Organizes */
         addReference(reference);
