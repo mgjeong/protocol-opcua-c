@@ -25,6 +25,7 @@
 
 #include <pthread.h>
 #include <unistd.h>
+#include <time.h>
 
 #define TAG "subscription"
 
@@ -205,6 +206,16 @@ static void monitoredItemHandler(UA_UInt32 monId, UA_DataValue *value, void *con
         goto ERROR;
     }
 
+    if(value->hasServerTimestamp)
+    {
+       resultMsg->serverTime.tv_sec = (value->serverTimestamp) / 1000000;
+       resultMsg->serverTime.tv_usec = (value->serverTimestamp) % 1000000;
+    }
+    else
+    {
+        gettimeofday(&(resultMsg->serverTime), NULL);
+    }
+
     resultMsg->message_id = subInfo->msg->message_id;
     resultMsg->type = REPORT;
     resultMsg->responseLength = 1;
@@ -244,6 +255,7 @@ static void monitoredItemHandler(UA_UInt32 monId, UA_DataValue *value, void *con
     }
 
     bool isScalar = UA_Variant_isScalar(&(value->value));
+
     if (isScalar)
     {
         response->message->arrayLength = 0;

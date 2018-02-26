@@ -280,7 +280,7 @@ static void monitored_msg_cb (EdgeMessage *data)
         struct timeval val;
         struct tm *lt;
 
-        gettimeofday(&val, NULL);
+        val = data->serverTime;
         lt = localtime(&val.tv_sec);
 
         printf("[Application response Callback] Monitored Item Response received\n");
@@ -290,7 +290,7 @@ static void monitored_msg_cb (EdgeMessage *data)
         {
             printf("Msg id : [%" PRIu32 "] , [Node Name] : %s\n", data->message_id, data->responses[idx]->nodeInfo->valueAlias);
             printf("Monitored Time : [%d-%02d-%02d %02d:%02d:%02d.%03ld]\n",
-                       lt->tm_year+1900, lt->tm_mon, lt->tm_mday, lt->tm_hour, lt->tm_min, lt->tm_sec, val.tv_usec);
+                       lt->tm_year+1900, lt->tm_mon+1, lt->tm_mday, lt->tm_hour, lt->tm_min, lt->tm_sec, val.tv_usec);
             if (data->responses[idx]->message == NULL)
             {
                 printf("data->responses[%d]->message is NULL\n", idx);
