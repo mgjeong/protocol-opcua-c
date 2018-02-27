@@ -31,6 +31,8 @@
 #include <string.h>
 #include <stddef.h>
 #include <stdio.h>
+#include <sys/time.h>
+#include <time.h>
 
 #include "edge_command_type.h"
 #include "edge_identifier.h"
@@ -528,6 +530,9 @@ typedef struct EdgeMessage
 
     /**< Message Id **/
     uint32_t message_id;
+
+    /**< Server Time Stamp **/
+    struct timeval serverTime;
 } EdgeMessage;
 
 #ifdef __cplusplus
