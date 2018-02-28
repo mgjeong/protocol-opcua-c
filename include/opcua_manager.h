@@ -163,8 +163,8 @@ EXPORT EdgeNodeItem* createNodeItem(const char* name, EdgeIdentifier nodeType,
  * @retval #STATUS_PARAM_INVALID Invalid parameter
  * @retval #STATUS_ERROR Operation failed
  */
-EXPORT EdgeNodeItem* createVariableNodeItem(const char* name,
-        int type, void* data, EdgeIdentifier nodeType);
+EXPORT EdgeNodeItem* createVariableNodeItem(const char* name, int type,
+        void* data, EdgeIdentifier nodeType, double minimumInterval);
 
 /**
  * @brief Delete a node item

@@ -174,9 +174,9 @@ void disconnectClient(EdgeEndPointInfo *epInfo)
 }
 
 EdgeNodeItem* createVariableNodeItem(const char* name, int type, void* data,
-        EdgeIdentifier nodeType)
+        EdgeIdentifier nodeType, double minimumInterval)
 {
-    return createVariableNodeItemImpl(name, type, data, nodeType);
+    return createVariableNodeItemImpl(name, type, data, nodeType, minimumInterval);
 }
 
 EdgeNodeItem* createNodeItem(const char* name, EdgeIdentifier nodeType, EdgeNodeId *sourceNodeId)

@@ -251,7 +251,7 @@ EdgeResult addMethodNodeInServer(const char *namespaceUri, EdgeNodeItem *item, E
 }
 
 EdgeNodeItem* createVariableNodeItemImpl(const char* name, int type, void* data,
-        EdgeIdentifier nodeType)
+        EdgeIdentifier nodeType, double minimumInterval)
 {
     if (!name)
     {
@@ -268,6 +268,7 @@ EdgeNodeItem* createVariableNodeItemImpl(const char* name, int type, void* data,
     item->browseName = (char*)name;
     item->variableIdentifier = type;
     item->variableData = data;
+    item->minimumSamplingInterval = minimumInterval;
 
     return item;
 }
