@@ -128,7 +128,7 @@ EdgeNodeItem* createNodeItemImpl(const char* name, EdgeIdentifier nodeType, Edge
  * @return EdgeNodeItem created on success, otherwise return NULL in case of error
  */
 EdgeNodeItem* createVariableNodeItemImpl(const char* name, int type, void* data,
-        EdgeIdentifier nodeType);
+        EdgeIdentifier nodeType, double minimumInterval);
 
 /**
  * @brief Deinitialised and deallocates the node item

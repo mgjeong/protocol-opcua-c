@@ -1303,7 +1303,7 @@ static void testCreateNodes()
         posArray[0] = 123;
         posArray[1] = 34;
         posArray[2] = 20;
-        item = createVariableNodeItem("robot_position", Int32, (void *) posArray, VARIABLE_NODE, 100.0);
+        item = createVariableNodeItem("robot_position", Int32, (void *) posArray, VARIABLE_NODE, 100);
         VERIFY_NON_NULL_NR(item);
         item->nodeType = ARRAY_NODE;
         item->arrayLength = 3;
