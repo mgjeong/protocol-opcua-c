@@ -77,6 +77,9 @@ typedef struct EdgeNodeItem
 
     /**< Source node information. */
     EdgeNodeId *sourceNodeId;
+
+    /* Minimum Sampling interval*/
+    double minimumSamplingInterval;
 } EdgeNodeItem;
 
 /**

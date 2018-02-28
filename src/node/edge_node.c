@@ -47,12 +47,14 @@ static void addVariableNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeI
     int id = item->variableIdentifier;
     int accessLevel = item->accessLevel;
     int userAccessLevel = item->userAccessLevel;
+    double minimumSamplingInterval = item->minimumSamplingInterval;
 
     char displayInfo[MAX_DISPLAYNAME_SIZE] = {};
     getDisplayInfo(item, displayInfo);
     UA_VariableAttributes attr = UA_VariableAttributes_default;
     attr.description = UA_LOCALIZEDTEXT("en-US", name);
     attr.displayName = UA_LOCALIZEDTEXT("en-US", displayInfo);
+    attr.minimumSamplingInterval = minimumSamplingInterval;
 
     if (accessLevel == READ)
     {
