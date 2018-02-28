@@ -25,6 +25,14 @@ $ ./build.sh
 ##### Binaries #####
 - opcua protocol stack library : build/libopcua-adapter.so
 
+##### Note #####
+- Build script will download open62541 library automatically from github.
+- After download, it will be built for 'single file distribution' mode which combines
+all header files into a single header file(open62541.h) and all source files into a single source file(open62541.c).
+- After building, all library files and folders except open62541.h and open62541.c will be deleted.
+- Final location of open62541.h and open62541.c: extlibs/open62541/open62541/
+- These two files will be directly included and built along with OPC-UA protocol stack.
+
 ## How to run server and client examples
 
 1. Go to 'example/out' folder.
