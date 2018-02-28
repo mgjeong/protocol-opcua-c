@@ -699,6 +699,11 @@ static EndPointList *remove_from_endpoint_list(char *endpoint)
 static char *getEndPoint_input()
 {
     int cnt = print_endpoint_list();
+    if(0 == cnt)
+    {
+        printf("Client not connected to any endpoints\n\n");
+        return NULL;
+    }
     int inp;
     printf("Enter the endpoint (integer option) to connect to ::  ");
     scanf("%d", &inp);
@@ -1123,8 +1128,7 @@ static void testRead()
     char *ep = getEndPoint_input();
     if (ep == NULL)
     {
-        printf("Client not connected to any endpoints\n\n");
-        return ;
+        return;
     }
 
     // Get the list of browse names and display them to user.
@@ -1140,8 +1144,7 @@ static void testReadGroup()
     char *ep = getEndPoint_input();
     if (ep == NULL)
     {
-        printf("Client not connected to any endpoints\n\n");
-        return ;
+        return;
     }
 
     // Get the list of browse names and display them to user.
@@ -1209,8 +1212,7 @@ static void testWrite()
     char *ep = getEndPoint_input();
     if (ep == NULL)
     {
-        printf("Client not connected to any endpoints\n\n");
-        return ;
+        return;
     }
 
     // Get the list of browse names and display them to user.
@@ -1226,8 +1228,7 @@ static void testWriteGroup()
     char *ep = getEndPoint_input();
     if (ep == NULL)
     {
-        printf("Client not connected to any endpoints\n\n");
-        return ;
+        return;
     }
 
     // Get the list of browse names and display them to user.
@@ -1378,7 +1379,6 @@ static void testSub()
     char *ep = getEndPoint_input();
     if (ep == NULL)
     {
-        printf("Client not connected to any endpoints\n\n");
         return;
     }
 
@@ -1430,8 +1430,7 @@ static void testSubModify()
     char *ep = getEndPoint_input();
     if (ep == NULL)
     {
-        printf("Client not connected to any endpoints\n\n");
-        return ;
+        return;
     }
 
     testBrowseViews(ep);
@@ -1467,8 +1466,7 @@ static void testRePublish()
     char *ep = getEndPoint_input();
     if (ep == NULL)
     {
-        printf("Client not connected to any endpoints\n\n");
-        return ;
+        return;
     }
 
     char nodeName[MAX_CHAR_SIZE];
@@ -1496,8 +1494,7 @@ static void testSubDelete()
     char *ep = getEndPoint_input();
     if (ep == NULL)
     {
-        printf("Client not connected to any endpoints\n\n");
-        return ;
+        return;
     }
 
     // Get the list of browse names and display them to user.
@@ -1772,22 +1769,18 @@ int main()
         else if (!strcmp(command, "browse"))
         {
             char *ep = getEndPoint_input();
-            if (ep == NULL)
+            if (ep != NULL)
             {
-                printf("Client not connected to any endpoints\n\n");
-                break;
+                testBrowse(ep);
             }
-            testBrowse(ep);
         }
         else if (!strcmp(command, "browse_m"))
         {
             char *ep = getEndPoint_input();
-            if (ep == NULL)
+            if (ep != NULL)
             {
-                printf("Client not connected to any endpoints\n\n");
-                break;
+                testBrowses(ep);
             }
-            testBrowses(ep);
         }
         else if (!strcmp(command, "browse_next"))
         {
@@ -1796,12 +1789,10 @@ int main()
         else if (!strcmp(command, "browse_v"))
         {
             char *ep = getEndPoint_input();
-            if (ep == NULL)
+            if (ep != NULL)
             {
-                printf("Client not connected to any endpoints\n\n");
-                break;
+                testBrowseViews(ep);
             }
-            testBrowseViews(ep);
         }
         else if (!strcmp(command, "method"))
         {
