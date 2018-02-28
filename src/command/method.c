@@ -175,7 +175,7 @@ EdgeResult executeMethod(UA_Client *client, const EdgeMessage *msg)
         }
     }
 
-    size_t outputSize;
+    size_t outputSize = 0;
     UA_Variant *output = NULL;
     EdgeMessage *resultMsg = NULL;
     UA_StatusCode retVal = UA_Client_call(client, UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER),
@@ -437,6 +437,8 @@ EXIT:
     {
         UA_Variant_deleteMembers(&input[idx]);
     }
+
+    UA_Array_delete(output, outputSize, &UA_TYPES[UA_TYPES_VARIANT]);
 
     EdgeFree(input);
     return result;
