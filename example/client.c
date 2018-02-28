@@ -92,7 +92,7 @@ static void response_msg_cb (EdgeMessage *data)
         {
             if (data->responses[idx]->message != NULL)
             {
-                if (data->command == CMD_READ || data->command == CMD_METHOD)
+                if (data->command == CMD_READ || data->command == CMD_READ_SAMPLING_INTERVAL || data->command == CMD_METHOD)
                 {
                     printf("Msg id : [%" PRIu32 "] , Response Received ::  ", data->message_id);
                     if (data->responses[idx]->message->isArray)

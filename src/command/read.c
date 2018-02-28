@@ -254,7 +254,7 @@ static EdgeDiagnosticInfo *checkDiagnosticInfo(int nodesToProcess,
     return diagnostics;
 }
 
-static void readGroup(UA_Client *client, const EdgeMessage *msg)
+static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attributeId)
 {
     size_t reqLen = msg->requestLength;
     UA_ReadValueId *rv = (UA_ReadValueId *) EdgeMalloc(sizeof(UA_ReadValueId) * reqLen);
@@ -269,7 +269,7 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg)
     {
         EDGE_LOG_V(TAG, "[READGROUP] Node to read :: %s\n", msg->requests[i]->nodeInfo->valueAlias);
         UA_ReadValueId_init(&rv[i]);
-        rv[i].attributeId = UA_ATTRIBUTEID_VALUE;
+        rv[i].attributeId = attributeId;
         rv[i].nodeId = UA_NODEID_STRING_ALLOC(msg->requests[i]->nodeInfo->nodeId->nameSpace,
                 msg->requests[i]->nodeInfo->valueAlias);
     }
@@ -300,79 +300,81 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg)
 
     if (readResponse.results[0].status == UA_STATUSCODE_GOOD)
     {
-        if (readRequest.timestampsToReturn == UA_TIMESTAMPSTORETURN_NEITHER)
-        {
-            if (readResponse.results[0].hasSourceTimestamp
-                    || readResponse.results[0].hasServerTimestamp)
+        if(UA_ATTRIBUTEID_VALUE == attributeId) {
+            if (readRequest.timestampsToReturn == UA_TIMESTAMPSTORETURN_NEITHER)
             {
-                EDGE_LOG(TAG, "BadInvalidTimestamp\n\n");
-                sendErrorResponse(msg, "BadInvalidTimestamp");
-                UA_ReadValueId_deleteMembers(rv);
-                EdgeFree(rv);
-                UA_ReadResponse_deleteMembers(&readResponse);
-                return;
+                if (readResponse.results[0].hasSourceTimestamp
+                        || readResponse.results[0].hasServerTimestamp)
+                {
+                    EDGE_LOG(TAG, "BadInvalidTimestamp\n\n");
+                    sendErrorResponse(msg, "BadInvalidTimestamp");
+                    UA_ReadValueId_deleteMembers(rv);
+                    EdgeFree(rv);
+                    UA_ReadResponse_deleteMembers(&readResponse);
+                    return;
+                }
             }
-        }
-        else if (readRequest.timestampsToReturn == UA_TIMESTAMPSTORETURN_BOTH)
-        {
-            if (!readResponse.results[0].hasSourceTimestamp
-                    || !readResponse.results[0].hasServerTimestamp)
+            else if (readRequest.timestampsToReturn == UA_TIMESTAMPSTORETURN_BOTH)
             {
-                EDGE_LOG(TAG, "Timestamp missing\n\n");
-                sendErrorResponse(msg, "Missing Timestamp");
-                UA_ReadValueId_deleteMembers(rv);
-                EdgeFree(rv);
-                UA_ReadResponse_deleteMembers(&readResponse);
-                return;
+                if (!readResponse.results[0].hasSourceTimestamp
+                        || !readResponse.results[0].hasServerTimestamp)
+                {
+                    EDGE_LOG(TAG, "Timestamp missing\n\n");
+                    sendErrorResponse(msg, "Missing Timestamp");
+                    UA_ReadValueId_deleteMembers(rv);
+                    EdgeFree(rv);
+                    UA_ReadResponse_deleteMembers(&readResponse);
+                    return;
+                }
             }
-        }
-        else if (readRequest.timestampsToReturn == UA_TIMESTAMPSTORETURN_SOURCE)
-        {
-            if (!readResponse.results[0].hasSourceTimestamp
-                    || readResponse.results[0].hasServerTimestamp)
+            else if (readRequest.timestampsToReturn == UA_TIMESTAMPSTORETURN_SOURCE)
             {
-                EDGE_LOG(TAG, "source Timestamp missing\n\n");
-                sendErrorResponse(msg, "Missing Timestamp");
-                UA_ReadValueId_deleteMembers(rv);
-                EdgeFree(rv);
-                UA_ReadResponse_deleteMembers(&readResponse);
-                return;
+                if (!readResponse.results[0].hasSourceTimestamp
+                        || readResponse.results[0].hasServerTimestamp)
+                {
+                    EDGE_LOG(TAG, "source Timestamp missing\n\n");
+                    sendErrorResponse(msg, "Missing Timestamp");
+                    UA_ReadValueId_deleteMembers(rv);
+                    EdgeFree(rv);
+                    UA_ReadResponse_deleteMembers(&readResponse);
+                    return;
+                }
             }
-        }
-        else if (readRequest.timestampsToReturn == UA_TIMESTAMPSTORETURN_SERVER)
-        {
-            if (readResponse.results[0].hasSourceTimestamp
-                    || !readResponse.results[0].hasServerTimestamp)
+            else if (readRequest.timestampsToReturn == UA_TIMESTAMPSTORETURN_SERVER)
             {
-                EDGE_LOG(TAG, "server Timestamp missing\n\n");
-                sendErrorResponse(msg, "Missing Timestamp");
-                UA_ReadValueId_deleteMembers(rv);
-                EdgeFree(rv);
-                UA_ReadResponse_deleteMembers(&readResponse);
-                return;
+                if (readResponse.results[0].hasSourceTimestamp
+                        || !readResponse.results[0].hasServerTimestamp)
+                {
+                    EDGE_LOG(TAG, "server Timestamp missing\n\n");
+                    sendErrorResponse(msg, "Missing Timestamp");
+                    UA_ReadValueId_deleteMembers(rv);
+                    EdgeFree(rv);
+                    UA_ReadResponse_deleteMembers(&readResponse);
+                    return;
+                }
             }
-        }
 
-        if (readRequest.timestampsToReturn != UA_TIMESTAMPSTORETURN_NEITHER
-                && !checkMaxAge(readResponse.results[0].serverTimestamp, UA_DateTime_now(),
-                        readRequest.maxAge * 2))
-        {
-            EDGE_LOG(TAG, "Max age failed\n\n");
-            sendErrorResponse(msg, "");
-            UA_ReadValueId_deleteMembers(rv);
-            EdgeFree(rv);
-            UA_ReadResponse_deleteMembers(&readResponse);
-            return;
-        }
+            if (readRequest.timestampsToReturn != UA_TIMESTAMPSTORETURN_NEITHER
+                    && !checkMaxAge(readResponse.results[0].serverTimestamp, UA_DateTime_now(),
+                            readRequest.maxAge * 2))
+            {
+                EDGE_LOG(TAG, "Max age failed\n\n");
+                sendErrorResponse(msg, "");
+                UA_ReadValueId_deleteMembers(rv);
+                EdgeFree(rv);
+                UA_ReadResponse_deleteMembers(&readResponse);
+                return;
+            }
 
-        if (readRequest.timestampsToReturn != UA_TIMESTAMPSTORETURN_NEITHER
-                && !checkValidation(&(readResponse.results[0]), msg, readRequest.timestampsToReturn,
-                        readRequest.maxAge))
-        {
-            UA_ReadValueId_deleteMembers(rv);
-            EdgeFree(rv);
-            UA_ReadResponse_deleteMembers(&readResponse);
-            return;
+            if (readRequest.timestampsToReturn != UA_TIMESTAMPSTORETURN_NEITHER
+                    && !checkValidation(&(readResponse.results[0]), msg, readRequest.timestampsToReturn,
+                            readRequest.maxAge))
+            {
+                UA_ReadValueId_deleteMembers(rv);
+                EdgeFree(rv);
+                UA_ReadResponse_deleteMembers(&readResponse);
+                return;
+            }
         }
     }
 
@@ -394,7 +396,11 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg)
     }
 
     resultMsg->responseLength = 0;
-    resultMsg->command = CMD_READ;
+    if (UA_ATTRIBUTEID_VALUE == attributeId) {
+        resultMsg->command = CMD_READ;
+    } else if (UA_ATTRIBUTEID_MINIMUMSAMPLINGINTERVAL == attributeId) {
+        resultMsg->command = CMD_READ_SAMPLING_INTERVAL;
+    }
     resultMsg->type = GENERAL_RESPONSE;
     resultMsg->message_id = msg->message_id;
     resultMsg->endpointInfo = cloneEdgeEndpointInfo(msg->endpointInfo);
@@ -411,6 +417,7 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg)
         if (readResponse.results[i].status == UA_STATUSCODE_GOOD)
         {
             UA_Variant val = readResponse.results[i].value;
+
             EdgeResponse *response = (EdgeResponse *) EdgeCalloc(1, sizeof(EdgeResponse));
             if (IS_NULL(response))
             {
@@ -693,7 +700,11 @@ EdgeResult executeRead(UA_Client *client, const EdgeMessage *msg)
         result.code = STATUS_ERROR;
         return result;
     }
-    readGroup(client, msg);
+    if (CMD_READ == msg->command) {
+        readGroup(client, msg, UA_ATTRIBUTEID_VALUE);
+    } else if (CMD_READ_SAMPLING_INTERVAL == msg->command) {
+        readGroup(client,msg, UA_ATTRIBUTEID_MINIMUMSAMPLINGINTERVAL);
+    }
 
     result.code = STATUS_OK;
     return result;
