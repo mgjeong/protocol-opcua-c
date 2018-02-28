@@ -1025,12 +1025,21 @@ EdgeResult insertBrowseParameter(EdgeMessage **msg, EdgeNodeInfo* nodeInfo,
         (*msg)->requestLength = 1;
     }
 
-    (*msg)->browseParam = (EdgeBrowseParameter *) EdgeCalloc(1, sizeof(EdgeBrowseParameter));
     if (IS_NULL((*msg)->browseParam))
     {
-        EDGE_LOG(TAG, "Error : Malloc failed for msg->browseParam");
-        result.code = STATUS_ERROR;
-        goto EXIT;
+        (*msg)->browseParam = (EdgeBrowseParameter *) EdgeCalloc(1, sizeof(EdgeBrowseParameter));
+        if (IS_NULL((*msg)->browseParam))
+        {
+            EDGE_LOG(TAG, "Error : Malloc failed for msg->browseParam");
+            if (SEND_REQUESTS == (*msg)->type)
+            {
+                int index = --(*msg)->requestLength;
+                EdgeFree((*msg)->requests[index]);
+                (*msg)->requests[index] = NULL;
+            }
+            result.code = STATUS_ERROR;
+            goto EXIT;
+        }
     }
     (*msg)->browseParam->direction = parameter.direction;
     (*msg)->browseParam->maxReferencesPerNode = parameter.maxReferencesPerNode;
