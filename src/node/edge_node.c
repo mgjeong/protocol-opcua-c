@@ -55,6 +55,8 @@ static void addVariableNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeI
     attr.description = UA_LOCALIZEDTEXT("en-US", name);
     attr.displayName = UA_LOCALIZEDTEXT("en-US", displayInfo);
     attr.minimumSamplingInterval = minimumSamplingInterval;
+    EDGE_LOG_V(TAG, "add sampling interval : %lf\n", attr.minimumSamplingInterval);
+
 
     if (accessLevel == READ)
     {

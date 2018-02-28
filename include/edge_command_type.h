@@ -65,7 +65,10 @@ typedef enum
     CMD_BROWSE_VIEW = 10,
 
     /** Command to execute a method on server.*/
-    CMD_METHOD = 11
+    CMD_METHOD = 11,
+
+    /** Command to read sampling interval on server.*/
+    CMD_READ_SAMPLING_INTERVAL = 12
 } EdgeCommand;
 
 /** Read - String value.*/
@@ -73,6 +76,9 @@ typedef enum
 
 /** Read - Command description.*/
 #define CMD_READ_DESC                    "read async"
+
+/** Read - Minimum Sampling Interval*/
+#define CMD_READ_SAMPLING_INTERVAL_ATTRIBUTE       "read interval"
 
 /** Write - String value.*/
 #define  CMD_WRITE_VALUE                    "write"

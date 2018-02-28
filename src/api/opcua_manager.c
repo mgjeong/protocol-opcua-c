@@ -328,7 +328,8 @@ static EdgeResult checkParameterValid(EdgeMessage *msg)
                 || msg->command == CMD_WRITE
                 || msg->command == CMD_BROWSE
                 || msg->command == CMD_METHOD
-                || msg->command == CMD_SUB)
+                || msg->command == CMD_SUB
+                || msg->command == CMD_READ_SAMPLING_INTERVAL)
         {
             return result;
         }
@@ -389,7 +390,7 @@ EdgeResult sendRequest(EdgeMessage* msg)
 
 void onSendMessage(EdgeMessage* msg)
 {
-    if (msg->command == CMD_START_SERVER)
+    if (CMD_START_SERVER == msg->command)
     {
         EDGE_LOG(TAG, "\n[Received command] :: START SERVER \n");
         if (b_serverInitialized)
@@ -403,46 +404,51 @@ void onSendMessage(EdgeMessage* msg)
             b_serverInitialized = true;
         }
     }
-    else if (msg->command == CMD_START_CLIENT)
+    else if (CMD_START_CLIENT == msg->command)
     {
         EDGE_LOG(TAG, "\n[Received command] :: START CLIENT \n");
         bool result = connect_client(msg->endpointInfo->endpointUri);
         if (!result)
             return;
     }
-    else if (msg->command == CMD_STOP_SERVER)
+    else if (CMD_STOP_SERVER == msg->command)
     {
         EDGE_LOG(TAG, "\nReceived command] :: STOP SERVER \n");
         stop_server(msg->endpointInfo);
         b_serverInitialized = false;
     }
-    else if (msg->command == CMD_STOP_CLIENT)
+    else if (CMD_STOP_CLIENT == msg->command)
     {
         EDGE_LOG(TAG, "\n[Received command] :: STOP CLIENT \n");
         disconnect_client(msg->endpointInfo);
     }
-    else if (msg->command == CMD_READ)
+    else if (CMD_READ == msg->command)
     {
         EDGE_LOG(TAG, "\n[Received command] :: READ \n");
         readNodesFromServer(msg);
     }
-    else if (msg->command == CMD_WRITE)
+    else if (CMD_READ_SAMPLING_INTERVAL == msg->command)
+    {
+        EDGE_LOG(TAG, "\n[Received command] :: READ \n");
+        readNodesFromServer(msg);
+    }
+    else if (CMD_WRITE == msg->command)
     {
         EDGE_LOG(TAG, "\n[Received command] :: WRITE \n");
         writeNodesInServer(msg);
     }
-    else if (msg->command == CMD_METHOD)
+    else if (CMD_METHOD == msg->command)
     {
         EDGE_LOG(TAG, "\n[Received command] :: METHOD CALL \n");
         callMethodInServer(msg);
     }
-    else if (msg->command == CMD_SUB)
+    else if (CMD_SUB == msg->command)
     {
         EDGE_LOG(TAG, "\n[Received command] :: SUB \n");
         executeSubscriptionInServer(msg);
     }
-    else if (msg->command == CMD_BROWSE || msg->command == CMD_BROWSE_VIEW
-            || msg->command == CMD_BROWSENEXT)
+    else if (CMD_BROWSE == msg->command || CMD_BROWSE_VIEW == msg->command
+            || CMD_BROWSENEXT == msg->command)
     {
         EDGE_LOG(TAG, "\n[Received command] :: BROWSE \n");
         browseNodesInServer(msg);
