@@ -1583,25 +1583,14 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     }
 
     printf("\n[%d] Variable node with localized text variant: \n", ++index);
-    UA_LocalizedText *lt_value = (UA_LocalizedText *) EdgeMalloc(sizeof(UA_LocalizedText));
-    if (IS_NOT_NULL(lt_value))
-    {
-        lt_value->locale = UA_STRING_ALLOC("COUNTRY");
-        lt_value->text = UA_STRING_ALLOC("INDIA");
-        item = createVariableNodeItem("LocalizedText", LocalizedText, (void *) lt_value,
-                VARIABLE_NODE, 100);
-        VERIFY_NON_NULL_NR(item);
-        createNode(DEFAULT_NAMESPACE_VALUE, item);
-        printf("\n|------------[Added] %s\n", item->browseName);
-        EdgeFree(lt_value->locale.data);
-        EdgeFree(lt_value->text.data);
-        EdgeFree(lt_value);
-        deleteNodeItem(item);
-    }
-    else
-    {
-        printf("Error :: EdgeMalloc failed for UA_LocalizedText in Test create Nodes\n");
-    }
+    EdgeLocalizedText lt_value = {"COUNTRY", "INDIA"};
+    item = createVariableNodeItem("LocalizedText", LocalizedText, (void *) &lt_value,
+            VARIABLE_NODE, 100);
+    VERIFY_NON_NULL_NR(item);
+    createNode(DEFAULT_NAMESPACE_VALUE, item);
+    printf("\n|------------[Added] %s\n", item->browseName);
+    deleteNodeItem(item);
+
 
     printf("\n[%d] Variable node with byte string variant: \n", ++index);
     char *bs_value = (char *) EdgeMalloc(sizeof(char) * 10);

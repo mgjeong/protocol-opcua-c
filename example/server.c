@@ -23,6 +23,7 @@
 #include <string.h>
 #include <math.h>
 #include <signal.h>
+#include <inttypes.h>
 
 #include <pthread.h>
 #include <unistd.h>
@@ -306,43 +307,20 @@ static void testCreateNodes()
     }
 
     printf("\n[%d] Variable node with localized text variant: \n", ++index);
-    UA_LocalizedText *lt_value = (UA_LocalizedText *) EdgeMalloc(sizeof(UA_LocalizedText));
-    if (IS_NOT_NULL(lt_value))
-    {
-        lt_value->locale = UA_STRING_ALLOC("COUNTRY");
-        lt_value->text = UA_STRING_ALLOC("INDIA");
-        item = createVariableNodeItem("LocalizedText", LocalizedText, (void *) lt_value,
-                VARIABLE_NODE, 100);
-        VERIFY_NON_NULL_NR(item);
-        createNode(DEFAULT_NAMESPACE_VALUE, item);
-        printf("\n|------------[Added] %s\n", item->browseName);
-        EdgeFree(lt_value->locale.data);
-        EdgeFree(lt_value->text.data);
-        EdgeFree(lt_value);
-        deleteNodeItem(item);
-    }
-    else
-    {
-        printf("Error :: EdgeMalloc failed for UA_LocalizedText in Test create Nodes\n");
-    }
+    EdgeLocalizedText lt_value = {"COUNTRY", "INDIA"};
+    item = createVariableNodeItem("LocalizedText", LocalizedText, (void *) &lt_value,
+            VARIABLE_NODE, 100);
+    VERIFY_NON_NULL_NR(item);
+    createNode(DEFAULT_NAMESPACE_VALUE, item);
+    printf("\n|------------[Added] %s\n", item->browseName);
+    deleteNodeItem(item);
 
     printf("\n[%d] Variable node with byte string variant: \n", ++index);
-    UA_ByteString *bs_value = (UA_ByteString *) EdgeMalloc(sizeof(UA_ByteString));
-    if (IS_NOT_NULL(bs_value))
-    {
-        bs_value->length = 7;
-        bs_value->data = (UA_Byte *) "samsung";
-        item = createVariableNodeItem("ByteString", ByteString, (void *) bs_value, VARIABLE_NODE, 100);
-        VERIFY_NON_NULL_NR(item);
-        createNode(DEFAULT_NAMESPACE_VALUE, item);
-        printf("\n|------------[Added] %s\n", item->browseName);
-        EdgeFree(bs_value);
-        deleteNodeItem(item);
-    }
-    else
-    {
-        printf("Error :: EdgeMalloc failed for UA_ByteString in Test create Nodes\n");
-    }
+    item = createVariableNodeItem("ByteString", ByteString, (void *) "samsung", VARIABLE_NODE, 100);
+    VERIFY_NON_NULL_NR(item);
+    createNode(DEFAULT_NAMESPACE_VALUE, item);
+    printf("\n|------------[Added] %s\n", item->browseName);
+    deleteNodeItem(item);
 
     printf("\n[%d] Variable node with byte variant: \n", ++index);
     UA_Byte b_value = 2;
@@ -361,55 +339,55 @@ static void testCreateNodes()
     deleteNodeItem(item);
 
     printf("\n[%d] Variable node with int variant: \n", ++index);
-    int value = 30;
-    item = createVariableNodeItem("UInt16", UInt16, (void *) &value, VARIABLE_NODE, 100);
+    uint16_t uint16_val = 30;
+    item = createVariableNodeItem("UInt16", UInt16, (void *) &uint16_val, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
     deleteNodeItem(item);
 
     printf("\n[%d] Variable node with UInt32 variant: \n", ++index);
-    value = 444;
-    item = createVariableNodeItem("UInt32", UInt32, (void *) &value, VARIABLE_NODE, 100);
+    uint32_t uint32_val = 444;
+    item = createVariableNodeItem("UInt32", UInt32, (void *) &uint32_val, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
     deleteNodeItem(item);
 
     printf("\n[%d] Variable node with UInt64 variant: \n", ++index);
-    value = 3445516;
-    item = createVariableNodeItem("UInt64", UInt64, (void *) &value, VARIABLE_NODE, 100);
+    uint64_t uint64_val = 3445516;
+    item = createVariableNodeItem("UInt64", UInt64, (void *) &uint64_val, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
     deleteNodeItem(item);
 
     printf("\n[%d] Variable node with Int16 variant: \n", ++index);
-    value = 4;
-    item = createVariableNodeItem("Int16", Int16, (void *) &value, VARIABLE_NODE, 100);
+    int16_t int16_val = 4;
+    item = createVariableNodeItem("Int16", Int16, (void *) &int16_val, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
     deleteNodeItem(item);
 
     printf("\n[%d] Variable node with Int32 variant: \n", ++index);
-    value = 40;
-    item = createVariableNodeItem("Int32", Int32, (void *) &value, VARIABLE_NODE, 100);
+    int32_t int32_val = 40;
+    item = createVariableNodeItem("Int32", Int32, (void *) &int32_val, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
     deleteNodeItem(item);
 
     printf("\n[%d] Variable node with Int64 variant: \n", ++index);
-    value = 32700;
-    item = createVariableNodeItem("Int64", Int64, (void *) &value, VARIABLE_NODE, 100);
+    int64_t int64_val = 32700;
+    item = createVariableNodeItem("Int64", Int64, (void *) &int64_val, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
     deleteNodeItem(item);
 
     printf("\n[%d] Variable node with UInt32 variant: \n", ++index);
-    uint32_t int32_val = 4456;
+    int32_val = 4456;
     item = createVariableNodeItem("UInt32writeonly", UInt32, (void *) &int32_val, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     item->accessLevel = WRITE;
@@ -419,7 +397,7 @@ static void testCreateNodes()
     deleteNodeItem(item);
 
     printf("\n[%d] Variable node with UInt64 variant: \n", ++index);
-    int64_t int64_val = 3270000;
+    int64_val = 3270000;
     item = createVariableNodeItem("UInt64readonly", UInt64, (void *) &int64_val, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     item->userAccessLevel = READ;
@@ -449,7 +427,7 @@ static void testCreateNodes()
     item = createVariableNodeItem("DateTime", DateTime, (void *) &time, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
-    printf("\n|------------[Added] %s\n", item->browseName);
+    printf("\n|------------[Added] %s [Value: %" PRId64 "]\n", item->browseName, time);
     deleteNodeItem(item);
 
     printf("\n[%d] Variable node with SByte variant: \n", ++index);
