@@ -255,8 +255,8 @@ static void response_msg_cb (EdgeMessage *data)
                                    (char *)data->responses[idx]->message->value);
                         else if (data->responses[idx]->type == LocalizedText)
                         {
-                            EdgeLocalizedText *lt = (EdgeLocalizedText *) data->responses[idx]->message->value;
-                            printf("[Locale: %s, Text: %s]\n", lt->locale, lt->text);
+                            Edge_LocalizedText *lt = (Edge_LocalizedText *) data->responses[idx]->message->value;
+                            printf("[Locale: %s, Text: %s]\n", (char*)lt->locale.data, (char*)lt->text.data);
                         }
                     }
                 }

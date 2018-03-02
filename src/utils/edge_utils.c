@@ -693,11 +693,11 @@ void freeEdgeVersatilityByType(EdgeVersatility *versatileValue, int type)
     }
     else if(type == UA_NS0ID_LOCALIZEDTEXT)
     {
-        EdgeLocalizedText *lt = (EdgeLocalizedText *)versatileValue->value;
+        Edge_LocalizedText *lt = (Edge_LocalizedText *)versatileValue->value;
         if(IS_NOT_NULL(lt))
         {
-            EdgeFree(lt->locale);
-            EdgeFree(lt->text);
+            EdgeFree(lt->locale.data);
+            EdgeFree(lt->text.data);
             EdgeFree(lt);
         }
     }

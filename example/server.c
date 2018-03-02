@@ -32,8 +32,8 @@
 #include "opcua_common.h"
 #include "edge_identifier.h"
 #include "edge_malloc.h"
-#include "open62541.h"
 #include "sample_common.h"
+#include "edge_opcua_common.h"
 
 #define TAG "SAMPLE_SERVER"
 
@@ -289,11 +289,11 @@ static void testCreateNodes()
 
     VERIFY_NON_NULL_NR(item);
     printf("\n[%d] Variable node with XML ELEMENT variant: \n", ++index);
-    UA_XmlElement *xml_value = (UA_XmlElement *) EdgeMalloc(sizeof(UA_XmlElement));
+    Edge_XmlElement *xml_value = (Edge_XmlElement *) EdgeMalloc(sizeof(Edge_XmlElement));
     if (IS_NOT_NULL(xml_value))
     {
         xml_value->length = 2;
-        xml_value->data = (UA_Byte *) "ab";
+        xml_value->data = (Edge_Byte *) "ab";
         item = createVariableNodeItem("xml_value", XmlElement, (void *) xml_value, VARIABLE_NODE, 100);
         VERIFY_NON_NULL_NR(item);
         createNode(DEFAULT_NAMESPACE_VALUE, item);
@@ -307,13 +307,25 @@ static void testCreateNodes()
     }
 
     printf("\n[%d] Variable node with localized text variant: \n", ++index);
-    EdgeLocalizedText lt_value = {"COUNTRY", "INDIA"};
-    item = createVariableNodeItem("LocalizedText", LocalizedText, (void *) &lt_value,
-            VARIABLE_NODE, 100);
-    VERIFY_NON_NULL_NR(item);
-    createNode(DEFAULT_NAMESPACE_VALUE, item);
-    printf("\n|------------[Added] %s\n", item->browseName);
-    deleteNodeItem(item);
+    Edge_LocalizedText *lt_value = (Edge_LocalizedText *) EdgeMalloc(sizeof(Edge_LocalizedText));
+    if (IS_NOT_NULL(lt_value))
+    {
+        lt_value->locale = EdgeStringAlloc("COUNTRY");
+        lt_value->text = EdgeStringAlloc("INDIA");
+        item = createVariableNodeItem("LocalizedText", LocalizedText, (void *) lt_value,
+                VARIABLE_NODE, 100);
+        VERIFY_NON_NULL_NR(item);
+        createNode(DEFAULT_NAMESPACE_VALUE, item);
+        printf("\n|------------[Added] %s\n", item->browseName);
+        EdgeFree(lt_value->locale.data);
+        EdgeFree(lt_value->text.data);
+        EdgeFree(lt_value);
+        deleteNodeItem(item);
+    }
+    else
+    {
+        printf("Error :: EdgeMalloc failed for UA_LocalizedText in Test create Nodes\n");
+    }
 
     printf("\n[%d] Variable node with byte string variant: \n", ++index);
     item = createVariableNodeItem("ByteString", ByteString, (void *) "samsung", VARIABLE_NODE, 100);
@@ -323,7 +335,7 @@ static void testCreateNodes()
     deleteNodeItem(item);
 
     printf("\n[%d] Variable node with byte variant: \n", ++index);
-    UA_Byte b_value = 2;
+    Edge_Byte b_value = 2;
     item = createVariableNodeItem("Byte", Byte, (void *) &b_value, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
@@ -422,16 +434,16 @@ static void testCreateNodes()
     printf("\n|------------[Added] %s\n", item->browseName);
     deleteNodeItem(item);
 
-    printf("\n[%d] Variable node with dateTime variant: \n", ++index);
-    UA_DateTime time = UA_DateTime_now();
-    item = createVariableNodeItem("DateTime", DateTime, (void *) &time, VARIABLE_NODE, 100);
+    /*printf("\n[%d] Variable node with dateTime variant: \n", ++index);
+    Edge_DateTime time = UA_DateTime_now();
+    item = createVariableNodeItem("DateTime", DateTime, (void *) &time, VARIABLE_NODE);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
-    printf("\n|------------[Added] %s [Value: %" PRId64 "]\n", item->browseName, time);
-    deleteNodeItem(item);
+    printf("\n|------------[Added] %s\n", item->browseName);
+    deleteNodeItem(item);*/
 
     printf("\n[%d] Variable node with SByte variant: \n", ++index);
-    UA_SByte sbyte = 2;
+    Edge_SByte sbyte = 2;
     item = createVariableNodeItem("SByte", SByte, (void *) &sbyte, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
@@ -439,7 +451,7 @@ static void testCreateNodes()
     deleteNodeItem(item);
 
     printf("\n[%d] Variable node with GUID variant: \n", ++index);
-    UA_Guid guid =
+    Edge_Guid guid =
     { 1, 0, 1,
     { 0, 0, 0, 0, 1, 1, 1, 1 } };
     item = createVariableNodeItem("Guid", Guid, (void *) &guid, VARIABLE_NODE, 100);
@@ -449,10 +461,10 @@ static void testCreateNodes()
     deleteNodeItem(item);
 
     printf("\n[%d] Variable node with qualified name variant: \n", ++index);
-    UA_QualifiedName *qn_value = (UA_QualifiedName *) EdgeMalloc(sizeof(UA_QualifiedName));
+    Edge_QualifiedName *qn_value = (Edge_QualifiedName *) EdgeMalloc(sizeof(Edge_QualifiedName));
     if (IS_NOT_NULL(qn_value))
     {
-        UA_String str = UA_STRING_ALLOC("qualifiedName");
+        Edge_String str = EdgeStringAlloc("qualifiedName");
         qn_value->namespaceIndex = 2;
         qn_value->name = str;
         item = createVariableNodeItem("QualifiedName", QualifiedName, (void *) qn_value,
@@ -470,7 +482,11 @@ static void testCreateNodes()
     }
 
     printf("\n[%d] Variable node with NODEID variant: \n", ++index);
-    UA_NodeId node = UA_NODEID_NUMERIC(DEFAULT_NAMESPACE_INDEX, EDGE_NODEID_ROOTFOLDER);
+    Edge_NodeId *node =  (Edge_NodeId *) EdgeMalloc(sizeof(Edge_NodeId));
+    node->namespaceIndex = DEFAULT_NAMESPACE_INDEX;
+    node->identifierType = INTEGER;
+    node->identifier.numeric = EDGE_NODEID_ROOTFOLDER;
+    
     item = createVariableNodeItem("NodeId", NodeId, (void *) &node, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
@@ -551,7 +567,7 @@ static void testCreateNodes()
     }
 
     printf("\n[%d] Array node with SByte values: \n", ++index);
-    UA_SByte *sbData = (UA_SByte *) EdgeMalloc(sizeof(UA_SByte) * 5);
+    Edge_SByte *sbData = (Edge_SByte *) EdgeMalloc(sizeof(Edge_SByte) * 5);
     if (IS_NOT_NULL(sbData))
     {
         sbData[0] = -128;
@@ -693,7 +709,7 @@ static void testCreateNodes()
     }
 
     printf("\n[%d] Variable node with byte array variant: \n", ++index);
-    UA_Byte *b_arrvalue = (UA_Byte *) EdgeCalloc(1, sizeof(UA_Byte) * 5);
+    Edge_Byte *b_arrvalue = (Edge_Byte *) EdgeCalloc(1, sizeof(Edge_Byte) * 5);
     if (IS_NOT_NULL(b_arrvalue))
     {
         b_arrvalue[0] = 0x11;

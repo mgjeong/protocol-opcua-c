@@ -20,6 +20,9 @@
 
 #include "edge_malloc.h"
 
+#include <stdio.h>
+#include <string.h>
+
 void *EdgeMalloc(size_t size)
 {
     if (0 == size)
@@ -61,4 +64,20 @@ void EdgeFree(void *ptr)
         free(ptr);
         ptr = NULL;
     }
+}
+
+Edge_String EdgeStringAlloc(char const src[])
+{
+    const Edge_String EDGE_STRING_NULL = {0, NULL};
+    Edge_String str;
+    str.length = strlen(src);
+    if(str.length > 0) {
+        str.data = (Edge_Byte*)EdgeMalloc(str.length);
+        if(!str.data)
+            return EDGE_STRING_NULL;
+        memcpy(str.data, src, str.length);
+    } else {
+        str.data = (Edge_Byte*)EDGE_EMPTY_ARRAY_SENTINEL;
+    }
+    return str;
 }

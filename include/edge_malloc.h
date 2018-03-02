@@ -28,6 +28,7 @@
 #define EDGE_MALLOC_H_
 
 #include <malloc.h>
+#include <edge_opcua_common.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -94,6 +95,8 @@ EXPORT void *EdgeCalloc(size_t num, size_t size);
  *              If ptr is a null pointer, the function does nothing.
  */
 EXPORT void EdgeFree(void *ptr);
+
+EXPORT Edge_String EdgeStringAlloc(char const src[]);
 
 #ifdef __cplusplus
 }

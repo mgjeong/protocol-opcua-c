@@ -43,7 +43,6 @@
 #include "edge_status_code.h"
 #include "common_client.h"
 #include "common_server.h"
-#include "open62541.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -56,27 +55,27 @@ extern "C"
 #define MAX_DISPLAYNAME_SIZE (1000)
 #define UNIQUE_NODE_PATH     "{%d;%c;v=%d}%1000s"
 
-#define Boolean UA_NS0ID_BOOLEAN
-#define SByte UA_NS0ID_SBYTE
-#define Byte UA_NS0ID_BYTE
-#define Int16 UA_NS0ID_INT16
-#define UInt16 UA_NS0ID_UINT16
-#define Int32 UA_NS0ID_INT32
-#define UInt32 UA_NS0ID_UINT32
-#define Int64 UA_NS0ID_INT64
-#define UInt64 UA_NS0ID_UINT64
-#define Float UA_NS0ID_FLOAT
-#define Double UA_NS0ID_DOUBLE
-#define String UA_NS0ID_STRING
-#define DateTime UA_NS0ID_DATETIME
-#define Guid UA_NS0ID_GUID
-#define ByteString UA_NS0ID_BYTESTRING
-#define XmlElement UA_NS0ID_XMLELEMENT
-#define NodeId UA_NS0ID_NODEID
-#define ExpandedNodeId UA_NS0ID_EXPANDEDNODEID
-#define StatusCode UA_NS0ID_STATUSCODE
-#define QualifiedName UA_NS0ID_QUALIFIEDNAME
-#define LocalizedText UA_NS0ID_LOCALIZEDTEXT
+#define Boolean 1 // DataType
+#define SByte 2 // DataType
+#define Byte 3 // DataType
+#define Int16 4 // DataType
+#define UInt16 5 // DataType
+#define Int32 6 // DataType
+#define UInt32 7 // DataType
+#define Int64 8 // DataType
+#define UInt64 9 // DataType
+#define Float 10 // DataType
+#define Double 11 // DataType
+#define String 12 // DataType
+#define DateTime 13 // DataType
+#define Guid 14 // DataType
+#define ByteString 15 // DataType
+#define XmlElement 16 // DataType
+#define NodeId 17 // DataType
+#define ExpandedNodeId 18 // DataType
+#define StatusCode 19 // DataType
+#define QualifiedName 20 // DataType
+#define LocalizedText 21 // DataType
 
 #define EDGE_NODEID_STRUCTURE 22
 #define EDGE_NODEID_DATAVALUE 23
@@ -186,32 +185,6 @@ extern "C"
 #define EDGE_NODEID_STATUSRESULT 299
 #define EDGE_NODEID_STATUSRESULT_ENCODING_DEFAULTXML 300
 #define EDGE_NODEID_STATUSRESULT_ENCODING_DEFAULTBINARY 301
-
-/**
-  * @brief Structure which represents human readable text with an optional locale identifier.
-  *
-  */
-typedef struct EdgeLocalizedText
-{
-    /**< Locale identifier. */
-    char *locale;
-
-    /**< Human  readable text. */
-    char *text;
-} EdgeLocalizedText;
-
-/**
-  * @brief Structure which represents a name qualified by a namespace.
-  *
-  */
-typedef struct EdgeQualifiedName
-{
-    /**< Namespace index. */
-    uint16_t namespaceIndex;
-
-    /**< String. */
-    char *name;
-} EdgeQualifiedName;
 
 /**
   * @brief Structure which represents the result response for Browse request
