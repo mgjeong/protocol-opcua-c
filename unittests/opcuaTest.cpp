@@ -1565,7 +1565,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
 
     VERIFY_NON_NULL_NR(item);
     printf("\n[%d] Variable node with XML ELEMENT variant: \n", ++index);
-    UA_XmlElement *xml_value = (UA_XmlElement *) EdgeMalloc(sizeof(UA_XmlElement));
+    Edge_XmlElement *xml_value = (Edge_XmlElement *) EdgeMalloc(sizeof(Edge_XmlElement));
     if (IS_NOT_NULL(xml_value))
     {
         xml_value->length = 2;
@@ -1579,17 +1579,29 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     }
     else
     {
-        printf("Error :: EdgeMalloc failed for UA_XmlElement in Test create Nodes\n");
+        printf("Error :: EdgeMalloc failed for Edge_XmlElement in Test create Nodes\n");
     }
 
     printf("\n[%d] Variable node with localized text variant: \n", ++index);
-    EdgeLocalizedText lt_value = {"COUNTRY", "INDIA"};
-    item = createVariableNodeItem("LocalizedText", LocalizedText, (void *) &lt_value,
-            VARIABLE_NODE, 100);
-    VERIFY_NON_NULL_NR(item);
-    createNode(DEFAULT_NAMESPACE_VALUE, item);
-    printf("\n|------------[Added] %s\n", item->browseName);
-    deleteNodeItem(item);
+    Edge_LocalizedText *lt_value = (Edge_LocalizedText *) EdgeMalloc(sizeof(Edge_LocalizedText));
+    if (IS_NOT_NULL(lt_value))
+    {
+        lt_value->locale = EdgeStringAlloc("COUNTRY");
+        lt_value->text = EdgeStringAlloc("INDIA");
+        item = createVariableNodeItem("LocalizedText", LocalizedText, (void *) lt_value,
+                VARIABLE_NODE, 100);
+        VERIFY_NON_NULL_NR(item);
+        createNode(DEFAULT_NAMESPACE_VALUE, item);
+        printf("\n|------------[Added] %s\n", item->browseName);
+        EdgeFree(lt_value->locale.data);
+        EdgeFree(lt_value->text.data);
+        EdgeFree(lt_value);
+        deleteNodeItem(item);
+    }
+    else
+    {
+        printf("Error :: EdgeMalloc failed for Edge_LocalizedText in Test create Nodes\n");
+    }
 
 
     printf("\n[%d] Variable node with byte string variant: \n", ++index);
@@ -1611,7 +1623,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     }
 
     printf("\n[%d] Variable node with byte variant: \n", ++index);
-    UA_Byte b_value = 2;
+    Edge_Byte b_value = 2;
     item = createVariableNodeItem("Byte", Byte, (void *) &b_value, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
@@ -1721,7 +1733,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     deleteNodeItem(item);
 
     printf("\n[%d] Variable node with SByte variant: \n", ++index);
-    UA_SByte sbyte = 2;
+    Edge_SByte sbyte = 2;
     item = createVariableNodeItem("SByte", SByte, (void *) &sbyte, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
@@ -1729,7 +1741,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     deleteNodeItem(item);
 
     printf("\n[%d] Variable node with GUID variant: \n", ++index);
-    UA_Guid guid =
+    Edge_Guid guid =
     { 1, 0, 1,
     { 0, 0, 0, 0, 1, 1, 1, 1 } };
     item = createVariableNodeItem("Guid", Guid, (void *) &guid, VARIABLE_NODE, 100);
@@ -1739,10 +1751,10 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     deleteNodeItem(item);
 
     printf("\n[%d] Variable node with qualified name variant: \n", ++index);
-    UA_QualifiedName *qn_value = (UA_QualifiedName *) EdgeMalloc(sizeof(UA_QualifiedName));
+    Edge_QualifiedName *qn_value = (Edge_QualifiedName *) EdgeMalloc(sizeof(Edge_QualifiedName));
     if (IS_NOT_NULL(qn_value))
     {
-        UA_String str = UA_STRING_ALLOC("qualifiedName");
+        Edge_String str = EdgeStringAlloc("qualifiedName");
         qn_value->namespaceIndex = 2;
         qn_value->name = str;
         item = createVariableNodeItem("QualifiedName", QualifiedName, (void *) qn_value,
@@ -1760,7 +1772,11 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     }
 
     printf("\n[%d] Variable node with NODEID variant: \n", ++index);
-    UA_NodeId node = UA_NODEID_NUMERIC(DEFAULT_NAMESPACE_INDEX, EDGE_NODEID_ROOTFOLDER);
+    Edge_NodeId *node =  (Edge_NodeId *) EdgeMalloc(sizeof(Edge_NodeId));
+    node->namespaceIndex = DEFAULT_NAMESPACE_INDEX;
+    node->identifierType = INTEGER;
+    node->identifier.numeric = EDGE_NODEID_ROOTFOLDER;
+    
     item = createVariableNodeItem("NodeId", NodeId, (void *) &node, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);

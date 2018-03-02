@@ -303,7 +303,7 @@ static void testCreateNodes()
     }
     else
     {
-        printf("Error :: EdgeMalloc failed for UA_XmlElement in Test create Nodes\n");
+        printf("Error :: EdgeMalloc failed for Edge_XmlElement in Test create Nodes\n");
     }
 
     printf("\n[%d] Variable node with localized text variant: \n", ++index);
@@ -324,7 +324,7 @@ static void testCreateNodes()
     }
     else
     {
-        printf("Error :: EdgeMalloc failed for UA_LocalizedText in Test create Nodes\n");
+        printf("Error :: EdgeMalloc failed for Edge_LocalizedText in Test create Nodes\n");
     }
 
     printf("\n[%d] Variable node with byte string variant: \n", ++index);
