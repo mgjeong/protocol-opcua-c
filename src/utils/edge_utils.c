@@ -691,6 +691,16 @@ void freeEdgeVersatilityByType(EdgeVersatility *versatileValue, int type)
             EdgeFree(values);
         }
     }
+    else if(type == UA_NS0ID_LOCALIZEDTEXT)
+    {
+        EdgeLocalizedText *lt = (EdgeLocalizedText *)versatileValue->value;
+        if(IS_NOT_NULL(lt))
+        {
+            EdgeFree(lt->locale);
+            EdgeFree(lt->text);
+            EdgeFree(lt);
+        }
+    }
     else
     {
         EdgeFree(versatileValue->value);
@@ -952,6 +962,11 @@ size_t get_size(int type, bool isArray)
         case UA_NS0ID_STRING:
             {
                 size = (isArray) ? sizeof(char*) : sizeof(char);
+            }
+            break;
+        case UA_NS0ID_DATETIME:
+            {
+                size = (isArray) ? sizeof(UA_DateTime*) : sizeof(UA_DateTime);
             }
             break;
         default:

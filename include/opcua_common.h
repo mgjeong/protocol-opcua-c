@@ -188,6 +188,32 @@ extern "C"
 #define EDGE_NODEID_STATUSRESULT_ENCODING_DEFAULTBINARY 301
 
 /**
+  * @brief Structure which represents human readable text with an optional locale identifier.
+  *
+  */
+typedef struct EdgeLocalizedText
+{
+    /**< Locale identifier. */
+    char *locale;
+
+    /**< Human  readable text. */
+    char *text;
+} EdgeLocalizedText;
+
+/**
+  * @brief Structure which represents a name qualified by a namespace.
+  *
+  */
+typedef struct EdgeQualifiedName
+{
+    /**< Namespace index. */
+    uint16_t namespaceIndex;
+
+    /**< String. */
+    char *name;
+} EdgeQualifiedName;
+
+/**
   * @brief Structure which represents the result response for Browse request
   *
   */

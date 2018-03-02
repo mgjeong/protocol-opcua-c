@@ -522,6 +522,14 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attri
             {
                 response->type = UA_NS0ID_XMLELEMENT;
             }
+            else if (val.type == &UA_TYPES[UA_TYPES_QUALIFIEDNAME])
+            {
+                response->type = UA_NS0ID_QUALIFIEDNAME;
+            }
+            else if (val.type == &UA_TYPES[UA_TYPES_LOCALIZEDTEXT])
+            {
+                response->type = UA_NS0ID_LOCALIZEDTEXT;
+            }
 
             if (isScalar)
             {
@@ -560,6 +568,45 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attri
                     versatility->value = (void *) value;
 
                     EDGE_LOG_V(TAG, "%s\n", value);
+                }
+                else if(response->type == UA_NS0ID_LOCALIZEDTEXT)
+                {
+                    UA_LocalizedText lt = *((UA_LocalizedText *) val.data);
+                    EdgeLocalizedText *value = (EdgeLocalizedText *) EdgeCalloc(1, sizeof(EdgeLocalizedText));
+                    if(IS_NULL(value))
+                    {
+                        EDGE_LOG(TAG, "Memory allocation failed.");
+                        strncpy(errorDesc, "Memory allocation failed.", ERROR_DESC_LENGTH);
+                        freeEdgeResponse(response);
+                        goto EXIT;
+                    }
+                    versatility->value = value;
+
+                    if(lt.locale.length > 0)
+                    {
+                        value->locale = (char *) EdgeCalloc(lt.locale.length+1, sizeof(char));
+                        if(IS_NULL(value->locale))
+                        {
+                            EDGE_LOG(TAG, "Memory allocation failed.");
+                            strncpy(errorDesc, "Memory allocation failed.", ERROR_DESC_LENGTH);
+                            freeEdgeResponse(response);
+                            goto EXIT;
+                        }
+                        strncpy(value->locale, (char*) lt.locale.data, lt.locale.length);
+                    }
+
+                    if(lt.text.length > 0)
+                    {
+                        value->text = (char *) EdgeCalloc(lt.text.length+1, sizeof(char));
+                        if(IS_NULL(value->text))
+                        {
+                            EDGE_LOG(TAG, "Memory allocation failed.");
+                            strncpy(errorDesc, "Memory allocation failed.", ERROR_DESC_LENGTH);
+                            freeEdgeResponse(response);
+                            goto EXIT;
+                        }
+                        strncpy(value->text, (char*) lt.text.data, lt.text.length);
+                    }
                 }
                 else
                 {

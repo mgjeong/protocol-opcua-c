@@ -104,6 +104,14 @@ static void addVariableNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeI
 
         EdgeFree(val.data);
     }
+    else if (type == UA_TYPES_LOCALIZEDTEXT)
+    {
+        EdgeLocalizedText *lt = (EdgeLocalizedText *) item->variableData;
+        UA_LocalizedText val = UA_LOCALIZEDTEXT_ALLOC(lt->locale, lt->text);
+        UA_Variant_setScalarCopy(&attr.value, &val, &UA_TYPES[type]);
+        EdgeFree(val.locale.data);
+        EdgeFree(val.text.data);
+    }
     else
     {
         UA_Variant_setScalarCopy(&attr.value, item->variableData, &UA_TYPES[type]);

@@ -202,7 +202,8 @@ static void response_msg_cb (EdgeMessage *data)
                             /* Handle DateTime output array */
                             for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                             {
-                                printf("%" PRId64 "  ", ((int64_t *) data->responses[idx]->message->value)[arrayIdx]);
+                                int64_t value = ((int64_t *) data->responses[idx]->message->value)[arrayIdx];
+                                printf("%" PRId64 "  ", value);
                             }
                         }
                         printf("\n");
@@ -248,9 +249,15 @@ static void response_msg_cb (EdgeMessage *data)
                         else if (data->responses[idx]->type == UInt64)
                             printf("[%" PRIu64 "]\n",
                                    *((uint64_t *)data->responses[idx]->message->value));
-                        else if (data->responses[idx]->type == String || data->responses[idx]->type == XmlElement)
+                        else if (data->responses[idx]->type == String || data->responses[idx]->type == XmlElement
+                                || data->responses[idx]->type == Guid)
                             printf("[%s]\n",
                                    (char *)data->responses[idx]->message->value);
+                        else if (data->responses[idx]->type == LocalizedText)
+                        {
+                            EdgeLocalizedText *lt = (EdgeLocalizedText *) data->responses[idx]->message->value;
+                            printf("[Locale: %s, Text: %s]\n", lt->locale, lt->text);
+                        }
                     }
                 }
                 else if (data->command == CMD_WRITE)
