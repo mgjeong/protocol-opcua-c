@@ -405,6 +405,24 @@ TEST_F(OPC_util , edgeCalloc_N2)
     ASSERT_EQ(NULL, ptr);
 }
 
+TEST_F(OPC_util , edgeRealloc_P1)
+{
+    int *ptr = (int*) EdgeRealloc(NULL, sizeof(int) * 5);
+    ASSERT_EQ(NULL != ptr, true);
+    free(ptr);
+}
+
+TEST_F(OPC_util , edgeRealloc_P2)
+{
+    int *ptr = (int*) EdgeMalloc(sizeof(int) * 5);
+    ASSERT_EQ(NULL != ptr, true);
+
+    ptr = (int*) EdgeRealloc((void *) ptr, sizeof(int) * 10);
+    ASSERT_EQ(NULL != ptr, true);
+
+    free(ptr);
+}
+
 TEST_F(OPC_util , createQueue_P)
 {
     Queue *queue = createQueue(100);

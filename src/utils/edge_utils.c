@@ -1136,7 +1136,7 @@ EdgeMessage* cloneEdgeMessage(EdgeMessage *msg)
                         cloneVersatility->arrayLength = srcVersatility->arrayLength;
                         cloneVersatility->isArray = srcVersatility->isArray;
                         size_t size = get_size(msg->requests[i]->type, srcVersatility->isArray);
-                        if (msg->requests[i]->type == UA_NS0ID_STRING)
+                        if (msg->requests[i]->type == UA_NS0ID_STRING || msg->requests[i]->type == UA_NS0ID_BYTESTRING)
                         {
                             size_t len = strlen((char *) srcVersatility->value);
                             cloneVersatility->value = (void *) EdgeCalloc(1, len+1);
