@@ -74,10 +74,13 @@ static bool browseNodeFlag = false;
 static bool browseNextFlag = false;
 static bool methodCallFlag = false;
 
-char node_arr[13][30] =
-{ "{2;S;v=12}String1", "{2;S;v=12}String2", "{2;S;v=12}String3", "{2;S;v=11}Double", "{2;S;v=6}Int32",
-        "{2;S;v=5}UInt16", "{2;S;v=15}ByteString", "{2;S;v=3}Byte", "{2;S;v=12}Error", "{2;S;v=14}Guid",
-        "{2;S;v=11}DoubleArray", "{2;S;v=12}CharArray", "{2;S;v=15}ByteStringArray" };
+char node_arr[15][30] =
+{
+    "{2;S;v=12}String1", "{2;S;v=12}String2", "{2;S;v=12}String3", "{2;S;v=11}Double", "{2;S;v=6}Int32",
+    "{2;S;v=5}UInt16", "{2;S;v=15}ByteString", "{2;S;v=3}Byte", "{2;S;v=12}Error", "{2;S;v=14}Guid",
+    "{2;S;v=11}DoubleArray", "{2;S;v=12}CharArray", "{2;S;v=15}ByteStringArray", "{2;S;v=14}GuidArray",
+    "{2;S;v=21}LocalizedText"
+};
 
 static int method_arr[5] =
 { 15, 25, 35, 45, 55 };
@@ -342,6 +345,11 @@ extern "C"
                                 PRINT_ARG(
                                         "[Application response Callback] Data read from node ===>>  ",
                                         (char * )data->responses[idx]->message->value);
+                            }
+                            else if (data->responses[idx]->type == LocalizedText)
+                            {
+                                Edge_LocalizedText *lt = (Edge_LocalizedText *) data->responses[idx]->message->value;
+                                printf("[Locale: %s, Text: %s]\n", (uint8_t*)lt->locale.data, (uint8_t*)lt->text.data);
                             }
                         }
                     }
@@ -1801,7 +1809,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     node->namespaceIndex = DEFAULT_NAMESPACE_INDEX;
     node->identifierType = INTEGER;
     node->identifier.numeric = EDGE_NODEID_ROOTFOLDER;
-    
+
     item = createVariableNodeItem("NodeId", NodeId, (void *) &node, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
@@ -2045,6 +2053,19 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     {
         printf("Error :: EdgeMalloc failed for UA_Byte Array in Test create Nodes\n");
     }
+
+    printf("\n[%d] Array node with Guid values: \n", ++index);
+    Edge_Guid guidArr[2] = {
+        { 1, 0, 1, { 0, 0, 0, 0, 1, 1, 1, 1 } },
+        { 2, 0, 2, { 0, 0, 0, 0, 2, 2, 2, 2 } }
+    };
+    item = createVariableNodeItem("GuidArray", Guid, (void *) guidArr, VARIABLE_NODE, 100);
+    VERIFY_NON_NULL_NR(item);
+    item->nodeType = ARRAY_NODE;
+    item->arrayLength = 2;
+    createNode(DEFAULT_NAMESPACE_VALUE, item);
+    printf("\n|------------[Added] %s\n", item->browseName);
+    deleteNodeItem(item);
 
     /******************* Object Node *********************/
     printf("\n[Create Object Node]\n");

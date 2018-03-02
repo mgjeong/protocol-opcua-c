@@ -80,13 +80,14 @@ void testSubscription_P1(char *endpointUri)
 void testSubscription_P2(char *endpointUri)
 {
     /* Create Subscription */
-    EdgeMessage* msg = createEdgeSubMessage(endpointUri, "{2;S;v=12}CharArray", 4, Edge_Create_Sub);
+    EdgeMessage* msg = createEdgeSubMessage(endpointUri, "{2;S;v=12}CharArray", 6, Edge_Create_Sub);
     EXPECT_EQ(NULL!=msg, true);
 
     double samplingInterval = 100.0;
     int keepalivetime = (1 > (int) (ceil(10000.0 / 0.0))) ? 1 : (int) ceil(10000.0 / 0.0);
     insertSubParameter(&msg, "{2;S;v=12}CharArray", Edge_Create_Sub, samplingInterval, 0.0, keepalivetime, 10000, 1, true, 0, 50);
     insertSubParameter(&msg, "{2;S;v=14}Guid", Edge_Create_Sub, samplingInterval, 0.0, keepalivetime, 10000, 1, true, 0, 50);
+    insertSubParameter(&msg, "{2;S;v=14}GuidArray", Edge_Create_Sub, samplingInterval, 0.0, keepalivetime, 10000, 1, true, 0, 50);
     insertSubParameter(&msg, "{2;S;v=15}ByteStringArray", Edge_Create_Sub, samplingInterval, 0.0, keepalivetime, 10000, 1, true, 0, 50);
     insertSubParameter(&msg, "{2;S;v=1}BoolArray", Edge_Create_Sub, samplingInterval, 0.0, keepalivetime, 10000, 1, true, 0, 50);
     insertSubParameter(&msg, "{2;S;v=11}Double", Edge_Create_Sub, samplingInterval, 0.0, keepalivetime, 10000, 1, true, 0, 50);
@@ -108,6 +109,14 @@ void testSubscription_P2(char *endpointUri)
     /* Delete Subscription */
     msg = NULL;
     msg = createEdgeSubMessage(endpointUri, "{2;S;v=14}Guid", 0, Edge_Delete_Sub);
+    EXPECT_EQ(NULL!=msg, true);
+    result = sendRequest(msg);
+    EXPECT_EQ(result.code, STATUS_OK);
+    destroyEdgeMessage(msg);
+    sleep(1);
+
+    /* Delete Subscription */
+    msg = createEdgeSubMessage(endpointUri, "{2;S;v=14}GuidArray", 0, Edge_Delete_Sub);
     EXPECT_EQ(NULL!=msg, true);
     result = sendRequest(msg);
     EXPECT_EQ(result.code, STATUS_OK);
