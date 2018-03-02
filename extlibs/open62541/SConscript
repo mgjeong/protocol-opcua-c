@@ -30,6 +30,11 @@ src_dir = lib_env.GetLaunchDir()
 lib_dir = os.path.join(src_dir, 'extlibs', 'open62541', 'open62541')
 
 if GetOption('clean'):	
+	if os.path.exists(lib_dir):
+		print "Deleting open62541 folder which is inside extlibs/open62541."
+		result = os.system('rm -rf %s' %lib_dir)
+		if result != 0:
+			print 'Failed to delete.'
 	Return('lib_env')
 
 ######################################################################
