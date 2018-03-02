@@ -55,7 +55,7 @@ static void addVariableNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeI
     attr.description = UA_LOCALIZEDTEXT("en-US", name);
     attr.displayName = UA_LOCALIZEDTEXT("en-US", displayInfo);
     attr.minimumSamplingInterval = minimumSamplingInterval;
-    EDGE_LOG_V(TAG, "add sampling interval : %lf\n", attr.minimumSamplingInterval);
+    EDGE_LOG_V(TAG, "[%s] sampling interval : %lf\n", item->browseName, attr.minimumSamplingInterval);
 
 
     if (accessLevel == READ)
@@ -137,6 +137,7 @@ static void addArrayNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem
     attr.dataType = UA_TYPES[(int) id - 1].typeId;
     int accessLevel = item->accessLevel;
     int userAccessLevel = item->userAccessLevel;
+    double minimumSamplingInterval = item->minimumSamplingInterval;
 
     if (accessLevel == READ)
     {
@@ -165,6 +166,9 @@ static void addArrayNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem
     }
 
     attr.valueRank = 0;
+
+    attr.minimumSamplingInterval = minimumSamplingInterval;
+    EDGE_LOG_V(TAG, "[%s] sampling interval : %lf\n", item->browseName, item->minimumSamplingInterval);
 
     int type = (int) id - 1;
     if (type == UA_TYPES_STRING)
