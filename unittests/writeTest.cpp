@@ -51,6 +51,17 @@ void testWrite_P1(char *endpointUri)
 
     msg = createEdgeAttributeMessage(endpointUri, 1, CMD_WRITE);
     EXPECT_EQ(NULL!=msg, true);
+    char *bs_value = (char*) malloc(sizeof(char) * 20);
+    strncpy(bs_value, "test_bytestring", strlen("test_bytestring"));
+    bs_value[strlen("test_bytestring")] = '\0';
+    insertWriteAccessNode(&msg, "{2;S;v=15}ByteString", bs_value, 1);
+    result = sendRequest(msg);
+    destroyEdgeMessage(msg);
+    ASSERT_EQ(result.code, STATUS_OK);
+    sleep(1);
+
+    msg = createEdgeAttributeMessage(endpointUri, 1, CMD_WRITE);
+    EXPECT_EQ(NULL!=msg, true);
     double dVal = 22.32;
     insertWriteAccessNode(&msg, node_arr[3], (void *) &dVal, 1);
     result = sendRequest(msg);

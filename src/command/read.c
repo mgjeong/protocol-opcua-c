@@ -256,6 +256,8 @@ static EdgeDiagnosticInfo *checkDiagnosticInfo(int nodesToProcess,
 
 static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attributeId)
 {
+    char errorDesc[ERROR_DESC_LENGTH] = {'\0'};
+    EdgeMessage *resultMsg = NULL;
     size_t reqLen = msg->requestLength;
     UA_ReadValueId *rv = (UA_ReadValueId *) EdgeMalloc(sizeof(UA_ReadValueId) * reqLen);
     if(IS_NULL(rv))
@@ -290,12 +292,8 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attri
         // send error callback;
         EDGE_LOG_V(TAG, "Error in group read :: 0x%08x(%s)\n", readResponse.responseHeader.serviceResult,
                 UA_StatusCode_name(readResponse.responseHeader.serviceResult));
-
-        sendErrorResponse(msg, "Error in read");
-        UA_ReadValueId_deleteMembers(rv);
-        EdgeFree(rv);
-        UA_ReadResponse_deleteMembers(&readResponse);
-        return;
+        strncpy(errorDesc, "Error in read.", ERROR_DESC_LENGTH);
+        goto EXIT;
     }
 
     if (readResponse.results[0].status == UA_STATUSCODE_GOOD)
@@ -307,11 +305,8 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attri
                         || readResponse.results[0].hasServerTimestamp)
                 {
                     EDGE_LOG(TAG, "BadInvalidTimestamp\n\n");
-                    sendErrorResponse(msg, "BadInvalidTimestamp");
-                    UA_ReadValueId_deleteMembers(rv);
-                    EdgeFree(rv);
-                    UA_ReadResponse_deleteMembers(&readResponse);
-                    return;
+                    strncpy(errorDesc, "Bad Invalid Timestamp.", ERROR_DESC_LENGTH);
+                    goto EXIT;
                 }
             }
             else if (readRequest.timestampsToReturn == UA_TIMESTAMPSTORETURN_BOTH)
@@ -320,11 +315,8 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attri
                         || !readResponse.results[0].hasServerTimestamp)
                 {
                     EDGE_LOG(TAG, "Timestamp missing\n\n");
-                    sendErrorResponse(msg, "Missing Timestamp");
-                    UA_ReadValueId_deleteMembers(rv);
-                    EdgeFree(rv);
-                    UA_ReadResponse_deleteMembers(&readResponse);
-                    return;
+                    strncpy(errorDesc, "Timestamp missing.", ERROR_DESC_LENGTH);
+                    goto EXIT;
                 }
             }
             else if (readRequest.timestampsToReturn == UA_TIMESTAMPSTORETURN_SOURCE)
@@ -333,11 +325,8 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attri
                         || readResponse.results[0].hasServerTimestamp)
                 {
                     EDGE_LOG(TAG, "source Timestamp missing\n\n");
-                    sendErrorResponse(msg, "Missing Timestamp");
-                    UA_ReadValueId_deleteMembers(rv);
-                    EdgeFree(rv);
-                    UA_ReadResponse_deleteMembers(&readResponse);
-                    return;
+                    strncpy(errorDesc, "source Timestamp missing.", ERROR_DESC_LENGTH);
+                    goto EXIT;
                 }
             }
             else if (readRequest.timestampsToReturn == UA_TIMESTAMPSTORETURN_SERVER)
@@ -346,11 +335,8 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attri
                         || !readResponse.results[0].hasServerTimestamp)
                 {
                     EDGE_LOG(TAG, "server Timestamp missing\n\n");
-                    sendErrorResponse(msg, "Missing Timestamp");
-                    UA_ReadValueId_deleteMembers(rv);
-                    EdgeFree(rv);
-                    UA_ReadResponse_deleteMembers(&readResponse);
-                    return;
+                    strncpy(errorDesc, "server Timestamp missing.", ERROR_DESC_LENGTH);
+                    goto EXIT;
                 }
             }
 
@@ -359,27 +345,21 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attri
                             readRequest.maxAge * 2))
             {
                 EDGE_LOG(TAG, "Max age failed\n\n");
-                sendErrorResponse(msg, "");
-                UA_ReadValueId_deleteMembers(rv);
-                EdgeFree(rv);
-                UA_ReadResponse_deleteMembers(&readResponse);
-                return;
+                strncpy(errorDesc, "Max Age failed.", ERROR_DESC_LENGTH);
+                goto EXIT;
             }
 
             if (readRequest.timestampsToReturn != UA_TIMESTAMPSTORETURN_NEITHER
                     && !checkValidation(&(readResponse.results[0]), msg, readRequest.timestampsToReturn,
                             readRequest.maxAge))
             {
-                UA_ReadValueId_deleteMembers(rv);
-                EdgeFree(rv);
-                UA_ReadResponse_deleteMembers(&readResponse);
-                return;
+                strncpy(errorDesc, "", ERROR_DESC_LENGTH);
+                goto EXIT;
             }
         }
     }
 
-    char errorDesc[ERROR_DESC_LENGTH] = {'\0'};
-    EdgeMessage *resultMsg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
+    resultMsg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
     if(IS_NULL(resultMsg))
     {
         EDGE_LOG(TAG, "Error : Malloc failed for resultMsg in Read Group\n");

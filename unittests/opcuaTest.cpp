@@ -755,7 +755,7 @@ static void testFindServers()
 
 }
 
-static void browseNodes()
+static void browseNode()
 {
     int  maxReferencesPerNode = 0;
     EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_BROWSE);
@@ -764,6 +764,31 @@ static void browseNodes()
     EdgeNodeInfo* nodeInfo = createEdgeNodeInfoForNodeId(INTEGER, EDGE_NODEID_ROOTFOLDER,
     		SYSTEM_NAMESPACE_INDEX);
     EdgeBrowseParameter param = {DIRECTION_FORWARD, maxReferencesPerNode};
+    insertBrowseParameter(&msg, nodeInfo, param);
+
+    EXPECT_EQ(browseNodeFlag, false);
+    sendRequest(msg);
+    destroyEdgeMessage(msg);
+    sleep(1);
+
+    /* Wait some time and check whether browse callback is received */
+    EXPECT_EQ(browseNodeFlag, true);
+    browseNodeFlag = false;
+}
+
+static void browseNodes()
+{
+    int  maxReferencesPerNode = 0;
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 3, CMD_BROWSE);
+    EXPECT_EQ(NULL != msg, true);
+
+    EdgeNodeInfo* nodeInfo = createEdgeNodeInfoForNodeId(INTEGER, EDGE_NODEID_ROOTFOLDER,
+            SYSTEM_NAMESPACE_INDEX);
+    EdgeBrowseParameter param = {DIRECTION_FORWARD, maxReferencesPerNode};
+    insertBrowseParameter(&msg, nodeInfo, param);
+    nodeInfo = createEdgeNodeInfoForNodeId(INTEGER, EDGE_NODEID_OBJECTSFOLDER, SYSTEM_NAMESPACE_INDEX);
+    insertBrowseParameter(&msg, nodeInfo, param);
+    nodeInfo = createEdgeNodeInfo("{2;S;v=0}Object1");
     insertBrowseParameter(&msg, nodeInfo, param);
 
     EXPECT_EQ(browseNodeFlag, false);
@@ -3107,6 +3132,26 @@ TEST_F(OPC_clientTests , ClientWrite_N3)
 }
 
 TEST_F(OPC_clientTests , ClientBrowse_P)
+{
+    EXPECT_EQ(startClientFlag, false);
+
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_GET_ENDPOINTS);
+    EXPECT_EQ(NULL != msg, true);
+
+    EdgeResult res = getEndpointInfo(msg);
+    EXPECT_EQ(res.code, STATUS_OK);
+
+    EXPECT_EQ(startClientFlag, true);
+
+    destroyEdgeMessage(msg);
+
+    browseNode();
+
+    stop_client();
+    EXPECT_EQ(startClientFlag, false);
+}
+
+TEST_F(OPC_clientTests , ClientBrowseGroup_P)
 {
     EXPECT_EQ(startClientFlag, false);
 
