@@ -226,6 +226,7 @@ static void startServer()
     appConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
     appConfig->applicationUri = (char *) DEFAULT_SERVER_APP_URI_VALUE;
     appConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
+    appConfig->applicationType = EDGE_APPLICATIONTYPE_SERVER;
 
     printf(COLOR_GREEN "\n[Application Configuration]\n" COLOR_RESET);
     printf("\nApplication Name : %s", appConfig->applicationName);

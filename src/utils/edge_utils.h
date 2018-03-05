@@ -168,6 +168,20 @@ extern "C"
     char *convertUAStringToString(UA_String *uaStr);
 
     /**
+     * @brief Converts UA_ApplicationType to EdgeApplicationType.
+     * @param[in]  appType Application type as in open62541 library.
+     * @return Converted application type.
+     */
+    EdgeApplicationType convertToEdgeApplicationType(UA_ApplicationType appType);
+
+    /**
+     * @brief Converts EdgeApplicationType to UA_ApplicationType.
+     * @param[in]  appType Application type.
+     * @return Converted application type as in open62541 library.
+     */
+    UA_ApplicationType convertEdgeApplicationType(EdgeApplicationType appType);
+
+    /**
      * @brief De-allocates the memory consumed by EdgeEndpointConfig and its members.
      * @remarks Both EdgeEndpointConfig and its members should have been allocated dynamically.
      * @param[in]  config Pointer to EdgeEndpointConfig which needs to be freed.

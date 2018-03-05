@@ -275,30 +275,6 @@ static void logEndpointDescription(UA_EndpointDescription *ep)
 #endif
 }
 
-static EdgeApplicationType convertApplicationType(UA_ApplicationType appType)
-{
-    // Setting SERVER as default application type.
-    EdgeApplicationType edgeAppType = EDGE_APPLICATIONTYPE_SERVER;
-    switch(appType)
-    {
-        case UA_APPLICATIONTYPE_SERVER:
-            edgeAppType = EDGE_APPLICATIONTYPE_SERVER;
-            break;
-        case UA_APPLICATIONTYPE_CLIENT:
-            edgeAppType = EDGE_APPLICATIONTYPE_CLIENT;
-            break;
-        case UA_APPLICATIONTYPE_CLIENTANDSERVER:
-            edgeAppType = EDGE_APPLICATIONTYPE_CLIENTANDSERVER;
-            break;
-        case UA_APPLICATIONTYPE_DISCOVERYSERVER:
-            edgeAppType = EDGE_APPLICATIONTYPE_DISCOVERYSERVER;
-            break;
-        default:
-            break;
-    }
-    return edgeAppType;
-}
-
 static EdgeApplicationConfig *convertToEdgeApplicationConfig(UA_ApplicationDescription *appDesc)
 {
     VERIFY_NON_NULL(appDesc, NULL);
@@ -361,7 +337,7 @@ static EdgeApplicationConfig *convertToEdgeApplicationConfig(UA_ApplicationDescr
         }
     }
 
-    appConfig->applicationType = convertApplicationType(appDesc->applicationType);
+    appConfig->applicationType = convertToEdgeApplicationType(appDesc->applicationType);
     appConfig->discoveryUrlsSize = appDesc->discoveryUrlsSize;
     appConfig->discoveryUrls = (char **) calloc(appDesc->discoveryUrlsSize, sizeof(char *));
     if (!appConfig->discoveryUrls)
