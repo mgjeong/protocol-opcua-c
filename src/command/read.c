@@ -632,15 +632,15 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attri
 EdgeResult executeRead(UA_Client *client, const EdgeMessage *msg)
 {
     EdgeResult result;
-    if (!client)
+    result.code = STATUS_ERROR;
+    VERIFY_NON_NULL(client, result);
+    
+    if (CMD_READ == msg->command)
     {
-        EDGE_LOG(TAG, "Client handle Invalid\n");
-        result.code = STATUS_ERROR;
-        return result;
-    }
-    if (CMD_READ == msg->command) {
         readGroup(client, msg, UA_ATTRIBUTEID_VALUE);
-    } else if (CMD_READ_SAMPLING_INTERVAL == msg->command) {
+    }
+    else if (CMD_READ_SAMPLING_INTERVAL == msg->command)
+    {
         readGroup(client,msg, UA_ATTRIBUTEID_MINIMUMSAMPLINGINTERVAL);
     }
 

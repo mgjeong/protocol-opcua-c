@@ -184,23 +184,14 @@ static void monitoredItemHandler(UA_Client *client, UA_UInt32 monId, UA_DataValu
     char *valueAlias = client_alias->valueAlias;
 
     clientSubscription *clientSub = (clientSubscription*) get_subscription_list(client_alias->client);
-    if (IS_NULL(clientSub))
-    {
-        return;
-    }
+    VERIFY_NON_NULL_NR(clientSub);
 
     subscriptionInfo *subInfo = (subscriptionInfo *) getSubInfo(clientSub->subscriptionList, client_alias->valueAlias);
-    if (!subInfo)
-    {
-        return;
-    }
+    VERIFY_NON_NULL_NR(subInfo);
 
     EdgeMessage *resultMsg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
-    if(IS_NULL(resultMsg))
-    {
-        EDGE_LOG(TAG, "Error : Malloc failed for resultMsg in monitor item handler\n");
-        return;
-    }
+    VERIFY_NON_NULL_NR(resultMsg);
+
     resultMsg->endpointInfo = cloneEdgeEndpointInfo(subInfo->msg->endpointInfo);
     if(IS_NULL(resultMsg->endpointInfo))
     {
@@ -406,11 +397,7 @@ static void *subscription_thread_handler(void *ptr)
     UA_Client *client = (UA_Client *) ptr;
     clientSubscription *clientSub = NULL;
     clientSub = (clientSubscription*) get_subscription_list(client);
-    if(IS_NULL(clientSub))
-    {
-        EDGE_LOG(TAG, "Subcription list is empty. Subsciption thread ends.");
-        return NULL;
-    }
+    VERIFY_NON_NULL(clientSub, NULL);
 
     clientSub->subscription_thread_running = true;
     while (clientSub->subscription_thread_running)
@@ -688,22 +675,14 @@ static UA_StatusCode deleteSub(UA_Client *client, const EdgeMessage *msg)
     subscriptionInfo *subInfo =  NULL;
     clientSubscription *clientSub = NULL;
     clientSub = (clientSubscription*) get_subscription_list(client);
-    if (IS_NULL(clientSub))
-        return UA_STATUSCODE_BADNOSUBSCRIPTION;
+    VERIFY_NON_NULL(clientSub, UA_STATUSCODE_BADNOSUBSCRIPTION);
 
     subInfo = (subscriptionInfo *) getSubInfo(clientSub->subscriptionList, msg->request->nodeInfo->valueAlias);
-    if (!subInfo)
-    {
-        EDGE_LOG(TAG, "not subscribed yet \n");
-        return UA_STATUSCODE_BADNOSUBSCRIPTION;
-    }
+    VERIFY_NON_NULL(subInfo, UA_STATUSCODE_BADNOSUBSCRIPTION);
 
     EDGE_LOG(TAG, "Deleting following Subscription \n");
-
     EDGE_LOG_V(TAG, "Node name :: %s\n", (char *)msg->request->nodeInfo->valueAlias);
-
     EDGE_LOG_V(TAG, "SUB ID :: %d\n", subInfo->subId);
-
     EDGE_LOG_V(TAG, "MON ID :: %d\n", subInfo->monId);
 
     UA_StatusCode ret = UA_Client_Subscriptions_removeMonitoredItem(client, subInfo->subId,
@@ -763,18 +742,13 @@ static UA_StatusCode modifySub(UA_Client *client, const EdgeMessage *msg)
     subscriptionInfo *subInfo =  NULL;
     clientSubscription *clientSub = NULL;
     clientSub = (clientSubscription*) get_subscription_list(client);
-    if (!clientSub)
-        return UA_STATUSCODE_BADNOSUBSCRIPTION;
+    VERIFY_NON_NULL(clientSub, UA_STATUSCODE_BADNOSUBSCRIPTION);
 
     subInfo =  (subscriptionInfo *) getSubInfo(clientSub->subscriptionList,
                                      msg->request->nodeInfo->valueAlias);
     //EDGE_LOG(TAG, "subscription id retrieved from map :: %d \n\n", subInfo->subId);
 
-    if (!subInfo)
-    {
-        EDGE_LOG(TAG, "not subscribed yet\n");
-        return UA_STATUSCODE_BADNOSUBSCRIPTION;
-    }
+    VERIFY_NON_NULL(subInfo, UA_STATUSCODE_BADNOSUBSCRIPTION);
 
     EdgeSubRequest *subReq = msg->request->subMsg;
 
@@ -816,11 +790,7 @@ static UA_StatusCode modifySub(UA_Client *client, const EdgeMessage *msg)
     modifyMonitoredItemsRequest.subscriptionId = subInfo->subId;
     modifyMonitoredItemsRequest.itemsToModifySize = 1;
     modifyMonitoredItemsRequest.itemsToModify = EdgeCalloc(1, sizeof(UA_MonitoredItemModifyRequest));
-    if (IS_NULL(modifyMonitoredItemsRequest.itemsToModify))
-    {
-        EDGE_LOG(TAG, "Memory allocation for modify MonitoredItemsRequest failed.");
-        return UA_STATUSCODE_BADUNEXPECTEDERROR;
-    }
+    VERIFY_NON_NULL(modifyMonitoredItemsRequest.itemsToModify, UA_STATUSCODE_BADUNEXPECTEDERROR);
 
     UA_UInt32 monId = subInfo->monId;
 
@@ -964,18 +934,12 @@ static UA_StatusCode rePublish(UA_Client *client, const EdgeMessage *msg)
     subscriptionInfo *subInfo =  NULL;
     clientSubscription *clientSub = NULL;
     clientSub = (clientSubscription*) get_subscription_list(client);
-    if (!clientSub)
-        return UA_STATUSCODE_BADNOSUBSCRIPTION;
+    VERIFY_NON_NULL(clientSub, UA_STATUSCODE_BADNOSUBSCRIPTION);
 
     subInfo =  (subscriptionInfo *) getSubInfo(clientSub->subscriptionList,
             msg->request->nodeInfo->valueAlias);
     //EDGE_LOG(TAG, "subscription id retrieved from map :: %d \n\n", subInfo->subId);
-
-    if (!subInfo)
-    {
-        EDGE_LOG(TAG, "not subscribed yet\n");
-        return UA_STATUSCODE_BADNOSUBSCRIPTION;
-    }
+    VERIFY_NON_NULL(subInfo, UA_STATUSCODE_BADNOSUBSCRIPTION);
 
     // re PublishingMode
     UA_RepublishRequest republishRequest;
@@ -1018,12 +982,8 @@ static UA_StatusCode rePublish(UA_Client *client, const EdgeMessage *msg)
 EdgeResult executeSub(UA_Client *client, const EdgeMessage *msg)
 {
     EdgeResult result;
-    if (!client)
-    {
-        EDGE_LOG(TAG, "client handle invalid!\n");
-        result.code = STATUS_ERROR;
-        return result;
-    }
+    result.code = STATUS_ERROR;
+    VERIFY_NON_NULL(client, result);
 
     EdgeSubRequest *subReq;
 
