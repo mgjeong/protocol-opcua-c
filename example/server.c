@@ -72,6 +72,7 @@ extern void test_method_print(int inpSize, void **input, int outSize, void **out
 extern void test_method_version(int inpSize, void **input, int outSize, void **output);
 extern void test_method_sqrt(int inpSize, void **input, int outSize, void **output);
 extern void test_method_increment_int32Array(int inpSize, void **input, int outSize, void **output);
+void test_method_move(int inpSize, void **input, int outSize, void **output);
 
 /* update node automatically */
 static bool b_running = false;
@@ -121,7 +122,7 @@ static void *server_sample_loop(void *ptr)
                 message->isArray = true;
                 message->arrayLength = 3;
                 modifyVariableNode(DEFAULT_NAMESPACE_VALUE, "robot_position", message);
-                printf("(%d %d %d)\n", posArray[0], posArray[1], posArray[2]);
+                //printf("(%d %d %d)\n", posArray[0], posArray[1], posArray[2]);
             }
             else
             {
@@ -781,11 +782,11 @@ static void testCreateNodes()
 
     /******************* View Node *********************/
     printf(COLOR_GREEN"\n[Create View Node]\n"COLOR_RESET);
-    printf("\n[%d] View Node with ViewNode1\n", ++index);
+    printf("\n[%d] View Node with GTC_robot\n", ++index);
     edgeNodeId = (EdgeNodeId *) EdgeCalloc(1, sizeof(EdgeNodeId));
     if (IS_NOT_NULL(edgeNodeId))
     {
-        item = createNodeItem("ViewNode1", VIEW_NODE, edgeNodeId);
+        item = createNodeItem("GTC_robot", VIEW_NODE, edgeNodeId);
         VERIFY_NON_NULL_NR(item);
         createNode(DEFAULT_NAMESPACE_VALUE, item);
         printf("\n|------------[Added] %s\n", item->browseName);
@@ -794,15 +795,15 @@ static void testCreateNodes()
     }
     else
     {
-        printf("Error :: EdgeMalloc failed for ViewNode1 in Test create Nodes\n");
+        printf("Error :: EdgeMalloc failed for GTC_robot in Test create Nodes\n");
     }
 
-    printf("\n[%d] View Node with ViewNode2\n", ++index);
+    printf("\n[%d] View Node with property (ViewNode)\n", ++index);
     edgeNodeId = (EdgeNodeId *) EdgeMalloc(sizeof(EdgeNodeId));
     if (IS_NOT_NULL(edgeNodeId))
     {
-        edgeNodeId->nodeId = "ViewNode1";
-        item = createNodeItem("ViewNode2", VIEW_NODE, edgeNodeId);
+        edgeNodeId->nodeId = "GTC_robot";
+        item = createNodeItem("property", VIEW_NODE, edgeNodeId);
         VERIFY_NON_NULL_NR(item);
         createNode(DEFAULT_NAMESPACE_VALUE, item);
         printf("\n|------------[Added] %s\n", item->browseName);
@@ -811,7 +812,7 @@ static void testCreateNodes()
     }
     else
     {
-        printf("Error :: EdgeMalloc failed for ViewNode2 in Test create Nodes\n");
+        printf("Error :: EdgeMalloc failed for property (ViewNode) in Test create Nodes\n");
     }
 
     /******************* Object Type Node *********************/
@@ -1204,7 +1205,7 @@ static void testCreateNodes()
     printf("\n[%d] Method Node with inArgMethod \n", ++index);
     EdgeNodeItem *methodNodeItem3 = (EdgeNodeItem *) EdgeMalloc(sizeof(EdgeNodeItem));
     VERIFY_NON_NULL_NR(methodNodeItem3);
-    methodNodeItem3->browseName = "print(x)";
+    methodNodeItem3->browseName = "move_start_point";
     methodNodeItem3->sourceNodeId = NULL;
 
     EdgeMethod *method3 = (EdgeMethod *) EdgeMalloc(sizeof(EdgeMethod));
@@ -1214,9 +1215,9 @@ static void testCreateNodes()
         printf("Error :: EdgeMalloc failed for method printx  in Test create Nodes\n");
         return;
     }
-    method3->description = "print x";
-    method3->methodNodeName = "print";
-    method3->method_fn = test_method_print;
+    method3->description = "move start point";
+    method3->methodNodeName = "move_start_point";
+    method3->method_fn = test_method_move;
 
     method3->num_inpArgs = 1;
     method3->inpArg = (EdgeArgument **) malloc(sizeof(EdgeArgument *) * method3->num_inpArgs);
@@ -1292,7 +1293,7 @@ static void testCreateNodes()
     EdgeFree(methodNodeItem4);
 
     /******************* Robot Scenario Demo *********************/
-    item = createVariableNodeItem("robot_name", String, "test3", VARIABLE_NODE, 100);
+    item = createVariableNodeItem("robot_name", String, "GTC-Robot-1", VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
@@ -1327,14 +1328,14 @@ static void testCreateNodes()
     /******************* Add Reference *********************/
     /************ Reference is not NODE CLASS ***************/
     printf(COLOR_GREEN"\n[Create Reference]\n"COLOR_RESET);
-    printf("\n[%d] Make Reference that ViewNode1 node Organizes with ObjectType1\n", ++index);
+    printf("\n[%d] Make Reference that GTC_robot node Organizes with ObjectType1\n", ++index);
 
     EdgeReference *reference = (EdgeReference *) EdgeCalloc(1, sizeof(EdgeReference));
     if (IS_NOT_NULL(reference))
     {
         reference->forward = true;
         reference->sourceNamespace = (char *) DEFAULT_NAMESPACE_VALUE;
-        reference->sourcePath = "ViewNode1";
+        reference->sourcePath = "GTC_robot";
         reference->targetNamespace = (char *) DEFAULT_NAMESPACE_VALUE;
         reference->targetPath = "robot_name";
         /* default reference ID : Organizes */
@@ -1352,7 +1353,7 @@ static void testCreateNodes()
     {
         reference->forward = true;
         reference->sourceNamespace = (char *) DEFAULT_NAMESPACE_VALUE;
-        reference->sourcePath = "ViewNode1";
+        reference->sourcePath = "GTC_robot";
         reference->targetNamespace = (char *) DEFAULT_NAMESPACE_VALUE;
         reference->targetPath = "robot_id";
         /* default reference ID : Organizes */
@@ -1370,7 +1371,7 @@ static void testCreateNodes()
     {
         reference->forward = true;
         reference->sourceNamespace = (char *) DEFAULT_NAMESPACE_VALUE;
-        reference->sourcePath = "ViewNode1";
+        reference->sourcePath = "GTC_robot";
         reference->targetNamespace = (char *) DEFAULT_NAMESPACE_VALUE;
         reference->targetPath = "robot_position";
         /* default reference ID : Organizes */
@@ -1382,6 +1383,24 @@ static void testCreateNodes()
     {
         printf("Error :: EdgeMalloc failed for EdgeReference in Test create Nodes\n");
     }
+
+        reference = (EdgeReference *) EdgeCalloc(1, sizeof(EdgeReference));
+            if (IS_NOT_NULL(reference))
+            {
+                reference->forward = true;
+                reference->sourceNamespace = (char *) DEFAULT_NAMESPACE_VALUE;
+                reference->sourcePath = "GTC_robot";
+                reference->targetNamespace = (char *) DEFAULT_NAMESPACE_VALUE;
+                reference->targetPath = "move_start_point";
+                /* default reference ID : Organizes */
+                addReference(reference);
+
+                EdgeFree(reference);
+            }
+            else
+            {
+                printf("Error :: EdgeMalloc failed for EdgeReference in Test create Nodes\n");
+            }
     printf("\n\n");
 }
 
@@ -1726,3 +1745,31 @@ int main()
     return 0;
 }
 
+
+void test_method_move(int inpSize, void **input, int outSize, void **output)
+{
+    int *inp = (int*) input[0];
+    printf(COLOR_GREEN "\n[method call - robot is moved to start-point]" COLOR_RESET);
+    printf(COLOR_PURPLE " (x:%d, y:%d, z:%d)\n" COLOR_RESET, *inp, *inp, *inp );
+
+    EdgeVersatility *message = (EdgeVersatility *) EdgeMalloc(sizeof(EdgeVersatility));
+    if (IS_NOT_NULL(message))
+    {
+        int posArray[3];
+        if (IS_NOT_NULL(posArray))
+        {
+            posArray[0] = *inp;
+            posArray[1] = *inp;
+            posArray[2] = *inp;
+            message->value = (void *) posArray;
+            message->isArray = true;
+            message->arrayLength = 3;
+            modifyVariableNode(DEFAULT_NAMESPACE_VALUE, "robot_position", message);
+        }
+        else
+        {
+            printf("Error :: EdgeMalloc failed for int Array in Test create Nodes\n");
+        }
+        EdgeFree(message);
+    }
+}
