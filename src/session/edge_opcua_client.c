@@ -74,40 +74,34 @@ static void getAddressPort(char *endpoint, char **out)
 
 static keyValue getSessionClient(char *endpoint)
 {
-    if (!sessionClientMap)
-        return NULL;
+    VERIFY_NON_NULL(sessionClientMap, NULL);
+
     char *ep = NULL;
     getAddressPort(endpoint, &ep);
-    if (!ep)
-        return NULL;
+    VERIFY_NON_NULL(ep, NULL);
 
-    edgeMapNode *temp = sessionClientMap->head;
-    while (temp != NULL)
+    keyValue value = NULL;
+    for(edgeMapNode *temp = sessionClientMap->head; temp != NULL; temp = temp->next)
     {
         if (!strcmp(temp->key, ep))
         {
-            free(ep);
-            ep = NULL;
-            return temp->value;
+            value = temp->value;
+            break;
         }
-        temp = temp->next;
     }
-    free(ep);
-    ep = NULL;
-    return NULL;
+    EdgeFree(ep);
+    return value;
 }
 
 static edgeMapNode *removeClientFromSessionMap(char *endpoint)
 {
-    if (!sessionClientMap)
-        return NULL;
+    VERIFY_NON_NULL(sessionClientMap, NULL);
     char *ep = NULL;
     getAddressPort(endpoint, &ep);
-    if (!ep)
-        return NULL;
+    VERIFY_NON_NULL(ep, NULL);
 
-    edgeMapNode *temp = sessionClientMap->head;
     edgeMapNode *prev = NULL;
+    edgeMapNode *temp = sessionClientMap->head;
     while (temp != NULL)
     {
         if (!strcmp(temp->key, ep))
@@ -120,16 +114,13 @@ static edgeMapNode *removeClientFromSessionMap(char *endpoint)
             {
                 prev->next = temp->next;
             }
-            free(ep);
-            ep = NULL;
-            return temp;
+            break;
         }
         prev = temp;
         temp = temp->next;
     }
-    free(ep);
-    ep = NULL;
-    return NULL;
+    EdgeFree(ep);
+    return temp;
 }
 
 void setSupportedApplicationTypes(uint8_t supportedTypes)
@@ -139,16 +130,12 @@ void setSupportedApplicationTypes(uint8_t supportedTypes)
 
 EdgeResult readNodesFromServer(EdgeMessage *msg)
 {
-    EdgeResult result = executeRead((UA_Client*) getSessionClient(msg->endpointInfo->endpointUri),
-            msg);
-    return result;
+    return executeRead((UA_Client*) getSessionClient(msg->endpointInfo->endpointUri), msg);
 }
 
 EdgeResult writeNodesInServer(EdgeMessage *msg)
 {
-    EdgeResult result = executeWrite((UA_Client*) getSessionClient(msg->endpointInfo->endpointUri),
-            msg);
-    return result;
+    return executeWrite((UA_Client*) getSessionClient(msg->endpointInfo->endpointUri), msg);
 }
 
 void browseNodesInServer(EdgeMessage *msg)
@@ -158,16 +145,12 @@ void browseNodesInServer(EdgeMessage *msg)
 
 EdgeResult callMethodInServer(EdgeMessage *msg)
 {
-    EdgeResult result = executeMethod((UA_Client*) getSessionClient(msg->endpointInfo->endpointUri),
-            msg);
-    return result;
+    return executeMethod((UA_Client*) getSessionClient(msg->endpointInfo->endpointUri), msg);
 }
 
 EdgeResult executeSubscriptionInServer(EdgeMessage *msg)
 {
-    EdgeResult result = executeSub((UA_Client*) getSessionClient(msg->endpointInfo->endpointUri),
-            msg);
-    return result;
+    return executeSub((UA_Client*) getSessionClient(msg->endpointInfo->endpointUri), msg);
 }
 
 bool connect_client(char *endpoint)
@@ -177,6 +160,7 @@ bool connect_client(char *endpoint)
     UA_Client *m_client = NULL;
     char *m_endpoint = NULL;
 
+    EDGE_LOG_V(TAG, "endpoint :: %s\n", endpoint);
     if (NULL != getSessionClient(endpoint))
     {
         EDGE_LOG(TAG, "client already connected.\n");
@@ -184,9 +168,8 @@ bool connect_client(char *endpoint)
     }
 
     m_client = UA_Client_new(config);
-
-    EDGE_LOG_V(TAG, "endpoint :: %s\n", endpoint);
     VERIFY_NON_NULL(m_client, false);
+
     retVal = UA_Client_connect(m_client, endpoint);
     /* Connect with User name and Password */
     //retVal = UA_Client_connect_username(m_client, endpoint, "user2", "password1");
@@ -194,11 +177,7 @@ bool connect_client(char *endpoint)
     if (retVal != UA_STATUSCODE_GOOD)
     {
         EDGE_LOG_V(TAG, "\n [CLIENT] Unable to connect 0x%08x!\n", retVal);
-        if (m_client)
-        {
-            UA_Client_delete(m_client);
-            m_client = NULL;
-        }
+        UA_Client_delete(m_client);
         return false;
     }
 
@@ -217,8 +196,7 @@ bool connect_client(char *endpoint)
     VERIFY_NON_NULL(ep, false);
     ep->endpointUri = endpoint;
     g_statusCallback(ep, STATUS_CLIENT_STARTED);
-    free(ep);
-    ep = NULL;
+    EdgeFree(ep);
 
     return true;
 }
@@ -299,7 +277,8 @@ static void logEndpointDescription(UA_EndpointDescription *ep)
 
 static EdgeApplicationType convertApplicationType(UA_ApplicationType appType)
 {
-    EdgeApplicationType edgeAppType;
+    // Setting SERVER as default application type.
+    EdgeApplicationType edgeAppType = EDGE_APPLICATIONTYPE_SERVER;
     switch(appType)
     {
         case UA_APPLICATIONTYPE_SERVER:
@@ -315,10 +294,6 @@ static EdgeApplicationType convertApplicationType(UA_ApplicationType appType)
             edgeAppType = EDGE_APPLICATIONTYPE_DISCOVERYSERVER;
             break;
         default:
-            // Setting SERVER as default application type.
-            // Ideally this API is not supposed to be called with types other than those checked above.
-            // Adding this logic for completion of this function.
-            edgeAppType = EDGE_APPLICATIONTYPE_SERVER;
             break;
     }
     return edgeAppType;
@@ -326,10 +301,7 @@ static EdgeApplicationType convertApplicationType(UA_ApplicationType appType)
 
 static EdgeApplicationConfig *convertToEdgeApplicationConfig(UA_ApplicationDescription *appDesc)
 {
-    if (!appDesc)
-    {
-        return NULL;
-    }
+    VERIFY_NON_NULL(appDesc, NULL);
 
     EdgeApplicationConfig *appConfig = (EdgeApplicationConfig *) EdgeCalloc(1,
             sizeof(EdgeApplicationConfig));
@@ -419,10 +391,7 @@ static EdgeApplicationConfig *convertToEdgeApplicationConfig(UA_ApplicationDescr
 
 static EdgeEndPointInfo *convertToEdgeEndpointInfo(UA_EndpointDescription *endpoint)
 {
-    if (!endpoint)
-    {
-        return NULL;
-    }
+    VERIFY_NON_NULL(endpoint, NULL);
 
     EdgeEndPointInfo *epInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
     if (!epInfo)
@@ -478,11 +447,8 @@ static EdgeEndPointInfo *convertToEdgeEndpointInfo(UA_EndpointDescription *endpo
 
 static bool convertUnsignedCharStringToUAString(const unsigned char *str, UA_String *uaStr)
 {
-    if(IS_NULL(str) || IS_NULL(uaStr))
-    {
-        EDGE_LOG(TAG, "NULL parameter.");
-        return false;
-    }
+    VERIFY_NON_NULL(str, false);
+    VERIFY_NON_NULL(uaStr, false);
 
     uaStr->length = strlen((const char *)str);
     uaStr->data = (UA_Byte *) EdgeMalloc(uaStr->length);
@@ -591,7 +557,6 @@ static bool isApplicationTypeSupported(UA_ApplicationType appType)
             supported = (supportedApplicationTypes & EDGE_APPLICATIONTYPE_DISCOVERYSERVER) ? true: false;
             break;
         default:
-            supported = false;
             break;
     }
 
@@ -1194,7 +1159,6 @@ EdgeResult getClientEndpoints(char *endpointUri)
     if (endpointArraySize <= 0)
     {
         EDGE_LOG(TAG, "No endpoints found.");
-        device->num_endpoints = 0;
         g_discoveryCallback(device);
         result.code = STATUS_OK;
         goto EXIT;

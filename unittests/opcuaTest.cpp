@@ -65,7 +65,7 @@ static EdgeEndPointInfo *epInfo = NULL;
 static EdgeConfigure *config = NULL;
 
 static uint8_t supportedApplicationTypes = EDGE_APPLICATIONTYPE_SERVER | EDGE_APPLICATIONTYPE_DISCOVERYSERVER |
-    EDGE_APPLICATIONTYPE_CLIENTANDSERVER;
+    EDGE_APPLICATIONTYPE_CLIENTANDSERVER | EDGE_APPLICATIONTYPE_CLIENT;
 
 static bool startServerFlag = false;
 static bool startClientFlag = false;
@@ -1259,7 +1259,7 @@ TEST_F(OPC_serverTests, FindServers_With_Different_ServerAppURI)
 
     char endpointUriCopy[512];
     strcpy(endpointUriCopy, endpointUri);
-    strcpy(endpointUri, "opc.tcp://localhost:12687");
+    strcpy(endpointUri, "opc.tcp://localhost:12687/edge-opc-server");
     char *serverAppUri = "opc.tcp://192.168.0.200:1234";
     start_server(12687, serverAppUri);
 
