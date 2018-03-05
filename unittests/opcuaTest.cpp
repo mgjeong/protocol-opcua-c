@@ -927,7 +927,7 @@ static void startClient(char *addr, int port, char *securityPolicyUri)
     destroyEdgeMessage(msg);
 }
 
-static void start_server(uint16_t port, char *appUri)
+static void start_server(uint16_t port, char *appUri, EdgeApplicationType appType)
 {
     int len = strlen(endpointUri);
     epInfo->endpointUri = (char *) EdgeMalloc(len + 1);
@@ -946,6 +946,7 @@ static void start_server(uint16_t port, char *appUri)
     appConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
     appConfig->applicationUri = appUri;
     appConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
+    appConfig->applicationType = appType;
 
     EdgeEndPointInfo *ep = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
     ep->endpointUri = endpointUri;
@@ -1232,7 +1233,7 @@ TEST_F(OPC_serverTests , StartStopServer_P)
         printf("true\n");
     else
         printf("false\n");
-    start_server(12686, (char *)DEFAULT_SERVER_APP_URI_VALUE);
+    start_server(12686, (char *)DEFAULT_SERVER_APP_URI_VALUE, EDGE_APPLICATIONTYPE_SERVER);
 
     ASSERT_TRUE(startServerFlag == true);
 
@@ -1261,7 +1262,7 @@ TEST_F(OPC_serverTests, FindServers_With_Different_ServerAppURI)
     strcpy(endpointUriCopy, endpointUri);
     strcpy(endpointUri, "opc.tcp://localhost:12687/edge-opc-server");
     char *serverAppUri = "opc.tcp://192.168.0.200:1234";
-    start_server(12687, serverAppUri);
+    start_server(12687, serverAppUri, EDGE_APPLICATIONTYPE_SERVER);
 
     ASSERT_TRUE(startServerFlag == true);
 
@@ -1284,6 +1285,141 @@ TEST_F(OPC_serverTests, FindServers_With_Different_ServerAppURI)
     strcpy(endpointUri, endpointUriCopy);
 }
 
+TEST_F(OPC_serverTests, FindServers_With_Invalid_ServerAppURI)
+{
+    if (startServerFlag == true)
+        printf("true\n");
+    else
+        printf("false\n");
+
+    char endpointUriCopy[512];
+    strcpy(endpointUriCopy, endpointUri);
+    strcpy(endpointUri, "opc.tcp://localhost:12687/edge-opc-server");
+    char *serverAppUri = "opc.tcp://192.168.0.300:1234";
+    start_server(12687, serverAppUri, EDGE_APPLICATIONTYPE_SERVER);
+
+    ASSERT_TRUE(startServerFlag == true);
+
+    if (startServerFlag == true)
+        printf("true\n");
+    else
+        printf("false\n");
+
+    // Find Server
+    findServersHelper();
+
+    PRINT("=============STOP SERVER===============");
+
+    stop_server(endpointUri);
+    if (startServerFlag == true)
+        printf("true\n");
+    else
+        printf("false\n");
+
+    strcpy(endpointUri, endpointUriCopy);
+}
+
+TEST_F(OPC_serverTests, ClientAppType_And_FindServers)
+{
+    if (startServerFlag == true)
+        printf("true\n");
+    else
+        printf("false\n");
+
+    char endpointUriCopy[512];
+    strcpy(endpointUriCopy, endpointUri);
+    strcpy(endpointUri, "opc.tcp://localhost:12687/edge-opc-server");
+    char *serverAppUri = "opc.tcp://192.168.0.200:1234";
+    start_server(12687, serverAppUri, EDGE_APPLICATIONTYPE_CLIENT);
+
+    ASSERT_TRUE(startServerFlag == true);
+
+    if (startServerFlag == true)
+        printf("true\n");
+    else
+        printf("false\n");
+
+    // Find Server
+    findServersHelper();
+
+    PRINT("=============STOP SERVER===============");
+
+    stop_server(endpointUri);
+    if (startServerFlag == true)
+        printf("true\n");
+    else
+        printf("false\n");
+
+    strcpy(endpointUri, endpointUriCopy);
+}
+
+TEST_F(OPC_serverTests, ClientAndServerAppType_And_FindServers)
+{
+    if (startServerFlag == true)
+        printf("true\n");
+    else
+        printf("false\n");
+
+    char endpointUriCopy[512];
+    strcpy(endpointUriCopy, endpointUri);
+    strcpy(endpointUri, "opc.tcp://localhost:12687/edge-opc-server");
+    char *serverAppUri = "opc.tcp://192.168.0.200:1234";
+    start_server(12687, serverAppUri, EDGE_APPLICATIONTYPE_CLIENTANDSERVER);
+
+    ASSERT_TRUE(startServerFlag == true);
+
+    if (startServerFlag == true)
+        printf("true\n");
+    else
+        printf("false\n");
+
+    // Find Server
+    findServersHelper();
+
+    PRINT("=============STOP SERVER===============");
+
+    stop_server(endpointUri);
+    if (startServerFlag == true)
+        printf("true\n");
+    else
+        printf("false\n");
+
+    strcpy(endpointUri, endpointUriCopy);
+}
+
+TEST_F(OPC_serverTests, DiscoverServerAppType_And_FindServers)
+{
+    if (startServerFlag == true)
+        printf("true\n");
+    else
+        printf("false\n");
+
+    char endpointUriCopy[512];
+    strcpy(endpointUriCopy, endpointUri);
+    strcpy(endpointUri, "opc.tcp://localhost:12687/edge-opc-server");
+    char *serverAppUri = "opc.tcp://192.168.0.200:1234";
+    start_server(12687, serverAppUri, EDGE_APPLICATIONTYPE_DISCOVERYSERVER);
+
+    ASSERT_TRUE(startServerFlag == true);
+
+    if (startServerFlag == true)
+        printf("true\n");
+    else
+        printf("false\n");
+
+    // Find Server
+    findServersHelper();
+
+    PRINT("=============STOP SERVER===============");
+
+    stop_server(endpointUri);
+    if (startServerFlag == true)
+        printf("true\n");
+    else
+        printf("false\n");
+
+    strcpy(endpointUri, endpointUriCopy);
+}
 
 TEST_F(OPC_serverTests , StartServer_N1)
 {
@@ -1640,7 +1776,7 @@ TEST_F(OPC_serverTests , ServerCreateNode_N2)
 
 TEST_F(OPC_serverTests , ServerAddNodes_P)
 {
-    start_server(12686, (char *) DEFAULT_SERVER_APP_URI_VALUE);
+    start_server(12686, (char *) DEFAULT_SERVER_APP_URI_VALUE, EDGE_APPLICATIONTYPE_SERVER);
 
     EXPECT_EQ(startServerFlag, true);
 
