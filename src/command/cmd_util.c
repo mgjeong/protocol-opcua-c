@@ -76,8 +76,3 @@ int get_response_type(const UA_DataType *datatype)
     }
     return -1;
 }
-
-void* parse_response_string()
-{
-
-}
