@@ -31,11 +31,7 @@
 static void sendErrorResponse(const EdgeMessage *msg, const char *err_desc)
 {
     EdgeMessage *resultMsg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
-    if(IS_NULL(resultMsg))
-    {
-        EDGE_LOG(TAG, "Memory allocation failed.");
-        return;
-    }
+    VERIFY_NON_NULL_NR(resultMsg);
 
     resultMsg->endpointInfo = cloneEdgeEndpointInfo(msg->endpointInfo);
     if(IS_NULL(resultMsg->endpointInfo))
@@ -105,11 +101,7 @@ EdgeResult executeMethod(UA_Client *client, const EdgeMessage *msg)
 {
     EdgeResult result;
     result.code = STATUS_ERROR;
-    if (IS_NULL(client))
-    {
-        EDGE_LOG(TAG, "Client handle Invalid\n");
-        return result;
-    }
+    VERIFY_NON_NULL(client, result);
     EdgeRequest *request = msg->request;
     EdgeMethodRequestParams *params = request->methodParams;
     int idx = 0;
@@ -122,11 +114,7 @@ EdgeResult executeMethod(UA_Client *client, const EdgeMessage *msg)
     if (num_inpArgs > 0)
     {
         input = (UA_Variant *) EdgeCalloc(params->num_inpArgs, sizeof(UA_Variant));
-        if(IS_NULL(input))
-        {
-            EDGE_LOG(TAG, "Memory allocation failed.");
-            return result;
-        }
+        VERIFY_NON_NULL(input, result);
     }
 
     for (idx = 0; idx < num_inpArgs; idx++)
