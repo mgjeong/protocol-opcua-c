@@ -927,7 +927,7 @@ static void startClient(char *addr, int port, char *securityPolicyUri)
     destroyEdgeMessage(msg);
 }
 
-static void start_server()
+static void start_server(uint16_t port, char *appUri)
 {
     int len = strlen(endpointUri);
     epInfo->endpointUri = (char *) EdgeMalloc(len + 1);
@@ -939,12 +939,12 @@ static void start_server()
 
     EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) EdgeCalloc(1, sizeof(EdgeEndpointConfig));
     endpointConfig->bindAddress = ipAddress;
-    endpointConfig->bindPort = 12686;
+    endpointConfig->bindPort = port;
     endpointConfig->serverName = (char *) DEFAULT_SERVER_NAME_VALUE;
 
     EdgeApplicationConfig *appConfig = (EdgeApplicationConfig *) EdgeCalloc(1, sizeof(EdgeApplicationConfig));
     appConfig->applicationName = (char *) DEFAULT_SERVER_APP_NAME_VALUE;
-    appConfig->applicationUri = (char *) DEFAULT_SERVER_APP_URI_VALUE;
+    appConfig->applicationUri = appUri;
     appConfig->productUri = (char *) DEFAULT_PRODUCT_URI_VALUE;
 
     EdgeEndPointInfo *ep = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
@@ -974,11 +974,11 @@ static void start_server()
     }
 }
 
-static void stop_server()
+static void stop_server(char *endpoint)
 {
     configureCallbacks();
     EdgeEndPointInfo *epStop = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    epStop->endpointUri = endpointUri;
+    epStop->endpointUri = endpoint;
 
     closeServer(epStop);
 
@@ -995,6 +995,40 @@ static void stop_client()
     EXPECT_EQ(NULL!=msg, true);
     disconnectClient(msg->endpointInfo);
     destroyEdgeMessage(msg);
+}
+
+static void findServersHelper()
+{
+    size_t serverUrisSize = 0;
+    unsigned char **serverUris = NULL;
+    size_t localeIdsSize = 0;
+    unsigned char **localeIds = NULL;
+    EdgeApplicationConfig *registeredServers = NULL;
+    size_t registeredServersSize = 0;
+    EdgeResult res = findServers(endpointUri, serverUrisSize, serverUris, localeIdsSize, localeIds, &registeredServersSize, &registeredServers);
+    EXPECT_EQ(res.code,STATUS_OK);
+
+    printf("\nTotal number of registered servers at the given server: %zu\n", registeredServersSize);
+    for(size_t idx = 0; idx < registeredServersSize ; ++idx)
+    {
+        printf("Server[%zu] -> Application URI: %s\n", idx+1, registeredServers[idx].applicationUri);
+        printf("Server[%zu] -> Product URI: %s\n", idx+1, registeredServers[idx].productUri);
+        printf("Server[%zu] -> Application Name: %s\n", idx+1, registeredServers[idx].applicationName);
+        printf("Server[%zu] -> Application Type: %u\n", idx+1, registeredServers[idx].applicationType);
+        printf("Server[%zu] -> Gateway Server URI: %s\n", idx+1, registeredServers[idx].gatewayServerUri);
+        printf("Server[%zu] -> Discovery Profile URI: %s\n", idx+1, registeredServers[idx].discoveryProfileUri);
+        for(size_t i = 0; i < registeredServers[idx].discoveryUrlsSize; ++i)
+        {
+            printf("Server[%zu] -> Discovery URL[%zu]: %s\n", idx+1, i+1, registeredServers[idx].discoveryUrls[i]);
+        }
+    }
+
+    // Application has to deallocate the memory for EdgeApplicationConfig array and its members.
+    for(size_t idx = 0; idx < registeredServersSize ; ++idx)
+    {
+        destroyEdgeApplicationConfigMembers(&registeredServers[idx]);
+    }
+    EdgeFree(registeredServers);
 }
 
 class OPC_serverTests: public ::testing::Test
@@ -1198,7 +1232,7 @@ TEST_F(OPC_serverTests , StartStopServer_P)
         printf("true\n");
     else
         printf("false\n");
-    start_server();
+    start_server(12686, (char *)DEFAULT_SERVER_APP_URI_VALUE);
 
     ASSERT_TRUE(startServerFlag == true);
 
@@ -1209,11 +1243,45 @@ TEST_F(OPC_serverTests , StartStopServer_P)
 
     PRINT("=============STOP SERVER===============");
 
-    stop_server();
+    stop_server(endpointUri);
     if (startServerFlag == true)
         printf("true\n");
     else
         printf("false\n");
+}
+
+TEST_F(OPC_serverTests, FindServers_With_Different_ServerAppURI)
+{
+    if (startServerFlag == true)
+        printf("true\n");
+    else
+        printf("false\n");
+
+    char endpointUriCopy[512];
+    strcpy(endpointUriCopy, endpointUri);
+    strcpy(endpointUri, "opc.tcp://localhost:12687");
+    char *serverAppUri = "opc.tcp://192.168.0.200:1234";
+    start_server(12687, serverAppUri);
+
+    ASSERT_TRUE(startServerFlag == true);
+
+    if (startServerFlag == true)
+        printf("true\n");
+    else
+        printf("false\n");
+
+    // Find Server
+    findServersHelper();
+
+    PRINT("=============STOP SERVER===============");
+
+    stop_server(endpointUri);
+    if (startServerFlag == true)
+        printf("true\n");
+    else
+        printf("false\n");
+
+    strcpy(endpointUri, endpointUriCopy);
 }
 
 
@@ -1572,7 +1640,7 @@ TEST_F(OPC_serverTests , ServerCreateNode_N2)
 
 TEST_F(OPC_serverTests , ServerAddNodes_P)
 {
-    start_server();
+    start_server(12686, (char *) DEFAULT_SERVER_APP_URI_VALUE);
 
     EXPECT_EQ(startServerFlag, true);
 
@@ -2616,36 +2684,7 @@ TEST_F(OPC_clientTests , InitializeClient_P)
 
 TEST_F(OPC_clientTests , FindServers_P1)
 {
-    size_t serverUrisSize = 0;
-    unsigned char **serverUris = NULL;
-    size_t localeIdsSize = 0;
-    unsigned char **localeIds = NULL;
-    EdgeApplicationConfig *registeredServers = NULL;
-    size_t registeredServersSize = 0;
-    EdgeResult res = findServers(endpointUri, serverUrisSize, serverUris, localeIdsSize, localeIds, &registeredServersSize, &registeredServers);
-    EXPECT_EQ(res.code,STATUS_OK);
-
-    printf("\nTotal number of registered servers at the given server: %zu\n", registeredServersSize);
-    for(size_t idx = 0; idx < registeredServersSize ; ++idx)
-    {
-        printf("Server[%zu] -> Application URI: %s\n", idx+1, registeredServers[idx].applicationUri);
-        printf("Server[%zu] -> Product URI: %s\n", idx+1, registeredServers[idx].productUri);
-        printf("Server[%zu] -> Application Name: %s\n", idx+1, registeredServers[idx].applicationName);
-        printf("Server[%zu] -> Application Type: %u\n", idx+1, registeredServers[idx].applicationType);
-        printf("Server[%zu] -> Gateway Server URI: %s\n", idx+1, registeredServers[idx].gatewayServerUri);
-        printf("Server[%zu] -> Discovery Profile URI: %s\n", idx+1, registeredServers[idx].discoveryProfileUri);
-        for(size_t i = 0; i < registeredServers[idx].discoveryUrlsSize; ++i)
-        {
-            printf("Server[%zu] -> Discovery URL[%zu]: %s\n", idx+1, i+1, registeredServers[idx].discoveryUrls[i]);
-        }
-    }
-
-    // Application has to deallocate the memory for EdgeApplicationConfig array and its members.
-    for(size_t idx = 0; idx < registeredServersSize ; ++idx)
-    {
-        destroyEdgeApplicationConfigMembers(&registeredServers[idx]);
-    }
-    EdgeFree(registeredServers);
+    findServersHelper();
 }
 
 TEST_F(OPC_clientTests , FindServers_P2)
