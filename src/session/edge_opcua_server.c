@@ -354,6 +354,9 @@ EdgeResult start_server(EdgeEndPointInfo *epInfo)
     m_serverConfig->applicationDescription.applicationName = UA_LOCALIZEDTEXT_ALLOC("en-US",
             appConfig->applicationName);
     m_serverConfig->applicationDescription.productUri = UA_STRING_ALLOC(appConfig->productUri);
+    m_serverConfig->applicationDescription.applicationType = convertEdgeApplicationType(
+            appConfig->applicationType);
+
     m_serverConfig->buildInfo.productUri = UA_STRING_ALLOC("/edge");
     m_serverConfig->buildInfo.manufacturerName = UA_STRING_ALLOC("samsung");
     m_serverConfig->buildInfo.productName = UA_STRING_ALLOC("edgeSolution");

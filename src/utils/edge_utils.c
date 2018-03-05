@@ -117,7 +117,7 @@ bool addListNode(List **head, void *data)
 unsigned int getListSize(List *ptr)
 {
     VERIFY_NON_NULL(ptr, 0);
-    
+
     size_t size = 0;
     while (ptr)
     {
@@ -189,6 +189,54 @@ char *convertUAStringToString(UA_String *uaStr)
     memcpy(str, uaStr->data, uaStr->length);
     str[uaStr->length] = '\0';
     return str;
+}
+
+EdgeApplicationType convertToEdgeApplicationType(UA_ApplicationType appType)
+{
+    // Setting SERVER as default application type.
+    EdgeApplicationType edgeAppType = EDGE_APPLICATIONTYPE_SERVER;
+    switch(appType)
+    {
+        case UA_APPLICATIONTYPE_SERVER:
+            edgeAppType = EDGE_APPLICATIONTYPE_SERVER;
+            break;
+        case UA_APPLICATIONTYPE_CLIENT:
+            edgeAppType = EDGE_APPLICATIONTYPE_CLIENT;
+            break;
+        case UA_APPLICATIONTYPE_CLIENTANDSERVER:
+            edgeAppType = EDGE_APPLICATIONTYPE_CLIENTANDSERVER;
+            break;
+        case UA_APPLICATIONTYPE_DISCOVERYSERVER:
+            edgeAppType = EDGE_APPLICATIONTYPE_DISCOVERYSERVER;
+            break;
+        default:
+            break;
+    }
+    return edgeAppType;
+}
+
+UA_ApplicationType convertEdgeApplicationType(EdgeApplicationType appType)
+{
+    // Setting SERVER as default application type.
+    UA_ApplicationType uaAppType = UA_APPLICATIONTYPE_SERVER;
+    switch(appType)
+    {
+        case EDGE_APPLICATIONTYPE_SERVER:
+            uaAppType = UA_APPLICATIONTYPE_SERVER;
+            break;
+        case EDGE_APPLICATIONTYPE_CLIENT:
+            uaAppType = UA_APPLICATIONTYPE_CLIENT;
+            break;
+        case EDGE_APPLICATIONTYPE_CLIENTANDSERVER:
+            uaAppType = UA_APPLICATIONTYPE_CLIENTANDSERVER;
+            break;
+        case EDGE_APPLICATIONTYPE_DISCOVERYSERVER:
+            uaAppType = UA_APPLICATIONTYPE_DISCOVERYSERVER;
+            break;
+        default:
+            break;
+    }
+    return uaAppType;
 }
 
 void freeEdgeEndpointConfig(EdgeEndpointConfig *config)
