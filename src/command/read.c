@@ -19,6 +19,7 @@
  ******************************************************************/
 
 #include "read.h"
+#include "cmd_util.h"
 #include "common_client.h"
 #include "message_dispatcher.h"
 #include "edge_logger.h"
@@ -77,19 +78,15 @@ static void sendErrorResponse(const EdgeMessage *msg, char *err_desc)
 
 static bool checkMaxAge(UA_DateTime timestamp, UA_DateTime now, double maxAge)
 {
-
     // Server timestamp is greater than current time
     if (timestamp > now)
         return false;
 
     int64_t second = DateTime_toUnixTime(now);
     int64_t first = DateTime_toUnixTime(timestamp);
-
     int64_t diff = second - first;
-
     if ((maxAge != 0) && (diff > maxAge))
         return false;
-
     return true;
 }
 
@@ -97,7 +94,6 @@ static bool compareNumber(int64_t number1, int64_t number2)
 {
     if (number1 > number2)
         return true;
-
     return false;
 }
 
@@ -119,19 +115,10 @@ static bool checkInvalidTime(UA_DateTime serverTime, UA_DateTime sourceTime, int
         }
 
         // compare number
-        if (compareNumber(now_time - server_time, validMilliSec))
-        {
-            ret = false;
-        }
-        else if (compareNumber(now_time - source_time, validMilliSec))
-        {
-            ret = false;
-        }
-        else if (compareNumber(server_time, now_time))
-        {
-            ret = false;
-        }
-        else if (compareNumber(source_time, now_time))
+        if (compareNumber(now_time - server_time, validMilliSec) ||
+                compareNumber(now_time - source_time, validMilliSec) ||
+                compareNumber(server_time, now_time) ||
+                compareNumber(source_time, now_time))
         {
             ret = false;
         }
@@ -145,11 +132,8 @@ static bool checkInvalidTime(UA_DateTime serverTime, UA_DateTime sourceTime, int
         }
 
         // compare number
-        if (compareNumber(now_time - source_time, validMilliSec))
-        {
-            ret = false;
-        }
-        else if (compareNumber(source_time, now_time))
+        if (compareNumber(now_time - source_time, validMilliSec) ||
+                compareNumber(source_time, now_time))
         {
             ret = false;
         }
@@ -163,11 +147,8 @@ static bool checkInvalidTime(UA_DateTime serverTime, UA_DateTime sourceTime, int
         }
 
         // compare number
-        if (compareNumber(now_time - server_time, validMilliSec))
-        {
-            ret = false;
-        }
-        else if (compareNumber(server_time, now_time))
+        if (compareNumber(now_time - server_time, validMilliSec) ||
+                compareNumber(server_time, now_time))
         {
             ret = false;
         }
@@ -437,79 +418,7 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attri
                 versatility->arrayLength = val.arrayLength;
                 versatility->isArray = true;
             }
-
-            if (val.type == &UA_TYPES[UA_TYPES_BOOLEAN])
-            {
-                response->type = UA_NS0ID_BOOLEAN;
-            }
-            else if (val.type == &UA_TYPES[UA_TYPES_INT16])
-            {
-                response->type = UA_NS0ID_INT16;
-            }
-            else if (val.type == &UA_TYPES[UA_TYPES_UINT16])
-            {
-                response->type = UA_NS0ID_UINT16;
-            }
-            else if (val.type == &UA_TYPES[UA_TYPES_INT32])
-            {
-                response->type = UA_NS0ID_INT32;
-            }
-            else if (val.type == &UA_TYPES[UA_TYPES_UINT32])
-            {
-                response->type = UA_NS0ID_UINT32;
-            }
-            else if (val.type == &UA_TYPES[UA_TYPES_INT64])
-            {
-                response->type = UA_NS0ID_INT64;
-            }
-            else if (val.type == &UA_TYPES[UA_TYPES_UINT64])
-            {
-                response->type = UA_NS0ID_UINT64;
-            }
-            else if (val.type == &UA_TYPES[UA_TYPES_FLOAT])
-            {
-                response->type = UA_NS0ID_FLOAT;
-            }
-            else if (val.type == &UA_TYPES[UA_TYPES_DOUBLE])
-            {
-                response->type = UA_NS0ID_DOUBLE;
-            }
-            else if (val.type == &UA_TYPES[UA_TYPES_STRING])
-            {
-                response->type = UA_NS0ID_STRING;
-            }
-            else if (val.type == &UA_TYPES[UA_TYPES_BYTESTRING])
-            {
-                response->type = UA_NS0ID_BYTESTRING;
-            }
-            else if (val.type == &UA_TYPES[UA_TYPES_GUID])
-            {
-                response->type = UA_NS0ID_GUID;
-            }
-            else if (val.type == &UA_TYPES[UA_TYPES_SBYTE])
-            {
-                response->type = UA_NS0ID_SBYTE;
-            }
-            else if (val.type == &UA_TYPES[UA_TYPES_BYTE])
-            {
-                response->type = UA_NS0ID_BYTE;
-            }
-            else if (val.type == &UA_TYPES[UA_TYPES_DATETIME])
-            {
-                response->type = UA_NS0ID_DATETIME;
-            }
-            else if (val.type == &UA_TYPES[UA_TYPES_XMLELEMENT])
-            {
-                response->type = UA_NS0ID_XMLELEMENT;
-            }
-            else if (val.type == &UA_TYPES[UA_TYPES_QUALIFIEDNAME])
-            {
-                response->type = UA_NS0ID_QUALIFIEDNAME;
-            }
-            else if (val.type == &UA_TYPES[UA_TYPES_LOCALIZEDTEXT])
-            {
-                response->type = UA_NS0ID_LOCALIZEDTEXT;
-            }
+            response->type = get_response_type(val.type);
 
             if (isScalar)
             {
