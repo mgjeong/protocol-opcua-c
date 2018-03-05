@@ -24,6 +24,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#define TAG "edge_malloc"
+
 void *EdgeMalloc(size_t size)
 {
     if (0 == size)

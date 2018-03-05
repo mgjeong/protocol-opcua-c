@@ -3,6 +3,8 @@
 #include "edge_utils.h"
 #include "message_dispatcher.h"
 
+#define TAG "cmd_util"
+
 int get_response_type(const UA_DataType *datatype)
 {
     if (datatype == &UA_TYPES[UA_TYPES_BOOLEAN])
