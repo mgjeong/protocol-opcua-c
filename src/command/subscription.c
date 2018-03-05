@@ -19,6 +19,7 @@
  ******************************************************************/
 
 #include "subscription.h"
+#include "cmd_util.h"
 #include "edge_logger.h"
 #include "edge_malloc.h"
 #include "message_dispatcher.h"
@@ -256,7 +257,6 @@ static void monitoredItemHandler(UA_Client *client, UA_UInt32 monId, UA_DataValu
     }
 
     bool isScalar = UA_Variant_isScalar(&(value->value));
-
     if (isScalar)
     {
         response->message->arrayLength = 0;
@@ -267,67 +267,7 @@ static void monitoredItemHandler(UA_Client *client, UA_UInt32 monId, UA_DataValu
         response->message->arrayLength = value->value.arrayLength;
         response->message->isArray = true;
     }
-
-    if (value->value.type == &UA_TYPES[UA_TYPES_BOOLEAN])
-    {
-        response->type = UA_NS0ID_BOOLEAN;
-    }
-    else if (value->value.type == &UA_TYPES[UA_TYPES_INT16])
-    {
-        response->type = UA_NS0ID_INT16;
-    }
-    else if (value->value.type == &UA_TYPES[UA_TYPES_UINT16])
-    {
-        response->type = UA_NS0ID_UINT16;
-    }
-    else if (value->value.type == &UA_TYPES[UA_TYPES_INT32])
-    {
-        response->type = UA_NS0ID_INT32;
-    }
-    else if (value->value.type == &UA_TYPES[UA_TYPES_UINT32])
-    {
-        response->type = UA_NS0ID_UINT32;
-    }
-    else if (value->value.type == &UA_TYPES[UA_TYPES_INT64])
-    {
-        response->type = UA_NS0ID_INT64;
-    }
-    else if (value->value.type == &UA_TYPES[UA_TYPES_UINT64])
-    {
-        response->type = UA_NS0ID_UINT64;
-    }
-    else if (value->value.type == &UA_TYPES[UA_TYPES_FLOAT])
-    {
-        response->type = UA_NS0ID_FLOAT;
-    }
-    else if (value->value.type == &UA_TYPES[UA_TYPES_DOUBLE])
-    {
-        response->type = UA_NS0ID_DOUBLE;
-    }
-    else if (value->value.type == &UA_TYPES[UA_TYPES_STRING])
-    {
-        response->type = UA_NS0ID_STRING;
-    }
-    else if (value->value.type == &UA_TYPES[UA_TYPES_BYTESTRING])
-    {
-        response->type = UA_NS0ID_BYTESTRING;
-    }
-    else if (value->value.type == &UA_TYPES[UA_TYPES_GUID])
-    {
-        response->type = UA_NS0ID_GUID;
-    }
-    else if (value->value.type == &UA_TYPES[UA_TYPES_SBYTE])
-    {
-        response->type = UA_NS0ID_SBYTE;
-    }
-    else if (value->value.type == &UA_TYPES[UA_TYPES_BYTE])
-    {
-        response->type = UA_NS0ID_BYTE;
-    }
-    else if (value->value.type == &UA_TYPES[UA_TYPES_DATETIME])
-    {
-        response->type = UA_NS0ID_DATETIME;
-    }
+    response->type = get_response_type(value->value.type);
 
     if (isScalar)
     {
