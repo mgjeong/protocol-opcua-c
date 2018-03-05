@@ -42,6 +42,7 @@ extern "C"
 
 #define VERIFY_NON_NULL(arg, retVal) { if (!(arg)) { EDGE_LOG(TAG, \
              #arg " is NULL"); return (retVal); } }
+#define VERIFY_NON_NULL_MSG(arg, msg, retVal) { if (!(arg)) { EDGE_LOG(TAG, msg); return (retVal); } }
 #define VERIFY_NON_NULL_NR(arg) { if (!(arg)) { EDGE_LOG(TAG, \
              #arg " is NULL"); return; } }
 
