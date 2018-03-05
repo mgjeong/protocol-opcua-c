@@ -75,34 +75,29 @@ void configure(EdgeConfigure *config)
 EdgeResult createNamespace(const char *name, const char *rootNodeId, const char *rootBrowseName,
 		const char *rootDisplayName)
 {
-    EdgeResult result = createNamespaceInServer(name, rootNodeId, rootBrowseName, rootDisplayName);
-    return result;
+    return createNamespaceInServer(name, rootNodeId, rootBrowseName, rootDisplayName);
 }
 
 EdgeResult createNode(const char *namespaceUri, EdgeNodeItem *item)
 {
     // add Nodes in server
-    EdgeResult result = addNodesInServer(namespaceUri, item);
-    return result;
+    return addNodesInServer(namespaceUri, item);
 }
 
 EdgeResult modifyVariableNode(const char *namespaceUri, const char *nodeUri, EdgeVersatility *value)
 {
     // modify variable nodes
-    EdgeResult result = modifyNodeInServer(namespaceUri, nodeUri, value);
-    return result;
+    return modifyNodeInServer(namespaceUri, nodeUri, value);
 }
 
 EdgeResult addReference(EdgeReference *reference)
 {
-    EdgeResult result = addReferenceInServer(reference);
-    return result;
+    return addReferenceInServer(reference);
 }
 
 EdgeResult createMethodNode(const char *namespaceUri, EdgeNodeItem *item, EdgeMethod *method)
 {
-    EdgeResult result = addMethodNodeInServer(namespaceUri, item, method);
-    return result;
+    return addMethodNodeInServer(namespaceUri, item, method);
 }
 
 EdgeResult createServer(EdgeEndPointInfo *epInfo)
@@ -130,10 +125,7 @@ EdgeResult createServer(EdgeEndPointInfo *epInfo)
 
 void closeServer(EdgeEndPointInfo *epInfo)
 {
-    if (IS_NULL(epInfo))
-    {
-        return;
-    }
+    VERIFY_NON_NULL_NR(epInfo);
     if (b_serverInitialized)
     {
         stop_server(epInfo);
@@ -165,10 +157,7 @@ EdgeResult findServers(const char *endpointUri, size_t serverUrisSize, unsigned 
 
 void disconnectClient(EdgeEndPointInfo *epInfo)
 {
-    if (IS_NULL(epInfo))
-    {
-        return;
-    }
+    VERIFY_NON_NULL_NR(epInfo);
     EDGE_LOG(TAG, "[Received command] :: Client disconnect.");
     disconnect_client(epInfo);
 }
@@ -268,23 +257,9 @@ static EdgeResult checkParameterValid(EdgeMessage *msg)
 {
     EdgeResult result;
     result.code = STATUS_PARAM_INVALID;
-    if (IS_NULL(msg))
-    {
-        EDGE_LOG(TAG, "EdgeMessage is NULL");
-        return result;
-    }
-
-    if (IS_NULL(msg->endpointInfo))
-    {
-        EDGE_LOG(TAG, "EndpointInfo is NULL");
-        return result;
-    }
-
-    if (IS_NULL(msg->endpointInfo->endpointUri))
-    {
-        EDGE_LOG(TAG, "EndpointURI in EndpointInfo is NULL");
-        return result;
-    }
+    VERIFY_NON_NULL(msg, result);
+    VERIFY_NON_NULL(msg->endpointInfo, result);
+    VERIFY_NON_NULL(msg->endpointInfo->endpointUri, result);
 
     if (IS_NOT_NULL(msg->request) && IS_NULL(msg->request->nodeInfo))
     {
@@ -303,20 +278,13 @@ static EdgeResult checkParameterValid(EdgeMessage *msg)
         for (size_t indx = 0; indx < msg->requestLength; indx++)
         {
             EdgeRequest *req = msg->requests[indx];
-            if (IS_NULL(req) || IS_NULL(req->nodeInfo))
-            {
-                EDGE_LOG(TAG, "Request or its nodeInfo is NULL in one of the requests");
-                return result;
-            }
+            VERIFY_NON_NULL(req, result);
+            VERIFY_NON_NULL(req->nodeInfo, result);
 
             if(msg->command != CMD_BROWSE && msg->command != CMD_BROWSENEXT &&
                     msg->command != CMD_BROWSE_VIEW)
             {
-                if (IS_NULL(req->nodeInfo->valueAlias))
-                {
-                    EDGE_LOG(TAG, "ValueAlias in NodeInfo is NULL in one of the requests.");
-                    return result;
-                }
+                VERIFY_NON_NULL(req->nodeInfo->valueAlias, result);
             }
         }
     }
@@ -335,31 +303,22 @@ static EdgeResult checkParameterValid(EdgeMessage *msg)
         }
     }
 
-    if (msg->command == CMD_BROWSE  && msg->browseParam == NULL)
+    if (msg->command == CMD_BROWSE)
     {
-        EDGE_LOG(TAG, "BrowseParam is NULL");
-        return result;
+        VERIFY_NON_NULL(msg->browseParam, result);
     }
 
     if (msg->command == CMD_SUB)
     {
         if (msg->request)
         {
-            if (IS_NULL(msg->request->subMsg))
-            {
-                EDGE_LOG(TAG, "SubMessage in request is NULL.");
-                return result;
-            }
+            VERIFY_NON_NULL(msg->request->subMsg, result);
         }
         else
         {
             for (size_t indx = 0; indx < msg->requestLength; indx++)
             {
-                if (IS_NULL(msg->requests[indx]->subMsg))
-                {
-                    EDGE_LOG(TAG, "SubMessage in one of the requests is NULL.");
-                    return result;
-                }
+                VERIFY_NON_NULL(msg->requests[indx]->subMsg, result);
             }
         }
     }
@@ -376,12 +335,8 @@ EdgeResult sendRequest(EdgeMessage* msg)
     if (result.code == STATUS_OK)
     {
         EdgeMessage *msgCopy = cloneEdgeMessage(msg);
-        if(IS_NULL(msgCopy))
-        {
-            EDGE_LOG(TAG, "Failed to clone the edge message.");
-            result.code = STATUS_ERROR;
-            return result;
-        }
+        result.code = STATUS_ERROR;
+        VERIFY_NON_NULL(msgCopy, result);
         bool ret = add_to_sendQ(msgCopy);
         result.code = (ret ? STATUS_OK : STATUS_ENQUEUE_ERROR);
     }
@@ -409,7 +364,9 @@ void onSendMessage(EdgeMessage* msg)
         EDGE_LOG(TAG, "\n[Received command] :: START CLIENT \n");
         bool result = connect_client(msg->endpointInfo->endpointUri);
         if (!result)
+        {
             return;
+        }
     }
     else if (CMD_STOP_SERVER == msg->command)
     {
@@ -457,12 +414,9 @@ void onSendMessage(EdgeMessage* msg)
 
 void onResponseMessage(EdgeMessage *msg)
 {
-    if (NULL == receivedMsgCb || NULL == msg)
-    {
-        EDGE_LOG(TAG, "parameter is invalid.");
-        return;
-    }
-
+    VERIFY_NON_NULL_NR(receivedMsgCb);
+    VERIFY_NON_NULL_NR(msg);
+    
     switch (msg->type)
     {
         case GENERAL_RESPONSE:
@@ -484,21 +438,15 @@ void onResponseMessage(EdgeMessage *msg)
 
 void onDiscoveryCallback(EdgeDevice *device)
 {
-    if (NULL == discoveryCb)
-    {
-        // discovery callback not registered by application.
-        return;
-    }
+    VERIFY_NON_NULL_NR(discoveryCb); // discovery callback not registered by application.
+
     discoveryCb->endpoint_found_cb(device);
 }
 
 void onStatusCallback(EdgeEndPointInfo *epInfo, EdgeStatusCode status)
 {
-    if (NULL == statusCb)
-    {
-        // status callback not registered by application.
-        return;
-    }
+    VERIFY_NON_NULL_NR(statusCb); // status callback not registered by application.
+    
     if (STATUS_SERVER_STARTED == status || STATUS_CLIENT_STARTED == status)
     {
         statusCb->start_cb(epInfo, status);
@@ -525,11 +473,8 @@ int getValueType(const char* nodeName)
 EdgeNodeInfo* createEdgeNodeInfoForNodeId(EdgeNodeIdType type, int nodeId, uint16_t nameSpace)
 {
     EdgeNodeInfo* nodeInfo = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
-    if (IS_NULL(nodeInfo))
-    {
-        EDGE_LOG(TAG, "Error : Malloc failed for nodeInfo in test browse");
-        return NULL;
-    }
+    VERIFY_NON_NULL(nodeInfo, NULL);
+    
     nodeInfo->nodeId = (EdgeNodeId *) EdgeCalloc(1, sizeof(EdgeNodeId));
     if (IS_NULL(nodeInfo->nodeId))
     {
@@ -552,10 +497,7 @@ EdgeNodeInfo* createEdgeNodeInfo(const char* nodeName)
     sscanf(nodeName, UNIQUE_NODE_PATH, &nsIdx, &nodeType, &valueType, browseName);
 
     EdgeNodeInfo* nodeInfo = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
-    if (IS_NULL(nodeInfo))
-    {
-        return NULL;
-    }
+    VERIFY_NON_NULL(nodeInfo, NULL);
     nodeInfo->valueAlias = copyString(browseName);
 
     nodeInfo->nodeId = (EdgeNodeId *) EdgeCalloc(1, sizeof(EdgeNodeId));
@@ -660,17 +602,10 @@ EdgeResult insertSubParameter(EdgeMessage **msg, const char* nodeName, EdgeNodeT
 EdgeMessage* createEdgeSubMessage(const char *endpointUri, const char* nodeName, size_t requestSize,
         EdgeNodeType subType)
 {
-    if (!endpointUri)
-    {
-        EDGE_LOG(TAG, "Error : endpointUri is empty");
-        return NULL;
-    }
+    VERIFY_NON_NULL(endpointUri, NULL);
+    
     EdgeMessage *msg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
-    if (IS_NULL(msg))
-    {
-        EDGE_LOG(TAG, "Error : EdgeMalloc failed for msg");
-        return NULL;
-    }
+    VERIFY_NON_NULL(msg, NULL);
 
     msg->endpointInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
     if (IS_NULL(msg->endpointInfo))
@@ -720,17 +655,10 @@ EdgeMessage* createEdgeSubMessage(const char *endpointUri, const char* nodeName,
 EdgeMessage* createEdgeAttributeMessage(const char *endpointUri, size_t requestSize,
         EdgeCommand cmd)
 {
-    if (!endpointUri)
-    {
-        EDGE_LOG(TAG, "Error : endpointUri is empty");
-        return NULL;
-    }
+    VERIFY_NON_NULL(endpointUri, NULL);
+
     EdgeMessage *msg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
-    if (IS_NULL(msg))
-    {
-        EDGE_LOG(TAG, "Error : EdgeMalloc failed for msg");
-        return NULL;
-    }
+    VERIFY_NON_NULL(msg, NULL);
 
     msg->endpointInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
     if (IS_NULL(msg->endpointInfo))
@@ -758,17 +686,10 @@ EdgeMessage* createEdgeAttributeMessage(const char *endpointUri, size_t requestS
 
 EdgeMessage* createEdgeMessage(const char *endpointUri, size_t requestSize, EdgeCommand cmd)
 {
-    if (!endpointUri)
-    {
-        EDGE_LOG(TAG, "Error : endpointUri is empty");
-        return NULL;
-    }
+    VERIFY_NON_NULL(endpointUri, NULL);
+
     EdgeMessage *msg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
-    if (IS_NULL(msg))
-    {
-        EDGE_LOG(TAG, "Error : EdgeMalloc failed for msg");
-        return NULL;
-    }
+    VERIFY_NON_NULL(msg, NULL);
 
     msg->endpointInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
     if (IS_NULL(msg->endpointInfo))
@@ -1055,8 +976,7 @@ EdgeResult insertBrowseParameter(EdgeMessage **msg, EdgeNodeInfo* nodeInfo,
 
 void destroyBrowseNextDataElements(EdgeBrowseNextData *data)
 {
-    if (!data)
-        return;
+    VERIFY_NON_NULL_NR(data);
 
     for (size_t i = 0; i < data->next_free; ++i)
     {
@@ -1070,8 +990,7 @@ void destroyBrowseNextDataElements(EdgeBrowseNextData *data)
 
 void destroyBrowseNextData(EdgeBrowseNextData *data)
 {
-    if (!data)
-        return;
+    VERIFY_NON_NULL_NR(data);
 
     destroyBrowseNextDataElements(data);
     EdgeFree(data->cp);
@@ -1084,10 +1003,7 @@ EdgeBrowseNextData* initBrowseNextData(EdgeBrowseNextData *browseNextData,
 {
     destroyBrowseNextData(browseNextData);
     browseNextData = (EdgeBrowseNextData *) EdgeCalloc(1, sizeof(EdgeBrowseNextData));
-    if (NULL == browseNextData)
-    {
-        return NULL;
-    }
+    VERIFY_NON_NULL(browseNextData, NULL);
 
     if (browseParam)
     {
