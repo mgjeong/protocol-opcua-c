@@ -70,11 +70,7 @@ void registerBrowseResponseCallback(response_cb_t callback) {
 static NodesToBrowse_t *initNodesToBrowse(size_t size)
 {
     NodesToBrowse_t *browseNodesInfo = (NodesToBrowse_t *) EdgeCalloc(1, sizeof(NodesToBrowse_t));
-    if (IS_NULL(browseNodesInfo))
-    {
-        EDGE_LOG(TAG, "Memory allocation failed for browseNodesInfo.");
-        return NULL;
-    }
+    VERIFY_NON_NULL(browseNodesInfo, NULL);
     browseNodesInfo->size = size;
 
     if(size > 0)
@@ -101,10 +97,7 @@ static NodesToBrowse_t *initNodesToBrowse(size_t size)
 
 static void destroyNodesToBrowse(NodesToBrowse_t *ptr, bool deleteNodeId)
 {
-    if(IS_NULL(ptr))
-    {
-        return;
-    }
+    VERIFY_NON_NULL_NR(ptr);
 
     for(int i = 0; i < ptr->size; ++i)
     {
@@ -125,10 +118,7 @@ static unsigned char *convertUAStringToUnsignedChar(UA_String *uaStr)
     }
 
     unsigned char *str = (unsigned char *) EdgeCalloc(uaStr->length+1, sizeof(unsigned char));
-    if (!str)
-    {
-        return NULL;
-    }
+    VERIFY_NON_NULL(str, NULL);
 
     for (int i = 0; i < uaStr->length; ++i)
     {
@@ -139,17 +129,11 @@ static unsigned char *convertUAStringToUnsignedChar(UA_String *uaStr)
 
 static EdgeContinuationPointList *getContinuationPointList(UA_String *uaStr)
 {
-    if (!uaStr)
-    {
-        return NULL;
-    }
+    VERIFY_NON_NULL(uaStr, NULL);
 
     EdgeContinuationPointList *cpList = (EdgeContinuationPointList *) EdgeCalloc(1,
             sizeof(EdgeContinuationPoint));
-    if (!cpList)
-    {
-        return NULL;
-    }
+    VERIFY_NON_NULL(cpList, NULL);
 
     cpList->count = 1;
     cpList->cp = (EdgeContinuationPoint **) calloc(cpList->count, sizeof(EdgeContinuationPoint *));
@@ -205,10 +189,10 @@ UA_ByteString *getUAStringFromEdgeContinuationPoint(EdgeContinuationPoint *cp)
 
 static UA_NodeId *getNodeId(EdgeRequest *req)
 {
-    if (IS_NULL(req) || !req->nodeInfo || !req->nodeInfo->nodeId)
-    {
-        return NULL;
-    }
+    VERIFY_NON_NULL(req, NULL);
+    VERIFY_NON_NULL(req->nodeInfo, NULL);
+    VERIFY_NON_NULL(req->nodeInfo->nodeId, NULL);
+
     UA_NodeId *node = (UA_NodeId *) EdgeCalloc(1, sizeof(UA_NodeId));
     VERIFY_NON_NULL(node, NULL);
     if (req->nodeInfo->nodeId->type == INTEGER)
@@ -286,10 +270,7 @@ static void invokeErrorCb(uint32_t srcMsgId, EdgeNodeId *srcNodeId,
         EdgeStatusCode edgeResult, const char *versatileValue)
 {
     EdgeMessage *resultMsg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
-    if (IS_NULL(resultMsg))
-    {
-        return;
-    }
+    VERIFY_NON_NULL_NR(resultMsg);
 
     resultMsg->message_id = srcMsgId; // Error message corresponds to the request message with the given message id.
     resultMsg->endpointInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
@@ -485,18 +466,11 @@ bool checkTypeDefinition(uint32_t msgId, UA_ReferenceDescription *ref, EdgeNodeI
 static void invokeResponseCb(EdgeMessage *msg, int msgId, EdgeNodeId *srcNodeId,
         EdgeBrowseResult *browseResult, size_t size, const unsigned char *browsePath, char *valueAlias)
 {
-    if(IS_NULL(browseResult) || IS_NULL(browseResult->browseName))
-    {
-        EDGE_LOG(TAG, "Browse result is empty.");
-        return;
-    }
+    VERIFY_NON_NULL_NR(browseResult);
+    VERIFY_NON_NULL_NR(browseResult->browseName);
 
     EdgeMessage *resultMsg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
-    if (IS_NULL(resultMsg))
-    {
-        EDGE_LOG(TAG, "Memory allocation failed.");
-        return;
-    }
+    VERIFY_NON_NULL_NR(resultMsg);
 
     resultMsg->type = BROWSE_RESPONSE;
     resultMsg->message_id = msg->message_id;
@@ -578,11 +552,7 @@ static void invokeResponseCbForContinuationPoint(EdgeMessage *msg, int msgId, Ed
     }
 
     EdgeMessage *resultMsg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
-    if (IS_NULL(resultMsg))
-    {
-        EDGE_LOG(TAG, "Memory allocation failed.");
-        return;
-    }
+    VERIFY_NON_NULL_NR(resultMsg);
 
     resultMsg->type = BROWSE_RESPONSE;
 
@@ -638,10 +608,7 @@ static void invokeResponseCbForContinuationPoint(EdgeMessage *msg, int msgId, Ed
 
 static EdgeNodeId *getEdgeNodeId(UA_NodeId *node)
 {
-    if (!node)
-    {
-        return NULL;
-    }
+    VERIFY_NON_NULL(node, NULL);
 
     EdgeNodeId *edgeNodeId = (EdgeNodeId *) EdgeCalloc(1, sizeof(EdgeNodeId));
     VERIFY_NON_NULL(edgeNodeId, NULL);
@@ -685,6 +652,7 @@ static EdgeNodeId *getEdgeNodeId(UA_NodeId *node)
     return edgeNodeId;
 }
 
+#if DEBUG
 void printNodeId(UA_NodeId n1)
 {
     char *str = NULL;
@@ -707,7 +675,7 @@ void printNodeId(UA_NodeId n1)
     }
     EdgeFree(str);
 }
-
+#endif
 void DestroyBrowsePathNodeList() {
     browsePathNode *ptr = browsePathNodeListHead;
     while(ptr != NULL){
@@ -725,10 +693,7 @@ browsePathNode *InitBrowsePathNodeList(){
     }
     browsePathNodeListHead = NULL;
     browsePathNodeListHead = (browsePathNode*)EdgeMalloc(sizeof(browsePathNode));
-    if(browsePathNodeListHead == NULL){
-        EDGE_LOG(TAG, "Memory allocation failed.");
-        return NULL;
-    }
+    VERIFY_NON_NULL(browsePathNodeListHead, NULL);
     browsePathNodeListHead->edgeNodeId = NULL;
     browsePathNodeListHead->browseName = NULL;
     browsePathNodeListHead->next = NULL;
@@ -737,15 +702,12 @@ browsePathNode *InitBrowsePathNodeList(){
     return browsePathNodeListHead;
 }
 
-browsePathNode* PushBrowsePathNode(EdgeNodeId *edgeNodeId, unsigned char *browseName){
-    if(browsePathNodeListTail == NULL || browsePathNodeListHead == NULL){
-            return NULL;
-    }
+browsePathNode* PushBrowsePathNode(EdgeNodeId *edgeNodeId, unsigned char *browseName)
+{
+    VERIFY_NON_NULL(browsePathNodeListTail, NULL);
+    VERIFY_NON_NULL(browsePathNodeListHead, NULL);
     browsePathNode *newNode = (browsePathNode*)EdgeMalloc(sizeof(browsePathNode));
-    if(newNode == NULL){
-            EDGE_LOG(TAG, "Memory allocation failed.");
-            return NULL;
-    }
+    VERIFY_NON_NULL(newNode, NULL);
     newNode->browseName = browseName;
     newNode->edgeNodeId = edgeNodeId;
     newNode->pre = browsePathNodeListTail;
@@ -769,20 +731,14 @@ void PopBrowsePathNode(){
 
 static unsigned char *getCurrentBrowsePath()
 {
-    if(browsePathNodeListTail == NULL || browsePathNodeListHead == NULL)
-    {
-        return NULL;
-    }
+    VERIFY_NON_NULL(browsePathNodeListTail, NULL);
+    VERIFY_NON_NULL(browsePathNodeListHead, NULL);
 
     const size_t blockSize = 100;
     size_t curSize = blockSize;
     int lastUsed = -1;
     unsigned char *browsePath = (unsigned char *)EdgeMalloc(curSize * sizeof(unsigned char));
-    if(IS_NULL(browsePath))
-    {
-        EDGE_LOG(TAG, "Memory allocation failed.");
-        return NULL;
-    }
+    VERIFY_NON_NULL(browsePath, NULL);
 
     for(browsePathNode *ptr = browsePathNodeListHead->next; ptr != NULL ; ptr = ptr->next)
     {
@@ -824,63 +780,59 @@ static unsigned char *getCurrentBrowsePath()
 
 char *getValueAlias(char *browseName, UA_NodeId* nodeId, UA_LocalizedText description)
 {
-	char *nodeInfo = NULL;
-	const int bufferSize = 20;
-	int browseNameLen = 0;
-	nodeInfo = (char *)EdgeCalloc(bufferSize, sizeof(char));
-	if(IS_NULL(nodeInfo))
-	{
-	    EDGE_LOG(TAG, "Memory allocation failed.");
-	    return NULL;
-	}
+    char *nodeInfo = NULL;
+    const int bufferSize = 20;
+    int browseNameLen = 0;
+    nodeInfo = (char *)EdgeCalloc(bufferSize, sizeof(char));
+    VERIFY_NON_NULL(nodeInfo, NULL);
 
-	if(IS_NOT_NULL(browseName))
-	{
-	    browseNameLen = strlen(browseName);
-	}
+    if(IS_NOT_NULL(browseName))
+    {
+        browseNameLen = strlen(browseName);
+    }
 
-	char curType = getCharacterNodeIdType(nodeId->identifierType);
-	if (UA_NODEIDTYPE_STRING == nodeId->identifierType)
-	{
-	    unsigned char *valueType = convertUAStringToUnsignedChar(&description.text);
-	    if(IS_NOT_NULL(valueType))
-	    {
-	        if (0 == strncmp((const char*)valueType, "v=", 2))
-	        {
-	            snprintf(nodeInfo, bufferSize*sizeof(char), "{%d;%c;%s}", nodeId->namespaceIndex, curType, valueType);
-	        }
-	        else
-	        {
-	            snprintf(nodeInfo, bufferSize*sizeof(char), "{%d;%c;v=0}", nodeId->namespaceIndex, curType);
-	        }
-	        EdgeFree(valueType);
-	    }
-	}
-	else
-	{
-	    snprintf(nodeInfo, bufferSize*sizeof(char), "{%d;%c}", nodeId->namespaceIndex, curType);
-	}
+    char curType = getCharacterNodeIdType(nodeId->identifierType);
+    if (UA_NODEIDTYPE_STRING == nodeId->identifierType)
+    {
+        unsigned char *valueType = convertUAStringToUnsignedChar(&description.text);
+        if(IS_NOT_NULL(valueType))
+        {
+            if (0 == strncmp((const char*)valueType, "v=", 2))
+            {
+                snprintf(nodeInfo, bufferSize*sizeof(char), "{%d;%c;%s}", nodeId->namespaceIndex, curType, valueType);
+            }
+            else
+            {
+                snprintf(nodeInfo, bufferSize*sizeof(char), "{%d;%c;v=0}", nodeId->namespaceIndex, curType);
+            }
+            EdgeFree(valueType);
+        }
+    }
+    else
+    {
+        snprintf(nodeInfo, bufferSize*sizeof(char), "{%d;%c}", nodeId->namespaceIndex, curType);
+    }
 
-	int nodeInfoLen = strlen(nodeInfo);
-	char *valueAlias = (char *)EdgeCalloc(nodeInfoLen+browseNameLen + 1, sizeof(char));
-	if(IS_NULL(valueAlias))
-	{
-	    EDGE_LOG(TAG, "Memory allocation failed.");
-	    EdgeFree(nodeInfo);
-	    return NULL;
-	}
-	if(nodeInfoLen > 0)
-	{
-	    memcpy(valueAlias, nodeInfo, nodeInfoLen);
-	    if(browseNameLen > 0)
-	    {
-	        memcpy(valueAlias + nodeInfoLen, browseName, browseNameLen);
-	    }
-	}
-	valueAlias[nodeInfoLen + browseNameLen] = '\0';
+    int nodeInfoLen = strlen(nodeInfo);
+    char *valueAlias = (char *)EdgeCalloc(nodeInfoLen+browseNameLen + 1, sizeof(char));
+    if(IS_NULL(valueAlias))
+    {
+        EDGE_LOG(TAG, "Memory allocation failed.");
+        EdgeFree(nodeInfo);
+        return NULL;
+    }
+    if(nodeInfoLen > 0)
+    {
+        memcpy(valueAlias, nodeInfo, nodeInfoLen);
+        if(browseNameLen > 0)
+        {
+            memcpy(valueAlias + nodeInfoLen, browseName, browseNameLen);
+        }
+    }
+    valueAlias[nodeInfoLen + browseNameLen] = '\0';
 
-	EdgeFree(nodeInfo);
-	return valueAlias;
+    EdgeFree(nodeInfo);
+    return valueAlias;
 }
 
 unsigned char *getCompleteBrowsePath(char *valueAlias)
@@ -943,10 +895,7 @@ bool hasNode(UA_String *browseName)
 
 unsigned char *convertNodeIdToString(UA_NodeId *nodeId)
 {
-    if(!nodeId)
-    {
-        return NULL;
-    }
+    VERIFY_NON_NULL(nodeId, NULL);
 
     unsigned char *browseName = NULL;
     if(UA_NODEIDTYPE_STRING == nodeId->identifierType)
@@ -967,11 +916,7 @@ unsigned char *convertNodeIdToString(UA_NodeId *nodeId)
 static EdgeRequest *getEdgeRequestForViewBrowse()
 {
     EdgeNodeInfo *nodeInfo = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
-    if(IS_NULL(nodeInfo))
-    {
-        EDGE_LOG(TAG, "Memory allocation failed.");
-        return NULL;
-    }
+    VERIFY_NON_NULL(nodeInfo, NULL);
 
     nodeInfo->nodeId = (EdgeNodeId *) EdgeCalloc(1, sizeof(EdgeNodeId));
     if(IS_NULL(nodeInfo->nodeId))
@@ -998,17 +943,11 @@ static EdgeRequest *getEdgeRequestForViewBrowse()
 
 ViewNodeInfo_t *getNodeInfo(UA_NodeId *nodeId, UA_String *browseName)
 {
-    if(IS_NULL(nodeId) || IS_NULL(browseName))
-    {
-        return NULL;
-    }
+    VERIFY_NON_NULL(nodeId, NULL);
+    VERIFY_NON_NULL(browseName, NULL);
 
     ViewNodeInfo_t *nodeInfo = (ViewNodeInfo_t *)EdgeCalloc(1, sizeof(ViewNodeInfo_t));
-    if(IS_NULL(nodeInfo))
-    {
-        EDGE_LOG(TAG, "Memory allocation failed.");
-        return NULL;
-    }
+    VERIFY_NON_NULL(nodeInfo, NULL);
 
     if(browseName->length > 0)
     {
@@ -1044,10 +983,7 @@ ViewNodeInfo_t *getNodeInfo(UA_NodeId *nodeId, UA_String *browseName)
 
 void destroyViewListMembers(List *ptr)
 {
-    if(IS_NULL(ptr))
-    {
-        return;
-    }
+    VERIFY_NON_NULL_NR(ptr);
 
     ViewNodeInfo_t *nodeInfo;
     while(ptr)
@@ -1062,15 +998,11 @@ void destroyViewListMembers(List *ptr)
 
 static EdgeMessage *prepareEdgeMessageForBrowseView(EdgeMessage *msg, List *viewNodeList)
 {
-    if(IS_NULL(msg) || IS_NULL(viewNodeList))
-    {
-        return NULL;
-    }
+    VERIFY_NON_NULL(msg, NULL);
+    VERIFY_NON_NULL(viewNodeList, NULL);
+
     EdgeMessage *browseViewMsg = (EdgeMessage *)EdgeCalloc(1, sizeof(EdgeMessage));
-    if(IS_NULL(browseViewMsg))
-    {
-        return NULL;
-    }
+    VERIFY_NON_NULL(browseViewMsg, NULL);
 
     browseViewMsg->endpointInfo = (EdgeEndPointInfo *)EdgeCalloc(1, sizeof(EdgeEndPointInfo));
     if(IS_NULL(browseViewMsg->endpointInfo))
@@ -1198,11 +1130,7 @@ static EdgeStatusCode browse(UA_Client *client, EdgeMessage *msg, bool browseNex
     {
         nodesToBrowse = getBrowseDescriptions(browseNodesInfo, msg,
             IS_NULL(viewList) ? BROWSE_NODECLASS_MASK : VIEW_NODECLASS_MASK);
-        if (!nodesToBrowse)
-        {
-            EDGE_LOG(TAG, "Failed to create browse descriptions.");
-            return STATUS_ERROR;
-        }
+        VERIFY_NON_NULL(nodesToBrowse, STATUS_ERROR);
 
         UA_BrowseRequest bReq;
         UA_BrowseRequest_init(&bReq);
@@ -1378,7 +1306,7 @@ static EdgeStatusCode browse(UA_Client *client, EdgeMessage *msg, bool browseNex
                         unsigned char *completePath = NULL;
                         char *valueAlias = NULL;
                         if((!SHOW_SPECIFIC_NODECLASS) || (ref->nodeClass & SHOW_SPECIFIC_NODECLASS_MASK)){
-                        	valueAlias = getValueAlias(browseResult->browseName, &(ref->nodeId.nodeId), ref->displayName);
+                            valueAlias = getValueAlias(browseResult->browseName, &(ref->nodeId.nodeId), ref->displayName);
                             completePath = getCompleteBrowsePath(valueAlias);
                         }
 

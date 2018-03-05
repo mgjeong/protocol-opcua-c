@@ -103,16 +103,11 @@ static List *createListNode(void *data)
 
 bool addListNode(List **head, void *data)
 {
-    if (IS_NULL(head) || IS_NULL(data))
-    {
-        return false;
-    }
+    VERIFY_NON_NULL(head, false);
+    VERIFY_NON_NULL(data, false);
 
     List *newnode = createListNode(data);
-    if (IS_NULL(newnode))
-    {
-        return false;
-    }
+    VERIFY_NON_NULL(newnode, false);
 
     newnode->link = *head;
     *head = newnode;
@@ -121,11 +116,8 @@ bool addListNode(List **head, void *data)
 
 unsigned int getListSize(List *ptr)
 {
-    if (IS_NULL(ptr))
-    {
-        return 0;
-    }
-
+    VERIFY_NON_NULL(ptr, 0);
+    
     size_t size = 0;
     while (ptr)
     {
@@ -137,10 +129,7 @@ unsigned int getListSize(List *ptr)
 
 void deleteList(List **head)
 {
-    if (!head)
-    {
-        return;
-    }
+    VERIFY_NON_NULL_NR(head);
 
     List *next = NULL;
     List *ptr = *head;
@@ -779,10 +768,7 @@ void freeEdgeMessage(EdgeMessage *msg)
 EdgeResult *createEdgeResult(EdgeStatusCode code)
 {
     EdgeResult *result = (EdgeResult *) EdgeCalloc(1, sizeof(EdgeResult));
-    if (!result)
-    {
-        return NULL;
-    }
+    VERIFY_NON_NULL(result, NULL);
     result->code = code;
     return result;
 }
@@ -812,16 +798,9 @@ bool isNodeClassValid(UA_NodeClass nodeClass)
 
 EdgeNodeId *cloneEdgeNodeId(EdgeNodeId *nodeId)
 {
-    if (!nodeId)
-    {
-        return NULL;
-    }
-
+    VERIFY_NON_NULL(nodeId, NULL);
     EdgeNodeId *clone = (EdgeNodeId *) EdgeCalloc(1, sizeof(EdgeNodeId));
-    if (!clone)
-    {
-        return NULL;
-    }
+    VERIFY_NON_NULL(clone, NULL);
 
     clone->nameSpace = nodeId->nameSpace;
     if (nodeId->nodeUri)
@@ -852,16 +831,9 @@ EdgeNodeId *cloneEdgeNodeId(EdgeNodeId *nodeId)
 
 EdgeNodeInfo *cloneEdgeNodeInfo(EdgeNodeInfo *nodeInfo)
 {
-    if (!nodeInfo)
-    {
-        return NULL;
-    }
-
+    VERIFY_NON_NULL(nodeInfo, NULL);
     EdgeNodeInfo *clone = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
-    if (!clone)
-    {
-        return NULL;
-    }
+    VERIFY_NON_NULL(clone, NULL);
 
     if (nodeInfo->methodName)
     {
@@ -981,16 +953,9 @@ size_t get_size(int type, bool isArray)
 
 EdgeMessage* cloneEdgeMessage(EdgeMessage *msg)
 {
-    if (!msg)
-    {
-        return NULL;
-    }
-
+    VERIFY_NON_NULL(msg, NULL);
     EdgeMessage *clone = (EdgeMessage *)EdgeCalloc(1, sizeof(EdgeMessage));
-    if (!clone)
-    {
-        return NULL;
-    }
+    VERIFY_NON_NULL(clone, NULL);
 
     clone->type = msg->type;
     clone->command = msg->command;

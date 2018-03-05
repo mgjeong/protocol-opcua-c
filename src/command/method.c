@@ -19,6 +19,7 @@
  ******************************************************************/
 
 #include "method.h"
+#include "cmd_util.h"
 #include "edge_logger.h"
 #include "edge_malloc.h"
 #include "message_dispatcher.h"
@@ -30,11 +31,7 @@
 static void sendErrorResponse(const EdgeMessage *msg, const char *err_desc)
 {
     EdgeMessage *resultMsg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
-    if(IS_NULL(resultMsg))
-    {
-        EDGE_LOG(TAG, "Memory allocation failed.");
-        return;
-    }
+    VERIFY_NON_NULL_NR(resultMsg);
 
     resultMsg->endpointInfo = cloneEdgeEndpointInfo(msg->endpointInfo);
     if(IS_NULL(resultMsg->endpointInfo))
@@ -104,11 +101,7 @@ EdgeResult executeMethod(UA_Client *client, const EdgeMessage *msg)
 {
     EdgeResult result;
     result.code = STATUS_ERROR;
-    if (IS_NULL(client))
-    {
-        EDGE_LOG(TAG, "Client handle Invalid\n");
-        return result;
-    }
+    VERIFY_NON_NULL(client, result);
     EdgeRequest *request = msg->request;
     EdgeMethodRequestParams *params = request->methodParams;
     int idx = 0;
@@ -121,11 +114,7 @@ EdgeResult executeMethod(UA_Client *client, const EdgeMessage *msg)
     if (num_inpArgs > 0)
     {
         input = (UA_Variant *) EdgeCalloc(params->num_inpArgs, sizeof(UA_Variant));
-        if(IS_NULL(input))
-        {
-            EDGE_LOG(TAG, "Memory allocation failed.");
-            return result;
-        }
+        VERIFY_NON_NULL(input, result);
     }
 
     for (idx = 0; idx < num_inpArgs; idx++)
@@ -230,68 +219,7 @@ EdgeResult executeMethod(UA_Client *client, const EdgeMessage *msg)
 
             resultMsg->responses[i]->nodeInfo = cloneEdgeNodeInfo(msg->request->nodeInfo);
             resultMsg->responses[i]->requestId = msg->request->requestId;
-
-            if (output[i].type == &UA_TYPES[UA_TYPES_BOOLEAN])
-            {
-                resultMsg->responses[i]->type = UA_NS0ID_BOOLEAN;
-            }
-            else if (output[i].type == &UA_TYPES[UA_TYPES_INT16])
-            {
-                resultMsg->responses[i]->type = UA_NS0ID_INT16;
-            }
-            else if (output[i].type == &UA_TYPES[UA_TYPES_UINT16])
-            {
-                resultMsg->responses[i]->type = UA_NS0ID_UINT16;
-            }
-            else if (output[i].type == &UA_TYPES[UA_TYPES_INT32])
-            {
-                resultMsg->responses[i]->type = UA_NS0ID_INT32;
-            }
-            else if (output[i].type == &UA_TYPES[UA_TYPES_UINT32])
-            {
-                resultMsg->responses[i]->type = UA_NS0ID_UINT32;
-            }
-            else if (output[i].type == &UA_TYPES[UA_TYPES_INT64])
-            {
-                resultMsg->responses[i]->type = UA_NS0ID_INT64;
-            }
-            else if (output[i].type == &UA_TYPES[UA_TYPES_UINT64])
-            {
-                resultMsg->responses[i]->type = UA_NS0ID_UINT64;
-            }
-            else if (output[i].type == &UA_TYPES[UA_TYPES_FLOAT])
-            {
-                resultMsg->responses[i]->type = UA_NS0ID_FLOAT;
-            }
-            else if (output[i].type == &UA_TYPES[UA_TYPES_DOUBLE])
-            {
-                resultMsg->responses[i]->type = UA_NS0ID_DOUBLE;
-            }
-            else if (output[i].type == &UA_TYPES[UA_TYPES_STRING])
-            {
-                resultMsg->responses[i]->type = UA_NS0ID_STRING;
-            }
-            else if (output[i].type == &UA_TYPES[UA_TYPES_BYTESTRING])
-            {
-                resultMsg->responses[i]->type = UA_NS0ID_BYTESTRING;
-            }
-            else if (output[i].type == &UA_TYPES[UA_TYPES_GUID])
-            {
-                resultMsg->responses[i]->type = UA_NS0ID_GUID;
-            }
-            else if (output[i].type == &UA_TYPES[UA_TYPES_SBYTE])
-            {
-                resultMsg->responses[i]->type = UA_NS0ID_SBYTE;
-            }
-            else if (output[i].type == &UA_TYPES[UA_TYPES_BYTE])
-            {
-                resultMsg->responses[i]->type = UA_NS0ID_BYTE;
-            }
-            else if (output[i].type == &UA_TYPES[UA_TYPES_DATETIME])
-            {
-                resultMsg->responses[i]->type = UA_NS0ID_DATETIME;
-            }
-
+            resultMsg->responses[i]->type = get_response_type(output[i].type);
             resultMsg->responses[i]->message = (EdgeVersatility *) EdgeCalloc(1, sizeof(EdgeVersatility));
             if(IS_NULL(resultMsg->responses[i]->message))
             {
