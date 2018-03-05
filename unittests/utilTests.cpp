@@ -423,6 +423,19 @@ TEST_F(OPC_util , edgeRealloc_P2)
     free(ptr);
 }
 
+TEST_F(OPC_util , edgeStringAlloc_P1)
+{
+    Edge_String str = EdgeStringAlloc("COUNTRY");
+    ASSERT_EQ(str.data != NULL, true);
+    EdgeFree(str.data);
+}
+
+TEST_F(OPC_util , edgeStringAlloc_P2)
+{
+    Edge_String str = EdgeStringAlloc("");
+    ASSERT_EQ(str.data == EDGE_EMPTY_ARRAY_SENTINEL, true);
+}
+
 TEST_F(OPC_util , createQueue_P)
 {
     Queue *queue = createQueue(100);

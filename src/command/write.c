@@ -23,98 +23,11 @@
 #include "edge_logger.h"
 #include "edge_malloc.h"
 #include "message_dispatcher.h"
+#include "cmd_util.h"
 
 #include <inttypes.h>
 
 #define TAG "write"
-
-static void sendErrorResponse(const EdgeMessage *msg, char *err_desc)
-{
-    EdgeMessage *resultMsg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
-    VERIFY_NON_NULL_NR(resultMsg);
-    resultMsg->endpointInfo = cloneEdgeEndpointInfo(msg->endpointInfo);
-    resultMsg->type = ERROR;
-    resultMsg->responseLength = 1;
-    resultMsg->message_id = msg->message_id;
-
-    resultMsg->responses = (EdgeResponse **) malloc(sizeof(EdgeResponse *) * resultMsg->responseLength);
-    for (int i = 0; i < resultMsg->responseLength; i++)
-    {
-        resultMsg->responses[i] = (EdgeResponse*) EdgeCalloc(1, sizeof(EdgeResponse));
-        resultMsg->responses[i]->message = (EdgeVersatility *) EdgeCalloc(1, sizeof(EdgeVersatility));
-        if(IS_NULL(resultMsg->responses[i]->message))
-        {
-            EDGE_LOG(TAG, "Error : Malloc failed for EdgeVersatility sendErrorResponse\n");
-            goto EXIT;
-        }
-        int errDescLen = strlen(err_desc);
-        char* err_description = (char*) EdgeMalloc(errDescLen + 1);
-        strncpy(err_description, err_desc, errDescLen+1);
-        resultMsg->responses[i]->message->value = (void *) err_description;
-    }
-
-    resultMsg->result = (EdgeResult *) EdgeMalloc(sizeof(EdgeResult));
-    if(IS_NULL(resultMsg->result))
-    {
-        EDGE_LOG(TAG, "Error : Malloc failed for EdgeResult sendErrorResponse\n");
-        goto EXIT;
-    }
-    resultMsg->result->code = STATUS_ERROR;
-
-    add_to_recvQ(resultMsg);
-    return;
-
-    EXIT:
-    freeEdgeMessage(resultMsg);
-}
-
-static EdgeDiagnosticInfo *checkDiagnosticInfo(size_t nodesToProcess,
-        UA_DiagnosticInfo *diagnosticInfo, size_t diagnosticInfoLength, int returnDiagnostic)
-{
-
-    EdgeDiagnosticInfo *diagnostics = (EdgeDiagnosticInfo *) EdgeMalloc(sizeof(EdgeDiagnosticInfo));
-    VERIFY_NON_NULL(diagnostics, NULL);
-    diagnostics->symbolicId = 0;
-    diagnostics->localizedText = 0;
-    diagnostics->additionalInfo = NULL;
-    diagnostics->innerDiagnosticInfo = NULL;
-    if (0 == returnDiagnostic && 0 == diagnosticInfoLength)
-    {
-        diagnostics->msg = NULL;
-    }
-    else if (diagnosticInfoLength == nodesToProcess)
-    {
-        diagnostics->symbolicId = diagnosticInfo[0].symbolicId;
-        diagnostics->localizedText = diagnosticInfo[0].localizedText;
-        diagnostics->locale = diagnosticInfo[0].locale;
-        if (diagnosticInfo[0].hasAdditionalInfo)
-        {
-            char *additional_info = (char *) EdgeMalloc(diagnosticInfo[0].additionalInfo.length);
-            if (IS_NULL(additional_info))
-            {
-                EDGE_LOG(TAG, "Error : Malloc failed for additional_info in checkDiagnosticInfo");
-                diagnostics->msg = (void *) "mismatch entries returned";
-                return diagnostics;
-            }
-
-            strncpy(additional_info, (char *) (diagnosticInfo[0].additionalInfo.data),
-                    diagnosticInfo[0].additionalInfo.length);
-            diagnostics->additionalInfo = additional_info;
-        }
-        if (diagnosticInfo[0].hasInnerDiagnosticInfo)
-            diagnostics->innerDiagnosticInfo = diagnosticInfo[0].innerDiagnosticInfo;
-    }
-    else if (0 != returnDiagnostic && 0 == diagnosticInfoLength)
-    {
-        diagnostics->msg =
-                (void *) "no diagnostics were returned even though returnDiagnostic requested";
-    }
-    else
-    {
-        diagnostics->msg = (void *) "mismatch entries returned";
-    }
-    return diagnostics;
-}
 
 static void writeGroup(UA_Client *client, const EdgeMessage *msg)
 {

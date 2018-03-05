@@ -27,6 +27,7 @@
 #ifndef EDGE_CMD_UTIL_H
 #define EDGE_CMD_UTIL_H
 
+#include "opcua_common.h"
 #include <open62541.h>
 
 /**
@@ -35,6 +36,24 @@
  * @return response data type
  */
 int get_response_type(const UA_DataType *type);
+
+/**
+ * @brief Sends error response message
+ * @param[in]  msg EdgeMessage
+ * @param[in]  err_desc error message description
+ */
+void sendErrorResponse(const EdgeMessage *msg, char *err_desc);
+
+/**
+ * @brief Get the data type of the response message
+ * @param[in]  nodesToProcess number of nodes
+ * @param[in]  diagnosticInfo Diagnostics information
+ * @param[in]  diagnosticInfoLength Diagnostic information length
+ * @param[in]  returnDiagnostic Return Diagnostic
+ * @return EdgeDiagnosticInfo object
+ */
+EdgeDiagnosticInfo *checkDiagnosticInfo(int nodesToProcess,
+        UA_DiagnosticInfo *diagnosticInfo, int diagnosticInfoLength, int returnDiagnostic);
 
 
 #endif // EDGE_CMD_UTIL_H

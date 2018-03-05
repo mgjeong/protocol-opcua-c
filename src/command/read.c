@@ -37,45 +37,6 @@ UA_Int64 DateTime_toUnixTime(UA_DateTime date)
     return (date - UA_DATETIME_UNIX_EPOCH) / UA_DATETIME_MSEC;
 }
 
-static void sendErrorResponse(const EdgeMessage *msg, char *err_desc)
-{
-    EdgeMessage *resultMsg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
-    VERIFY_NON_NULL_NR(resultMsg);
-    resultMsg->endpointInfo = cloneEdgeEndpointInfo(msg->endpointInfo);
-    resultMsg->type = ERROR;
-    resultMsg->responseLength = 1;
-    resultMsg->message_id = msg->message_id;
-
-    resultMsg->responses = (EdgeResponse **) malloc(sizeof(EdgeResponse *) * resultMsg->responseLength);
-    for (int i = 0; i < resultMsg->responseLength; i++)
-    {
-        resultMsg->responses[i] = (EdgeResponse*) EdgeCalloc(1, sizeof(EdgeResponse));
-        resultMsg->responses[i]->message = (EdgeVersatility *) EdgeCalloc(1, sizeof(EdgeVersatility));
-        if(IS_NULL(resultMsg->responses[i]->message))
-        {
-            EDGE_LOG(TAG, "Error : Malloc failed for EdgeVersatility sendErrorResponse\n");
-            goto EXIT;
-        }
-        char* err_description = (char*) EdgeMalloc(strlen(err_desc) + 1);
-        strncpy(err_description, err_desc, strlen(err_desc));
-        err_description[strlen(err_desc)] = '\0';
-        resultMsg->responses[i]->message->value = (void *) err_description;
-    }
-    resultMsg->result = (EdgeResult *) EdgeMalloc(sizeof(EdgeResult));
-    if(IS_NULL(resultMsg->result))
-    {
-        EDGE_LOG(TAG, "Error : Malloc failed for EdgeResult sendErrorResponse\n");
-        goto EXIT;
-    }
-    resultMsg->result->code = STATUS_ERROR;
-
-    add_to_recvQ(resultMsg);
-    return ;
-
-    EXIT:
-    freeEdgeMessage(resultMsg);
-}
-
 static bool checkMaxAge(UA_DateTime timestamp, UA_DateTime now, double maxAge)
 {
     // Server timestamp is greater than current time
@@ -92,9 +53,7 @@ static bool checkMaxAge(UA_DateTime timestamp, UA_DateTime now, double maxAge)
 
 static bool compareNumber(int64_t number1, int64_t number2)
 {
-    if (number1 > number2)
-        return true;
-    return false;
+    return ((number1 > number2) ? true : false);
 }
 
 static bool checkInvalidTime(UA_DateTime serverTime, UA_DateTime sourceTime, int validMilliSec,
@@ -185,54 +144,6 @@ static void *checkValidation(UA_DataValue *value, const EdgeMessage *msg, UA_Tim
         }
     }
     return value;
-}
-
-static EdgeDiagnosticInfo *checkDiagnosticInfo(int nodesToProcess,
-        UA_DiagnosticInfo *diagnosticInfo, int diagnosticInfoLength, int returnDiagnostic)
-{
-
-    EdgeDiagnosticInfo *diagnostics = (EdgeDiagnosticInfo *) EdgeMalloc(sizeof(EdgeDiagnosticInfo));
-    VERIFY_NON_NULL(diagnostics, NULL);
-    diagnostics->symbolicId = 0;
-    diagnostics->localizedText = 0;
-    diagnostics->additionalInfo = NULL;
-    diagnostics->innerDiagnosticInfo = NULL;
-    if (0 == returnDiagnostic && 0 == diagnosticInfoLength)
-    {
-        diagnostics->msg = NULL;
-    }
-    else if (diagnosticInfoLength == nodesToProcess)
-    {
-        diagnostics->symbolicId = diagnosticInfo[0].symbolicId;
-        diagnostics->localizedText = diagnosticInfo[0].localizedText;
-        diagnostics->locale = diagnosticInfo[0].locale;
-        if (diagnosticInfo[0].hasAdditionalInfo)
-        {
-            char *additional_info = (char *) EdgeMalloc(diagnosticInfo[0].additionalInfo.length + 1);
-            if(IS_NULL(additional_info))
-            {
-                EDGE_LOG(TAG, "Error : Malloc for additional_info failed in checkDiagnosticInfo");
-                diagnostics->msg = (void *) "mismatch entries returned";
-                return diagnostics;
-            }
-            strncpy(additional_info, (char *) (diagnosticInfo[0].additionalInfo.data),
-                strlen((char *) (diagnosticInfo[0].additionalInfo.data)));
-            additional_info[diagnosticInfo[0].additionalInfo.length] = '\0';
-            diagnostics->additionalInfo = additional_info;
-        }
-        if (diagnosticInfo[0].hasInnerDiagnosticInfo)
-            diagnostics->innerDiagnosticInfo = diagnosticInfo[0].innerDiagnosticInfo;
-    }
-    else if (0 != returnDiagnostic && 0 == diagnosticInfoLength)
-    {
-        diagnostics->msg =
-                (void *) "no diagnostics were returned even though returnDiagnostic requested";
-    }
-    else
-    {
-        diagnostics->msg = (void *) "mismatch entries returned";
-    }
-    return diagnostics;
 }
 
 static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attributeId)

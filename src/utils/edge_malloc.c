@@ -19,6 +19,7 @@
  ******************************************************************/
 
 #include "edge_malloc.h"
+#include "edge_utils.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -73,8 +74,7 @@ Edge_String EdgeStringAlloc(char const src[])
     str.length = strlen(src);
     if(str.length > 0) {
         str.data = (Edge_Byte*)EdgeMalloc(str.length);
-        if(!str.data)
-            return EDGE_STRING_NULL;
+        VERIFY_NON_NULL(str.data, EDGE_STRING_NULL);
         memcpy(str.data, src, str.length);
     } else {
         str.data = (Edge_Byte*)EDGE_EMPTY_ARRAY_SENTINEL;
