@@ -40,12 +40,4 @@ extern "C" {
  */
 uint32_t EdgeGetRandom();
 
-/**
- * @brief Generate an array of uniformly distributed random bytes.
- * @param[out] output Array to fill with random bytes
- * @param[in] len Length of array
- * @return true for success, otherwise false and an error is logged
- */
-bool EdgeGetRandomBytes(uint8_t * output, size_t len);
-
 #endif      // EDGE_RANDOM_H
