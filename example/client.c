@@ -86,13 +86,13 @@ static void response_msg_cb (EdgeMessage *data)
     {
         int len = data->responseLength;
         if (0 == len)
-            printf("Msg id : [%" PRIu32 "] , Response Received ::  \n", data->message_id);
+            printf("Msg id : [%" PRIu32 "] \n", data->message_id);
         int idx = 0;
         for (idx = 0; idx < len; idx++)
         {
             if (data->responses[idx]->message != NULL)
             {
-                if (data->command == CMD_READ || data->command == CMD_READ_SAMPLING_INTERVAL || data->command == CMD_METHOD)
+                if (data->command == CMD_READ || data->command == CMD_READ_SAMPLING_INTERVAL)
                 {
                     printf("Msg id : [%" PRIu32 "] , Response Received ::  ", data->message_id);
                     if (data->responses[idx]->message->isArray)
@@ -296,8 +296,8 @@ static void monitored_msg_cb (EdgeMessage *data)
         for (idx = 0; idx < len; idx++)
         {
             printf("Msg id : [%" PRIu32 "] , [Node Name] : %s\n", data->message_id, data->responses[idx]->nodeInfo->valueAlias);
-            printf("Monitored Time : [%d-%02d-%02d %02d:%02d:%02d.%06ld]\n",
-                       lt->tm_year+1900, lt->tm_mon+1, lt->tm_mday, lt->tm_hour, lt->tm_min, lt->tm_sec, val.tv_usec);
+            printf("Monitored Time : [%d-%02d-%02d %02d:%02d:%02d.%06ld], resLength: %d, resIdx: %d\n",
+                       lt->tm_year+1900, lt->tm_mon+1, lt->tm_mday, lt->tm_hour, lt->tm_min, lt->tm_sec, val.tv_usec, len, idx);
             if (data->responses[idx]->message == NULL)
             {
                 printf("data->responses[%d]->message is NULL\n", idx);
@@ -419,37 +419,37 @@ static void monitored_msg_cb (EdgeMessage *data)
             else
             {
                 if (data->responses[idx]->type == Int16)
-                    printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>> [%d]\n",
+                    printf("[MonitoredItem DataChange callback] [%d]\n",
                            *((int *)data->responses[idx]->message->value));
                 else if (data->responses[idx]->type == Byte)
-                    printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>> [%d]\n",
+                    printf("[MonitoredItem DataChange callback] [%d]\n",
                            *((uint8_t *)data->responses[idx]->message->value));
                 else if (data->responses[idx]->type == ByteString)
-                    printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>> [%s]\n",
+                    printf("[MonitoredItem DataChange callback] [%s]\n",
                            (char *)data->responses[idx]->message->value);
                 else if (data->responses[idx]->type == UInt16)
-                    printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>> [%d]\n",
+                    printf("[MonitoredItem DataChange callback] [%d]\n",
                            *((int *)data->responses[idx]->message->value));
                 else if (data->responses[idx]->type == Int32)
-                    printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>>  [%d]\n",
+                    printf("[MonitoredItem DataChange callback] [%d]\n",
                            *((int *)data->responses[idx]->message->value));
                 else if (data->responses[idx]->type == UInt32)
-                    printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>>  [%d]\n",
+                    printf("[MonitoredItem DataChange callback] [%d]\n",
                            *((int *)data->responses[idx]->message->value));
                 else if (data->responses[idx]->type == Int64)
-                    printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>>  [%ld]\n",
+                    printf("[MonitoredItem DataChange callback] [%ld]\n",
                            *((long *)data->responses[idx]->message->value));
                 else if (data->responses[idx]->type == UInt64)
-                    printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>>  [%ld]\n",
+                    printf("[MonitoredItem DataChange callback] [%ld]\n",
                            *((long *)data->responses[idx]->message->value));
                 else if (data->responses[idx]->type == Float)
-                    printf("[MonitoredItem DataChange callback] Monitored Change Value read from node  ===>>  [%f]\n",
+                    printf("[MonitoredItem DataChange callback] [%f]\n",
                            *((float *)data->responses[idx]->message->value));
                 else if (data->responses[idx]->type == Double)
-                    printf("[MonitoredItem DataChange callback] Monitored Change Value read from node  ===>>  [%f]\n",
+                    printf("[MonitoredItem DataChange callback] [%f]\n",
                            *((double *)data->responses[idx]->message->value));
                 else if (data->responses[idx]->type == String)
-                    printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>>  [%s]\n",
+                    printf("[MonitoredItem DataChange callback] [%s]\n",
                            ((char *)data->responses[idx]->message->value));
             }
         }
@@ -1313,7 +1313,7 @@ static void testMethod()
     msg->request->methodParams->inpArg[1]->scalarValue = NULL;
     destroyEdgeMessage(msg);
 
-    printf("\n|------------------- [Method Call ] - print(x) \n");
+    printf("\n|------------------- [Method Call ] - move_start_point \n");
 
     msg = createEdgeMessage(endpointUri, 1, CMD_METHOD);
     if(IS_NULL(msg))
@@ -1322,8 +1322,8 @@ static void testMethod()
         return;
     }
 
-    int32_t val = 100;
-    ret = insertEdgeMethodParameter(&msg, "{2;S;v=0}print(x)", 1,
+    int32_t val = 0;
+    ret = insertEdgeMethodParameter(&msg, "{2;S;v=0}move_start_point", 1,
                 Int32, SCALAR, (void *)&val, NULL, 0);
     if (ret.code != STATUS_OK) {
         printf("Error : insertEdgeMethodParameter has failed\n");
@@ -1414,7 +1414,7 @@ static void testSub()
         scanf("%s", nodeName);
 
         double samplingInterval;
-        printf("\nEnter number of sampling interval[millisecond] (minimum : 100ms) :: ");
+        printf("\nEnter number of sampling interval[millisecond] (minimum : 25ms) :: ");
         scanf("%lf", &samplingInterval);
         int keepalivetime = (1 > (int) (ceil(10000.0 / 0.0))) ? 1 : (int) ceil(10000.0 / 0.0);
         insertSubParameter(&msg, nodeName, Edge_Create_Sub, samplingInterval, 0.0, keepalivetime, 10000, 1, true, 0, 50);
@@ -1454,7 +1454,7 @@ static void testSubModify()
     }
 
     double samplingInterval;
-    printf("\nEnter number of sampling interval[millisecond] (minimum : 100ms) :: ");
+    printf("\nEnter number of sampling interval[millisecond] (minimum : 25ms) :: ");
     scanf("%lf", &samplingInterval);
     int keepalivetime = (1 > (int) (ceil(10000.0 / 0.0))) ? 1 : (int) ceil(10000.0 / 0.0);
     insertSubParameter(&msg, nodeName, Edge_Modify_Sub, samplingInterval, 0.0, keepalivetime, 10000, 1, true, 0, 50);
@@ -1691,6 +1691,79 @@ static void *getNewValuetoWrite(int type, int num_values)
     return NULL;
 }
 
+static void testRobotMethod() {
+    printf("\n|------------------- [Method Call ] - move_start_point \n");
+
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_METHOD);
+    if(IS_NULL(msg))
+    {
+        printf("Error : Malloc failed for EdgeMessage in test Method\n");
+        return;
+    }
+
+    int32_t val = 0;
+    EdgeResult ret = insertEdgeMethodParameter(&msg, "{2;S;v=0}move_start_point", 1,
+                Int32, SCALAR, (void *)&val, NULL, 0);
+    if (ret.code != STATUS_OK) {
+        printf("Error : insertEdgeMethodParameter has failed\n");
+        goto EXIT_METHOD2;
+    }
+    sendRequest(msg);
+
+    EXIT_METHOD2:
+    msg->request->methodParams->inpArg[0]->scalarValue = NULL;
+    destroyEdgeMessage (msg);
+}
+
+static void testRobotSub() {
+
+	  printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET);
+	  printf("\n" COLOR_YELLOW "                    Subscribe Node             "COLOR_RESET);
+	  printf("\n" COLOR_YELLOW "------------------------------------------------------\n" COLOR_RESET);
+
+    char *ep = getEndPoint_input();
+    if (ep == NULL)
+    {
+        return;
+    }
+
+    // Get the list of browse names and display them to user.
+    testBrowseViews(ep);
+    char nodeName[MAX_CHAR_SIZE];
+    int num_requests = 2;
+
+    EdgeMessage* msg = createEdgeSubMessage(ep, nodeName, num_requests, Edge_Create_Sub);
+    if(IS_NULL(msg))
+    {
+        printf("Error : EdgeMalloc failed for msg in test subscription\n");
+        return;
+    }
+
+    for (int i = 0; i < num_requests; i++)
+    {
+        printf("\nEnter the node #%d name to subscribe :: ", (i + 1));
+        scanf("%s", nodeName);
+
+        double samplingInterval;
+        printf("\nEnter number of sampling interval[millisecond] (minimum : 25ms) :: ");
+        scanf("%lf", &samplingInterval);
+        int keepalivetime = (1 > (int) (ceil(10000.0 / 0.0))) ? 1 : (int) ceil(10000.0 / 0.0);
+        insertSubParameter(&msg, nodeName, Edge_Create_Sub, samplingInterval, 0.0, keepalivetime, 10000, 1, true, 0, 50);
+    }
+
+
+    EdgeResult result = sendRequest(msg);
+    if (result.code == STATUS_OK)
+    {
+        printf(COLOR_GREEN "\nSUBSCRPTION IS SUCCESSFULLY\n" COLOR_RESET);
+    } else {
+        printf("CREATE RESULT : %d\n",  result.code);
+    }
+
+    destroyEdgeMessage (msg);
+}
+
+
 static void print_menu()
 {
     printf("\n=============== OPC UA =======================\n\n");
@@ -1711,6 +1784,10 @@ static void print_menu()
     printf("modify_sub : modify subscription\n");
     printf("delete_sub : delete subscription\n");
     printf("set_max_ref : Set maximum references per node\n");
+    printf("\n=============== Custom test =======================\n\n");
+    printf("call_robot : call robot method \n");
+    printf("sub_robot : subscribe robot nodes \n");
+    printf("\n=============== Custom test =======================\n\n");
     printf("quit : terminate/stop opcua server/client and then quit\n");
     printf("help : print menu\n");
 
@@ -1817,6 +1894,11 @@ int main()
         {
             testSubDelete();
         }
+        else if (!strcmp(command, "set_max_ref"))
+        {
+            printf("Enter a value for maximum references allowed per node:");
+            scanf("%d", &maxReferencesPerNode);
+        }
         else if (!strcmp(command, "quit"))
         {
             deinit();
@@ -1830,10 +1912,13 @@ int main()
         {
             testRePublish();
         }
-        else if (!strcmp(command, "set_max_ref"))
+        else if (!strcmp(command, "call_robot"))
         {
-            printf("Enter a value for maximum references allowed per node:");
-            scanf("%d", &maxReferencesPerNode);
+            testRobotMethod();
+        }
+        else if (!strcmp(command, "sub_robot"))
+        {
+            testRobotSub();
         }
     }
 
