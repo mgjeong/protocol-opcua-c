@@ -118,6 +118,17 @@ static void addVariableNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeI
         EdgeFree(val.locale.data);
         EdgeFree(val.text.data);
     }
+    else if (type == UA_TYPES_QUALIFIEDNAME)
+    {
+        Edge_QualifiedName *eqn = (Edge_QualifiedName *) item->variableData;
+        UA_QualifiedName qn = {eqn->namespaceIndex, *((UA_String *)&eqn->name)};
+        UA_Variant_setScalarCopy(&attr.value, &qn, &UA_TYPES[type]);
+    }
+    else if (type == UA_TYPES_NODEID)
+    {
+        Edge_NodeId *n1 = (Edge_NodeId *) item->variableData;
+        UA_Variant_setScalarCopy(&attr.value, n1, &UA_TYPES[type]);
+    }
     else
     {
         UA_Variant_setScalarCopy(&attr.value, item->variableData, &UA_TYPES[type]);

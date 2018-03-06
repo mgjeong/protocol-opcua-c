@@ -74,12 +74,12 @@ static bool browseNodeFlag = false;
 static bool browseNextFlag = false;
 static bool methodCallFlag = false;
 
-char node_arr[15][30] =
+char node_arr[17][30] =
 {
     "{2;S;v=12}String1", "{2;S;v=12}String2", "{2;S;v=12}String3", "{2;S;v=11}Double", "{2;S;v=6}Int32",
     "{2;S;v=5}UInt16", "{2;S;v=15}ByteString", "{2;S;v=3}Byte", "{2;S;v=12}Error", "{2;S;v=14}Guid",
     "{2;S;v=11}DoubleArray", "{2;S;v=12}CharArray", "{2;S;v=15}ByteStringArray", "{2;S;v=14}GuidArray",
-    "{2;S;v=21}LocalizedText"
+    "{2;S;v=21}LocalizedText", "{2;S;v=20}QualifiedName", "{2;S;v=17}NodeId"
 };
 
 static int method_arr[5] =
@@ -122,6 +122,28 @@ extern "C"
 {
 
     static void startClient(char *addr, int port, char *securityPolicyUri);
+
+    static void showNodeId(Edge_NodeId *id)
+    {
+        if(IS_NULL(id))
+            return;
+
+        switch (id->identifierType)
+        {
+            case INTEGER:
+                printf("Numeric: %d\n", id->identifier.numeric);
+                break;
+            case STRING:
+                printf("String: %s\n", (char *) id->identifier.string.data);
+                break;
+            case BYTESTRING:
+                printf("Byte String: %s\n", (char *) id->identifier.byteString.data);
+                break;
+            case UUID:
+                printf("GUID\n");
+                break;
+        }
+    }
 
     static void response_msg_cb(EdgeMessage *data)
     {
@@ -350,6 +372,16 @@ extern "C"
                             {
                                 Edge_LocalizedText *lt = (Edge_LocalizedText *) data->responses[idx]->message->value;
                                 printf("[Locale: %s, Text: %s]\n", (uint8_t*)lt->locale.data, (uint8_t*)lt->text.data);
+                            }
+                            else if (data->responses[idx]->type == QualifiedName)
+                            {
+                                Edge_QualifiedName *lt = (Edge_QualifiedName *) data->responses[idx]->message->value;
+                                printf("[NameSpace Index: %" PRIu16 ", Name: %s]\n", lt->namespaceIndex, lt->name.data);
+                            }
+                            else if (data->responses[idx]->type == NodeId)
+                            {
+                                Edge_NodeId *nodeId = (Edge_NodeId *) data->responses[idx]->message->value;
+                                showNodeId(nodeId);
                             }
                         }
                     }
@@ -2014,7 +2046,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     node->identifierType = INTEGER;
     node->identifier.numeric = EDGE_NODEID_ROOTFOLDER;
 
-    item = createVariableNodeItem("NodeId", NodeId, (void *) &node, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("NodeId", NodeId, node, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);

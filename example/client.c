@@ -84,6 +84,28 @@ static EndPointList *remove_from_endpoint_list(char *endpoint);
 static void startClient(char *addr, int port, char *securityPolicyUri, char *endpoint);
 static void *getNewValuetoWrite(int type, int num_values);
 
+static void showNodeId(Edge_NodeId *id)
+{
+    if(IS_NULL(id))
+        return;
+
+    switch (id->identifierType)
+    {
+        case INTEGER:
+            printf("Numeric: %d\n", id->identifier.numeric);
+            break;
+        case STRING:
+            printf("String: %s\n", (char *) id->identifier.string.data);
+            break;
+        case BYTESTRING:
+            printf("Byte String: %s\n", (char *) id->identifier.byteString.data);
+            break;
+        case UUID:
+            printf("GUID\n");
+            break;
+    }
+}
+
 static void response_msg_cb (EdgeMessage *data)
 {
     if (data->type == GENERAL_RESPONSE)
@@ -261,6 +283,16 @@ static void response_msg_cb (EdgeMessage *data)
                         {
                             Edge_LocalizedText *lt = (Edge_LocalizedText *) data->responses[idx]->message->value;
                             printf("[Locale: %s, Text: %s]\n", (uint8_t*)lt->locale.data, (uint8_t*)lt->text.data);
+                        }
+                        else if (data->responses[idx]->type == QualifiedName)
+                        {
+                            Edge_QualifiedName *lt = (Edge_QualifiedName *) data->responses[idx]->message->value;
+                            printf("[NameSpace Index: %" PRIu16 ", Name: %s]\n", lt->namespaceIndex, lt->name.data);
+                        }
+                        else if (data->responses[idx]->type == NodeId)
+                        {
+                            Edge_NodeId *nodeId = (Edge_NodeId *) data->responses[idx]->message->value;
+                            showNodeId(nodeId);
                         }
                     }
                 }

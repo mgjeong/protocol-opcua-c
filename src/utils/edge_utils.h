@@ -162,10 +162,19 @@ extern "C"
     /**
      * @brief Converts string of type UA_String to char string.
      * @remarks Allocated memory should be freed by the caller.
-     * @param[in]  uaStr Data to be cloned.
+     * @param[in]  uaStr Data to be converted.
      * @return Converted string on success. Otherwise null.
      */
     char *convertUAStringToString(UA_String *uaStr);
+
+    /**
+     * @brief Converts string of type UA_String to Edge_String.
+     * @remarks Allocated memory should be freed by the caller.
+     * Converted string is NULL terminated.
+     * @param[in]  uaStr Data to be converted.
+     * @return Converted string on success. Otherwise null.
+     */
+    Edge_String *convertToEdgeString(UA_String *uaStr);
 
     /**
      * @brief Converts UA_ApplicationType to EdgeApplicationType.
@@ -180,6 +189,15 @@ extern "C"
      * @return Converted application type as in open62541 library.
      */
     UA_ApplicationType convertEdgeApplicationType(EdgeApplicationType appType);
+
+    /**
+     * @brief Converts UA_NodeId to Edge_NodeId.
+     * @remarks Allocated memory should be freed by the caller.
+     * String and ByteString type NodeIds are NULL terminated.
+     * @param[in]  nodeId NodeId to be converted.
+     * @return Converted NodeId on success. Otherwise null.
+     */
+    Edge_NodeId *convertToEdgeNodeId(UA_NodeId *nodeId);
 
     /**
      * @brief De-allocates the memory consumed by EdgeEndpointConfig and its members.

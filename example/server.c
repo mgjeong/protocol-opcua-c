@@ -54,6 +54,11 @@
 #define MAX_ENDPOINT_URI_SIZE (512)
 #define MAX_ADDRESS_SIZE (128)
 
+#define DATETIME_USEC 10LL
+#define DATETIME_MSEC (DATETIME_USEC * 1000LL)
+#define DATETIME_SEC (DATETIME_MSEC * 1000LL)
+#define DATETIME_UNIX_EPOCH (11644473600LL * DATETIME_SEC)
+
 static bool startFlag = false;
 static bool stopFlag = false;
 
@@ -436,13 +441,15 @@ static void testCreateNodes()
     printf("\n|------------[Added] %s\n", item->browseName);
     deleteNodeItem(item);
 
-    /*printf("\n[%d] Variable node with dateTime variant: \n", ++index);
-    Edge_DateTime time = UA_DateTime_now();
-    item = createVariableNodeItem("DateTime", DateTime, (void *) &time, VARIABLE_NODE);
+    printf("\n[%d] Variable node with dateTime variant: \n", ++index);
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    Edge_DateTime time = (tv.tv_sec * DATETIME_SEC) + (tv.tv_usec * DATETIME_USEC) + DATETIME_UNIX_EPOCH;
+    item = createVariableNodeItem("DateTime", DateTime, (void *) &time, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
-    printf("\n|------------[Added] %s\n", item->browseName);
-    deleteNodeItem(item);*/
+    printf("\n|------------[Added] %s [Value: %" PRId64 "]\n", item->browseName, time);
+    deleteNodeItem(item);
 
     printf("\n[%d] Variable node with SByte variant: \n", ++index);
     Edge_SByte sbyte = 2;
@@ -489,7 +496,7 @@ static void testCreateNodes()
     node->identifierType = INTEGER;
     node->identifier.numeric = EDGE_NODEID_ROOTFOLDER;
 
-    item = createVariableNodeItem("NodeId", NodeId, (void *) &node, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("NodeId", NodeId, node, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
