@@ -23,9 +23,13 @@
 #include <string.h>
 #include <math.h>
 #include <inttypes.h>
+#include <signal.h>
 
 #include <sys/time.h>
 #include <time.h>
+
+#include <pthread.h>
+#include <unistd.h>
 
 #include "opcua_manager.h"
 #include "opcua_common.h"
@@ -266,15 +270,15 @@ static void response_msg_cb (EdgeMessage *data)
                            (char *) data->responses[idx]->message->value);
                 }
                 // Diagnostics information
-                if (data->responses[idx]->m_diagnosticInfo)
-                {
-                    printf("Diagnostics information\n");
-                    printf("symbolicId :: %d, localizedText : %d, additionalInfo : %s , msg :: %s\n" ,
-                           data->responses[idx]->m_diagnosticInfo->symbolicId,
-                           data->responses[idx]->m_diagnosticInfo->localizedText,
-                           data->responses[idx]->m_diagnosticInfo->additionalInfo,
-                           data->responses[idx]->m_diagnosticInfo->msg);
-                }
+//                if (data->responses[idx]->m_diagnosticInfo)
+//                {
+//                    printf("Diagnostics information\n");
+//                    printf("symbolicId :: %d, localizedText : %d, additionalInfo : %s , msg :: %s\n" ,
+//                           data->responses[idx]->m_diagnosticInfo->symbolicId,
+//                           data->responses[idx]->m_diagnosticInfo->localizedText,
+//                           data->responses[idx]->m_diagnosticInfo->additionalInfo,
+//                           data->responses[idx]->m_diagnosticInfo->msg);
+//                }
             }
         }
     }
@@ -419,37 +423,37 @@ static void monitored_msg_cb (EdgeMessage *data)
             else
             {
                 if (data->responses[idx]->type == Int16)
-                    printf("[MonitoredItem DataChange callback] [%d]\n",
+                    printf("[%d]\n",
                            *((int *)data->responses[idx]->message->value));
                 else if (data->responses[idx]->type == Byte)
-                    printf("[MonitoredItem DataChange callback] [%d]\n",
+                    printf("[%d]\n",
                            *((uint8_t *)data->responses[idx]->message->value));
                 else if (data->responses[idx]->type == ByteString)
-                    printf("[MonitoredItem DataChange callback] [%s]\n",
+                    printf("[%s]\n",
                            (char *)data->responses[idx]->message->value);
                 else if (data->responses[idx]->type == UInt16)
-                    printf("[MonitoredItem DataChange callback] [%d]\n",
+                    printf("[%d]\n",
                            *((int *)data->responses[idx]->message->value));
                 else if (data->responses[idx]->type == Int32)
-                    printf("[MonitoredItem DataChange callback] [%d]\n",
+                    printf("[%d]\n",
                            *((int *)data->responses[idx]->message->value));
                 else if (data->responses[idx]->type == UInt32)
-                    printf("[MonitoredItem DataChange callback] [%d]\n",
+                    printf("[%d]\n",
                            *((int *)data->responses[idx]->message->value));
                 else if (data->responses[idx]->type == Int64)
-                    printf("[MonitoredItem DataChange callback] [%ld]\n",
+                    printf("[%ld]\n",
                            *((long *)data->responses[idx]->message->value));
                 else if (data->responses[idx]->type == UInt64)
-                    printf("[MonitoredItem DataChange callback] [%ld]\n",
+                    printf("[%ld]\n",
                            *((long *)data->responses[idx]->message->value));
                 else if (data->responses[idx]->type == Float)
-                    printf("[MonitoredItem DataChange callback] [%f]\n",
+                    printf("[%f]\n",
                            *((float *)data->responses[idx]->message->value));
                 else if (data->responses[idx]->type == Double)
-                    printf("[MonitoredItem DataChange callback] [%f]\n",
+                    printf("[%f]\n",
                            *((double *)data->responses[idx]->message->value));
                 else if (data->responses[idx]->type == String)
-                    printf("[MonitoredItem DataChange callback] [%s]\n",
+                    printf("[%s]\n",
                            ((char *)data->responses[idx]->message->value));
             }
         }
@@ -1121,6 +1125,7 @@ static void readHelper(int num_requests, char *ep)
 
     for (int i = 0; i < num_requests; i++)
     {
+        usleep(1000);
         printf("\nEnter the node #%d name to read :: ", (i + 1));
         scanf("%s", nodeName);
         insertReadAccessNode(&msg, nodeName);
@@ -1741,6 +1746,7 @@ static void testRobotSub() {
 
     for (int i = 0; i < num_requests; i++)
     {
+        usleep(1000);
         printf("\nEnter the node #%d name to subscribe :: ", (i + 1));
         scanf("%s", nodeName);
 
@@ -1803,6 +1809,7 @@ int main()
 
     while (!stopFlag)
     {
+        usleep(1000);
         printf("\n\n[INPUT Command] : ");
         scanf("%s", command);
 

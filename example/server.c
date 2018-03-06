@@ -93,7 +93,7 @@ static void *server_sample_loop(void *ptr)
 
     while (b_running)
     {
-        sprintf(dataNum, "%d", getRandom(5));
+        sprintf(dataNum, "%d", getRandom(1000));
         strncpy(s_value, "robot data ", sizeof(s_value));
         strcat(s_value, dataNum);
         EdgeVersatility *message = (EdgeVersatility *) EdgeMalloc(sizeof(EdgeVersatility));
