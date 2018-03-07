@@ -31,10 +31,25 @@
 
 #define TAG "edge_utils"
 
+
+// USAGE
+
+/*
+ edgeMap* X = createMap();
+
+ insertMapElement(X, 10, "arya");
+ insertMapElement(X, 20, "mango");
+ insertMapElement(X, 25, "apple");
+
+ char* ret = (char *)getMapElement(X, 25);
+
+ deleteMap(X);
+ */
+
 edgeMap *createMap()
 {
     edgeMap *map = (edgeMap *) EdgeMalloc(sizeof(edgeMap));
-    VERIFY_NON_NULL(map, NULL);
+    VERIFY_NON_NULL_MSG(map, "EdgeMalloc FAILED for create edge map\n", NULL);
     map->head = NULL;
     return map;
 }
@@ -42,7 +57,7 @@ edgeMap *createMap()
 void insertMapElement(edgeMap *map, keyValue key, keyValue value)
 {
     edgeMapNode *node = (edgeMapNode *) EdgeMalloc(sizeof(edgeMapNode));
-    VERIFY_NON_NULL_NR(node);
+    VERIFY_NON_NULL_NR_MSG(node, "EdgeMalloc failed for insert map element\n");
     node->key = key;
     node->value = value;
     node->next = NULL;
@@ -96,18 +111,18 @@ void deleteMap(edgeMap *map)
 static List *createListNode(void *data)
 {
     List *node = (List *) EdgeCalloc(1, sizeof(List));
-    VERIFY_NON_NULL(node, NULL);
+    VERIFY_NON_NULL_MSG(node, "EdgeCalloc failed for create list node\n", NULL);
     node->data = data;
     return node;
 }
 
 bool addListNode(List **head, void *data)
 {
-    VERIFY_NON_NULL(head, false);
-    VERIFY_NON_NULL(data, false);
+    VERIFY_NON_NULL_MSG(head, "HEAD NULL in add list node\n", false);
+    VERIFY_NON_NULL_MSG(data, "DATA NULL in add list node\n", false);
 
     List *newnode = createListNode(data);
-    VERIFY_NON_NULL(newnode, false);
+    VERIFY_NON_NULL_MSG(newnode, "FAILED to create new node in create list node\n", false);
 
     newnode->link = *head;
     *head = newnode;
@@ -116,7 +131,7 @@ bool addListNode(List **head, void *data)
 
 unsigned int getListSize(List *ptr)
 {
-    VERIFY_NON_NULL(ptr, 0);
+    VERIFY_NON_NULL_MSG(ptr, "NULL list ptr in getListSize\n", 0);
 
     size_t size = 0;
     while (ptr)
@@ -129,7 +144,7 @@ unsigned int getListSize(List *ptr)
 
 void deleteList(List **head)
 {
-    VERIFY_NON_NULL_NR(head);
+    VERIFY_NON_NULL_NR_MSG(head, "NULL head param in delete LIST\n");
 
     List *next = NULL;
     List *ptr = *head;
@@ -156,10 +171,10 @@ void logCurrentTimeStamp()
 
 char *cloneString(const char *str)
 {
-    VERIFY_NON_NULL(str, NULL);
+    VERIFY_NON_NULL_MSG(str, "NULL str param in clonseString\n", NULL);
     size_t len = strlen(str);
     char *clone = (char *) EdgeMalloc(len + 1);
-    VERIFY_NON_NULL(clone, NULL);
+    VERIFY_NON_NULL_MSG(clone, "EdgeMalloc FAILED for cloneString\n", NULL);
     strncpy(clone, str, len+1);
     return clone;
 }
@@ -172,7 +187,7 @@ void *cloneData(const void *src, int lenInbytes)
     }
 
     void *cloned = EdgeMalloc(lenInbytes);
-    VERIFY_NON_NULL(cloned, NULL);
+    VERIFY_NON_NULL_MSG(cloned, "EdgeMalloc failed for cloneData\n", NULL);
     memcpy(cloned, src, lenInbytes);
     return cloned;
 }
@@ -185,7 +200,7 @@ char *convertUAStringToString(UA_String *uaStr)
     }
 
     char *str = (char *) EdgeMalloc(uaStr->length + 1);
-    VERIFY_NON_NULL(str, NULL);
+    VERIFY_NON_NULL_MSG(str, "EdgeMalloc FAILED for conver UA string to string\n", NULL);
     memcpy(str, uaStr->data, uaStr->length);
     str[uaStr->length] = '\0';
     return str;
@@ -193,7 +208,7 @@ char *convertUAStringToString(UA_String *uaStr)
 
 Edge_String *convertToEdgeString(UA_String *uaStr)
 {
-    VERIFY_NON_NULL(uaStr, NULL);
+    VERIFY_NON_NULL_MSG(uaStr, "UA String param is NULL in convertToEdgeString\n", NULL);
     Edge_String *value = (Edge_String *) EdgeCalloc(1, sizeof(Edge_String));
     VERIFY_NON_NULL_MSG(value, "Memory allocation failed", NULL);
     value->length = uaStr->length;
@@ -258,7 +273,7 @@ UA_ApplicationType convertEdgeApplicationType(EdgeApplicationType appType)
 
 Edge_NodeId *convertToEdgeNodeId(UA_NodeId *nodeId)
 {
-    VERIFY_NON_NULL(nodeId, NULL);
+    VERIFY_NON_NULL_MSG(nodeId, "Node ID param is NULL in convertToEdgeNodeId\n", NULL);
     Edge_NodeId *edgeNodeId = (Edge_NodeId *) EdgeCalloc(1, sizeof(Edge_NodeId));
     VERIFY_NON_NULL_MSG(edgeNodeId, "Memory allocation failed", NULL);
 
@@ -302,7 +317,7 @@ Edge_NodeId *convertToEdgeNodeId(UA_NodeId *nodeId)
 
 void freeEdgeEndpointConfig(EdgeEndpointConfig *config)
 {
-    VERIFY_NON_NULL_NR(config);
+    VERIFY_NON_NULL_NR_MSG(config, "NULL config param in freeEdgeEndpointConfig\n");
     EdgeFree(config->serverName);
     EdgeFree(config->bindAddress);
     EdgeFree(config);
@@ -310,7 +325,7 @@ void freeEdgeEndpointConfig(EdgeEndpointConfig *config)
 
 void freeEdgeApplicationConfigMembers(EdgeApplicationConfig *config)
 {
-    VERIFY_NON_NULL_NR(config);
+    VERIFY_NON_NULL_NR_MSG(config, "NULL config param in freeEdgeApplicationConfigMembers\n");
     EdgeFree(config->applicationUri);
     EdgeFree(config->productUri);
     EdgeFree(config->applicationName);
@@ -325,21 +340,21 @@ void freeEdgeApplicationConfigMembers(EdgeApplicationConfig *config)
 
 void freeEdgeApplicationConfig(EdgeApplicationConfig *config)
 {
-    VERIFY_NON_NULL_NR(config);
+    VERIFY_NON_NULL_NR_MSG(config, "NULL config param in freeEdgeApplicationConfig\n");
     freeEdgeApplicationConfigMembers(config);
     EdgeFree(config);
 }
 
 void freeEdgeContinuationPoint(EdgeContinuationPoint *cp)
 {
-    VERIFY_NON_NULL_NR(cp);
+    VERIFY_NON_NULL_NR_MSG(cp, "NULL EdgeContinuationPoint param in freeEdgeContinuationPoint\n");
     EdgeFree(cp->continuationPoint);
     EdgeFree(cp);
 }
 
 void freeEdgeContinuationPointList(EdgeContinuationPointList *cpList)
 {
-    VERIFY_NON_NULL_NR(cpList);
+    VERIFY_NON_NULL_NR_MSG(cpList, "NULL EdgeContinuationPoint param in freeEdgeContinuationPointList\n");
     for (size_t i = 0; i < cpList->count; ++i)
     {
         freeEdgeContinuationPoint(cpList->cp[i]);
@@ -351,7 +366,7 @@ void freeEdgeContinuationPointList(EdgeContinuationPointList *cpList)
 
 void freeEdgeDevice(EdgeDevice *dev)
 {
-    VERIFY_NON_NULL_NR(dev);
+    VERIFY_NON_NULL_NR_MSG(dev, "NULL edgeDevice in freeEdgeDevice\n");
     if (dev->endpointsInfo)
     {
         for (int i = 0; i < dev->num_endpoints; ++i)
@@ -367,9 +382,9 @@ void freeEdgeDevice(EdgeDevice *dev)
 
 EdgeSubRequest* cloneSubRequest(EdgeSubRequest* subReq)
 {
-    VERIFY_NON_NULL(subReq, NULL);
+    VERIFY_NON_NULL_MSG(subReq, "NULL sub request param in cloneSubRequest\n", NULL);
     EdgeSubRequest *clone = (EdgeSubRequest *)EdgeCalloc(1, sizeof(EdgeSubRequest));
-    VERIFY_NON_NULL(clone, NULL);
+    VERIFY_NON_NULL_MSG(clone, "EdgeCalloc FAILED in cloneSubRequest\n", NULL);
 
     clone->subType = subReq->subType;
     clone->samplingInterval = subReq->samplingInterval;
@@ -386,9 +401,9 @@ EdgeSubRequest* cloneSubRequest(EdgeSubRequest* subReq)
 
 EdgeMethodRequestParams* cloneEdgeMethodRequestParams(EdgeMethodRequestParams *methodParams)
 {
-    VERIFY_NON_NULL(methodParams, NULL);
+    VERIFY_NON_NULL_MSG(methodParams, "Null method params in cloneEdgeMethodRequestParams\n", NULL);
     EdgeMethodRequestParams* clone = (EdgeMethodRequestParams *) EdgeCalloc(1, sizeof(EdgeMethodRequestParams));
-    VERIFY_NON_NULL(clone, NULL);
+    VERIFY_NON_NULL_MSG(clone, "EdgeCalloc FAILED for clone in cloneEdgeMethodRequestParams\n", NULL);
 
     clone->num_outArgs = methodParams->num_outArgs;
 
@@ -490,9 +505,9 @@ ERROR:
 
 EdgeEndpointConfig *cloneEdgeEndpointConfig(EdgeEndpointConfig *config)
 {
-    VERIFY_NON_NULL(config, NULL);
+    VERIFY_NON_NULL_MSG(config, "NULL config patram in cloneEdgeEndpointConfig\n", NULL);
     EdgeEndpointConfig *clone = (EdgeEndpointConfig *) EdgeCalloc(1, sizeof(EdgeEndpointConfig));
-    VERIFY_NON_NULL(clone, NULL);
+    VERIFY_NON_NULL_MSG(clone, "EdgeCallc failed for clone in cloneEdgeEndpointConfig\n", NULL);
     clone->requestTimeout = config->requestTimeout;
     clone->bindPort = config->bindPort;
     if (config->serverName)
@@ -521,10 +536,10 @@ EdgeEndpointConfig *cloneEdgeEndpointConfig(EdgeEndpointConfig *config)
 
 EdgeApplicationConfig *cloneEdgeApplicationConfig(EdgeApplicationConfig *config)
 {
-    VERIFY_NON_NULL(config, NULL);
+    VERIFY_NON_NULL_MSG(config, "NULL cofig patram in cloneEdgeApplicationConfig\n", NULL);
     EdgeApplicationConfig *clone = (EdgeApplicationConfig *) EdgeCalloc(1,
             sizeof(EdgeApplicationConfig));
-    VERIFY_NON_NULL(clone, NULL);
+    VERIFY_NON_NULL_MSG(clone, "EdgeCalloc FAILED for clone in cloneEdgeApplicationConfig\n", NULL);
     clone->applicationType = config->applicationType;
 
     if (config->applicationUri)
@@ -599,7 +614,7 @@ EdgeApplicationConfig *cloneEdgeApplicationConfig(EdgeApplicationConfig *config)
 
 void freeEdgeEndpointInfo(EdgeEndPointInfo *endpointInfo)
 {
-    VERIFY_NON_NULL_NR(endpointInfo);
+    VERIFY_NON_NULL_NR_MSG(endpointInfo, "NULL param endpointinfo in cloneEdgeEndpointInfo\n");
     EdgeFree(endpointInfo->endpointUri);
     freeEdgeEndpointConfig(endpointInfo->endpointConfig);
     freeEdgeApplicationConfig(endpointInfo->appConfig);
@@ -610,9 +625,9 @@ void freeEdgeEndpointInfo(EdgeEndPointInfo *endpointInfo)
 
 EdgeEndPointInfo *cloneEdgeEndpointInfo(EdgeEndPointInfo *endpointInfo)
 {
-    VERIFY_NON_NULL(endpointInfo, NULL);
+    VERIFY_NON_NULL_MSG(endpointInfo, "NULL param endpointinfo in cloneEdgeEndpointInfo\n", NULL);
     EdgeEndPointInfo *clone = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    VERIFY_NON_NULL(clone, NULL);
+    VERIFY_NON_NULL_MSG(clone, "EdgeCalloc failed for clone in cloneEdgeEndpointInfo\n", NULL);
     clone->securityMode = endpointInfo->securityMode;
     clone->securityLevel = endpointInfo->securityLevel;
 
@@ -669,7 +684,7 @@ EdgeEndPointInfo *cloneEdgeEndpointInfo(EdgeEndPointInfo *endpointInfo)
 
 void freeEdgeBrowseResult(EdgeBrowseResult *browseResult, int browseResultLength)
 {
-    VERIFY_NON_NULL_NR(browseResult);
+    VERIFY_NON_NULL_NR_MSG(browseResult, "NULL param browse result in freeEdgeBrowseResult\n");
 
     for (size_t i = 0; i < browseResultLength; ++i)
     {
@@ -680,13 +695,13 @@ void freeEdgeBrowseResult(EdgeBrowseResult *browseResult, int browseResultLength
 
 void freeEdgeResult(EdgeResult *res)
 {
-    VERIFY_NON_NULL_NR(res);
+    VERIFY_NON_NULL_NR_MSG(res, "NULL param result in freeEdgeResult\n");
     EdgeFree(res);
 }
 
 void freeEdgeNodeId(EdgeNodeId *nodeId)
 {
-    VERIFY_NON_NULL_NR(nodeId);
+    VERIFY_NON_NULL_NR_MSG(nodeId, "NULL param node id in free edge node id\n");
     EdgeFree(nodeId->nodeUri);
     EdgeFree(nodeId->nodeId);
     EdgeFree(nodeId);
@@ -694,7 +709,7 @@ void freeEdgeNodeId(EdgeNodeId *nodeId)
 
 void freeEdgeNodeInfo(EdgeNodeInfo *nodeInfo)
 {
-    VERIFY_NON_NULL_NR(nodeInfo);
+    VERIFY_NON_NULL_NR_MSG(nodeInfo, "NULL param nodeinfo in freeEdgeNodeInfo\n");
     EdgeFree(nodeInfo->methodName);
     freeEdgeNodeId(nodeInfo->nodeId);
     EdgeFree(nodeInfo->valueAlias);
@@ -703,7 +718,7 @@ void freeEdgeNodeInfo(EdgeNodeInfo *nodeInfo)
 
 void freeEdgeArgument(EdgeArgument *arg)
 {
-    VERIFY_NON_NULL_NR(arg);
+    VERIFY_NON_NULL_NR_MSG(arg, "NULL param edge argument in freeEdgeArgument\n");
     if(SCALAR == arg->valType)
     {
         EdgeFree(arg->scalarValue);
@@ -729,7 +744,7 @@ void freeEdgeArgument(EdgeArgument *arg)
 
 void freeEdgeMethodRequestParams(EdgeMethodRequestParams *methodParams)
 {
-    VERIFY_NON_NULL_NR(methodParams);
+    VERIFY_NON_NULL_NR_MSG(methodParams, "NULL method params in freeEdgeMethodRequestParams\n");
     for (size_t i = 0; i < methodParams->num_inpArgs; ++i)
     {
         freeEdgeArgument(methodParams->inpArg[i]);
@@ -746,7 +761,7 @@ void freeEdgeMethodRequestParams(EdgeMethodRequestParams *methodParams)
 
 void freeEdgeRequest(EdgeRequest *req)
 {
-    VERIFY_NON_NULL_NR(req);
+    VERIFY_NON_NULL_NR_MSG(req, "NULL param request in freeEdgeRequest\n");
     EdgeFree(req->value);
     EdgeFree(req->subMsg);
     freeEdgeMethodRequestParams(req->methodParams);
@@ -756,7 +771,7 @@ void freeEdgeRequest(EdgeRequest *req)
 
 void freeEdgeRequests(EdgeRequest **requests, int requestLength)
 {
-    VERIFY_NON_NULL_NR(requests);
+    VERIFY_NON_NULL_NR_MSG(requests, "NULL param requests in freeEdgeRequests\n");
     for (size_t i = 0; i < requestLength; ++i)
     {
         freeEdgeRequest(requests[i]);
@@ -766,14 +781,14 @@ void freeEdgeRequests(EdgeRequest **requests, int requestLength)
 
 void freeEdgeVersatility(EdgeVersatility *versatileValue)
 {
-    VERIFY_NON_NULL_NR(versatileValue);
+    VERIFY_NON_NULL_NR_MSG(versatileValue, "NULL param versatileValue in freeEdgeVersatility\n");
     EdgeFree(versatileValue->value);
     EdgeFree(versatileValue);
 }
 
 void freeEdgeVersatilityByType(EdgeVersatility *versatileValue, int type)
 {
-    VERIFY_NON_NULL_NR(versatileValue);
+    VERIFY_NON_NULL_NR_MSG(versatileValue, "NULL param versatileValue in freeEdgeVersatilityByType\n");
 
     if (versatileValue->isArray && (type == UA_NS0ID_STRING || type == UA_NS0ID_BYTESTRING
     		|| type == UA_NS0ID_GUID))
@@ -809,7 +824,7 @@ void freeEdgeVersatilityByType(EdgeVersatility *versatileValue, int type)
 
 void freeEdgeDiagnosticInfo(EdgeDiagnosticInfo *info)
 {
-    VERIFY_NON_NULL_NR(info);
+    VERIFY_NON_NULL_NR_MSG(info, "NULL param EdgeDiagnosticInfo in freeEdgeDiagnosticInfo\n");
     EdgeFree(info->additionalInfo);
     EdgeFree(info->innerDiagnosticInfo);
     EdgeFree(info->msg);
@@ -818,7 +833,7 @@ void freeEdgeDiagnosticInfo(EdgeDiagnosticInfo *info)
 
 void freeEdgeResponse(EdgeResponse *response)
 {
-    VERIFY_NON_NULL_NR(response);
+    VERIFY_NON_NULL_NR_MSG(response, "NULL param EdgeResponse in freeEdgeResponse\n");
     if(IS_NOT_NULL(response->message))
         freeEdgeVersatilityByType(response->message, response->type);
 
@@ -836,7 +851,7 @@ void freeEdgeResponse(EdgeResponse *response)
 
 void freeEdgeResponses(EdgeResponse **responses, int responseLength)
 {
-    VERIFY_NON_NULL_NR(responses);
+    VERIFY_NON_NULL_NR_MSG(responses, "NULL param responses in freeEdgeResponses\n");
     for (size_t i = 0; i < responseLength; ++i)
     {
         freeEdgeResponse(responses[i]);
@@ -846,7 +861,7 @@ void freeEdgeResponses(EdgeResponse **responses, int responseLength)
 
 void freeEdgeMessage(EdgeMessage *msg)
 {
-    VERIFY_NON_NULL_NR(msg);
+    VERIFY_NON_NULL_NR_MSG(msg, "NULL param EdgeMessage in freeEdgeMessage\n");
     if(IS_NOT_NULL(msg->endpointInfo))
         freeEdgeEndpointInfo(msg->endpointInfo);
 
@@ -877,7 +892,7 @@ void freeEdgeMessage(EdgeMessage *msg)
 EdgeResult *createEdgeResult(EdgeStatusCode code)
 {
     EdgeResult *result = (EdgeResult *) EdgeCalloc(1, sizeof(EdgeResult));
-    VERIFY_NON_NULL(result, NULL);
+    VERIFY_NON_NULL_MSG(result, "EdgeCalloc failed for EdgeResult in createEdgeResult\n", NULL);
     result->code = code;
     return result;
 }
@@ -907,9 +922,9 @@ bool isNodeClassValid(UA_NodeClass nodeClass)
 
 EdgeNodeId *cloneEdgeNodeId(EdgeNodeId *nodeId)
 {
-    VERIFY_NON_NULL(nodeId, NULL);
+    VERIFY_NON_NULL_MSG(nodeId, "NULL param nodeID in cloneEdgeNodeId\n", NULL);
     EdgeNodeId *clone = (EdgeNodeId *) EdgeCalloc(1, sizeof(EdgeNodeId));
-    VERIFY_NON_NULL(clone, NULL);
+    VERIFY_NON_NULL_MSG(clone, "EdgeCAlloc FAILED for clone in cloneEdgeNodeId\n", NULL);
 
     clone->nameSpace = nodeId->nameSpace;
     if (nodeId->nodeUri)
@@ -940,9 +955,9 @@ EdgeNodeId *cloneEdgeNodeId(EdgeNodeId *nodeId)
 
 EdgeNodeInfo *cloneEdgeNodeInfo(EdgeNodeInfo *nodeInfo)
 {
-    VERIFY_NON_NULL(nodeInfo, NULL);
+    VERIFY_NON_NULL_MSG(nodeInfo, "NULL param nodeinfo in cloneEdgeNodeInfo\n", NULL);
     EdgeNodeInfo *clone = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
-    VERIFY_NON_NULL(clone, NULL);
+    VERIFY_NON_NULL_MSG(clone, "EdgeCalloc FAILED for clone in cloneEdgeNodeInfo\n", NULL);
 
     if (nodeInfo->methodName)
     {
@@ -1062,9 +1077,9 @@ size_t get_size(int type, bool isArray)
 
 EdgeMessage* cloneEdgeMessage(EdgeMessage *msg)
 {
-    VERIFY_NON_NULL(msg, NULL);
+    VERIFY_NON_NULL_MSG(msg, "NULL param EdgeMessage in cloneEdgeMessage\n", NULL);
     EdgeMessage *clone = (EdgeMessage *)EdgeCalloc(1, sizeof(EdgeMessage));
-    VERIFY_NON_NULL(clone, NULL);
+    VERIFY_NON_NULL_MSG(clone, "EdgeCalloc failed for clone in cloneEdgeMessage\n", NULL);
 
     clone->type = msg->type;
     clone->command = msg->command;
@@ -1341,17 +1356,3 @@ char getCharacterNodeIdType(uint32_t type)
     }
     return nodeType;
 }
-
-// USAGE
-
-/*
- edgeMap* X = createMap();
-
- insert(X, 10, "arya");
- insert(X, 20, "mango");
- insert(X, 25, "apple");
-
- char* ret = (char *)get(X, 25);
-
- deleteMap(X);
- */

@@ -40,11 +40,10 @@ extern "C"
 #define IS_NULL(arg) ((arg == NULL) ? true : false)
 #define IS_NOT_NULL(arg) ((arg != NULL) ? true : false)
 
-#define VERIFY_NON_NULL(arg, retVal) { if (!(arg)) { EDGE_LOG(TAG, \
-             #arg " is NULL"); return (retVal); } }
-#define VERIFY_NON_NULL_MSG(arg, msg, retVal) { if (!(arg)) { EDGE_LOG(TAG, msg); return (retVal); } }
-#define VERIFY_NON_NULL_NR(arg) { if (!(arg)) { EDGE_LOG(TAG, \
-             #arg " is NULL"); return; } }
+#define VERIFY_NON_NULL_MSG(arg, msg, retVal) { if (!(arg)) { EDGE_LOG(TAG, \
+            msg); return (retVal); } }
+#define VERIFY_NON_NULL_NR_MSG(arg, msg) { if (!(arg)) { EDGE_LOG(TAG, \
+            msg); return; } }
 
     /**
      * @brief Structure for a generic single linked list.

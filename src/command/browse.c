@@ -70,7 +70,7 @@ void registerBrowseResponseCallback(response_cb_t callback) {
 static NodesToBrowse_t *initNodesToBrowse(size_t size)
 {
     NodesToBrowse_t *browseNodesInfo = (NodesToBrowse_t *) EdgeCalloc(1, sizeof(NodesToBrowse_t));
-    VERIFY_NON_NULL(browseNodesInfo, NULL);
+    VERIFY_NON_NULL_MSG(browseNodesInfo, "Failed EdgeCalloc for browseNodesInfo\n", NULL);
     browseNodesInfo->size = size;
 
     if(size > 0)
@@ -97,7 +97,7 @@ static NodesToBrowse_t *initNodesToBrowse(size_t size)
 
 static void destroyNodesToBrowse(NodesToBrowse_t *ptr, bool deleteNodeId)
 {
-    VERIFY_NON_NULL_NR(ptr);
+    VERIFY_NON_NULL_NR_MSG(ptr, "Null Pointer received\n");
 
     for(int i = 0; i < ptr->size; ++i)
     {
@@ -118,7 +118,7 @@ static unsigned char *convertUAStringToUnsignedChar(UA_String *uaStr)
     }
 
     unsigned char *str = (unsigned char *) EdgeCalloc(uaStr->length+1, sizeof(unsigned char));
-    VERIFY_NON_NULL(str, NULL);
+    VERIFY_NON_NULL_MSG(str, "EdgeCalloc FAILED for  unsigned char String\n", NULL);
 
     for (int i = 0; i < uaStr->length; ++i)
     {
@@ -129,11 +129,11 @@ static unsigned char *convertUAStringToUnsignedChar(UA_String *uaStr)
 
 static EdgeContinuationPointList *getContinuationPointList(UA_String *uaStr)
 {
-    VERIFY_NON_NULL(uaStr, NULL);
+    VERIFY_NON_NULL_MSG(uaStr, "UA_String received is NULL\n", NULL);
 
     EdgeContinuationPointList *cpList = (EdgeContinuationPointList *) EdgeCalloc(1,
             sizeof(EdgeContinuationPoint));
-    VERIFY_NON_NULL(cpList, NULL);
+    VERIFY_NON_NULL_MSG(cpList, "EdgeCalloc FAILED for EdgeContinuationPointList\n", NULL);
 
     cpList->count = 1;
     cpList->cp = (EdgeContinuationPoint **) calloc(cpList->count, sizeof(EdgeContinuationPoint *));
@@ -169,7 +169,7 @@ UA_ByteString *getUAStringFromEdgeContinuationPoint(EdgeContinuationPoint *cp)
     }
 
     UA_ByteString *byteStr = (UA_ByteString *) EdgeMalloc(sizeof(UA_ByteString));
-    VERIFY_NON_NULL(byteStr, NULL);
+    VERIFY_NON_NULL_MSG(byteStr, "EdgeMalloc FAILED for UA Bytestring\n", NULL);
 
     byteStr->length = cp->length;
     byteStr->data = (UA_Byte *) EdgeMalloc(byteStr->length * sizeof(UA_Byte));
@@ -189,12 +189,12 @@ UA_ByteString *getUAStringFromEdgeContinuationPoint(EdgeContinuationPoint *cp)
 
 static UA_NodeId *getNodeId(EdgeRequest *req)
 {
-    VERIFY_NON_NULL(req, NULL);
-    VERIFY_NON_NULL(req->nodeInfo, NULL);
-    VERIFY_NON_NULL(req->nodeInfo->nodeId, NULL);
+    VERIFY_NON_NULL_MSG(req, "EdgeRequest is NULL\n", NULL);
+    VERIFY_NON_NULL_MSG(req->nodeInfo, "EdgeRequest NodeInfo is NULL\n", NULL);
+    VERIFY_NON_NULL_MSG(req->nodeInfo->nodeId, "EdgeRequest NodeId is NULL\n", NULL);
 
     UA_NodeId *node = (UA_NodeId *) EdgeCalloc(1, sizeof(UA_NodeId));
-    VERIFY_NON_NULL(node, NULL);
+    VERIFY_NON_NULL_MSG(node, "EdgeCalloc FAILED for UA Node Id\n", NULL);
     if (req->nodeInfo->nodeId->type == INTEGER)
     {
         *node = UA_NODEID_NUMERIC(req->nodeInfo->nodeId->nameSpace,
@@ -214,7 +214,7 @@ static UA_NodeId *getNodeId(EdgeRequest *req)
 
 static UA_NodeId *getNodeIdMultiReq(EdgeMessage *msg, int reqId)
 {
-    VERIFY_NON_NULL(msg, NULL);
+    VERIFY_NON_NULL_MSG(msg, "EdgeMessage Parameter is NULL\n", NULL);
     return getNodeId(msg->requests[reqId]);
 }
 
@@ -235,8 +235,9 @@ static bool checkStatusGood(UA_StatusCode status)
 static UA_BrowseDescription *getBrowseDescriptions(NodesToBrowse_t *browseNodesInfo,
         EdgeMessage *msg, UA_UInt32 nodeClassMask)
 {
-    VERIFY_NON_NULL(msg->browseParam, NULL);
-    VERIFY_NON_NULL(browseNodesInfo, NULL);
+    VERIFY_NON_NULL_MSG(msg, "EdgeMessage parameter is NULL\n", NULL);
+    VERIFY_NON_NULL_MSG(msg->browseParam, "EdgeMessage BrowseParam is NULL\n", NULL);
+    VERIFY_NON_NULL_MSG(browseNodesInfo, "BrowseNodeInfo Parameter is NULL\n", NULL);
 
     int direct = msg->browseParam->direction;
     UA_BrowseDirection directionParam = UA_BROWSEDIRECTION_FORWARD;
@@ -251,7 +252,7 @@ static UA_BrowseDescription *getBrowseDescriptions(NodesToBrowse_t *browseNodesI
 
     UA_BrowseDescription *browseDesc = (UA_BrowseDescription *) UA_calloc(browseNodesInfo->size,
             sizeof(UA_BrowseDescription));
-    VERIFY_NON_NULL(browseDesc, NULL);
+    VERIFY_NON_NULL_MSG(browseDesc, "UA CALLOC FAILED for UA Browse Desc\n", NULL);
 
     for (size_t idx = 0; idx < browseNodesInfo->size; ++idx)
     {
@@ -270,7 +271,7 @@ static void invokeErrorCb(uint32_t srcMsgId, EdgeNodeId *srcNodeId,
         EdgeStatusCode edgeResult, const char *versatileValue)
 {
     EdgeMessage *resultMsg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
-    VERIFY_NON_NULL_NR(resultMsg);
+    VERIFY_NON_NULL_NR_MSG(resultMsg, "EdgeCalloc FAILED for EdgeMessage in invokeErrorCb\n");
 
     resultMsg->message_id = srcMsgId; // Error message corresponds to the request message with the given message id.
     resultMsg->endpointInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
@@ -466,11 +467,11 @@ bool checkTypeDefinition(uint32_t msgId, UA_ReferenceDescription *ref, EdgeNodeI
 static void invokeResponseCb(EdgeMessage *msg, int msgId, EdgeNodeId *srcNodeId,
         EdgeBrowseResult *browseResult, size_t size, const unsigned char *browsePath, char *valueAlias)
 {
-    VERIFY_NON_NULL_NR(browseResult);
-    VERIFY_NON_NULL_NR(browseResult->browseName);
+    VERIFY_NON_NULL_NR_MSG(browseResult, "EdgeBrowseResult Param is NULL\n");
+    VERIFY_NON_NULL_NR_MSG(browseResult->browseName, "EdgeBrowseResult.BrowseName is NULL\n");
 
     EdgeMessage *resultMsg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
-    VERIFY_NON_NULL_NR(resultMsg);
+    VERIFY_NON_NULL_NR_MSG(resultMsg, "EdgeCalloc Failed for EdgeMessage in invokeResponseCb\n");
 
     resultMsg->type = BROWSE_RESPONSE;
     resultMsg->message_id = msg->message_id;
@@ -552,7 +553,7 @@ static void invokeResponseCbForContinuationPoint(EdgeMessage *msg, int msgId, Ed
     }
 
     EdgeMessage *resultMsg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
-    VERIFY_NON_NULL_NR(resultMsg);
+    VERIFY_NON_NULL_NR_MSG(resultMsg, "EdgeCalloc failed for EdgeMessage in invokeResponseCbForCP\n");
 
     resultMsg->type = BROWSE_RESPONSE;
 
@@ -608,10 +609,10 @@ static void invokeResponseCbForContinuationPoint(EdgeMessage *msg, int msgId, Ed
 
 static EdgeNodeId *getEdgeNodeId(UA_NodeId *node)
 {
-    VERIFY_NON_NULL(node, NULL);
+    VERIFY_NON_NULL_MSG(node, "UA NODE Parameter is NULL\n", NULL);
 
     EdgeNodeId *edgeNodeId = (EdgeNodeId *) EdgeCalloc(1, sizeof(EdgeNodeId));
-    VERIFY_NON_NULL(edgeNodeId, NULL);
+    VERIFY_NON_NULL_MSG(edgeNodeId, "EdgeCalloc FAILED for edge node ID in getEdgeNodeId\n", NULL);
 
     edgeNodeId->nameSpace = node->namespaceIndex;
     switch (node->identifierType)
@@ -693,7 +694,7 @@ browsePathNode *InitBrowsePathNodeList(){
     }
     browsePathNodeListHead = NULL;
     browsePathNodeListHead = (browsePathNode*)EdgeMalloc(sizeof(browsePathNode));
-    VERIFY_NON_NULL(browsePathNodeListHead, NULL);
+    VERIFY_NON_NULL_MSG(browsePathNodeListHead, "EdgeCalloc FAILED for browsePathNode\n", NULL);
     browsePathNodeListHead->edgeNodeId = NULL;
     browsePathNodeListHead->browseName = NULL;
     browsePathNodeListHead->next = NULL;
@@ -704,10 +705,10 @@ browsePathNode *InitBrowsePathNodeList(){
 
 browsePathNode* PushBrowsePathNode(EdgeNodeId *edgeNodeId, unsigned char *browseName)
 {
-    VERIFY_NON_NULL(browsePathNodeListTail, NULL);
-    VERIFY_NON_NULL(browsePathNodeListHead, NULL);
+    VERIFY_NON_NULL_MSG(browsePathNodeListTail, "browsePathNodeListTail is NULL\n", NULL);
+    VERIFY_NON_NULL_MSG(browsePathNodeListHead, "browsePathNodeListHead is NULL\n", NULL);
     browsePathNode *newNode = (browsePathNode*)EdgeMalloc(sizeof(browsePathNode));
-    VERIFY_NON_NULL(newNode, NULL);
+    VERIFY_NON_NULL_MSG(newNode, "EdgeCalloc FAILED for browsePathNode\n", NULL);
     newNode->browseName = browseName;
     newNode->edgeNodeId = edgeNodeId;
     newNode->pre = browsePathNodeListTail;
@@ -731,14 +732,14 @@ void PopBrowsePathNode(){
 
 static unsigned char *getCurrentBrowsePath()
 {
-    VERIFY_NON_NULL(browsePathNodeListTail, NULL);
-    VERIFY_NON_NULL(browsePathNodeListHead, NULL);
+    VERIFY_NON_NULL_MSG(browsePathNodeListTail, "browsePathNodeListTail is NULL\n", NULL);
+    VERIFY_NON_NULL_MSG(browsePathNodeListHead, "browsePathNodeListHead is NULL\n", NULL);
 
     const size_t blockSize = 100;
     size_t curSize = blockSize;
     int lastUsed = -1;
     unsigned char *browsePath = (unsigned char *)EdgeMalloc(curSize * sizeof(unsigned char));
-    VERIFY_NON_NULL(browsePath, NULL);
+    VERIFY_NON_NULL_MSG(browsePath, "EdgeMalloc failed for browsePath in current\n", NULL);
 
     for(browsePathNode *ptr = browsePathNodeListHead->next; ptr != NULL ; ptr = ptr->next)
     {
@@ -784,7 +785,7 @@ char *getValueAlias(char *browseName, UA_NodeId* nodeId, UA_LocalizedText descri
     const int bufferSize = 20;
     int browseNameLen = 0;
     nodeInfo = (char *)EdgeCalloc(bufferSize, sizeof(char));
-    VERIFY_NON_NULL(nodeInfo, NULL);
+    VERIFY_NON_NULL_MSG(nodeInfo, "EdgeCalloc FAILED for Node info\n", NULL);
 
     if(IS_NOT_NULL(browseName))
     {
@@ -895,7 +896,7 @@ bool hasNode(UA_String *browseName)
 
 unsigned char *convertNodeIdToString(UA_NodeId *nodeId)
 {
-    VERIFY_NON_NULL(nodeId, NULL);
+    VERIFY_NON_NULL_MSG(nodeId, "UA NODE IF parameter is NULL\n", NULL);
 
     unsigned char *browseName = NULL;
     if(UA_NODEIDTYPE_STRING == nodeId->identifierType)
@@ -906,7 +907,7 @@ unsigned char *convertNodeIdToString(UA_NodeId *nodeId)
     {
         int maxDigits = 10;
         browseName = (unsigned char *)EdgeCalloc(maxDigits+1, sizeof(unsigned char));
-        VERIFY_NON_NULL(browseName, NULL);
+         VERIFY_NON_NULL_MSG(browseName, NULL);
         snprintf((char *)browseName, maxDigits, "%" PRIu32, nodeId->identifier.numeric);
     } */
     // TODO: Handle GUID and ByteString
@@ -916,7 +917,7 @@ unsigned char *convertNodeIdToString(UA_NodeId *nodeId)
 static EdgeRequest *getEdgeRequestForViewBrowse()
 {
     EdgeNodeInfo *nodeInfo = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
-    VERIFY_NON_NULL(nodeInfo, NULL);
+    VERIFY_NON_NULL_MSG(nodeInfo, "EdgeCalloc FAILED for nodeinfo\n", NULL);
 
     nodeInfo->nodeId = (EdgeNodeId *) EdgeCalloc(1, sizeof(EdgeNodeId));
     if(IS_NULL(nodeInfo->nodeId))
@@ -943,11 +944,11 @@ static EdgeRequest *getEdgeRequestForViewBrowse()
 
 ViewNodeInfo_t *getNodeInfo(UA_NodeId *nodeId, UA_String *browseName)
 {
-    VERIFY_NON_NULL(nodeId, NULL);
-    VERIFY_NON_NULL(browseName, NULL);
+    VERIFY_NON_NULL_MSG(nodeId, "NodeID parameter is NULL\n", NULL);
+    VERIFY_NON_NULL_MSG(browseName, "BrowseName  parameter is NULL\n", NULL);
 
     ViewNodeInfo_t *nodeInfo = (ViewNodeInfo_t *)EdgeCalloc(1, sizeof(ViewNodeInfo_t));
-    VERIFY_NON_NULL(nodeInfo, NULL);
+    VERIFY_NON_NULL_MSG(nodeInfo, "EdgeCalloc FAILED for ViewNodeInfo_t\n", NULL);
 
     if(browseName->length > 0)
     {
@@ -983,7 +984,7 @@ ViewNodeInfo_t *getNodeInfo(UA_NodeId *nodeId, UA_String *browseName)
 
 void destroyViewListMembers(List *ptr)
 {
-    VERIFY_NON_NULL_NR(ptr);
+    VERIFY_NON_NULL_NR_MSG(ptr, "NULL list parameter\n");
 
     ViewNodeInfo_t *nodeInfo;
     while(ptr)
@@ -998,11 +999,11 @@ void destroyViewListMembers(List *ptr)
 
 static EdgeMessage *prepareEdgeMessageForBrowseView(EdgeMessage *msg, List *viewNodeList)
 {
-    VERIFY_NON_NULL(msg, NULL);
-    VERIFY_NON_NULL(viewNodeList, NULL);
+    VERIFY_NON_NULL_MSG(msg, "NULL EdgeMessage parameter\n", NULL);
+    VERIFY_NON_NULL_MSG(viewNodeList, "NULL view node list parameter\n", NULL);
 
     EdgeMessage *browseViewMsg = (EdgeMessage *)EdgeCalloc(1, sizeof(EdgeMessage));
-    VERIFY_NON_NULL(browseViewMsg, NULL);
+    VERIFY_NON_NULL_MSG(browseViewMsg, "EdgeCalloc FAILED for browse view message\n", NULL);
 
     browseViewMsg->endpointInfo = (EdgeEndPointInfo *)EdgeCalloc(1, sizeof(EdgeEndPointInfo));
     if(IS_NULL(browseViewMsg->endpointInfo))
@@ -1111,7 +1112,7 @@ static EdgeStatusCode browse(UA_Client *client, EdgeMessage *msg, bool browseNex
         bReq.continuationPointsSize = msg->cpList->count;
         bReq.continuationPoints = (UA_ByteString *) EdgeMalloc(
                 bReq.continuationPointsSize * sizeof(UA_ByteString));
-        VERIFY_NON_NULL(bReq.continuationPoints, STATUS_INTERNAL_ERROR);
+        VERIFY_NON_NULL_MSG(bReq.continuationPoints, "EdgeMalloc FAILED for bReq\n", STATUS_INTERNAL_ERROR);
 
         for (int i = 0; i < bReq.continuationPointsSize; ++i)
         {
@@ -1130,7 +1131,7 @@ static EdgeStatusCode browse(UA_Client *client, EdgeMessage *msg, bool browseNex
     {
         nodesToBrowse = getBrowseDescriptions(browseNodesInfo, msg,
             IS_NULL(viewList) ? BROWSE_NODECLASS_MASK : VIEW_NODECLASS_MASK);
-        VERIFY_NON_NULL(nodesToBrowse, STATUS_ERROR);
+        VERIFY_NON_NULL_MSG(nodesToBrowse, "NULL nodes to browse returned\n", STATUS_ERROR);
 
         UA_BrowseRequest bReq;
         UA_BrowseRequest_init(&bReq);

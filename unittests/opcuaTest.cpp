@@ -59,6 +59,11 @@ extern "C"
 #define PRINT(str) std::cout<<str<<std::endl
 #define PRINT_ARG(str, arg) std::cout<<str<<" "<<arg<<std::endl
 
+#define VERIFY_NON_NULL(arg, retVal) { if (!(arg)) { printf( \
+             #arg " is NULL"); return (retVal); } }
+#define VERIFY_NON_NULL_NR(arg) { if (!(arg)) { printf( \
+             #arg " is NULL"); return; } }
+             
 static char ipAddress[128];
 static char endpointUri[512];
 static EdgeEndPointInfo *epInfo = NULL;

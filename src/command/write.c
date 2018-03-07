@@ -33,7 +33,7 @@ static void writeGroup(UA_Client *client, const EdgeMessage *msg)
 {
     size_t reqLen = msg->requestLength;
     UA_WriteValue *wv = (UA_WriteValue *) EdgeMalloc(sizeof(UA_WriteValue) * reqLen);
-    VERIFY_NON_NULL_NR(wv);
+    VERIFY_NON_NULL_NR_MSG(wv, "EdgeMalloc FAILED for UA_WriteValue in wroteGroup\n");
     UA_Variant *myVariant = (UA_Variant *) EdgeMalloc(sizeof(UA_Variant) * reqLen);
     if (IS_NULL(myVariant))
     {
