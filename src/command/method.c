@@ -32,7 +32,7 @@ EdgeResult executeMethod(UA_Client *client, const EdgeMessage *msg)
 {
     EdgeResult result;
     result.code = STATUS_ERROR;
-    VERIFY_NON_NULL(client, result);
+    VERIFY_NON_NULL_MSG(client, "NULL param CLIENT in executeMethod\n", result);
     EdgeRequest *request = msg->request;
     EdgeMethodRequestParams *params = request->methodParams;
     int idx = 0;
@@ -45,7 +45,7 @@ EdgeResult executeMethod(UA_Client *client, const EdgeMessage *msg)
     if (num_inpArgs > 0)
     {
         input = (UA_Variant *) EdgeCalloc(params->num_inpArgs, sizeof(UA_Variant));
-        VERIFY_NON_NULL(input, result);
+        VERIFY_NON_NULL_MSG(input, "EdgeCalloc FAILED for UA_Variant in executeMethod\n", result);
     }
 
     for (idx = 0; idx < num_inpArgs; idx++)

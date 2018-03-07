@@ -577,7 +577,7 @@ EdgeResult executeRead(UA_Client *client, const EdgeMessage *msg)
 {
     EdgeResult result;
     result.code = STATUS_ERROR;
-    VERIFY_NON_NULL(client, result);
+    VERIFY_NON_NULL_MSG(client, "Client param is NULL in execute READ\n", result);
 
     if (CMD_READ == msg->command)
     {

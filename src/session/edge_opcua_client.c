@@ -74,11 +74,11 @@ static void getAddressPort(char *endpoint, char **out)
 
 static keyValue getSessionClient(char *endpoint)
 {
-    VERIFY_NON_NULL(sessionClientMap, NULL);
+    VERIFY_NON_NULL_MSG(sessionClientMap, "sessionClientMap is NULL\n", NULL);
 
     char *ep = NULL;
     getAddressPort(endpoint, &ep);
-    VERIFY_NON_NULL(ep, NULL);
+    VERIFY_NON_NULL_MSG(ep, "NULL EP received in getSessionClient \n", NULL);
 
     keyValue value = NULL;
     for(edgeMapNode *temp = sessionClientMap->head; temp != NULL; temp = temp->next)
@@ -95,10 +95,10 @@ static keyValue getSessionClient(char *endpoint)
 
 static edgeMapNode *removeClientFromSessionMap(char *endpoint)
 {
-    VERIFY_NON_NULL(sessionClientMap, NULL);
+    VERIFY_NON_NULL_MSG(sessionClientMap, "sessionClientMap is NULL\n", NULL);
     char *ep = NULL;
     getAddressPort(endpoint, &ep);
-    VERIFY_NON_NULL(ep, NULL);
+    VERIFY_NON_NULL_MSG(ep, "NULL EP received in removeClientFromSessionMap\n", NULL);
 
     edgeMapNode *prev = NULL;
     edgeMapNode *temp = sessionClientMap->head;
@@ -168,7 +168,7 @@ bool connect_client(char *endpoint)
     }
 
     m_client = UA_Client_new(config);
-    VERIFY_NON_NULL(m_client, false);
+    VERIFY_NON_NULL_MSG(m_client, "NULL CLIENT received in connect_client\n", false);
 
     retVal = UA_Client_connect(m_client, endpoint);
     /* Connect with User name and Password */
@@ -193,7 +193,7 @@ bool connect_client(char *endpoint)
     clientCount++;
 
     EdgeEndPointInfo *ep = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    VERIFY_NON_NULL(ep, false);
+    VERIFY_NON_NULL_MSG(ep, "EdgeCalloc FAILED for EdgeEndPointInfo\n", false);
     ep->endpointUri = endpoint;
     g_statusCallback(ep, STATUS_CLIENT_STARTED);
     EdgeFree(ep);
@@ -277,7 +277,7 @@ static void logEndpointDescription(UA_EndpointDescription *ep)
 
 static EdgeApplicationConfig *convertToEdgeApplicationConfig(UA_ApplicationDescription *appDesc)
 {
-    VERIFY_NON_NULL(appDesc, NULL);
+    VERIFY_NON_NULL_MSG(appDesc, "NULL UA_ApplicationDescription parameter\n", NULL);
 
     EdgeApplicationConfig *appConfig = (EdgeApplicationConfig *) EdgeCalloc(1,
             sizeof(EdgeApplicationConfig));
@@ -367,7 +367,7 @@ static EdgeApplicationConfig *convertToEdgeApplicationConfig(UA_ApplicationDescr
 
 static EdgeEndPointInfo *convertToEdgeEndpointInfo(UA_EndpointDescription *endpoint)
 {
-    VERIFY_NON_NULL(endpoint, NULL);
+    VERIFY_NON_NULL_MSG(endpoint, "NULL UA_EndpointDescription parameter recevied\n", NULL);
 
     EdgeEndPointInfo *epInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
     if (!epInfo)
@@ -423,8 +423,8 @@ static EdgeEndPointInfo *convertToEdgeEndpointInfo(UA_EndpointDescription *endpo
 
 static bool convertUnsignedCharStringToUAString(const unsigned char *str, UA_String *uaStr)
 {
-    VERIFY_NON_NULL(str, false);
-    VERIFY_NON_NULL(uaStr, false);
+    VERIFY_NON_NULL_MSG(str, "NULL unsigned char parameter in convertUnsignedCharStringToUAString\n", false);
+    VERIFY_NON_NULL_MSG(uaStr, "NULL UA_String parameter in convertUnsignedCharStringToUAString\n", false);
 
     uaStr->length = strlen((const char *)str);
     uaStr->data = (UA_Byte *) EdgeMalloc(uaStr->length);

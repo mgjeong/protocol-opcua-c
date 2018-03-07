@@ -89,7 +89,7 @@ int get_response_type(const UA_DataType *datatype)
 void sendErrorResponse(const EdgeMessage *msg, char *err_desc)
 {
     EdgeMessage *resultMsg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
-    VERIFY_NON_NULL_NR(resultMsg);
+    VERIFY_NON_NULL_NR_MSG(resultMsg, "EdgeCalloc FAILED for EdgeMessage in sendErrorResponse\n");
     resultMsg->endpointInfo = cloneEdgeEndpointInfo(msg->endpointInfo);
     resultMsg->type = ERROR;
     resultMsg->responseLength = 1;
@@ -129,7 +129,7 @@ EdgeDiagnosticInfo *checkDiagnosticInfo(int nodesToProcess,
         UA_DiagnosticInfo *diagnosticInfo, int diagnosticInfoLength, int returnDiagnostic)
 {
     EdgeDiagnosticInfo *diagnostics = (EdgeDiagnosticInfo *) EdgeMalloc(sizeof(EdgeDiagnosticInfo));
-    VERIFY_NON_NULL(diagnostics, NULL);
+    VERIFY_NON_NULL_MSG(diagnostics, "EdgeMalloc FAILED for EdgeDiagnosticInfo in checkDiagnosticInfo\n", NULL);
     diagnostics->symbolicId = 0;
     diagnostics->localizedText = 0;
     diagnostics->additionalInfo = NULL;

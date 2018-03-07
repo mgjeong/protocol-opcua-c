@@ -573,7 +573,7 @@ static UA_StatusCode methodCallback(UA_Server *server, const UA_NodeId *sessionI
         if (inputSize > 0)
         {
             inp = EdgeCalloc(inputSize, sizeof(void *));
-            VERIFY_NON_NULL(inp, STATUS_ERROR);
+            VERIFY_NON_NULL_MSG(inp, "EdgeCalloc FAILED for inp in methodCallback\n", STATUS_ERROR);
             for (size_t i = 0; i < inputSize; i++)
             {
                 if (input[i].type == &UA_TYPES[UA_TYPES_STRING])
@@ -759,7 +759,7 @@ EdgeResult addMethodNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem
     EdgeResult result;
     result.code = STATUS_ERROR;
 
-    VERIFY_NON_NULL(server, result);
+    VERIFY_NON_NULL_MSG(server, "NULL server parameter in addMethodNode\n", result);
 
     int num_inpArgs = method->num_inpArgs;
     int num_outArgs = method->num_outArgs;
@@ -782,7 +782,7 @@ EdgeResult addMethodNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem
         {
             inputArguments[idx].valueRank = 1; /* Array with one dimensions */
             UA_UInt32 *inputDimensions = (UA_UInt32 *) EdgeMalloc(sizeof(UA_UInt32));
-            VERIFY_NON_NULL(inputDimensions, result);
+            VERIFY_NON_NULL_MSG(inputDimensions, "EdgeMalloc FAILEd for inputDimensions in addMethodNode\n", result);
             inputDimensions[0] = method->inpArg[idx]->arrayLength;
             inputArguments[idx].arrayDimensionsSize = 1;
             inputArguments[idx].arrayDimensions = inputDimensions;
@@ -858,7 +858,7 @@ EdgeResult addMethodNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem
             methodNodeMap = createMap();
 
         char *browseName = (char *) EdgeMalloc(strlen(item->browseName) + 1);
-        VERIFY_NON_NULL(browseName, result);
+        VERIFY_NON_NULL_MSG(browseName, "EdgeMalloc FAILED for browseName in addMethodNode\n", result);
         strncpy(browseName, item->browseName, strlen(item->browseName));
         browseName[strlen(item->browseName)] = '\0';
         insertMapElement(methodNodeMap, (void *) browseName, method);
@@ -906,12 +906,12 @@ EdgeResult modifyNode(UA_Server *server, uint16_t nsIndex, const char *nodeUri, 
     EdgeResult result;
     result.code = STATUS_ERROR;
 
-    VERIFY_NON_NULL(server, result);
+    VERIFY_NON_NULL_MSG(server, "NULL server parameter in modifyNode\n", result);
 
     // read the value;
     UA_NodeId node = UA_NODEID_STRING(nsIndex, (char*)nodeUri);
     UA_Variant *readval = UA_Variant_new();
-    VERIFY_NON_NULL(readval, result);
+    VERIFY_NON_NULL_MSG(readval, "NULL UA_Variant received in modifyNode\n", result);
 
     UA_StatusCode ret = UA_Server_readValue(server, node, readval);
     if (ret != UA_STATUSCODE_GOOD)

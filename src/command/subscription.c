@@ -184,13 +184,13 @@ static void monitoredItemHandler(UA_Client *client, UA_UInt32 monId, UA_DataValu
     char *valueAlias = client_alias->valueAlias;
 
     clientSubscription *clientSub = (clientSubscription*) get_subscription_list(client_alias->client);
-    VERIFY_NON_NULL_NR(clientSub);
+    VERIFY_NON_NULL_NR_MSG(clientSub, "clientSubscription recevied is NULL in monitoredItemHandler\n");
 
     subscriptionInfo *subInfo = (subscriptionInfo *) getSubInfo(clientSub->subscriptionList, client_alias->valueAlias);
-    VERIFY_NON_NULL_NR(subInfo);
+    VERIFY_NON_NULL_NR_MSG(subInfo, "subscription info received in NULL in monitoredItemHandler\n");
 
     EdgeMessage *resultMsg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
-    VERIFY_NON_NULL_NR(resultMsg);
+    VERIFY_NON_NULL_NR_MSG(resultMsg, "EdgeCalloc FAILED for edgeMessage in monitoredItemHandler\n");
 
     resultMsg->endpointInfo = cloneEdgeEndpointInfo(subInfo->msg->endpointInfo);
     if(IS_NULL(resultMsg->endpointInfo))
@@ -397,7 +397,7 @@ static void *subscription_thread_handler(void *ptr)
     UA_Client *client = (UA_Client *) ptr;
     clientSubscription *clientSub = NULL;
     clientSub = (clientSubscription*) get_subscription_list(client);
-    VERIFY_NON_NULL(clientSub, NULL);
+    VERIFY_NON_NULL_MSG(clientSub, "NULL client subscrioption in subscription_thread_handler\n", NULL);
 
     clientSub->subscription_thread_running = true;
     while (clientSub->subscription_thread_running)
@@ -675,10 +675,10 @@ static UA_StatusCode deleteSub(UA_Client *client, const EdgeMessage *msg)
     subscriptionInfo *subInfo =  NULL;
     clientSubscription *clientSub = NULL;
     clientSub = (clientSubscription*) get_subscription_list(client);
-    VERIFY_NON_NULL(clientSub, UA_STATUSCODE_BADNOSUBSCRIPTION);
+    VERIFY_NON_NULL_MSG(clientSub, "NULL clientsub in deleteSub\n", UA_STATUSCODE_BADNOSUBSCRIPTION);
 
     subInfo = (subscriptionInfo *) getSubInfo(clientSub->subscriptionList, msg->request->nodeInfo->valueAlias);
-    VERIFY_NON_NULL(subInfo, UA_STATUSCODE_BADNOSUBSCRIPTION);
+    VERIFY_NON_NULL_MSG(subInfo, "NULL subInfo in deleteSub\n", UA_STATUSCODE_BADNOSUBSCRIPTION);
 
     EDGE_LOG(TAG, "Deleting following Subscription \n");
     EDGE_LOG_V(TAG, "Node name :: %s\n", (char *)msg->request->nodeInfo->valueAlias);
@@ -742,13 +742,13 @@ static UA_StatusCode modifySub(UA_Client *client, const EdgeMessage *msg)
     subscriptionInfo *subInfo =  NULL;
     clientSubscription *clientSub = NULL;
     clientSub = (clientSubscription*) get_subscription_list(client);
-    VERIFY_NON_NULL(clientSub, UA_STATUSCODE_BADNOSUBSCRIPTION);
+    VERIFY_NON_NULL_MSG(clientSub, "NULL clientSubs in modifySub\n", UA_STATUSCODE_BADNOSUBSCRIPTION);
 
     subInfo =  (subscriptionInfo *) getSubInfo(clientSub->subscriptionList,
                                      msg->request->nodeInfo->valueAlias);
     //EDGE_LOG(TAG, "subscription id retrieved from map :: %d \n\n", subInfo->subId);
 
-    VERIFY_NON_NULL(subInfo, UA_STATUSCODE_BADNOSUBSCRIPTION);
+    VERIFY_NON_NULL_MSG(subInfo, "NULL subInfo in modifySub\n", UA_STATUSCODE_BADNOSUBSCRIPTION);
 
     EdgeSubRequest *subReq = msg->request->subMsg;
 
@@ -790,7 +790,8 @@ static UA_StatusCode modifySub(UA_Client *client, const EdgeMessage *msg)
     modifyMonitoredItemsRequest.subscriptionId = subInfo->subId;
     modifyMonitoredItemsRequest.itemsToModifySize = 1;
     modifyMonitoredItemsRequest.itemsToModify = EdgeCalloc(1, sizeof(UA_MonitoredItemModifyRequest));
-    VERIFY_NON_NULL(modifyMonitoredItemsRequest.itemsToModify, UA_STATUSCODE_BADUNEXPECTEDERROR);
+    VERIFY_NON_NULL_MSG(modifyMonitoredItemsRequest.itemsToModify, "EdgeCalloc FAILED in modifySub\n", 
+        UA_STATUSCODE_BADUNEXPECTEDERROR);
 
     UA_UInt32 monId = subInfo->monId;
 
@@ -852,7 +853,8 @@ static UA_StatusCode modifySub(UA_Client *client, const EdgeMessage *msg)
     setMonitoringModeRequest.subscriptionId = subInfo->subId;
     setMonitoringModeRequest.monitoredItemIdsSize = 1;
     setMonitoringModeRequest.monitoredItemIds = UA_malloc(sizeof(UA_UInt32));
-    VERIFY_NON_NULL(setMonitoringModeRequest.monitoredItemIds, UA_STATUSCODE_BADOUTOFMEMORY);
+    VERIFY_NON_NULL_MSG(setMonitoringModeRequest.monitoredItemIds, "UA MALLOC FAILED in modifySub\n", 
+        UA_STATUSCODE_BADOUTOFMEMORY);
     setMonitoringModeRequest.monitoredItemIds[0] = monId;
     setMonitoringModeRequest.monitoringMode = UA_MONITORINGMODE_REPORTING;
     UA_SetMonitoringModeResponse setMonitoringModeResponse;
@@ -890,7 +892,8 @@ static UA_StatusCode modifySub(UA_Client *client, const EdgeMessage *msg)
     UA_SetPublishingModeRequest_init(&setPublishingModeRequest);
     setPublishingModeRequest.subscriptionIdsSize = 1;
     setPublishingModeRequest.subscriptionIds = UA_malloc(sizeof(UA_UInt32));
-    VERIFY_NON_NULL(setPublishingModeRequest.subscriptionIds, UA_STATUSCODE_BADOUTOFMEMORY);
+    VERIFY_NON_NULL_MSG(setPublishingModeRequest.subscriptionIds, "UA MALLOC FAILED for subscriptionIds\n", 
+        UA_STATUSCODE_BADOUTOFMEMORY);
     setPublishingModeRequest.subscriptionIds[0] = subInfo->subId;
     setPublishingModeRequest.publishingEnabled = subReq->publishingEnabled; //UA_TRUE;
     UA_SetPublishingModeResponse setPublishingModeResponse;
@@ -934,12 +937,12 @@ static UA_StatusCode rePublish(UA_Client *client, const EdgeMessage *msg)
     subscriptionInfo *subInfo =  NULL;
     clientSubscription *clientSub = NULL;
     clientSub = (clientSubscription*) get_subscription_list(client);
-    VERIFY_NON_NULL(clientSub, UA_STATUSCODE_BADNOSUBSCRIPTION);
+    VERIFY_NON_NULL_MSG(clientSub, "ClientSubs is NULL in rePublish\n", UA_STATUSCODE_BADNOSUBSCRIPTION);
 
     subInfo =  (subscriptionInfo *) getSubInfo(clientSub->subscriptionList,
             msg->request->nodeInfo->valueAlias);
     //EDGE_LOG(TAG, "subscription id retrieved from map :: %d \n\n", subInfo->subId);
-    VERIFY_NON_NULL(subInfo, UA_STATUSCODE_BADNOSUBSCRIPTION);
+    VERIFY_NON_NULL_MSG(subInfo, "subInfo is NULL in rePublish\n", UA_STATUSCODE_BADNOSUBSCRIPTION);
 
     // re PublishingMode
     UA_RepublishRequest republishRequest;
@@ -983,7 +986,7 @@ EdgeResult executeSub(UA_Client *client, const EdgeMessage *msg)
 {
     EdgeResult result;
     result.code = STATUS_ERROR;
-    VERIFY_NON_NULL(client, result);
+    VERIFY_NON_NULL_MSG(client, "Client param is NULL in executeSub\n", result);
 
     EdgeSubRequest *subReq;
 
