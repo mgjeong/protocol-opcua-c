@@ -35,16 +35,19 @@ extern "C"
 
 #define TAG "readTest"
 
-extern char node_arr[13][30];
+extern char node_arr[20][30];
 
 // String1
 // String2
 // LocalizedText
 // QualifiedName
-// NodeId
+// NodeId1
+// NodeId2
+// NodeId3
+// NodeId4
 void testRead_P1(char *endpointUri)
 {
-    int num_requests  = 5;
+    int num_requests  = 8;
     EdgeMessage *msg = createEdgeAttributeMessage(endpointUri, num_requests, CMD_READ);
     EXPECT_EQ(NULL != msg, true);
     for (int i = 0; i < 2; i++)
@@ -52,14 +55,12 @@ void testRead_P1(char *endpointUri)
         printf("node :: %s\n", node_arr[i]);
         insertReadAccessNode(&msg, node_arr[i]);
     }
-    printf("node :: %s\n", node_arr[14]);
-    insertReadAccessNode(&msg, node_arr[14]);
 
-    printf("node :: %s\n", node_arr[15]);
-    insertReadAccessNode(&msg, node_arr[15]);
-
-    printf("node :: %s\n", node_arr[16]);
-    insertReadAccessNode(&msg, node_arr[16]);
+    for (int i = 14; i <= 19; i++)
+    {
+        printf("node :: %s\n", node_arr[i]);
+        insertReadAccessNode(&msg, node_arr[i]);
+    }
 
     EdgeResult result = sendRequest(msg);
     destroyEdgeMessage(msg);

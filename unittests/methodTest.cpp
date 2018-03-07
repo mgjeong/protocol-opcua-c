@@ -35,7 +35,7 @@ extern "C"
 
 #define TAG "methodTest"
 
-extern char node_arr[13][30];
+extern char node_arr[20][30];
 
 void testMethod_P1(char *endpointUri)
 {

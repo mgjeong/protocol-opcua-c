@@ -74,12 +74,13 @@ static bool browseNodeFlag = false;
 static bool browseNextFlag = false;
 static bool methodCallFlag = false;
 
-char node_arr[17][30] =
+char node_arr[20][30] =
 {
     "{2;S;v=12}String1", "{2;S;v=12}String2", "{2;S;v=12}String3", "{2;S;v=11}Double", "{2;S;v=6}Int32",
     "{2;S;v=5}UInt16", "{2;S;v=15}ByteString", "{2;S;v=3}Byte", "{2;S;v=12}Error", "{2;S;v=14}Guid",
     "{2;S;v=11}DoubleArray", "{2;S;v=12}CharArray", "{2;S;v=15}ByteStringArray", "{2;S;v=14}GuidArray",
-    "{2;S;v=21}LocalizedText", "{2;S;v=20}QualifiedName", "{2;S;v=17}NodeId"
+    "{2;S;v=21}LocalizedText", "{2;S;v=20}QualifiedName", "{2;S;v=17}NodeId1", "{2;S;v=17}NodeId2",
+    "{2;S;v=17}NodeId3", "{2;S;v=17}NodeId4"
 };
 
 static int method_arr[5] =
@@ -140,7 +141,14 @@ extern "C"
                 printf("Byte String: %s\n", (char *) id->identifier.byteString.data);
                 break;
             case UUID:
-                printf("GUID\n");
+                {
+                    Edge_Guid val = id->identifier.guid;
+                    char valueStr[37];
+                    snprintf(valueStr, 37, "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x",
+                            val.data1, val.data2, val.data3, val.data4[0], val.data4[1], val.data4[2],
+                            val.data4[3], val.data4[4], val.data4[5], val.data4[6], val.data4[7]);
+                    printf("GUID: %s\n", valueStr);
+                }
                 break;
         }
     }
@@ -2010,9 +2018,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     deleteNodeItem(item);
 
     printf("\n[%d] Variable node with GUID variant: \n", ++index);
-    Edge_Guid guid =
-    { 1, 0, 1,
-    { 0, 0, 0, 0, 1, 1, 1, 1 } };
+    Edge_Guid guid ={ 1, 0, 1, { 0, 0, 0, 0, 1, 1, 1, 1 } };
     item = createVariableNodeItem("Guid", Guid, (void *) &guid, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
@@ -2040,17 +2046,59 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
         printf("Error :: EdgeMalloc failed for UA_QualifiedName in Test create Nodes\n");
     }
 
-    printf("\n[%d] Variable node with NODEID variant: \n", ++index);
+    printf("\n[%d] Variable node with NODEID (Numeric) variant: \n", ++index);
     Edge_NodeId *node =  (Edge_NodeId *) EdgeMalloc(sizeof(Edge_NodeId));
     node->namespaceIndex = DEFAULT_NAMESPACE_INDEX;
     node->identifierType = INTEGER;
     node->identifier.numeric = EDGE_NODEID_ROOTFOLDER;
 
-    item = createVariableNodeItem("NodeId", NodeId, node, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("NodeId1", NodeId, node, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
     deleteNodeItem(item);
+    EdgeFree(node);
+
+    printf("\n[%d] Variable node with NODEID (String) variant: \n", ++index);
+    node =  (Edge_NodeId *) EdgeMalloc(sizeof(Edge_NodeId));
+    node->namespaceIndex = DEFAULT_NAMESPACE_INDEX;
+    node->identifierType = STRING;
+    node->identifier.string = EdgeStringAlloc("StringNodeId");
+
+    item = createVariableNodeItem("NodeId2", NodeId, node, VARIABLE_NODE, 100);
+    VERIFY_NON_NULL_NR(item);
+    createNode(DEFAULT_NAMESPACE_VALUE, item);
+    printf("\n|------------[Added] %s\n", item->browseName);
+    deleteNodeItem(item);
+    EdgeFree(node->identifier.string.data);
+    EdgeFree(node);
+
+    printf("\n[%d] Variable node with NODEID (ByteString) variant: \n", ++index);
+    node =  (Edge_NodeId *) EdgeMalloc(sizeof(Edge_NodeId));
+    node->namespaceIndex = DEFAULT_NAMESPACE_INDEX;
+    node->identifierType = BYTESTRING;
+    node->identifier.byteString = EdgeStringAlloc("ByteStringNodeId");
+
+    item = createVariableNodeItem("NodeId3", NodeId, node, VARIABLE_NODE, 100);
+    VERIFY_NON_NULL_NR(item);
+    createNode(DEFAULT_NAMESPACE_VALUE, item);
+    printf("\n|------------[Added] %s\n", item->browseName);
+    deleteNodeItem(item);
+    EdgeFree(node->identifier.byteString.data);
+    EdgeFree(node);
+
+    printf("\n[%d] Variable node with NODEID (Guid) variant: \n", ++index);
+    node =  (Edge_NodeId *) EdgeMalloc(sizeof(Edge_NodeId));
+    node->namespaceIndex = DEFAULT_NAMESPACE_INDEX;
+    node->identifierType = UUID;
+    node->identifier.guid = guid;
+
+    item = createVariableNodeItem("NodeId4", NodeId, node, VARIABLE_NODE, 100);
+    VERIFY_NON_NULL_NR(item);
+    createNode(DEFAULT_NAMESPACE_VALUE, item);
+    printf("\n|------------[Added] %s\n", item->browseName);
+    deleteNodeItem(item);
+    EdgeFree(node);
 
     /******************* Array *********************/
     printf("\n[Create Array Node]\n");

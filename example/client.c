@@ -101,7 +101,14 @@ static void showNodeId(Edge_NodeId *id)
             printf("Byte String: %s\n", (char *) id->identifier.byteString.data);
             break;
         case UUID:
-            printf("GUID\n");
+            {
+                Edge_Guid val = id->identifier.guid;
+                char valueStr[37];
+                snprintf(valueStr, 37, "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x",
+                        val.data1, val.data2, val.data3, val.data4[0], val.data4[1], val.data4[2],
+                        val.data4[3], val.data4[4], val.data4[5], val.data4[6], val.data4[7]);
+                printf("GUID: %s\n", valueStr);
+            }
             break;
     }
 }
