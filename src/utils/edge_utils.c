@@ -191,6 +191,23 @@ char *convertUAStringToString(UA_String *uaStr)
     return str;
 }
 
+Edge_String *convertToEdgeString(UA_String *uaStr)
+{
+    VERIFY_NON_NULL(uaStr, NULL);
+    Edge_String *value = (Edge_String *) EdgeCalloc(1, sizeof(Edge_String));
+    VERIFY_NON_NULL_MSG(value, "Memory allocation failed", NULL);
+    value->length = uaStr->length;
+    value->data = (uint8_t*) EdgeCalloc(value->length+1, sizeof(uint8_t));
+    if(IS_NULL(value->data))
+    {
+        EDGE_LOG(TAG, "Memory allocation failed.");
+        EdgeFree(value);
+        return NULL;
+    }
+    memcpy(value->data, uaStr->data, value->length);
+    return value;
+}
+
 EdgeApplicationType convertToEdgeApplicationType(UA_ApplicationType appType)
 {
     // Setting SERVER as default application type.
@@ -237,6 +254,50 @@ UA_ApplicationType convertEdgeApplicationType(EdgeApplicationType appType)
             break;
     }
     return uaAppType;
+}
+
+Edge_NodeId *convertToEdgeNodeId(UA_NodeId *nodeId)
+{
+    VERIFY_NON_NULL(nodeId, NULL);
+    Edge_NodeId *edgeNodeId = (Edge_NodeId *) EdgeCalloc(1, sizeof(Edge_NodeId));
+    VERIFY_NON_NULL_MSG(edgeNodeId, "Memory allocation failed", NULL);
+
+    edgeNodeId->namespaceIndex = nodeId->namespaceIndex;
+    edgeNodeId->identifierType = nodeId->identifierType;
+    if(nodeId->identifierType == UA_NODEIDTYPE_NUMERIC)
+    {
+        edgeNodeId->identifier.numeric = nodeId->identifier.numeric;
+    }
+    else if(nodeId->identifierType == UA_NODEIDTYPE_STRING)
+    {
+        Edge_String *edgeStr = convertToEdgeString(&nodeId->identifier.string);
+        if(IS_NULL(edgeStr))
+        {
+            EDGE_LOG_V(TAG, "Failed to convert the Node Id of type (%d).", nodeId->identifierType);
+            EdgeFree(edgeNodeId);
+            return NULL;
+        }
+        edgeNodeId->identifier.string = *edgeStr;
+        EdgeFree(edgeStr);
+    }
+    else if(nodeId->identifierType == UA_NODEIDTYPE_GUID)
+    {
+        edgeNodeId->identifier.guid = *((Edge_Guid *)&nodeId->identifier.guid);
+    }
+    else
+    {
+       Edge_String *edgeStr = convertToEdgeString(&nodeId->identifier.byteString);
+        if(IS_NULL(edgeStr))
+        {
+            EDGE_LOG_V(TAG, "Failed to convert the Node Id of type (%d).", nodeId->identifierType);
+            EdgeFree(edgeNodeId);
+            return NULL;
+        }
+        edgeNodeId->identifier.byteString = *edgeStr;
+        EdgeFree(edgeStr);
+    }
+
+    return edgeNodeId;
 }
 
 void freeEdgeEndpointConfig(EdgeEndpointConfig *config)

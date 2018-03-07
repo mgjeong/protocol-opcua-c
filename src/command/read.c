@@ -382,32 +382,65 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attri
                     }
                     versatility->value = value;
 
-                    if(lt.locale.length > 0)
+                    Edge_String *edgeStr = convertToEdgeString(&lt.locale);
+                    if(IS_NULL(edgeStr))
                     {
-                        value->locale.data= (uint8_t*) EdgeCalloc(lt.locale.length+1, sizeof(uint8_t));
-                        if(IS_NULL(value->locale.data))
-                        {
-                            EDGE_LOG(TAG, "Memory allocation failed.");
-                            strncpy(errorDesc, "Memory allocation failed.", ERROR_DESC_LENGTH);
-                            freeEdgeResponse(response);
-                            goto EXIT;
-                        }
-                        value->locale.length = lt.locale.length;
-                        strncpy((char *)value->locale.data, (char *)lt.locale.data, lt.locale.length);
+                        EDGE_LOG(TAG, "Memory allocation failed.");
+                        strncpy(errorDesc, "Memory allocation failed.", ERROR_DESC_LENGTH);
+                        freeEdgeResponse(response);
+                        goto EXIT;
                     }
+                    value->locale = *edgeStr;
+                    EdgeFree(edgeStr);
 
-                    if(lt.text.length > 0)
+                    edgeStr = convertToEdgeString(&lt.text);
+                    if(IS_NULL(edgeStr))
                     {
-                        value->text.data= (uint8_t*) EdgeCalloc(lt.text.length+1, sizeof(uint8_t));
-                        if(IS_NULL(value->text.data))
+                        EDGE_LOG(TAG, "Memory allocation failed.");
+                        strncpy(errorDesc, "Memory allocation failed.", ERROR_DESC_LENGTH);
+                        freeEdgeResponse(response);
+                        goto EXIT;
+                    }
+                    value->text = *edgeStr;
+                    EdgeFree(edgeStr);
+                }
+                else if(response->type == UA_NS0ID_QUALIFIEDNAME)
+                {
+                    UA_QualifiedName qn = *((UA_QualifiedName *) val.data);
+                    Edge_QualifiedName *value = (Edge_QualifiedName *) EdgeCalloc(1, sizeof(Edge_QualifiedName));
+                    if(IS_NULL(value))
+                    {
+                        EDGE_LOG(TAG, "Memory allocation failed.");
+                        strncpy(errorDesc, "Memory allocation failed.", ERROR_DESC_LENGTH);
+                        freeEdgeResponse(response);
+                        goto EXIT;
+                    }
+                    versatility->value = value;
+                    value->namespaceIndex = qn.namespaceIndex;
+
+                    if(qn.name.length > 0)
+                    {
+                        Edge_String *edgeStr = convertToEdgeString(&qn.name);
+                        if(IS_NULL(edgeStr))
                         {
                             EDGE_LOG(TAG, "Memory allocation failed.");
                             strncpy(errorDesc, "Memory allocation failed.", ERROR_DESC_LENGTH);
                             freeEdgeResponse(response);
                             goto EXIT;
                         }
-                        value->text.length = lt.text.length;
-                        strncpy((char *)value->text.data, (char *)lt.text.data, lt.text.length);
+                        value->name = *edgeStr;
+                        EdgeFree(edgeStr);
+                    }
+                }
+                else if(response->type == UA_NS0ID_NODEID)
+                {
+                    versatility->value = convertToEdgeNodeId((UA_NodeId *) val.data);
+                    if(IS_NULL(versatility->value))
+                    {
+                        EDGE_LOG(TAG, "Memory allocation failed.");
+                        strncpy(errorDesc, "Memory allocation failed.", ERROR_DESC_LENGTH);
+                        freeEdgeResponse(response);
+                        goto EXIT;
                     }
                 }
                 else
@@ -545,7 +578,7 @@ EdgeResult executeRead(UA_Client *client, const EdgeMessage *msg)
     EdgeResult result;
     result.code = STATUS_ERROR;
     VERIFY_NON_NULL(client, result);
-    
+
     if (CMD_READ == msg->command)
     {
         readGroup(client, msg, UA_ATTRIBUTEID_VALUE);

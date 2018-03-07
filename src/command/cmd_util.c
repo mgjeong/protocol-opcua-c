@@ -79,6 +79,10 @@ int get_response_type(const UA_DataType *datatype)
     {
         return UA_NS0ID_LOCALIZEDTEXT;
     }
+    else if (datatype == &UA_TYPES[UA_TYPES_NODEID])
+    {
+        return UA_NS0ID_NODEID;
+    }
     return -1;
 }
 

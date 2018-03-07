@@ -37,17 +37,17 @@ extern "C"
  */
 typedef enum
 {
-    /** String type Node ID.*/
-    STRING = 1,
-
     /** Numeric type Node ID.*/
-    INTEGER = 2,
+    INTEGER = 0,
+
+    /** String type Node ID.*/
+    STRING = 3,
 
     /** UUID(ie., GUID) type Node ID.*/
-    UUID = 3,
+    UUID = 4,
 
     /** ByteString type Node ID.*/
-    BYTESTRING = 4
+    BYTESTRING = 5
 } EdgeNodeIdType;
 
 #ifdef __cplusplus

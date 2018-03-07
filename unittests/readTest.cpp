@@ -39,12 +39,15 @@ extern char node_arr[13][30];
 
 // String1
 // String2
+// LocalizedText
+// QualifiedName
+// NodeId
 void testRead_P1(char *endpointUri)
 {
-    int num_requests  = 3;
+    int num_requests  = 5;
     EdgeMessage *msg = createEdgeAttributeMessage(endpointUri, num_requests, CMD_READ);
     EXPECT_EQ(NULL != msg, true);
-    for (int i = 0; i < num_requests-1; i++)
+    for (int i = 0; i < 2; i++)
     {
         printf("node :: %s\n", node_arr[i]);
         insertReadAccessNode(&msg, node_arr[i]);
@@ -52,16 +55,22 @@ void testRead_P1(char *endpointUri)
     printf("node :: %s\n", node_arr[14]);
     insertReadAccessNode(&msg, node_arr[14]);
 
+    printf("node :: %s\n", node_arr[15]);
+    insertReadAccessNode(&msg, node_arr[15]);
+
+    printf("node :: %s\n", node_arr[16]);
+    insertReadAccessNode(&msg, node_arr[16]);
+
     EdgeResult result = sendRequest(msg);
     destroyEdgeMessage(msg);
     ASSERT_EQ(result.code, STATUS_OK);
     sleep(1);
 }
 
-//DoubleArray
-//CharArray
-//ByteStringArray
-//GuidArray
+// DoubleArray
+// CharArray
+// ByteStringArray
+// GuidArray
 void testRead_P2(char *endpointUri)
 {
     int num_requests  = 4;
