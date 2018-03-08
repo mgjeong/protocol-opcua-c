@@ -63,7 +63,7 @@ extern "C"
              #arg " is NULL"); return (retVal); } }
 #define VERIFY_NON_NULL_NR(arg) { if (!(arg)) { printf( \
              #arg " is NULL"); return; } }
-             
+
 static char ipAddress[128];
 static char endpointUri[512];
 static EdgeEndPointInfo *epInfo = NULL;
@@ -79,13 +79,19 @@ static bool browseNodeFlag = false;
 static bool browseNextFlag = false;
 static bool methodCallFlag = false;
 
-char node_arr[20][30] =
+char node_arr[46][30] =
 {
     "{2;S;v=12}String1", "{2;S;v=12}String2", "{2;S;v=12}String3", "{2;S;v=11}Double", "{2;S;v=6}Int32",
     "{2;S;v=5}UInt16", "{2;S;v=15}ByteString", "{2;S;v=3}Byte", "{2;S;v=12}Error", "{2;S;v=14}Guid",
     "{2;S;v=11}DoubleArray", "{2;S;v=12}CharArray", "{2;S;v=15}ByteStringArray", "{2;S;v=14}GuidArray",
     "{2;S;v=21}LocalizedText", "{2;S;v=20}QualifiedName", "{2;S;v=17}NodeId1", "{2;S;v=17}NodeId2",
-    "{2;S;v=17}NodeId3", "{2;S;v=17}NodeId4"
+    "{2;S;v=17}NodeId3", "{2;S;v=17}NodeId4", "{2;S;v=10}Float", "{2;S;v=16}XmlElement",
+    "{2;S;v=7}UInt32", "{2;S;v=9}UInt64", "{2;S;v=4}Int16", "{2;S;v=8}Int64", "{2;S;v=7}UInt32writeonly",
+    "{2;S;v=9}UInt64readonly", "{2;S;v=1}Boolean", "{2;S;v=13}DateTime", "{2;S;v=2}SByte",
+    "{2;S;v=1}BoolArray", "{2;S;v=2}SByteArray", "{2;S;v=3}ByteArray", "{2;S;v=8}Int64Array",
+    "{2;S;v=5}UInt16Array", "{2;S;v=4}Int16Array", "{2;S;v=7}UInt32Array", "{2;S;v=6}Int32Array",
+    "{2;S;v=9}UInt64Array", "{2;S;v=10}FloatArray", "{2;S;v=13}DateTimeArray", "{2;S;v=16}XmlElementArray",
+    "{2;S;v=17}NodeIdArray", "{2;S;v=20}QualifiedNameArray", "{2;S;v=21}LocalizedTextArray"
 };
 
 static int method_arr[5] =
@@ -97,6 +103,7 @@ extern void testRead_P1(char *endpointUri);
 extern void testRead_P2(char *endpointUri);
 extern void testRead_P3(char *endpointUri);
 extern void testRead_P4(char *endpointUri);
+extern void testRead_P5(char *endpointUri);
 extern void testReadWithoutEndpoint();
 extern void testReadWithoutValueAlias(char *endpointUri);
 extern void testReadWithoutMessage();
@@ -293,10 +300,11 @@ extern "C"
                             }
                             else if (data->responses[idx]->type == String
                                     || data->responses[idx]->type == ByteString
+                                    || data->responses[idx]->type == XmlElement
                                     || data->responses[idx]->type == Guid)
                             {
                                 /* Handle String/ByteString/Guid output array */
-                                PRINT_ARG("String/ByteString/Guid output array length :: ",
+                                PRINT_ARG("String/ByteString/Guid/XmlElement output array length :: ",
                                         arrayLen);
                                 char **values = ((char **) data->responses[idx]->message->value);
                                 for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
@@ -313,6 +321,30 @@ extern "C"
                                     PRINT(
                                             ((int64_t * ) data->responses[idx]->message->value)[arrayIdx]);
                                 }
+                            }
+                            else if (data->responses[idx]->type == NodeId)
+                            {
+                                /* Handle NodeId output array */
+                                PRINT_ARG("NodeId output array length :: ", arrayLen);
+                                Edge_NodeId **nodeId = (Edge_NodeId **) data->responses[idx]->message->value;
+                                for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
+                                    showNodeId(nodeId[arrayIdx]);
+                            }
+                            else if (data->responses[idx]->type == QualifiedName)
+                            {
+                                /* Handle QualifiedName output array */
+                                PRINT_ARG("QualifiedName output array length :: ", arrayLen);
+                                Edge_QualifiedName **qn = (Edge_QualifiedName **) data->responses[idx]->message->value;
+                                for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
+                                    printf("[NameSpace Index: %" PRIu16 ", Name: %s]\n", qn[arrayIdx]->namespaceIndex, qn[arrayIdx]->name.data);
+                            }
+                            else if (data->responses[idx]->type == LocalizedText)
+                            {
+                                /* Handle LocalizedText output array */
+                                PRINT_ARG("LocalizedText output array length :: ", arrayLen);
+                                Edge_LocalizedText **lt = (Edge_LocalizedText **) data->responses[idx]->message->value;
+                                for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
+                                    printf("[Locale: %s, Text: %s]\n", (uint8_t*)lt[arrayIdx]->locale.data, (uint8_t*)lt[arrayIdx]->text.data);
                             }
                         }
                         else
@@ -375,7 +407,8 @@ extern "C"
                                 PRINT_ARG(
                                         "[Application response Callback] Data read from node ===>>  ",
                                         *((int64_t * )data->responses[idx]->message->value));
-                            else if (data->responses[idx]->type == String)
+                            else if (data->responses[idx]->type == String || data->responses[idx]->type == Guid
+                                || data->responses[idx]->type == XmlElement)
                             {
                                 PRINT_ARG(
                                         "[Application response Callback] Data read from node ===>>  ",
@@ -1845,14 +1878,13 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     printf("\n|------------[Added] %s\n", item->browseName);
     deleteNodeItem(item);
 
-    VERIFY_NON_NULL_NR(item);
     printf("\n[%d] Variable node with XML ELEMENT variant: \n", ++index);
     Edge_XmlElement *xml_value = (Edge_XmlElement *) EdgeMalloc(sizeof(Edge_XmlElement));
     if (IS_NOT_NULL(xml_value))
     {
         xml_value->length = 2;
         xml_value->data = (UA_Byte *) "ab";
-        item = createVariableNodeItem("xml_value", XmlElement, (void *) xml_value, VARIABLE_NODE, 100);
+        item = createVariableNodeItem("XmlElement", XmlElement, (void *) xml_value, VARIABLE_NODE, 100);
         VERIFY_NON_NULL_NR(item);
         createNode(DEFAULT_NAMESPACE_VALUE, item);
         printf("\n|------------[Added] %s\n", item->browseName);
@@ -2178,6 +2210,68 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
         printf("Error :: EdgeMalloc failed for bool array in Test create Nodes\n");
     }
 
+    printf("\n[%d] Array node with dateTime variant: \n", ++index);
+    UA_DateTime time_now = UA_DateTime_now();
+    UA_DateTime timeArr[2] = {time_now, time_now-1000};
+    item = createVariableNodeItem("DateTimeArray", DateTime, (void *) timeArr, VARIABLE_NODE, 100);
+    VERIFY_NON_NULL_NR(item);
+    item->nodeType = ARRAY_NODE;
+    item->arrayLength = 2;
+    createNode(DEFAULT_NAMESPACE_VALUE, item);
+    printf("\n|------------[Added] %s\n", item->browseName);
+    deleteNodeItem(item);
+
+    printf("\n[%d] Array node with XML ELEMENT variant: \n", ++index);
+    Edge_XmlElement xmlValueArr[2] = { {2, (uint8_t *)"ab"}, {3, (uint8_t *)"abc"} };
+    item = createVariableNodeItem("XmlElementArray", XmlElement, (void *) xmlValueArr, VARIABLE_NODE, 100);
+    VERIFY_NON_NULL_NR(item);
+    item->nodeType = ARRAY_NODE;
+    item->arrayLength = 2;
+    createNode(DEFAULT_NAMESPACE_VALUE, item);
+    printf("\n|------------[Added] %s\n", item->browseName);
+    deleteNodeItem(item);
+
+    printf("\n[%d] Array node with NODEID variant: \n", ++index);
+    Edge_NodeId nodeArr[2];
+    nodeArr[0].namespaceIndex = DEFAULT_NAMESPACE_INDEX;
+    nodeArr[0].identifierType = INTEGER;
+    nodeArr[0].identifier.numeric = EDGE_NODEID_ROOTFOLDER;
+
+    nodeArr[1].namespaceIndex = DEFAULT_NAMESPACE_INDEX;
+    nodeArr[1].identifierType = STRING;
+    nodeArr[1].identifier.string = EdgeStringAlloc("StringNodeId");
+
+    item = createVariableNodeItem("NodeIdArray", NodeId, nodeArr, VARIABLE_NODE, 100);
+    VERIFY_NON_NULL_NR(item);
+    item->nodeType = ARRAY_NODE;
+    item->arrayLength = 2;
+    createNode(DEFAULT_NAMESPACE_VALUE, item);
+    printf("\n|------------[Added] %s\n", item->browseName);
+    deleteNodeItem(item);
+
+    printf("\n[%d] Array node with qualified name variant: \n", ++index);
+    Edge_QualifiedName qnValueArr[2] = { {2, {5, (uint8_t *)"qn100"} }, {2, {6, (uint8_t *)"qn1000"}} };
+    item = createVariableNodeItem("QualifiedNameArray", QualifiedName, (void *) qnValueArr,
+            VARIABLE_NODE, 100);
+    VERIFY_NON_NULL_NR(item);
+    item->nodeType = ARRAY_NODE;
+    item->arrayLength = 2;
+    createNode(DEFAULT_NAMESPACE_VALUE, item);
+    printf("\n|------------[Added] %s\n", item->browseName);
+    deleteNodeItem(item);
+
+    printf("\n[%d] Variable node with localized text variant: \n", ++index);
+    Edge_LocalizedText ltValueArr[2] = { { {7, (uint8_t *)"localeA"}, {5, (uint8_t *)"textA"}},
+            {{7, (uint8_t *)"localeB"}, {5, (uint8_t *)"textB"}} };
+    item = createVariableNodeItem("LocalizedTextArray", LocalizedText, (void *) ltValueArr,
+            VARIABLE_NODE, 100);
+    item->nodeType = ARRAY_NODE;
+    item->arrayLength = 2;
+    VERIFY_NON_NULL_NR(item);
+    createNode(DEFAULT_NAMESPACE_VALUE, item);
+    printf("\n|------------[Added] %s\n", item->browseName);
+    deleteNodeItem(item);
+
     printf("\n[%d] Array node with SByte values: \n", ++index);
     UA_SByte *sbData = (UA_SByte *) EdgeMalloc(sizeof(UA_SByte) * 5);
     if (IS_NOT_NULL(sbData))
@@ -2212,7 +2306,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
         intData[4] = 55;
         intData[5] = 66;
         intData[6] = 77;
-        item = createVariableNodeItem("int32Array", Int32, (void *) intData, VARIABLE_NODE, 100);
+        item = createVariableNodeItem("Int32Array", Int32, (void *) intData, VARIABLE_NODE, 100);
         VERIFY_NON_NULL_NR(item);
         item->nodeType = ARRAY_NODE;
         item->arrayLength = 7;
@@ -2227,27 +2321,59 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     }
 
     printf("\n[%d] Array node with Int64 values: \n", ++index);
-    int *int64Data = (int *) EdgeMalloc(sizeof(int) * 5);
-    if (IS_NOT_NULL(int64Data))
-    {
-        int64Data[0] = 11111;
-        int64Data[1] = 22222;
-        int64Data[2] = 33333;
-        int64Data[3] = 44444;
-        int64Data[4] = 55555;
-        item = createVariableNodeItem("int64Array", Int64, (void *) int64Data, VARIABLE_NODE, 100);
-        VERIFY_NON_NULL_NR(item);
-        item->nodeType = ARRAY_NODE;
-        item->arrayLength = 5;
-        createNode(DEFAULT_NAMESPACE_VALUE, item);
-        printf("\n|------------[Added] %s\n", item->browseName);
-        EdgeFree(int64Data);
-        deleteNodeItem(item);
-    }
-    else
-    {
-        printf("Error :: EdgeMalloc failed for int64Data Array in Test create Nodes\n");
-    }
+    int64_t int64Data[5];
+    int64Data[0] = 11111;
+    int64Data[1] = 22222;
+    int64Data[2] = 33333;
+    int64Data[3] = 44444;
+    int64Data[4] = 55555;
+    item = createVariableNodeItem("Int64Array", Int64, (void *) int64Data, VARIABLE_NODE, 100);
+    VERIFY_NON_NULL_NR(item);
+    item->nodeType = ARRAY_NODE;
+    item->arrayLength = 5;
+    createNode(DEFAULT_NAMESPACE_VALUE, item);
+    printf("\n|------------[Added] %s\n", item->browseName);
+    deleteNodeItem(item);
+
+    printf("\n[%d] Array node with UInt16 values: \n", ++index);
+    uint16_t uint16Data[3] = {1000, 2000, 3000};
+    item = createVariableNodeItem("UInt16Array", UInt16, (void *) uint16Data, VARIABLE_NODE, 100);
+    VERIFY_NON_NULL_NR(item);
+    item->nodeType = ARRAY_NODE;
+    item->arrayLength = 3;
+    createNode(DEFAULT_NAMESPACE_VALUE, item);
+    printf("\n|------------[Added] %s\n", item->browseName);
+    deleteNodeItem(item);
+
+    printf("\n[%d] Array node with Int16 values: \n", ++index);
+    int16_t int16Data[3] = {-1000, 0, 1000};
+    item = createVariableNodeItem("Int16Array", Int16, (void *) int16Data, VARIABLE_NODE, 100);
+    VERIFY_NON_NULL_NR(item);
+    item->nodeType = ARRAY_NODE;
+    item->arrayLength = 3;
+    createNode(DEFAULT_NAMESPACE_VALUE, item);
+    printf("\n|------------[Added] %s\n", item->browseName);
+    deleteNodeItem(item);
+
+    printf("\n[%d] Array node with UInt32 values: \n", ++index);
+    uint32_t uint32Data[3] = {1, 500000000, 1000000000};
+    item = createVariableNodeItem("UInt32Array", UInt32, (void *) uint32Data, VARIABLE_NODE, 100);
+    VERIFY_NON_NULL_NR(item);
+    item->nodeType = ARRAY_NODE;
+    item->arrayLength = 3;
+    createNode(DEFAULT_NAMESPACE_VALUE, item);
+    printf("\n|------------[Added] %s\n", item->browseName);
+    deleteNodeItem(item);
+
+    printf("\n[%d] Array node with UInt64 values: \n", ++index);
+    uint64_t uint64Data[3] = {1, 50000000000000, 1000000000000000000};
+    item = createVariableNodeItem("UInt64Array", UInt64, (void *) uint64Data, VARIABLE_NODE, 100);
+    VERIFY_NON_NULL_NR(item);
+    item->nodeType = ARRAY_NODE;
+    item->arrayLength = 3;
+    createNode(DEFAULT_NAMESPACE_VALUE, item);
+    printf("\n|------------[Added] %s\n", item->browseName);
+    deleteNodeItem(item);
 
     printf("\n[%d] Array node with double values: \n", ++index);
     double *data = (double *) EdgeMalloc(sizeof(double) * 5);
@@ -2271,6 +2397,16 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     {
         printf("Error :: EdgeMalloc failed for double Array in Test create Nodes\n");
     }
+
+    printf("\n[%d] Array node with double values: \n", ++index);
+    double dblArr[5] = {10.2, 20.2, 30.2, 40.2, 50.2};
+    item = createVariableNodeItem("FloatArray", Float, (void *) dblArr, VARIABLE_NODE, 100);
+    VERIFY_NON_NULL_NR(item);
+    item->nodeType = ARRAY_NODE;
+    item->arrayLength = 5;
+    createNode(DEFAULT_NAMESPACE_VALUE, item);
+    printf("\n|------------[Added] %s\n", item->browseName);
+    deleteNodeItem(item);
 
     printf("\n[%d] Array node with string values: \n", ++index);
     char **data1 = (char **) malloc(sizeof(char *) * 5);
@@ -3200,6 +3336,28 @@ TEST_F(OPC_clientTests , ClientRead_P4)
 
     readNodeFlag = true;
     testRead_P4(endpointUri);
+    readNodeFlag = false;
+
+    stop_client();
+    EXPECT_EQ(startClientFlag, false);
+}
+
+TEST_F(OPC_clientTests , ClientRead_P5)
+{
+    EXPECT_EQ(startClientFlag, false);
+
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_GET_ENDPOINTS);
+    EXPECT_EQ(NULL != msg, true);
+
+    EdgeResult res = getEndpointInfo(msg);
+    EXPECT_EQ(res.code, STATUS_OK);
+
+    EXPECT_EQ(startClientFlag, true);
+
+    destroyEdgeMessage(msg);
+
+    readNodeFlag = true;
+    testRead_P5(endpointUri);
     readNodeFlag = false;
 
     stop_client();

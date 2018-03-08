@@ -116,6 +116,61 @@ static bool checkInvalidTime(UA_DateTime serverTime, UA_DateTime sourceTime, int
     return ret;
 }
 
+static Edge_LocalizedText *convertToEdgeLocalizedText(UA_LocalizedText *lt)
+{
+    VERIFY_NON_NULL_MSG(lt, "Input parameter(lt) is NULL", NULL);
+    Edge_LocalizedText *value = (Edge_LocalizedText *) EdgeCalloc(1, sizeof(Edge_LocalizedText));
+    if(IS_NULL(value))
+    {
+        EDGE_LOG(TAG, "Memory allocation failed.");
+        return NULL;
+    }
+
+    Edge_String *edgeStr = convertToEdgeString(&lt->locale);
+    if(IS_NULL(edgeStr))
+    {
+        EDGE_LOG(TAG, "Failed to convert locale.");
+        EdgeFree(value);
+        return NULL;
+    }
+    value->locale = *edgeStr;
+    EdgeFree(edgeStr);
+
+    edgeStr = convertToEdgeString(&lt->text);
+    if(IS_NULL(edgeStr))
+    {
+        EDGE_LOG(TAG, "Failed to convert text.");
+        EdgeFree(value->locale.data);
+        EdgeFree(value);
+        return NULL;
+    }
+    value->text = *edgeStr;
+    EdgeFree(edgeStr);
+    return value;
+}
+
+static Edge_QualifiedName *convertToEdgeQualifiedName(UA_QualifiedName *qn)
+{
+    VERIFY_NON_NULL_MSG(qn, "Input parameter(qn) is NULL", NULL);
+    Edge_QualifiedName *value = (Edge_QualifiedName *) EdgeCalloc(1, sizeof(Edge_QualifiedName));
+    if(IS_NULL(value))
+    {
+        EDGE_LOG(TAG, "Memory allocation failed.");
+        return NULL;
+    }
+    value->namespaceIndex = qn->namespaceIndex;
+    Edge_String *edgeStr = convertToEdgeString(&qn->name);
+    if(IS_NULL(edgeStr))
+    {
+        EDGE_LOG(TAG, "Failed to convert name.");
+        EdgeFree(value);
+        return NULL;
+    }
+    value->name = *edgeStr;
+    EdgeFree(edgeStr);
+    return value;
+}
+
 static void *checkValidation(UA_DataValue *value, const EdgeMessage *msg, UA_TimestampsToReturn stamp,
         double maxAge)
 {
@@ -371,74 +426,35 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attri
                 }
                 else if(response->type == UA_NS0ID_LOCALIZEDTEXT)
                 {
-                    UA_LocalizedText lt = *((UA_LocalizedText *) val.data);
-                    Edge_LocalizedText *value = (Edge_LocalizedText *) EdgeCalloc(1, sizeof(Edge_LocalizedText));
+                    Edge_LocalizedText *value = convertToEdgeLocalizedText((UA_LocalizedText *) val.data);
                     if(IS_NULL(value))
                     {
-                        EDGE_LOG(TAG, "Memory allocation failed.");
-                        strncpy(errorDesc, "Memory allocation failed.", ERROR_DESC_LENGTH);
+                        EDGE_LOG(TAG, "Failed to parse localized text.");
+                        strncpy(errorDesc, "Failed to parse localized text.", ERROR_DESC_LENGTH);
                         freeEdgeResponse(response);
                         goto EXIT;
                     }
                     versatility->value = value;
-
-                    Edge_String *edgeStr = convertToEdgeString(&lt.locale);
-                    if(IS_NULL(edgeStr))
-                    {
-                        EDGE_LOG(TAG, "Memory allocation failed.");
-                        strncpy(errorDesc, "Memory allocation failed.", ERROR_DESC_LENGTH);
-                        freeEdgeResponse(response);
-                        goto EXIT;
-                    }
-                    value->locale = *edgeStr;
-                    EdgeFree(edgeStr);
-
-                    edgeStr = convertToEdgeString(&lt.text);
-                    if(IS_NULL(edgeStr))
-                    {
-                        EDGE_LOG(TAG, "Memory allocation failed.");
-                        strncpy(errorDesc, "Memory allocation failed.", ERROR_DESC_LENGTH);
-                        freeEdgeResponse(response);
-                        goto EXIT;
-                    }
-                    value->text = *edgeStr;
-                    EdgeFree(edgeStr);
                 }
                 else if(response->type == UA_NS0ID_QUALIFIEDNAME)
                 {
-                    UA_QualifiedName qn = *((UA_QualifiedName *) val.data);
-                    Edge_QualifiedName *value = (Edge_QualifiedName *) EdgeCalloc(1, sizeof(Edge_QualifiedName));
+                    Edge_QualifiedName *value = convertToEdgeQualifiedName((UA_QualifiedName *) val.data);
                     if(IS_NULL(value))
                     {
-                        EDGE_LOG(TAG, "Memory allocation failed.");
-                        strncpy(errorDesc, "Memory allocation failed.", ERROR_DESC_LENGTH);
+                        EDGE_LOG(TAG, "Failed to convert qualified name.");
+                        strncpy(errorDesc, "Failed to convert qualified name.", ERROR_DESC_LENGTH);
                         freeEdgeResponse(response);
                         goto EXIT;
                     }
                     versatility->value = value;
-                    value->namespaceIndex = qn.namespaceIndex;
-
-                    if(qn.name.length > 0)
-                    {
-                        Edge_String *edgeStr = convertToEdgeString(&qn.name);
-                        if(IS_NULL(edgeStr))
-                        {
-                            EDGE_LOG(TAG, "Memory allocation failed.");
-                            strncpy(errorDesc, "Memory allocation failed.", ERROR_DESC_LENGTH);
-                            freeEdgeResponse(response);
-                            goto EXIT;
-                        }
-                        value->name = *edgeStr;
-                        EdgeFree(edgeStr);
-                    }
                 }
                 else if(response->type == UA_NS0ID_NODEID)
                 {
-                    versatility->value = convertToEdgeNodeId((UA_NodeId *) val.data);
+                    versatility->value = convertToEdgeNodeIdType((UA_NodeId *) val.data);
                     if(IS_NULL(versatility->value))
                     {
-                        EDGE_LOG(TAG, "Memory allocation failed.");
-                        strncpy(errorDesc, "Memory allocation failed.", ERROR_DESC_LENGTH);
+                        EDGE_LOG(TAG, "Failed to convert NodeId.");
+                        strncpy(errorDesc, "Failed to convert NodeId.", ERROR_DESC_LENGTH);
                         freeEdgeResponse(response);
                         goto EXIT;
                     }
@@ -518,6 +534,81 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attri
                                 str[j].data4[3], str[j].data4[4], str[j].data4[5], str[j].data4[6], str[j].data4[7]);
 
                         EDGE_LOG_V(TAG, "%s\n", values[j]);
+                    }
+                }
+                else if(response->type == UA_NS0ID_QUALIFIEDNAME)
+                {
+                    UA_QualifiedName *qnArr = ((UA_QualifiedName *) val.data);
+                    versatility->value = EdgeCalloc(val.arrayLength, sizeof(UA_QualifiedName *));
+                    if(IS_NULL(versatility->value))
+                    {
+                        EDGE_LOG(TAG, "Error : Malloc failed for QualifiedName Array values in Read Group\n");
+                        strncpy(errorDesc, "Memory allocation failed.", ERROR_DESC_LENGTH);
+                        freeEdgeResponse(response);
+                        goto EXIT;
+                    }
+
+                    Edge_QualifiedName **values = (Edge_QualifiedName **) versatility->value;
+                    for (int j = 0; j < val.arrayLength; j++)
+                    {
+                        values[j] = convertToEdgeQualifiedName(&qnArr[j]);
+                        if(IS_NULL(values[j]))
+                        {
+                            EDGE_LOG(TAG, "Failed to convert the qualified name.");
+                            strncpy(errorDesc, "Failed to convert the qualified name.", ERROR_DESC_LENGTH);
+                            freeEdgeResponse(response);
+                            goto EXIT;
+                        }
+                    }
+                }
+                else if(response->type == UA_NS0ID_LOCALIZEDTEXT)
+                {
+                    UA_LocalizedText *ltArr = ((UA_LocalizedText *) val.data);
+                    versatility->value = EdgeCalloc(val.arrayLength, sizeof(UA_LocalizedText *));
+                    if(IS_NULL(versatility->value))
+                    {
+                        EDGE_LOG(TAG, "Error : Malloc failed for LocalizedText Array values in Read Group\n");
+                        strncpy(errorDesc, "Memory allocation failed.", ERROR_DESC_LENGTH);
+                        freeEdgeResponse(response);
+                        goto EXIT;
+                    }
+
+                    Edge_LocalizedText **values = (Edge_LocalizedText **) versatility->value;
+                    for (int j = 0; j < val.arrayLength; j++)
+                    {
+                        values[j] = convertToEdgeLocalizedText(&ltArr[j]);
+                        if(IS_NULL(values[j]))
+                        {
+                            EDGE_LOG(TAG, "Failed to convert the localized text.");
+                            strncpy(errorDesc, "Failed to convert the localized text.", ERROR_DESC_LENGTH);
+                            freeEdgeResponse(response);
+                            goto EXIT;
+                        }
+                    }
+                }
+                else if(response->type == UA_NS0ID_NODEID)
+                {
+                    UA_NodeId *nodeIdArr = ((UA_NodeId *) val.data);
+                    versatility->value = EdgeCalloc(val.arrayLength, sizeof(Edge_NodeId *));
+                    if(IS_NULL(versatility->value))
+                    {
+                        EDGE_LOG(TAG, "Error : Malloc failed for NodeId Array values in Read Group\n");
+                        strncpy(errorDesc, "Memory allocation failed.", ERROR_DESC_LENGTH);
+                        freeEdgeResponse(response);
+                        goto EXIT;
+                    }
+
+                    Edge_NodeId **values = (Edge_NodeId **) versatility->value;
+                    for (int j = 0; j < val.arrayLength; j++)
+                    {
+                        values[j] = convertToEdgeNodeIdType(&nodeIdArr[j]);
+                        if(IS_NULL(values[j]))
+                        {
+                            EDGE_LOG(TAG, "Failed to convert the NodeId.");
+                            strncpy(errorDesc, "Failed to convert the NodeId.", ERROR_DESC_LENGTH);
+                            freeEdgeResponse(response);
+                            goto EXIT;
+                        }
                     }
                 }
                 else

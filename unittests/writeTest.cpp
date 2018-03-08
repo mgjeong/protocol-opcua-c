@@ -35,7 +35,7 @@ extern "C"
 
 #define TAG "writeTest"
 
-extern char node_arr[20][30];
+extern char node_arr[46][30];
 
 void testWrite_P1(char *endpointUri)
 {
@@ -54,7 +54,7 @@ void testWrite_P1(char *endpointUri)
     char *bs_value = (char*) malloc(sizeof(char) * 20);
     strncpy(bs_value, "test_bytestring", strlen("test_bytestring"));
     bs_value[strlen("test_bytestring")] = '\0';
-    insertWriteAccessNode(&msg, "{2;S;v=15}ByteString", bs_value, 1);
+    insertWriteAccessNode(&msg, node_arr[6], bs_value, 1);
     result = sendRequest(msg);
     destroyEdgeMessage(msg);
     ASSERT_EQ(result.code, STATUS_OK);
