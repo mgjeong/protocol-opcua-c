@@ -35,7 +35,7 @@ extern "C"
 
 #define TAG "readTest"
 
-extern char node_arr[20][30];
+extern char node_arr[46][30];
 
 // String1
 // String2
@@ -89,6 +89,7 @@ void testRead_P2(char *endpointUri)
     sleep(1);
 }
 
+// Double
 // Guid
 void testRead_P3(char *endpointUri)
 {
@@ -110,6 +111,29 @@ void testRead_P4(char *endpointUri)
     EdgeMessage *msg = createEdgeAttributeMessage(endpointUri, num_requests, CMD_READ);
     EXPECT_EQ(NULL != msg, true);
     insertReadAccessNode(&msg, node_arr[8]);
+    EdgeResult result = sendRequest(msg);
+    destroyEdgeMessage(msg);
+    ASSERT_EQ(result.code, STATUS_OK);
+    sleep(1);
+}
+
+void testRead_P5(char *endpointUri)
+{
+    int num_requests  = 30;
+    EdgeMessage *msg = createEdgeAttributeMessage(endpointUri, num_requests, CMD_READ);
+    EXPECT_EQ(NULL != msg, true);
+    int indx = 4;
+    for (int i = 0; i < 4; i++)
+    {
+        printf("node :: %s\n", node_arr[i+indx]);
+        insertReadAccessNode(&msg, node_arr[i+indx]);
+    }
+    indx = 20;
+    for (int i = 0; i < 26; i++)
+    {
+        printf("node :: %s\n", node_arr[i+indx]);
+        insertReadAccessNode(&msg, node_arr[i+indx]);
+    }
     EdgeResult result = sendRequest(msg);
     destroyEdgeMessage(msg);
     ASSERT_EQ(result.code, STATUS_OK);

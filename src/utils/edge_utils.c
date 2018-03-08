@@ -271,9 +271,23 @@ UA_ApplicationType convertEdgeApplicationType(EdgeApplicationType appType)
     return uaAppType;
 }
 
-Edge_NodeId *convertToEdgeNodeId(UA_NodeId *nodeId)
+void freeEdgeNodeIdType(Edge_NodeId *id)
 {
-    VERIFY_NON_NULL_MSG(nodeId, "Node ID param is NULL in convertToEdgeNodeId\n", NULL);
+    VERIFY_NON_NULL_NR_MSG(id, "Input param is NULL");
+    if(id->identifierType == STRING)
+    {
+        EdgeFree(id->identifier.string.data);
+    }
+    else if(id->identifierType == BYTESTRING)
+    {
+        EdgeFree(id->identifier.byteString.data);
+    }
+    EdgeFree(id);
+}
+
+Edge_NodeId *convertToEdgeNodeIdType(UA_NodeId *nodeId)
+{
+    VERIFY_NON_NULL_MSG(nodeId, "Node ID param is NULL in convertToEdgeNodeIdType\n", NULL);
     Edge_NodeId *edgeNodeId = (Edge_NodeId *) EdgeCalloc(1, sizeof(Edge_NodeId));
     VERIFY_NON_NULL_MSG(edgeNodeId, "Memory allocation failed", NULL);
 
@@ -786,37 +800,87 @@ void freeEdgeVersatility(EdgeVersatility *versatileValue)
     EdgeFree(versatileValue);
 }
 
+void freeEdgeQualifiedName(Edge_QualifiedName *qn)
+{
+    VERIFY_NON_NULL_NR_MSG(qn, "Input argument is NULL");
+    EdgeFree(qn->name.data);
+    EdgeFree(qn);
+}
+
+void freeEdgeLocalizedText(Edge_LocalizedText *lt)
+{
+    VERIFY_NON_NULL_NR_MSG(lt, "Input argument is NULL");
+    EdgeFree(lt->locale.data);
+    EdgeFree(lt->text.data);
+    EdgeFree(lt);
+}
+
 void freeEdgeVersatilityByType(EdgeVersatility *versatileValue, int type)
 {
     VERIFY_NON_NULL_NR_MSG(versatileValue, "NULL param versatileValue in freeEdgeVersatilityByType\n");
 
-    if (versatileValue->isArray && (type == UA_NS0ID_STRING || type == UA_NS0ID_BYTESTRING
-    		|| type == UA_NS0ID_GUID))
+    if (versatileValue->isArray)
     {
-        // Free String array
-        char **values = versatileValue->value;
-        if (values)
+        if (type == UA_NS0ID_STRING || type == UA_NS0ID_BYTESTRING
+            || type == UA_NS0ID_GUID || type == UA_NS0ID_XMLELEMENT)
         {
+            // Free String array
+            char **values = versatileValue->value;
+            if (values)
+            {
+                for (int j = 0; j < versatileValue->arrayLength; j++)
+                {
+                    EdgeFree(values[j]);
+                }
+                EdgeFree(values);
+            }
+        }
+        else if (type == UA_NS0ID_QUALIFIEDNAME)
+        {
+            Edge_QualifiedName **values = (Edge_QualifiedName **) versatileValue->value;
             for (int j = 0; j < versatileValue->arrayLength; j++)
             {
-                EdgeFree(values[j]);
+                freeEdgeQualifiedName(values[j]);
+            }
+            EdgeFree(values);
+        }
+        else if (type == UA_NS0ID_LOCALIZEDTEXT)
+        {
+            Edge_LocalizedText **values = (Edge_LocalizedText **) versatileValue->value;
+            for (int j = 0; j < versatileValue->arrayLength; j++)
+            {
+                freeEdgeLocalizedText(values[j]);
+            }
+            EdgeFree(values);
+        }
+        else if (type == UA_NS0ID_NODEID)
+        {
+            Edge_NodeId **values = (Edge_NodeId **) versatileValue->value;
+            for (int j = 0; j < versatileValue->arrayLength; j++)
+            {
+                freeEdgeNodeIdType(values[j]);
             }
             EdgeFree(values);
         }
     }
-    else if(type == UA_NS0ID_LOCALIZEDTEXT)
-    {
-        Edge_LocalizedText *lt = (Edge_LocalizedText *)versatileValue->value;
-        if(IS_NOT_NULL(lt))
-        {
-            EdgeFree(lt->locale.data);
-            EdgeFree(lt->text.data);
-            EdgeFree(lt);
-        }
-    }
     else
     {
-        EdgeFree(versatileValue->value);
+        if(type == UA_NS0ID_QUALIFIEDNAME)
+        {
+            freeEdgeQualifiedName((Edge_QualifiedName *)versatileValue->value);
+        }
+        else if(type == UA_NS0ID_LOCALIZEDTEXT)
+        {
+            freeEdgeLocalizedText((Edge_LocalizedText *)versatileValue->value);
+        }
+        else if (type == UA_NS0ID_NODEID)
+        {
+            freeEdgeNodeIdType((Edge_NodeId *)versatileValue->value);
+        }
+        else
+        {
+            EdgeFree(versatileValue->value);
+        }
     }
 
     EdgeFree(versatileValue);

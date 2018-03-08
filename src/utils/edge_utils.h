@@ -196,7 +196,28 @@ extern "C"
      * @param[in]  nodeId NodeId to be converted.
      * @return Converted NodeId on success. Otherwise null.
      */
-    Edge_NodeId *convertToEdgeNodeId(UA_NodeId *nodeId);
+    Edge_NodeId *convertToEdgeNodeIdType(UA_NodeId *nodeId);
+
+    /**
+     * @brief De-allocates the memory consumed by Edge_NodeId and its members.
+     * @remarks Both Edge_NodeId and its members should have been allocated dynamically.
+     * @param[in]  id Pointer to Edge_NodeId which needs to be freed.
+     */
+    void freeEdgeNodeIdType(Edge_NodeId *id);
+
+    /**
+     * @brief De-allocates the memory consumed by Edge_QualifiedName and its members.
+     * @remarks Both Edge_QualifiedName and its members should have been allocated dynamically.
+     * @param[in]  qn Pointer to Edge_QualifiedName which needs to be freed.
+     */
+    void freeEdgeQualifiedName(Edge_QualifiedName *qn);
+
+    /**
+     * @brief De-allocates the memory consumed by Edge_LocalizedText and its members.
+     * @remarks Both Edge_LocalizedText and its members should have been allocated dynamically.
+     * @param[in]  lt Pointer to Edge_LocalizedText which needs to be freed.
+     */
+    void freeEdgeLocalizedText(Edge_LocalizedText *lt);
 
     /**
      * @brief De-allocates the memory consumed by EdgeEndpointConfig and its members.
