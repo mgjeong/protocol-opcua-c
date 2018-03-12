@@ -862,6 +862,10 @@ void freeEdgeVersatilityByType(EdgeVersatility *versatileValue, int type)
             }
             EdgeFree(values);
         }
+        else
+        {
+            EdgeFree(versatileValue->value);
+        }
     }
     else
     {

@@ -639,7 +639,14 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attri
             // failure read response for this particular node
             EDGE_LOG_V(TAG, "Error in group read response for particular node :: 0x%08x(%s)\n",
                     readResponse.results[i].status, UA_StatusCode_name(readResponse.results[i].status));
-            sendErrorResponse(msg, "Error in read response");
+            if(1 == reqLen)
+            {
+                // Error response for the node(only one) in the given read request.
+                snprintf(errorDesc, ERROR_DESC_LENGTH, "Bad service result for the given node");
+                goto EXIT;
+            }
+            snprintf(errorDesc, ERROR_DESC_LENGTH, "Bad service result for the node at position(%d)", i);
+            sendErrorResponse(msg, errorDesc);
         }
     }
 
@@ -651,6 +658,10 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attri
     }
 
     add_to_recvQ(resultMsg);
+    for (size_t i = 0; i < reqLen; i++)
+    {
+        UA_NodeId_deleteMembers(&rv[i].nodeId);
+    }
     UA_ReadValueId_deleteMembers(rv);
     EdgeFree(rv);
     UA_ReadResponse_deleteMembers(&readResponse);
@@ -659,6 +670,10 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attri
     EXIT:
     sendErrorResponse(msg, errorDesc);
     freeEdgeMessage(resultMsg);
+    for (size_t i = 0; i < reqLen; i++)
+    {
+        UA_NodeId_deleteMembers(&rv[i].nodeId);
+    }
     UA_ReadValueId_deleteMembers(rv);
     EdgeFree(rv);
     UA_ReadResponse_deleteMembers(&readResponse);

@@ -221,9 +221,9 @@ static void response_msg_cb (EdgeMessage *data)
                             }
                         }
                         else if (data->responses[idx]->type == String || data->responses[idx]->type == ByteString
-                                 || data->responses[idx]->type == Guid)
+                                 || data->responses[idx]->type == Guid || data->responses[idx]->type == XmlElement)
                         {
-                            /* Handle String/ByteString/Guid output array */
+                            /* Handle String/ByteString/Guid/XmlElement output array */
                             char **values = ((char **) data->responses[idx]->message->value);
                             for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                             {
@@ -239,13 +239,37 @@ static void response_msg_cb (EdgeMessage *data)
                                 printf("%" PRId64 "  ", value);
                             }
                         }
+                        else if (data->responses[idx]->type == NodeId)
+                        {
+                            /* Handle NodeId output array */
+                            printf("NodeId output array length :: %d\n", arrayLen);
+                            Edge_NodeId **nodeId = (Edge_NodeId **) data->responses[idx]->message->value;
+                            for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
+                                showNodeId(nodeId[arrayIdx]);
+                        }
+                        else if (data->responses[idx]->type == QualifiedName)
+                        {
+                            /* Handle QualifiedName output array */
+                            printf("QualifiedName output array length :: %d\n", arrayLen);
+                            Edge_QualifiedName **qn = (Edge_QualifiedName **) data->responses[idx]->message->value;
+                            for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
+                                printf("[NameSpace Index: %" PRIu16 ", Name: %s]\n", qn[arrayIdx]->namespaceIndex, qn[arrayIdx]->name.data);
+                        }
+                        else if (data->responses[idx]->type == LocalizedText)
+                        {
+                            /* Handle LocalizedText output array */
+                            printf("LocalizedText output array length :: %d\n", arrayLen);
+                            Edge_LocalizedText **lt = (Edge_LocalizedText **) data->responses[idx]->message->value;
+                            for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
+                                printf("[Locale: %s, Text: %s]\n", (uint8_t*)lt[arrayIdx]->locale.data, (uint8_t*)lt[arrayIdx]->text.data);
+                        }
                         printf("\n");
                     }
                     else
                     {
                         if (data->responses[idx]->type == Boolean)
                             printf("[%d]\n",
-                                   *((int *)data->responses[idx]->message->value));
+                                   *((bool *)data->responses[idx]->message->value));
                         else if (data->responses[idx]->type == Byte)
                             printf("[%" PRIu8 "]\n",
                                    *((uint8_t *)data->responses[idx]->message->value));
