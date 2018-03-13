@@ -446,11 +446,9 @@ static UA_StatusCode createSub(UA_Client *client, const EdgeMessage *msg)
 
     if(IS_NOT_NULL(clientSub))
     {
-        subscriptionInfo *subInfo =  NULL;
-
         for (int i = 0; i < msg->requestLength; i++)
         {
-            subInfo = (subscriptionInfo *) getSubInfo(clientSub->subscriptionList,
+            subscriptionInfo *subInfo = (subscriptionInfo *) getSubInfo(clientSub->subscriptionList,
                 msg->requests[i]->nodeInfo->valueAlias);
 
             if (IS_NOT_NULL(subInfo))
@@ -790,7 +788,7 @@ static UA_StatusCode modifySub(UA_Client *client, const EdgeMessage *msg)
     modifyMonitoredItemsRequest.subscriptionId = subInfo->subId;
     modifyMonitoredItemsRequest.itemsToModifySize = 1;
     modifyMonitoredItemsRequest.itemsToModify = EdgeCalloc(1, sizeof(UA_MonitoredItemModifyRequest));
-    VERIFY_NON_NULL_MSG(modifyMonitoredItemsRequest.itemsToModify, "EdgeCalloc FAILED in modifySub\n", 
+    VERIFY_NON_NULL_MSG(modifyMonitoredItemsRequest.itemsToModify, "EdgeCalloc FAILED in modifySub\n",
         UA_STATUSCODE_BADUNEXPECTEDERROR);
 
     UA_UInt32 monId = subInfo->monId;
@@ -853,7 +851,7 @@ static UA_StatusCode modifySub(UA_Client *client, const EdgeMessage *msg)
     setMonitoringModeRequest.subscriptionId = subInfo->subId;
     setMonitoringModeRequest.monitoredItemIdsSize = 1;
     setMonitoringModeRequest.monitoredItemIds = UA_malloc(sizeof(UA_UInt32));
-    VERIFY_NON_NULL_MSG(setMonitoringModeRequest.monitoredItemIds, "UA MALLOC FAILED in modifySub\n", 
+    VERIFY_NON_NULL_MSG(setMonitoringModeRequest.monitoredItemIds, "UA MALLOC FAILED in modifySub\n",
         UA_STATUSCODE_BADOUTOFMEMORY);
     setMonitoringModeRequest.monitoredItemIds[0] = monId;
     setMonitoringModeRequest.monitoringMode = UA_MONITORINGMODE_REPORTING;
@@ -892,7 +890,7 @@ static UA_StatusCode modifySub(UA_Client *client, const EdgeMessage *msg)
     UA_SetPublishingModeRequest_init(&setPublishingModeRequest);
     setPublishingModeRequest.subscriptionIdsSize = 1;
     setPublishingModeRequest.subscriptionIds = UA_malloc(sizeof(UA_UInt32));
-    VERIFY_NON_NULL_MSG(setPublishingModeRequest.subscriptionIds, "UA MALLOC FAILED for subscriptionIds\n", 
+    VERIFY_NON_NULL_MSG(setPublishingModeRequest.subscriptionIds, "UA MALLOC FAILED for subscriptionIds\n",
         UA_STATUSCODE_BADOUTOFMEMORY);
     setPublishingModeRequest.subscriptionIds[0] = subInfo->subId;
     setPublishingModeRequest.publishingEnabled = subReq->publishingEnabled; //UA_TRUE;

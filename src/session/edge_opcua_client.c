@@ -1132,7 +1132,7 @@ EdgeResult getClientEndpoints(char *endpointUri)
         goto EXIT;
     }
 
-    if (endpointArraySize <= 0)
+    if (0 == endpointArraySize)
     {
         EDGE_LOG(TAG, "No endpoints found.");
         g_discoveryCallback(device);
@@ -1147,7 +1147,7 @@ EdgeResult getClientEndpoints(char *endpointUri)
         goto EXIT;
     }
 
-    if (count <= 0)
+    if (0 == count)
     {
         EDGE_LOG(TAG, "No valid endpoints found.");
         result.code = STATUS_OK; // TODO: What should be the result code?
