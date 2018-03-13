@@ -510,10 +510,20 @@ static void addReferenceTypeNode(UA_Server *server, uint16_t nsIndex, const Edge
     {
         EDGE_LOG(TAG, "+++ addReferenceTypeNode failed +++\n");
     }
+
     status = UA_Server_addReference(server, sourceNodeId, UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES),
             UA_EXPANDEDNODEID_STRING(nsIndex, item->browseName), true);
+    if (status != UA_STATUSCODE_GOOD)
+    {
+        EDGE_LOG(TAG, "+++ UA_Server_addReference(forward) failed +++\n");
+    }
+
     status = UA_Server_addReference(server, UA_NODEID_STRING(nsIndex, item->browseName),
             UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES), expandedSourceNodeId, false);
+    if (status != UA_STATUSCODE_GOOD)
+    {
+        EDGE_LOG(TAG, "+++ UA_Server_addReference failed +++\n");
+    }
 }
 
 static keyValue getMethodMapElement(const edgeMap *map, keyValue key)
@@ -872,13 +882,27 @@ EdgeResult addMethodNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem
     status = UA_Server_addReference(server, UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER),
             UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES), UA_EXPANDEDNODEID_STRING(nsIndex, item->browseName),
             true);
+    if (status != UA_STATUSCODE_GOOD)
+    {
+        EDGE_LOG(TAG, "+++ UA_Server_addReference(forward) failed +++\n");
+    }
+
     if (sourceNode != NULL && sourceNode->nodeId != NULL)
     {
         status = UA_Server_addReference(server, sourceNodeId,
                 UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES),
                 UA_EXPANDEDNODEID_STRING(nsIndex, item->browseName), true);
+        if (status != UA_STATUSCODE_GOOD)
+        {
+            EDGE_LOG(TAG, "+++ UA_Server_addReference(forward) failed +++\n");
+        }
+
         status = UA_Server_addReference(server, UA_NODEID_STRING(nsIndex, item->browseName),
                 UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES), expandedSourceNodeId, false);
+        if (status != UA_STATUSCODE_GOOD)
+        {
+            EDGE_LOG(TAG, "+++ UA_Server_addReference failed +++\n");
+        }
     }
 
     for (idx = 0; idx < num_outArgs; idx++)

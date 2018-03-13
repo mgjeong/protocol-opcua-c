@@ -40,4 +40,8 @@ extern "C" {
  */
 uint32_t EdgeGetRandom();
 
+#ifdef __cplusplus
+}
+#endif
+
 #endif      // EDGE_RANDOM_H

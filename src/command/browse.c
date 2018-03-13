@@ -986,10 +986,9 @@ void destroyViewListMembers(List *ptr)
 {
     VERIFY_NON_NULL_NR_MSG(ptr, "NULL list parameter\n");
 
-    ViewNodeInfo_t *nodeInfo;
     while(ptr)
     {
-        nodeInfo = ptr->data;
+        ViewNodeInfo_t *nodeInfo = ptr->data;
         EdgeFree(nodeInfo->browseName);
         UA_NodeId_delete(nodeInfo->nodeId);
         EdgeFree(nodeInfo);

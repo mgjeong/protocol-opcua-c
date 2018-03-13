@@ -318,7 +318,7 @@ static EdgeResult checkParameterValid(EdgeMessage *msg)
         {
             for (size_t indx = 0; indx < msg->requestLength; indx++)
             {
-                VERIFY_NON_NULL_MSG(msg->requests[indx]->subMsg, "One of the message requests" 
+                VERIFY_NON_NULL_MSG(msg->requests[indx]->subMsg, "One of the message requests"
                     "submessage in NULL\n", result);
             }
         }
@@ -417,7 +417,7 @@ void onResponseMessage(EdgeMessage *msg)
 {
     VERIFY_NON_NULL_NR_MSG(receivedMsgCb, "NULL receivedMsgCb in onResponseMessage\n");
     VERIFY_NON_NULL_NR_MSG(msg, "NULL Message param in onResponseMessage\n");
-    
+
     switch (msg->type)
     {
         case GENERAL_RESPONSE:
@@ -447,7 +447,7 @@ void onDiscoveryCallback(EdgeDevice *device)
 void onStatusCallback(EdgeEndPointInfo *epInfo, EdgeStatusCode status)
 {
     VERIFY_NON_NULL_NR_MSG(statusCb, "NULL statusCb in onStatusCallback\n"); // status callback not registered by application.
-    
+
     if (STATUS_SERVER_STARTED == status || STATUS_CLIENT_STARTED == status)
     {
         statusCb->start_cb(epInfo, status);
@@ -475,7 +475,7 @@ EdgeNodeInfo* createEdgeNodeInfoForNodeId(EdgeNodeIdType type, int nodeId, uint1
 {
     EdgeNodeInfo* nodeInfo = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
     VERIFY_NON_NULL_MSG(nodeInfo, "EdgeCalloc failed in createEdgeNodeInfoForNodeId\n", NULL);
-    
+
     nodeInfo->nodeId = (EdgeNodeId *) EdgeCalloc(1, sizeof(EdgeNodeId));
     if (IS_NULL(nodeInfo->nodeId))
     {
@@ -604,7 +604,7 @@ EdgeMessage* createEdgeSubMessage(const char *endpointUri, const char* nodeName,
         EdgeNodeType subType)
 {
     VERIFY_NON_NULL_MSG(endpointUri, "NULL endpointUri param in createEdgeSubMessage\n", NULL);
-    
+
     EdgeMessage *msg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
     VERIFY_NON_NULL_MSG(msg, "EdgeCalloc FAILED for message in createEdgeSubMessage\n", NULL);
 
@@ -874,7 +874,8 @@ EdgeResult insertEdgeMethodParameter(EdgeMessage **msg, const char* nodeName,
             goto EXIT;
         }
     }
-    if (inputParameterSize <= 0)
+
+    if (0 == inputParameterSize)
     {
         request->methodParams->num_inpArgs = 0;
         return result;
