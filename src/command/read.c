@@ -234,6 +234,7 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attri
     //readRequest.requestHeader.returnDiagnostics = 1;
 
     UA_ReadResponse readResponse = UA_Client_Service_read(client, readRequest);
+
     if (readResponse.responseHeader.serviceResult != UA_STATUSCODE_GOOD)
     {
         // send error callback;
