@@ -668,6 +668,7 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attri
     return;
 
     EXIT:
+    // Deallocate memory.
     sendErrorResponse(msg, errorDesc);
     freeEdgeMessage(resultMsg);
     for (size_t i = 0; i < reqLen; i++)

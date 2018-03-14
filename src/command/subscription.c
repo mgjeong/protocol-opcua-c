@@ -660,6 +660,7 @@ static UA_StatusCode createSub(UA_Client *client, const EdgeMessage *msg)
     clientSub->subscriptionCount++;
 
     EXIT:
+    // Deallocate memory.
     EdgeFree(monId);
     EdgeFree(hfs);
     EdgeFree(itemResults);

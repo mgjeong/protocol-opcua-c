@@ -258,6 +258,7 @@ static void writeGroup(UA_Client *client, const EdgeMessage *msg)
     return;
 
     ERROR:
+    // Deallocate memory.
     freeEdgeMessage(resultMsg);
     UA_WriteResponse_deleteMembers(&writeResponse);
 }

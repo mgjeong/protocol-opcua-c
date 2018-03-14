@@ -30,6 +30,7 @@ void *EdgeMalloc(size_t size)
 {
     if (0 == size)
     {
+        // Invalid size.
         return NULL;
     }
 
@@ -40,6 +41,7 @@ void *EdgeCalloc(size_t num, size_t size)
 {
     if (0 == size || 0 == num)
     {
+        // Invalid size/number of bytes.
         return NULL;
     }
 
@@ -71,10 +73,13 @@ void EdgeFree(void *ptr)
 Edge_String EdgeStringAlloc(char const src[])
 {
     const Edge_String EDGE_STRING_NULL = {0, NULL};
+    // Returns an empty Edge_String if input string is NULL.
+    VERIFY_NON_NULL_MSG(src, "Input parameter(src) is NULL\n", EDGE_STRING_NULL);
     Edge_String str;
     str.length = strlen(src);
     if(str.length > 0) {
-        str.data = (Edge_Byte*)EdgeMalloc(str.length);
+        str.data = (Edge_Byte*)malloc(str.length);
+        // Returns an empty Edge_String if memory allocated fails.
         VERIFY_NON_NULL_MSG(str.data, "EdgeMalloc FAILED IN EdgeStringAlloc\n", EDGE_STRING_NULL);
         memcpy(str.data, src, str.length);
     } else {

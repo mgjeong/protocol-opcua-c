@@ -66,10 +66,12 @@ void insertMapElement(edgeMap *map, keyValue key, keyValue value)
 
     if (temp == NULL)
     {
+        // Adding first node in the map.
         map->head = node;
     }
     else
     {
+        // Iterate till the end of the map and append.
         while (temp->next != NULL)
             temp = temp->next;
 
@@ -242,6 +244,8 @@ EdgeApplicationType convertToEdgeApplicationType(UA_ApplicationType appType)
             edgeAppType = EDGE_APPLICATIONTYPE_DISCOVERYSERVER;
             break;
         default:
+            // Default case is empty because SERVER is set as default application type
+            // before switch block.
             break;
     }
     return edgeAppType;
@@ -266,6 +270,8 @@ UA_ApplicationType convertEdgeApplicationType(EdgeApplicationType appType)
             uaAppType = UA_APPLICATIONTYPE_DISCOVERYSERVER;
             break;
         default:
+            // Default case is empty because SERVER is set as default application type
+            // before switch block.
             break;
     }
     return uaAppType;
@@ -315,7 +321,8 @@ Edge_NodeId *convertToEdgeNodeIdType(UA_NodeId *nodeId)
     }
     else
     {
-       Edge_String *edgeStr = convertToEdgeString(&nodeId->identifier.byteString);
+        // For UA_NODEIDTYPE_BYTESTRING
+        Edge_String *edgeStr = convertToEdgeString(&nodeId->identifier.byteString);
         if(IS_NULL(edgeStr))
         {
             EDGE_LOG_V(TAG, "Failed to convert the Node Id of type (%d).", nodeId->identifierType);
@@ -602,7 +609,7 @@ EdgeApplicationConfig *cloneEdgeApplicationConfig(EdgeApplicationConfig *config)
     }
 
     clone->discoveryUrlsSize = config->discoveryUrlsSize;
-    clone->discoveryUrls = (char **) calloc(config->discoveryUrlsSize, sizeof(char *));
+    clone->discoveryUrls = (char **) EdgeCalloc(config->discoveryUrlsSize, sizeof(char *));
     if (!clone->discoveryUrls)
     {
         goto ERROR;
@@ -1142,7 +1149,6 @@ size_t get_size(int type, bool isArray)
     return size;
 }
 
-
 EdgeMessage* cloneEdgeMessage(EdgeMessage *msg)
 {
     VERIFY_NON_NULL_MSG(msg, "NULL param EdgeMessage in cloneEdgeMessage\n", NULL);
@@ -1395,6 +1401,8 @@ EdgeNodeIdType getEdgeNodeIdType(char type)
             edgeNodeType = UUID;
             break;
         default:
+            // Default block is empty because of the assignment statement
+            // before switch block which treats INTEGER as a default type.
             break;
     }
     return edgeNodeType;
@@ -1403,8 +1411,7 @@ EdgeNodeIdType getEdgeNodeIdType(char type)
 char getCharacterNodeIdType(uint32_t type)
 {
     char nodeType;
-    char nodeTypeArray[4] =
-    { 'N', 'S', 'B', 'G' };
+    char nodeTypeArray[5] = { 'N', 'S', 'B', 'G', '\0' };
     switch (type)
     {
         case UA_NODEIDTYPE_NUMERIC:
@@ -1420,6 +1427,10 @@ char getCharacterNodeIdType(uint32_t type)
             nodeType = nodeTypeArray[3];
             break;
         default:
+            // Ideally, as all valid types are handled above, there is no need for a default case.
+            // Defined this for handling cases which comes with illegal types.
+            // This value indicates an error. Callers should handle it properly.
+            nodeType = nodeTypeArray[4];
             break;
     }
     return nodeType;

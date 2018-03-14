@@ -168,6 +168,7 @@ EdgeResult createNamespaceInServer(const char *namespaceUri, const char *rootNod
     return result;
 
 ERROR:
+    // Deallocate memory.
     EdgeFree(ns->rootNodeIdentifier);
     EdgeFree(ns->rootNodeBrowseName);
     EdgeFree(ns->rootNodeDisplayName);
