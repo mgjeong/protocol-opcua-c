@@ -361,7 +361,9 @@ static EdgeApplicationConfig *convertToEdgeApplicationConfig(UA_ApplicationDescr
 
     return appConfig;
 
-    ERROR: freeEdgeApplicationConfig(appConfig);
+    ERROR:
+    // Deallocate memory.
+    freeEdgeApplicationConfig(appConfig);
     return NULL;
 }
 
@@ -417,7 +419,9 @@ static EdgeEndPointInfo *convertToEdgeEndpointInfo(UA_EndpointDescription *endpo
 
     return epInfo;
 
-    ERROR: freeEdgeEndpointInfo(epInfo);
+    ERROR:
+    // Deallocate memory
+    freeEdgeEndpointInfo(epInfo);
     return NULL;
 }
 
@@ -687,7 +691,9 @@ static bool parseEndpoints(size_t endpointArraySize, UA_EndpointDescription *end
 
     return true;
 
-    ERROR: for (List *listPtr = *endpointList; listPtr; listPtr = listPtr->link)
+    ERROR:
+    // Deallocate memory
+    for (List *listPtr = *endpointList; listPtr; listPtr = listPtr->link)
     {
         freeEdgeEndpointInfo(listPtr->data);
     }
@@ -1051,7 +1057,7 @@ EdgeResult findServersInternal(const char *endpointUri, size_t serverUrisSize,
     *registeredServersSize = validServerCount;
     res.code = STATUS_OK;
 
-    /* Free memory */
+    // Deallocate memory
     EdgeFree(appConfigAll);
 
     for(size_t idx = 0; idx < regServersCount ; ++idx)
@@ -1173,7 +1179,9 @@ EdgeResult getClientEndpoints(char *endpointUri)
     g_discoveryCallback(device);
     result.code = STATUS_OK;
 
-    EXIT: if (endpointArray)
+    EXIT:
+    // Deallocate memory
+    if (endpointArray)
     {
         UA_Array_delete(endpointArray, endpointArraySize, &UA_TYPES[UA_TYPES_ENDPOINTDESCRIPTION]);
     }

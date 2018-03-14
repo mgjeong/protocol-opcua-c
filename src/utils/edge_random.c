@@ -38,8 +38,11 @@ uint32_t EdgeGetRandom()
     int len = sizeof(result);
     FILE* urandom = fopen("/dev/urandom", "r");
     VERIFY_NON_NULL_MSG(urandom, "Failed to open /dev/urandom", 0);
+
+    // Reads 4 bytes of data from "/dev/urandom".
     if (fread((uint8_t*)&result, sizeof(uint8_t), len, urandom) != len)
     {
+        // Number of bytes read is not 4. There is an error and hence 0 will be returned.
         EDGE_LOG(TAG, "Failed while reading /dev/urandom. EdgeGetRandom Failed.");
         result = 0;
     }

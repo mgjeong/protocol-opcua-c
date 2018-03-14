@@ -25,11 +25,13 @@
 
 bool isEmpty(Queue *queue)
 {
+    // Return true if queue is empty.
     return (queue->size == 0);
 }
 
 bool isFull(Queue *queue)
 {
+    // Return true if queue is full.
     return (queue->size == queue->capacity);
 }
 

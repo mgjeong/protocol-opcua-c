@@ -65,6 +65,12 @@ void configure(EdgeConfigure *config)
     registerStatusCallback(config->statusCallback);
     registerDiscoveryCallback(config->discoveryCallback);
 
+    /* Set the application types supported by the client.
+        As supportedApplicationTypes configuration parameter is only for clients,
+        only client applications are supposed to set this.
+        Server responses which come with an application type which is not supported
+        by the client will be filtered.
+        In case if server application sets this parameter, it will not be used anywhere in the stack. */
     setSupportedApplicationTypes(config->supportedApplicationTypes);
 
     registerClientCallback(onResponseMessage, onStatusCallback, onDiscoveryCallback);
@@ -111,6 +117,7 @@ EdgeResult createServer(EdgeEndPointInfo *epInfo)
     }
     if (b_serverInitialized)
     {
+        // Server can be initialized only once.
         EDGE_LOG(TAG, "Server already initialized.");
         result.code = STATUS_ALREADY_INIT;
         return result;

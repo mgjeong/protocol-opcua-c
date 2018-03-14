@@ -287,6 +287,7 @@ EdgeResult executeMethod(UA_Client *client, const EdgeMessage *msg)
     }
 
 EXIT:
+    // Deallocate memory.
     if(IS_NOT_NULL(resultMsg))
     {
         freeEdgeMessage(resultMsg);

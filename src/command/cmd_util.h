@@ -31,9 +31,9 @@
 #include <open62541.h>
 
 /**
- * @brief Get the data type of the response message
- * @param[in]  type UA_DataType .
- * @return response data type
+ * @brief Get the numeric identifier of the data type.
+ * @param[in]  type UA_DataType.
+ * @return Numeric identifier of the given data type.
  */
 int get_response_type(const UA_DataType *type);
 

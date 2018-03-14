@@ -336,6 +336,7 @@ static void invokeErrorCb(uint32_t srcMsgId, EdgeNodeId *srcNodeId,
     }
 
 EXIT:
+    // Deallocate memory.
     freeEdgeMessage(resultMsg);
 }
 
@@ -541,6 +542,7 @@ static void invokeResponseCb(EdgeMessage *msg, int msgId, EdgeNodeId *srcNodeId,
     return;
 
 ERROR:
+    // Deallocate memory.
     freeEdgeMessage(resultMsg);
 }
 
@@ -647,6 +649,7 @@ static EdgeNodeId *getEdgeNodeId(UA_NodeId *node)
             edgeNodeId->nodeId = value;
             break;
         default:
+            // All valid cases are handled above.
             break;
     }
 
@@ -1080,6 +1083,7 @@ static EdgeMessage *prepareEdgeMessageForBrowseView(EdgeMessage *msg, List *view
     return browseViewMsg;
 
 ERROR:
+    // Deallocate memory.
     if(IS_NOT_NULL(request))
     {
         for(size_t i = 0; i < idx; ++i)
@@ -1375,7 +1379,9 @@ static EdgeStatusCode browse(UA_Client *client, EdgeMessage *msg, bool browseNex
 
     statusCode = STATUS_OK;
 
-    EXIT: EdgeFree(nextReqIdList);
+    EXIT:
+    // Deallocate memory.
+    EdgeFree(nextReqIdList);
     destroyNodesToBrowse(nextBrowseNodesInfo, false);
     EdgeFree(nodesToBrowse);
     freeEdgeNodeId(srcNodeId);

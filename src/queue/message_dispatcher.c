@@ -160,11 +160,13 @@ static void handleMessage(EdgeMessage *data)
 {
     if (SEND_REQUEST == data->type || SEND_REQUESTS == data->type)
     {
+        // Invoke callback to send request.
         g_sendCallback(data);
     }
     else if (GENERAL_RESPONSE == data->type || BROWSE_RESPONSE == data->type
              || REPORT == data->type || ERROR == data->type)
     {
+        // Invoke callback to handle response.
         g_responseCallback(data);
     }
 }
