@@ -155,6 +155,8 @@ EdgeDiagnosticInfo *checkDiagnosticInfo(int nodesToProcess,
     diagnostics->localizedText = 0;
     diagnostics->additionalInfo = NULL;
     diagnostics->innerDiagnosticInfo = NULL;
+
+    
     if (0 == returnDiagnostic && 0 == diagnosticInfoLength)
     {
         diagnostics->msg = NULL;

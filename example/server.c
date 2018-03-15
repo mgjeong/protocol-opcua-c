@@ -791,75 +791,110 @@ static void testCreateNodes()
     }
 
     printf("\n[%d] Variable node with guid array variant: \n", ++index);
-    Edge_Guid guidArr[2] = {
+    Edge_Guid guidArr[5] = {
         { 1, 0, 1, { 0, 0, 0, 0, 1, 1, 1, 1 } },
-        { 2, 0, 2, { 0, 0, 0, 0, 2, 2, 2, 2 } }
+        { 2, 0, 2, { 0, 0, 0, 0, 2, 2, 2, 2 } },
+        { 3, 3, 3, { 0, 3, 0, 3, 3, 3, 3, 3 } },
+        { 4, 4, 4, { 0, 4, 4, 4, 4, 0, 0, 0 } },
+        { 0, 0, 5, { 5, 0, 0, 5, 0, 0, 5, 0 } }
     };
     item = createVariableNodeItem("GuidArray", Guid, (void *) guidArr, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     item->nodeType = ARRAY_NODE;
-    item->arrayLength = 2;
+    item->arrayLength = 5;
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
     deleteNodeItem(item);
 
     printf("\n[%d] Array node with dateTime variant: \n", ++index);
     Edge_DateTime time_now = 131653195862335600; // Some random value
-    Edge_DateTime timeArr[2] = {time_now, time_now-1000};
+    Edge_DateTime timeArr[5] = {
+        time_now,
+        time_now-100000,
+        time_now/4,
+        time_now/2,
+        time_now+10
+    };
     item = createVariableNodeItem("DateTimeArray", DateTime, (void *) timeArr, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     item->nodeType = ARRAY_NODE;
-    item->arrayLength = 2;
+    item->arrayLength = 5;
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
     deleteNodeItem(item);
 
     printf("\n[%d] Array node with XML ELEMENT variant: \n", ++index);
-    Edge_XmlElement xmlValueArr[2] = { {2, (uint8_t *)"ab"}, {3, (uint8_t *)"abc"} };
+    Edge_XmlElement xmlValueArr[6] = { 
+        {2, (uint8_t *)"ab"},
+        {3, (uint8_t *)"abc"},
+        {2, (uint8_t *)"st"},
+        {3, (uint8_t *)"mno"},
+        {2, (uint8_t *)"cd"},
+        {3, (uint8_t *)"xyz"}
+    };
     item = createVariableNodeItem("XmlElementArray", XmlElement, (void *) xmlValueArr, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     item->nodeType = ARRAY_NODE;
-    item->arrayLength = 2;
+    item->arrayLength = 6;
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
     deleteNodeItem(item);
 
     printf("\n[%d] Array node with NODEID variant: \n", ++index);
-    Edge_NodeId nodeArr[2];
-    nodeArr[0].namespaceIndex = DEFAULT_NAMESPACE_INDEX;
-    nodeArr[0].identifierType = INTEGER;
-    nodeArr[0].identifier.numeric = EDGE_NODEID_ROOTFOLDER;
-
-    nodeArr[1].namespaceIndex = DEFAULT_NAMESPACE_INDEX;
-    nodeArr[1].identifierType = STRING;
-    nodeArr[1].identifier.string = EdgeStringAlloc("StringNodeId");
-
+    Edge_NodeId nodeArr[5];
+    for(int index  = 0; index < 5; index++)
+    {
+        nodeArr[index].namespaceIndex = DEFAULT_NAMESPACE_INDEX;
+        if(index %2 == 0)
+        {
+            nodeArr[index].identifierType = INTEGER;
+            nodeArr[index].identifier.numeric = EDGE_NODEID_ROOTFOLDER;
+        }
+        else
+        {
+            nodeArr[index].identifierType = STRING;
+            nodeArr[index].identifier.string = EdgeStringAlloc("StringNodeId");
+        }
+    }
     item = createVariableNodeItem("NodeIdArray", NodeId, nodeArr, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     item->nodeType = ARRAY_NODE;
-    item->arrayLength = 2;
+    item->arrayLength = 5;
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
     deleteNodeItem(item);
 
     printf("\n[%d] Array node with qualified name variant: \n", ++index);
-    Edge_QualifiedName qnValueArr[2] = { {2, {5, (uint8_t *)"qn100"} }, {2, {6, (uint8_t *)"qn1000"}} };
+    Edge_QualifiedName qnValueArr[5] = {
+        {2, {5, (uint8_t *)"qn100"} },
+        {2, {6, (uint8_t *)"qn1000"} },
+        {2, {6, (uint8_t *)"qn5000"} },
+        {2, {7, (uint8_t *)"qn10000"} },
+        {2, {7, (uint8_t *)"qn50000"} }
+    };
     item = createVariableNodeItem("QualifiedNameArray", QualifiedName, (void *) qnValueArr,
             VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     item->nodeType = ARRAY_NODE;
-    item->arrayLength = 2;
+    item->arrayLength = 5;
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
     deleteNodeItem(item);
 
     printf("\n[%d] Variable node with localized text variant: \n", ++index);
-    Edge_LocalizedText ltValueArr[2] = { { {7, (uint8_t *)"localeA"}, {5, (uint8_t *)"textA"}},
-            {{7, (uint8_t *)"localeB"}, {5, (uint8_t *)"textB"}} };
+    Edge_LocalizedText ltValueArr[7] = { 
+        { {7, (uint8_t *)"localeA"}, {5, (uint8_t *)"textA"} },
+        { {7, (uint8_t *)"localeB"}, {5, (uint8_t *)"textB"} },
+        { {7, (uint8_t *)"localeC"}, {5, (uint8_t *)"textC"} },
+        { {7, (uint8_t *)"localeD"}, {5, (uint8_t *)"textD"} },
+        { {7, (uint8_t *)"localeE"}, {5, (uint8_t *)"textE"} },
+        { {7, (uint8_t *)"localeF"}, {5, (uint8_t *)"textF"} },
+        { {7, (uint8_t *)"localeG"}, {5, (uint8_t *)"textG"} }
+    };
     item = createVariableNodeItem("LocalizedTextArray", LocalizedText, (void *) ltValueArr,
             VARIABLE_NODE, 100);
     item->nodeType = ARRAY_NODE;
-    item->arrayLength = 2;
+    item->arrayLength = 7;
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
