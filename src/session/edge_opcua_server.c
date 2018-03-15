@@ -369,6 +369,16 @@ EdgeResult start_server(EdgeEndPointInfo *epInfo)
     m_serverConfig->endpoints->endpointDescription.server.applicationName = UA_LOCALIZEDTEXT_ALLOC(
             "en-US", appConfig->applicationName);
 
+    UA_DurationRange duration;
+
+    duration.min = 10.0;
+    duration.max = 24.0 * 3600.0 * 1000.0;
+
+    m_serverConfig->samplingIntervalLimits = duration;
+
+    duration.max = 3600.0 * 1000.0;
+    m_serverConfig->publishingIntervalLimits = duration;
+
     //    UA_ByteString_deleteMembers(&certificate);
     m_server = UA_Server_new(m_serverConfig);
 
