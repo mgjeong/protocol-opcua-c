@@ -1357,7 +1357,7 @@ EdgeMessage* cloneEdgeMessage(EdgeMessage *msg)
                             {
                                 goto ERROR;
                             }
-                            memcpy(cloneVersatility->value, val, get_size(msg->requests[i]->type, false) * srcVersatility->arrayLength);
+                            memcpy(cloneVersatility->value, val, get_size(msg->requests[i]->type, true) * srcVersatility->arrayLength);
                         }
                     }
                 }

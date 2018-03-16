@@ -475,7 +475,6 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attri
             }
             else
             {
-                size_t size = get_size(response->type, true);
                 if (response->type == UA_NS0ID_STRING || response->type == UA_NS0ID_BYTESTRING
                 		|| response->type == UA_NS0ID_XMLELEMENT)
                 {
@@ -614,7 +613,15 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attri
                 }
                 else
                 {
-                    versatility->value = (void *) EdgeCalloc(versatility->arrayLength, size);
+                    if(IS_NULL(val.type))
+                    {
+                        EDGE_LOG(TAG, "Vaue type is NULL ERROR.");
+                        strncpy(errorDesc, "Vaue type is NULL ERROR..", ERROR_DESC_LENGTH);
+                        freeEdgeResponse(response);
+                        goto EXIT;
+                    }
+                    
+                    versatility->value = (void *) EdgeCalloc(versatility->arrayLength, val.type->memSize);
                     if(IS_NULL(versatility->value))
                     {
                         EDGE_LOG(TAG, "Memory allocation failed.");
@@ -623,7 +630,7 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attri
                         goto EXIT;
                     }
 
-                    memcpy(versatility->value, val.data, get_size(response->type, false) * versatility->arrayLength);
+                    memcpy(versatility->value, val.data, val.type->memSize * versatility->arrayLength);
                 }
             }
 
