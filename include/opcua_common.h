@@ -53,7 +53,7 @@ extern "C"
 #define BIND_PORT            (12686)
 #define MAX_BROWSENAME_SIZE  (1000)
 #define MAX_DISPLAYNAME_SIZE (1000)
-#define UNIQUE_NODE_PATH     "{%d;%c;v=%d}%1000s"
+#define UNIQUE_NODE_PATH     "{%d;%c;v=%d}%1000[^\n]s"
 
 #define Boolean 1 // DataType
 #define SByte 2 // DataType
