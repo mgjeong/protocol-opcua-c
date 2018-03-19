@@ -299,7 +299,6 @@ static void monitoredItemHandler(UA_Client *client, UA_UInt32 monId, UA_DataValu
     }
     else
     {
-        size_t size = get_size(response->type, true);
         if (response->type == UA_NS0ID_STRING)
         {
             // String Array
@@ -376,9 +375,21 @@ static void monitoredItemHandler(UA_Client *client, UA_UInt32 monId, UA_DataValu
         }
         else
         {
-            response->message->value = (void *) EdgeCalloc(response->message->arrayLength, size);
+            if(IS_NULL(value->value.type))
+            {
+                EDGE_LOG(TAG, "Vaue type is NULL ERROR.");
+                goto ERROR;
+            }
+            
+            response->message->value = (void *) EdgeCalloc(response->message->arrayLength, 
+                value->value.type->memSize);
+            if(IS_NULL(response->message->value))
+            {
+                EDGE_LOG(TAG, "Memory allocation failed for response->message->value.");
+                goto ERROR;
+            }
             memcpy(response->message->value, value->value.data,
-                get_size(response->type, false) * response->message->arrayLength);
+                 value->value.type->memSize * response->message->arrayLength);
         }
     }
 
