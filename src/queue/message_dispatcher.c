@@ -30,19 +30,20 @@
 
 #define TAG "message_handler"
 
-#ifdef MULTI_THREAD
 static pthread_t m_sendQ_Thread;
 static pthread_t m_recvQ_Thread;
 static pthread_mutex_t sendMutex;
 static pthread_mutex_t recvMutex;
+static pthread_cond_t sendCond;
+static pthread_cond_t recvCond;
 
 static bool b_sendQ_Thread_Running = false;
 static bool b_recvQ_Thread_Running = false;
 
 static Queue *recvQueue = NULL;
 static Queue *sendQueue = NULL;
+
 static const int queue_capacity = 1000;
-#endif
 
 static response_cb_t g_responseCallback = NULL;
 static send_cb_t g_sendCallback = NULL;
@@ -51,10 +52,15 @@ static void handleMessage(EdgeMessage *data);
 
 void delete_queue()
 {
-#ifdef MULTI_THREAD
+    pthread_mutex_lock(&sendMutex);
+    pthread_cond_signal(&sendCond);
+    pthread_mutex_unlock(&sendMutex);
     b_sendQ_Thread_Running = false;
     pthread_join(m_sendQ_Thread, NULL);
 
+    pthread_mutex_lock(&recvMutex);
+    pthread_cond_signal(&recvCond);
+    pthread_mutex_unlock(&recvMutex);
     b_recvQ_Thread_Running = false;
     pthread_join(m_recvQ_Thread, NULL);
 
@@ -68,6 +74,7 @@ void delete_queue()
         }
         pthread_mutex_unlock(&sendMutex);
         pthread_mutex_destroy(&sendMutex);
+        pthread_cond_destroy(&sendCond);
 
         EdgeFree(sendQueue->message);
         EdgeFree(sendQueue);
@@ -84,15 +91,14 @@ void delete_queue()
         }
         pthread_mutex_unlock(&recvMutex);
         pthread_mutex_destroy(&recvMutex);
+        pthread_cond_destroy(&recvCond);
 
         EdgeFree(recvQueue->message);
         EdgeFree(recvQueue);
         recvQueue = NULL;
     }
-#endif
 }
 
-#ifdef MULTI_THREAD
 static void *sendQ_run(void *ptr)
 {
     EdgeMessage *data;
@@ -100,20 +106,25 @@ static void *sendQ_run(void *ptr)
 
     while (b_sendQ_Thread_Running)
     {
+        pthread_mutex_lock(&sendMutex);
         if (!isEmpty(sendQueue))
         {
-            pthread_mutex_lock(&sendMutex);
-            data = dequeue(sendQueue); // retrieve the front element from queue
-            pthread_mutex_unlock(&sendMutex);
-            handleMessage(data); // process the queue message
+            // Retrieve the front element from queue
+            data = dequeue(sendQueue);
+            // Process the queue message
+            handleMessage(data);
             freeEdgeMessage(data);
         }
+        else
+        {
+            // Queue is empty
+            pthread_cond_wait(&sendCond, &sendMutex);
+        }
+        pthread_mutex_unlock(&sendMutex);
     }
     return NULL;
 }
-#endif
 
-#ifdef MULTI_THREAD
 static void *recvQ_run(void *ptr)
 {
     EdgeMessage *data;
@@ -121,56 +132,55 @@ static void *recvQ_run(void *ptr)
 
     while (b_recvQ_Thread_Running)
     {
+        pthread_mutex_lock(&recvMutex);
         if (!isEmpty(recvQueue))
         {
-            pthread_mutex_lock(&recvMutex);
-            data = dequeue(recvQueue); // retrieve the front element from queue
-            pthread_mutex_unlock(&recvMutex);
-            handleMessage(data); // process the queue message
-            //EdgeMessage *msg_to_delete = dequeue(recvQueue); // remove the element from queue
+            // Retrieve the front element from queue
+            data = dequeue(recvQueue);
+            // Process the queue message
+            handleMessage(data);
             freeEdgeMessage(data);
         }
+        else
+        {
+            // Queue is empty
+            pthread_cond_wait(&recvCond, &recvMutex);
+        }
+        pthread_mutex_unlock(&recvMutex);
     }
     return NULL;
 }
-#endif
 
 bool add_to_sendQ(EdgeMessage *msg)
 {
-#ifdef MULTI_THREAD
     if (NULL == sendQueue)
     {
-        sendQueue = createQueue(queue_capacity);
-        pthread_create(&m_sendQ_Thread, NULL, &sendQ_run, NULL);
+        sendQueue = createQueue(queue_capacity);        
         pthread_mutex_init(&sendMutex, NULL);
+        pthread_cond_init(&sendCond, NULL);
+        pthread_create(&m_sendQ_Thread, NULL, &sendQ_run, NULL);
     }
     pthread_mutex_lock(&sendMutex);
     bool ret = enqueue(sendQueue, msg);
+    pthread_cond_signal(&sendCond);
     pthread_mutex_unlock(&sendMutex);
     return ret;
-#else
-    handleMessage(msg);
-    return true;
-#endif
 }
 
 bool add_to_recvQ(EdgeMessage *msg)
 {
-#ifdef MULTI_THREAD
     if (NULL == recvQueue)
     {
-        recvQueue = createQueue(queue_capacity);
-        pthread_create(&m_recvQ_Thread, NULL, &recvQ_run, NULL);
+        recvQueue = createQueue(queue_capacity);        
         pthread_mutex_init(&recvMutex, NULL);
+        pthread_cond_init(&recvCond, NULL);
+        pthread_create(&m_recvQ_Thread, NULL, &recvQ_run, NULL);
     }
     pthread_mutex_lock(&recvMutex);
     bool ret = enqueue(recvQueue, msg);
+    pthread_cond_signal(&recvCond);
     pthread_mutex_unlock(&recvMutex);
     return ret;
-#else
-    handleMessage(msg);
-    return true;
-#endif
 }
 
 static void handleMessage(EdgeMessage *data)
