@@ -30,6 +30,7 @@
 
 #define TAG "message_handler"
 
+#ifdef MULTI_THREAD
 static pthread_t m_sendQ_Thread;
 static pthread_t m_recvQ_Thread;
 static pthread_mutex_t sendMutex;
@@ -40,8 +41,8 @@ static bool b_recvQ_Thread_Running = false;
 
 static Queue *recvQueue = NULL;
 static Queue *sendQueue = NULL;
-
 static const int queue_capacity = 1000;
+#endif
 
 static response_cb_t g_responseCallback = NULL;
 static send_cb_t g_sendCallback = NULL;
@@ -50,6 +51,7 @@ static void handleMessage(EdgeMessage *data);
 
 void delete_queue()
 {
+#ifdef MULTI_THREAD
     b_sendQ_Thread_Running = false;
     pthread_join(m_sendQ_Thread, NULL);
 
@@ -87,8 +89,10 @@ void delete_queue()
         EdgeFree(recvQueue);
         recvQueue = NULL;
     }
+#endif
 }
 
+#ifdef MULTI_THREAD
 static void *sendQ_run(void *ptr)
 {
     EdgeMessage *data;
@@ -107,7 +111,9 @@ static void *sendQ_run(void *ptr)
     }
     return NULL;
 }
+#endif
 
+#ifdef MULTI_THREAD
 static void *recvQ_run(void *ptr)
 {
     EdgeMessage *data;
@@ -127,9 +133,11 @@ static void *recvQ_run(void *ptr)
     }
     return NULL;
 }
+#endif
 
 bool add_to_sendQ(EdgeMessage *msg)
 {
+#ifdef MULTI_THREAD
     if (NULL == sendQueue)
     {
         sendQueue = createQueue(queue_capacity);
@@ -140,10 +148,15 @@ bool add_to_sendQ(EdgeMessage *msg)
     bool ret = enqueue(sendQueue, msg);
     pthread_mutex_unlock(&sendMutex);
     return ret;
+#else
+    handleMessage(msg);
+    return true;
+#endif
 }
 
 bool add_to_recvQ(EdgeMessage *msg)
 {
+#ifdef MULTI_THREAD
     if (NULL == recvQueue)
     {
         recvQueue = createQueue(queue_capacity);
@@ -154,6 +167,10 @@ bool add_to_recvQ(EdgeMessage *msg)
     bool ret = enqueue(recvQueue, msg);
     pthread_mutex_unlock(&recvMutex);
     return ret;
+#else
+    handleMessage(msg);
+    return true;
+#endif
 }
 
 static void handleMessage(EdgeMessage *data)
