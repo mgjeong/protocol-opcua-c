@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <unistd.h>
 
 #define TAG "message_handler"
 
@@ -34,8 +35,6 @@ static pthread_t m_sendQ_Thread;
 static pthread_t m_recvQ_Thread;
 static pthread_mutex_t sendMutex;
 static pthread_mutex_t recvMutex;
-static pthread_cond_t sendCond;
-static pthread_cond_t recvCond;
 
 static bool b_sendQ_Thread_Running = false;
 static bool b_recvQ_Thread_Running = false;
@@ -52,15 +51,9 @@ static void handleMessage(EdgeMessage *data);
 
 void delete_queue()
 {
-    pthread_mutex_lock(&sendMutex);
-    pthread_cond_signal(&sendCond);
-    pthread_mutex_unlock(&sendMutex);
     b_sendQ_Thread_Running = false;
     pthread_join(m_sendQ_Thread, NULL);
 
-    pthread_mutex_lock(&recvMutex);
-    pthread_cond_signal(&recvCond);
-    pthread_mutex_unlock(&recvMutex);
     b_recvQ_Thread_Running = false;
     pthread_join(m_recvQ_Thread, NULL);
 
@@ -74,7 +67,6 @@ void delete_queue()
         }
         pthread_mutex_unlock(&sendMutex);
         pthread_mutex_destroy(&sendMutex);
-        pthread_cond_destroy(&sendCond);
 
         EdgeFree(sendQueue->message);
         EdgeFree(sendQueue);
@@ -91,7 +83,6 @@ void delete_queue()
         }
         pthread_mutex_unlock(&recvMutex);
         pthread_mutex_destroy(&recvMutex);
-        pthread_cond_destroy(&recvCond);
 
         EdgeFree(recvQueue->message);
         EdgeFree(recvQueue);
@@ -106,21 +97,15 @@ static void *sendQ_run(void *ptr)
 
     while (b_sendQ_Thread_Running)
     {
-        pthread_mutex_lock(&sendMutex);
         if (!isEmpty(sendQueue))
         {
-            // Retrieve the front element from queue
-            data = dequeue(sendQueue);
-            // Process the queue message
-            handleMessage(data);
+            pthread_mutex_lock(&sendMutex);
+            data = dequeue(sendQueue); // retrieve the front element from queue
+            pthread_mutex_unlock(&sendMutex);
+            handleMessage(data); // process the queue message
             freeEdgeMessage(data);
         }
-        else
-        {
-            // Queue is empty
-            pthread_cond_wait(&sendCond, &sendMutex);
-        }
-        pthread_mutex_unlock(&sendMutex);
+        usleep(1000);
     }
     return NULL;
 }
@@ -132,21 +117,16 @@ static void *recvQ_run(void *ptr)
 
     while (b_recvQ_Thread_Running)
     {
-        pthread_mutex_lock(&recvMutex);
         if (!isEmpty(recvQueue))
         {
-            // Retrieve the front element from queue
-            data = dequeue(recvQueue);
-            // Process the queue message
-            handleMessage(data);
+            pthread_mutex_lock(&recvMutex);
+            data = dequeue(recvQueue); // retrieve the front element from queue
+            pthread_mutex_unlock(&recvMutex);
+            handleMessage(data); // process the queue message
+            //EdgeMessage *msg_to_delete = dequeue(recvQueue); // remove the element from queue
             freeEdgeMessage(data);
         }
-        else
-        {
-            // Queue is empty
-            pthread_cond_wait(&recvCond, &recvMutex);
-        }
-        pthread_mutex_unlock(&recvMutex);
+        usleep(1000);
     }
     return NULL;
 }
@@ -155,14 +135,12 @@ bool add_to_sendQ(EdgeMessage *msg)
 {
     if (NULL == sendQueue)
     {
-        sendQueue = createQueue(queue_capacity);        
-        pthread_mutex_init(&sendMutex, NULL);
-        pthread_cond_init(&sendCond, NULL);
+        sendQueue = createQueue(queue_capacity);
         pthread_create(&m_sendQ_Thread, NULL, &sendQ_run, NULL);
+        pthread_mutex_init(&sendMutex, NULL);
     }
     pthread_mutex_lock(&sendMutex);
     bool ret = enqueue(sendQueue, msg);
-    pthread_cond_signal(&sendCond);
     pthread_mutex_unlock(&sendMutex);
     return ret;
 }
@@ -171,14 +149,12 @@ bool add_to_recvQ(EdgeMessage *msg)
 {
     if (NULL == recvQueue)
     {
-        recvQueue = createQueue(queue_capacity);        
-        pthread_mutex_init(&recvMutex, NULL);
-        pthread_cond_init(&recvCond, NULL);
+        recvQueue = createQueue(queue_capacity);
         pthread_create(&m_recvQ_Thread, NULL, &recvQ_run, NULL);
+        pthread_mutex_init(&recvMutex, NULL);
     }
     pthread_mutex_lock(&recvMutex);
     bool ret = enqueue(recvQueue, msg);
-    pthread_cond_signal(&recvCond);
     pthread_mutex_unlock(&recvMutex);
     return ret;
 }
@@ -203,3 +179,4 @@ void registerMQCallback(response_cb_t resCallback, send_cb_t sendCallback)
     g_responseCallback = resCallback;
     g_sendCallback = sendCallback;
 }
+
