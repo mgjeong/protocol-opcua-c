@@ -27,7 +27,7 @@
 #ifndef U_QUEUE_H_
 #define U_QUEUE_H_
 
-#include "edgecommon.h"
+#include "cacommon.h"
 
 #ifdef __cplusplus
 extern "C"

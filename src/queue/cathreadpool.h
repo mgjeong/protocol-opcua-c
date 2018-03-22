@@ -31,7 +31,7 @@
 #ifndef CA_THREAD_POOL_H_
 #define CA_THREAD_POOL_H_
 
-#include "edgecommon.h"
+#include "cacommon.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -72,13 +72,8 @@ CAResult_t ca_thread_pool_init(int32_t num_of_threads, ca_thread_pool_t *thread_
  * @return CA_STATUS_OK on success.
  * @return Error on failure.
  */
-#ifndef __TIZENRT__
-CAResult_t ca_thread_pool_add_task(ca_thread_pool_t thread_pool, ca_thread_func method, void *data,
-                                   uint32_t *taskId);
-#else
 CAResult_t ca_thread_pool_add_task(ca_thread_pool_t thread_pool, ca_thread_func method, void *data,
                                    uint32_t *taskId, const char *task_name, int stack_size);
-#endif
 
 /**
  * This function removes a routine to be executed by the thread pool.

@@ -47,7 +47,7 @@
 #include <pthread.h>
 #include "edge_logger.h"
 #include "edge_malloc.h"
-#include "edgecommon.h"
+#include "cacommon.h"
 
 /**
  * TAG

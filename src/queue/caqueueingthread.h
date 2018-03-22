@@ -32,7 +32,8 @@
 #include "cathreadpool.h"
 #include "octhread.h"
 #include "uqueue.h"
-#include "edgecommon.h"
+#include "cacommon.h"
+
 #ifdef __cplusplus
 extern "C"
 {
