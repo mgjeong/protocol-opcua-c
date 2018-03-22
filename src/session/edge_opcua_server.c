@@ -371,11 +371,11 @@ EdgeResult start_server(EdgeEndPointInfo *epInfo)
 
     UA_DurationRange duration;
 
-    duration.min = 10.0;
+    duration.min = 1.0;
     duration.max = 24.0 * 3600.0 * 1000.0;
-
     m_serverConfig->samplingIntervalLimits = duration;
 
+    duration.min = 5.0;
     duration.max = 3600.0 * 1000.0;
     m_serverConfig->publishingIntervalLimits = duration;
 
