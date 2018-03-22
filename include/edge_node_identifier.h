@@ -44,6 +44,7 @@ typedef enum
     Edge_Modify_Sub = 10033,
     Edge_Delete_Sub = 10034,
     Edge_Republish_Sub = 10035,
+    Edge_Publish_Sub = 10036,
 
     Edge_Connection_Status = 10040,
     Edge_Endpoints = 10050
