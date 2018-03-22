@@ -119,7 +119,6 @@ src = [
 		buildDir + srcPath + '/queue/uarraylist.c',
 		buildDir + srcPath + '/queue/uqueue.c',
 		buildDir + srcPath + '/queue/message_dispatcher.c',
-		buildDir + srcPath + '/queue/queue.c',
 		buildDir + srcPath + '/session/edge_opcua_client.c',
 		buildDir + srcPath + '/session/edge_opcua_server.c',
 		buildDir + srcPath + '/utils/edge_malloc.c',	

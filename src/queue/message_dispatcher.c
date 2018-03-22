@@ -18,24 +18,24 @@
  *
  ******************************************************************/
 
-#include "message_dispatcher.h"
-#include "queue.h"
-#include "edge_utils.h"
-#include "edge_malloc.h"
-#include "edge_logger.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
 #include <unistd.h>
 
 #include "uqueue.h"
-#include "edgecommon.h"
+#include "cacommon.h"
 #include "cathreadpool.h" /* for thread pool */
 #include "caqueueingthread.h"
+#include "message_dispatcher.h"
+#include "edge_utils.h"
+#include "edge_malloc.h"
+#include "edge_logger.h"
 
 #define SINGLE_HANDLE
 #define MAX_THREAD_POOL_SIZE    20
+
+#define TAG "message_handler"
 
 // thread pool handle
 static ca_thread_pool_t g_threadPoolHandle = NULL;
@@ -43,8 +43,6 @@ static ca_thread_pool_t g_threadPoolHandle = NULL;
 // message handler main thread
 static CAQueueingThread_t g_sendThread;
 static CAQueueingThread_t g_receiveThread;
-
-#define TAG "message_handler"
 
 static response_cb_t g_responseCallback = NULL;
 static send_cb_t g_sendCallback = NULL;
