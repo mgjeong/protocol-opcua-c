@@ -29,134 +29,78 @@
 #include <pthread.h>
 #include <unistd.h>
 
+#include "uqueue.h"
+#include "edgecommon.h"
+#include "cathreadpool.h" /* for thread pool */
+#include "caqueueingthread.h"
+
+#define SINGLE_HANDLE
+#define MAX_THREAD_POOL_SIZE    20
+
+// thread pool handle
+static ca_thread_pool_t g_threadPoolHandle = NULL;
+
+// message handler main thread
+static CAQueueingThread_t g_sendThread;
+static CAQueueingThread_t g_receiveThread;
+
 #define TAG "message_handler"
-
-static pthread_t m_sendQ_Thread;
-static pthread_t m_recvQ_Thread;
-static pthread_mutex_t sendMutex;
-static pthread_mutex_t recvMutex;
-
-static bool b_sendQ_Thread_Running = false;
-static bool b_recvQ_Thread_Running = false;
-
-static Queue *recvQueue = NULL;
-static Queue *sendQueue = NULL;
-
-static const int queue_capacity = 1000;
 
 static response_cb_t g_responseCallback = NULL;
 static send_cb_t g_sendCallback = NULL;
 
 static void handleMessage(EdgeMessage *data);
+static void destroyData(void *data, uint32_t size);
 
 void delete_queue()
 {
-    b_sendQ_Thread_Running = false;
-    pthread_join(m_sendQ_Thread, NULL);
-
-    b_recvQ_Thread_Running = false;
-    pthread_join(m_recvQ_Thread, NULL);
-
-    if (sendQueue != NULL)
+    // stop thread
+    // delete thread data
+    if (NULL != g_sendThread.threadMutex)
     {
-        pthread_mutex_lock(&sendMutex);
-        while (!isEmpty(sendQueue))
-        {
-            EdgeMessage *data = dequeue(sendQueue);
-            freeEdgeMessage(data);
-        }
-        pthread_mutex_unlock(&sendMutex);
-        pthread_mutex_destroy(&sendMutex);
-
-        EdgeFree(sendQueue->message);
-        EdgeFree(sendQueue);
-        sendQueue = NULL;
+        CAQueueingThreadStop(&g_sendThread);
     }
 
-    if (recvQueue != NULL)
+    // stop thread
+    // delete thread data
+    if (NULL != g_receiveThread.threadMutex)
     {
-        pthread_mutex_lock(&recvMutex);
-        while (!isEmpty(recvQueue))
-        {
-            EdgeMessage *data = dequeue(recvQueue);
-            freeEdgeMessage(data);
-        }
-        pthread_mutex_unlock(&recvMutex);
-        pthread_mutex_destroy(&recvMutex);
-
-        EdgeFree(recvQueue->message);
-        EdgeFree(recvQueue);
-        recvQueue = NULL;
+        CAQueueingThreadStop(&g_receiveThread);
     }
+
+    // destroy thread pool
+    if (NULL != g_threadPoolHandle)
+    {
+        ca_thread_pool_free(g_threadPoolHandle);
+        g_threadPoolHandle = NULL;
+    }
+
+    CAQueueingThreadDestroy(&g_sendThread);
+    CAQueueingThreadDestroy(&g_receiveThread);
 }
 
-static void *sendQ_run(void *ptr)
+static void sendQ_run(void *ptr)
 {
-    EdgeMessage *data;
-    b_sendQ_Thread_Running = true;
-
-    while (b_sendQ_Thread_Running)
-    {
-        if (!isEmpty(sendQueue))
-        {
-            pthread_mutex_lock(&sendMutex);
-            data = dequeue(sendQueue); // retrieve the front element from queue
-            pthread_mutex_unlock(&sendMutex);
-            handleMessage(data); // process the queue message
-            freeEdgeMessage(data);
-        }
-        usleep(1000);
-    }
-    return NULL;
+    EdgeMessage *data = (EdgeMessage *) ptr;
+    handleMessage(data);
 }
 
-static void *recvQ_run(void *ptr)
+static void recvQ_run(void *ptr)
 {
-    EdgeMessage *data;
-    b_recvQ_Thread_Running = true;
-
-    while (b_recvQ_Thread_Running)
-    {
-        if (!isEmpty(recvQueue))
-        {
-            pthread_mutex_lock(&recvMutex);
-            data = dequeue(recvQueue); // retrieve the front element from queue
-            pthread_mutex_unlock(&recvMutex);
-            handleMessage(data); // process the queue message
-            //EdgeMessage *msg_to_delete = dequeue(recvQueue); // remove the element from queue
-            freeEdgeMessage(data);
-        }
-        usleep(1000);
-    }
-    return NULL;
+    EdgeMessage *data = (EdgeMessage *) ptr;
+    handleMessage(data);
 }
 
 bool add_to_sendQ(EdgeMessage *msg)
 {
-    if (NULL == sendQueue)
-    {
-        sendQueue = createQueue(queue_capacity);
-        pthread_create(&m_sendQ_Thread, NULL, &sendQ_run, NULL);
-        pthread_mutex_init(&sendMutex, NULL);
-    }
-    pthread_mutex_lock(&sendMutex);
-    bool ret = enqueue(sendQueue, msg);
-    pthread_mutex_unlock(&sendMutex);
-    return ret;
+    CAQueueingThreadAddData(&g_sendThread, msg, sizeof(EdgeMessage));
+    return true;
 }
 
 bool add_to_recvQ(EdgeMessage *msg)
 {
-    if (NULL == recvQueue)
-    {
-        recvQueue = createQueue(queue_capacity);
-        pthread_create(&m_recvQ_Thread, NULL, &recvQ_run, NULL);
-        pthread_mutex_init(&recvMutex, NULL);
-    }
-    pthread_mutex_lock(&recvMutex);
-    bool ret = enqueue(recvQueue, msg);
-    pthread_mutex_unlock(&recvMutex);
-    return ret;
+    CAQueueingThreadAddData(&g_receiveThread, msg, sizeof(EdgeMessage));
+    return true;
 }
 
 static void handleMessage(EdgeMessage *data)
@@ -166,8 +110,8 @@ static void handleMessage(EdgeMessage *data)
         // Invoke callback to send request.
         g_sendCallback(data);
     }
-    else if (GENERAL_RESPONSE == data->type || BROWSE_RESPONSE == data->type
-             || REPORT == data->type || ERROR == data->type)
+    else if (GENERAL_RESPONSE == data->type || BROWSE_RESPONSE == data->type || REPORT == data->type
+            || ERROR == data->type)
     {
         // Invoke callback to handle response.
         g_responseCallback(data);
@@ -176,7 +120,63 @@ static void handleMessage(EdgeMessage *data)
 
 void registerMQCallback(response_cb_t resCallback, send_cb_t sendCallback)
 {
+    CAResult_t res = ca_thread_pool_init(MAX_THREAD_POOL_SIZE, &g_threadPoolHandle);
+    if (CA_STATUS_OK != res)
+    {
+        EDGE_LOG(TAG, "thread pool initialize error.");
+        return;
+    }
+
+    // send thread initialize
+    res = CAQueueingThreadInitialize(&g_sendThread, g_threadPoolHandle, sendQ_run, destroyData);
+    if (CA_STATUS_OK != res)
+    {
+        EDGE_LOG(TAG, "Failed to Initialize send queue thread");
+        return;
+    }
+
+    res = CAQueueingThreadStart(&g_sendThread);
+    if (CA_STATUS_OK != res)
+    {
+        EDGE_LOG(TAG, "thread start error(send thread).");
+        return;
+    }
+
+    // receive thread initialize
+    res = CAQueueingThreadInitialize(&g_receiveThread, g_threadPoolHandle, recvQ_run, destroyData);
+    if (CA_STATUS_OK != res)
+    {
+        EDGE_LOG(TAG, "Failed to Initialize receive queue thread");
+        return;
+    }
+
+    res = CAQueueingThreadStart(&g_receiveThread);
+    if (CA_STATUS_OK != res)
+    {
+        EDGE_LOG(TAG, "thread start error(receive thread).");
+        return;
+    }
+
     g_responseCallback = resCallback;
     g_sendCallback = sendCallback;
 }
 
+static void destroyData(void *data, uint32_t size)
+{
+    EDGE_LOG(TAG, "destroyData IN");
+    if ((size_t) size < sizeof(EdgeMessage))
+    {
+        EDGE_LOG_V(TAG, "Destroy data too small %p %d", data, size);
+    }
+
+    EdgeMessage *msg = (EdgeMessage *) data;
+
+    if (NULL == msg)
+    {
+        EDGE_LOG(TAG, "msg is NULL");
+        return;
+    }
+
+    freeEdgeMessage(msg);
+    EDGE_LOG(TAG, "destroyData OUT");
+}
