@@ -36,7 +36,7 @@
 #include "edge_malloc.h"
 #include "edge_logger.h"
 
-#define TAG PCF("UTHREADPOOL")
+#define TAG "UTHREADPOOL"
 
 /**
  * empty struct to represent the details.  This implementation has no data

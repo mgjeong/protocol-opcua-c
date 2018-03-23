@@ -123,7 +123,7 @@ src = [
 		buildDir + srcPath + '/session/edge_opcua_server.c',
 		buildDir + srcPath + '/utils/edge_malloc.c',	
 		buildDir + srcPath + '/utils/edge_utils.c',	
-        buildDir + srcPath + '/utils/edge_random.c',
+                buildDir + srcPath + '/utils/edge_random.c'
 	]
 
 env.VariantDir(variant_dir = (buildDir + '/' + srcPath), src_dir = 'src', duplicate = 0)

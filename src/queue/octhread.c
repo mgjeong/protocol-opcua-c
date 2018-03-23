@@ -53,7 +53,7 @@
  * TAG
  * Logging tag for module name
  */
-#define TAG PCF("UMUTEX")
+#define TAG "UMUTEX"
 
 static const uint64_t USECS_PER_SEC         = 1000000;
 static const uint64_t NANOSECS_PER_USECS    = 1000;
