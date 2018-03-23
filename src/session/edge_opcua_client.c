@@ -26,7 +26,6 @@
 #include "message_dispatcher.h"
 #include "subscription.h"
 #include "edge_logger.h"
-#include "edge_utils.h"
 #include "edge_malloc.h"
 
 #include <stdio.h>
@@ -72,7 +71,7 @@ static void getAddressPort(char *endpoint, char **out)
     }
 }
 
-static keyValue getSessionClient(char *endpoint)
+keyValue getSessionClient(char *endpoint)
 {
     VERIFY_NON_NULL_MSG(sessionClientMap, "sessionClientMap is NULL\n", NULL);
 
