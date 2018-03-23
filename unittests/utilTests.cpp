@@ -28,7 +28,7 @@ extern "C"
 #include "edge_identifier.h"
 #include "edge_malloc.h"
 #include "edge_utils.h"
-#include "queue.h"
+#include "uqueue.h"
 #include "test_common.h"
 }
 
@@ -438,25 +438,10 @@ TEST_F(OPC_util , edgeStringAlloc_P2)
 
 TEST_F(OPC_util , createQueue_P)
 {
-    Queue *queue = createQueue(100);
+    u_queue_t *queue = u_queue_create();
     ASSERT_EQ(queue != NULL, true);
 
-    EdgeFree(queue->message);
     EdgeFree(queue);
-}
-
-TEST_F(OPC_util , enqueue_N)
-{
-    EdgeMessage *msg = (EdgeMessage*) EdgeMalloc(sizeof(EdgeMessage));
-    bool ret = enqueue(NULL, msg);
-    ASSERT_EQ(ret, false);
-    EdgeFree(msg);
-}
-
-TEST_F(OPC_util ,dequeue_N)
-{
-    EdgeMessage *msg = dequeue(NULL);
-    ASSERT_EQ(msg == NULL, true);
 }
 
 /*

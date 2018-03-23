@@ -29,7 +29,7 @@
 
 #include "caqueueingthread.h"
 
-#define TAG PCF("OIC_CA_QING")
+#define TAG "OIC_CA_QING"
 
 static void CAQueueingThreadBaseRoutine(void *threadValue)
 {
