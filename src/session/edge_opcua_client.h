@@ -29,7 +29,6 @@
 
 #include <stdbool.h>
 
-#include "edge_utils.h"
 #include "opcua_common.h"
 #include "command_adapter.h"
 
@@ -37,8 +36,6 @@
 extern "C"
 {
 #endif
-
-keyValue getSessionClient(char *endpoint);
 
 /**
  * @brief Set the supported application types

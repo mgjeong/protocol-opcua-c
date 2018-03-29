@@ -160,6 +160,12 @@ static edgeMapNode *removeSubFromMap(edgeMap *list, const char *valueAlias)
     return NULL;
 }
 
+
+void sendPublishRequest(UA_Client *client)
+{
+    UA_Client_Subscriptions_manuallySendPublishRequest(client);
+}
+
 static void monitoredItemHandler(UA_Client *client, UA_UInt32 monId, UA_DataValue *value, void *context)
 {
     (void) client;
@@ -403,8 +409,7 @@ static void monitoredItemHandler(UA_Client *client, UA_UInt32 monId, UA_DataValu
 static void *subscription_thread_handler(void *ptr)
 {
     EDGE_LOG(TAG, ">>>>>>>>>>>>>>>>>> subscription thread created <<<<<<<<<<<<<<<<<<<<");
-    char *uri = (char *) ptr;
-    UA_Client *client = (UA_Client *) getSessionClient(uri);
+    UA_Client *client = (UA_Client *) ptr;
     clientSubscription *clientSub = NULL;
     clientSub = (clientSubscription*) get_subscription_list(client);
     VERIFY_NON_NULL_MSG(clientSub, "NULL client subscription in subscription_thread_handler\n", NULL);
@@ -412,17 +417,7 @@ static void *subscription_thread_handler(void *ptr)
     clientSub->subscription_thread_running = true;
     while (clientSub->subscription_thread_running)
     {
-        EdgeMessage *publishMsg = (EdgeMessage *)EdgeCalloc(1, sizeof(EdgeMessage));
-        publishMsg->type = SEND_REQUEST;
-        publishMsg->command = CMD_SUB;
-        publishMsg->endpointInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-        publishMsg->endpointInfo->endpointUri = cloneString(uri);
-        publishMsg->message_id = EdgeGetRandom();
-        publishMsg->request = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
-        publishMsg->request->subMsg = (EdgeSubRequest *) EdgeCalloc(1, sizeof(EdgeSubRequest));
-        publishMsg->request->subMsg->subType = Edge_Publish_Sub;
-
-        add_to_sendQ(publishMsg);
+        sendPublishRequest(client);
         usleep(EDGE_UA_MINIMUM_PUBLISHING_TIME * 1000);
     }
 
@@ -674,10 +669,9 @@ static UA_StatusCode createSub(UA_Client *client, const EdgeMessage *msg)
 
     if (0 == clientSub->subscriptionCount)
     {
-        char *uri = cloneString(msg->endpointInfo->endpointUri);
         /* initiate thread for manually sending publish request. */
         pthread_create(&(clientSub->subscription_thread), NULL, &subscription_thread_handler,
-            (void *) uri);
+            (void *) client);
     }
     clientSub->subscriptionCount++;
 
@@ -1038,10 +1032,6 @@ EdgeResult executeSub(UA_Client *client, const EdgeMessage *msg)
     else if (subReq->subType == Edge_Republish_Sub)
     {
         retVal = rePublish(client, msg);
-    }
-    else if (subReq->subType == Edge_Publish_Sub)
-    {
-        UA_Client_Subscriptions_manuallySendPublishRequest(client);
     }
 
     if (retVal == UA_STATUSCODE_GOOD)
