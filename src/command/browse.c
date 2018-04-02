@@ -22,6 +22,8 @@
 #include "edge_node_type.h"
 #include "edge_logger.h"
 #include "edge_malloc.h"
+#include "edge_list.h"
+#include "edge_open62541.h"
 #include "message_dispatcher.h"
 #include "command_adapter.h"
 

@@ -23,6 +23,7 @@
 #include "edge_logger.h"
 #include "edge_malloc.h"
 #include "message_dispatcher.h"
+#include "edge_open62541.h"
 
 #define TAG "method"
 

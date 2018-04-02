@@ -24,6 +24,7 @@
 #include "message_dispatcher.h"
 #include "edge_logger.h"
 #include "edge_utils.h"
+#include "edge_open62541.h"
 #include "edge_malloc.h"
 #include "edge_random.h"
 
