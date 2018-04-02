@@ -37,9 +37,16 @@ UA_Int64 DateTime_toUnixTime(UA_DateTime date)
     return (date - UA_DATETIME_UNIX_EPOCH) / UA_DATETIME_MSEC;
 }
 
+/**
+ * @brief checkMaxAge - Checks whether time exceeds Max age
+ * @param timestamp - read request timestamp
+ * @param now - current timestamp
+ * @param maxAge - max age to check
+ * @return true or false
+ */
 static bool checkMaxAge(UA_DateTime timestamp, UA_DateTime now, double maxAge)
 {
-    // Server timestamp is greater than current time
+    /* Server timestamp is greater than current time */
     if (timestamp > now)
         return false;
 
@@ -51,11 +58,25 @@ static bool checkMaxAge(UA_DateTime timestamp, UA_DateTime now, double maxAge)
     return true;
 }
 
+/**
+ * @brief compareNumber - Compares two numbers and returns whether (number1>number2)
+ * @param number1
+ * @param number2
+ * @return true or false
+ */
 static bool compareNumber(int64_t number1, int64_t number2)
 {
     return ((number1 > number2) ? true : false);
 }
 
+/**
+ * @brief checkInvalidTime - Checks whether timestamp in read response is valid
+ * @param serverTime - server timestamp in read response
+ * @param sourceTime- source timestamp in read response
+ * @param validMilliSec - threshold milliseconds to compare
+ * @param stamp - TimestampsToReturn parameter in read request
+ * @return
+ */
 static bool checkInvalidTime(UA_DateTime serverTime, UA_DateTime sourceTime, int validMilliSec,
         UA_TimestampsToReturn stamp)
 {
@@ -67,8 +88,10 @@ static bool checkInvalidTime(UA_DateTime serverTime, UA_DateTime sourceTime, int
 
     if (UA_TIMESTAMPSTORETURN_BOTH == stamp)
     {
+        /* Both server and source timestamps requested */
         if ((0 == server_time) || (0 == source_time))
         {
+            /* Either source or server timestamp is invalid */
             EDGE_LOG(TAG, "Invalid timestamp\n\n");
             ret = false;
         }
@@ -84,6 +107,7 @@ static bool checkInvalidTime(UA_DateTime serverTime, UA_DateTime sourceTime, int
     }
     else if (UA_TIMESTAMPSTORETURN_SOURCE == stamp)
     {
+        /* Only source timestamp requested from server */
         if (0 == source_time)
         {
             EDGE_LOG(TAG, "invalid source timestamp\n\n");
@@ -99,6 +123,7 @@ static bool checkInvalidTime(UA_DateTime serverTime, UA_DateTime sourceTime, int
     }
     else if (UA_TIMESTAMPSTORETURN_SERVER == stamp)
     {
+        /* Only server timestamp requested from server */
         if (0 == server_time)
         {
             EDGE_LOG(TAG, "invalid server timestamp\n\n");
@@ -116,6 +141,11 @@ static bool checkInvalidTime(UA_DateTime serverTime, UA_DateTime sourceTime, int
     return ret;
 }
 
+/**
+ * @brief convertToEdgeLocalizedText - Util function to handle LocalizedText read response
+ * @param lt - Localized text to be handled
+ * @return Edge_LocalizedText*
+ */
 static Edge_LocalizedText *convertToEdgeLocalizedText(UA_LocalizedText *lt)
 {
     VERIFY_NON_NULL_MSG(lt, "Input parameter(lt) is NULL", NULL);
@@ -149,6 +179,11 @@ static Edge_LocalizedText *convertToEdgeLocalizedText(UA_LocalizedText *lt)
     return value;
 }
 
+/**
+ * @brief convertToEdgeQualifiedName - Utility function to handle QualifiedName response
+ * @param qn - Qualified name to be handled
+ * @return Edge_QualifiedName*
+ */
 static Edge_QualifiedName *convertToEdgeQualifiedName(UA_QualifiedName *qn)
 {
     VERIFY_NON_NULL_MSG(qn, "Input parameter(qn) is NULL", NULL);
@@ -171,10 +206,18 @@ static Edge_QualifiedName *convertToEdgeQualifiedName(UA_QualifiedName *qn)
     return value;
 }
 
+/**
+ * @brief checkValidation - Validates the read response
+ * @param value - Read response value
+ * @param msg - Edge Message
+ * @param stamp - TimestampsToReturn parameter in read request
+ * @param maxAge - Max Age
+ * @return value on success, NULL on error
+ */
 static void *checkValidation(UA_DataValue *value, const EdgeMessage *msg, UA_TimestampsToReturn stamp,
         double maxAge)
 {
-    // if (!checkNaN(value))
+    /* Error check for invalid timestamp returned by server */
     if (!checkInvalidTime(value->serverTimestamp, value->sourceTimestamp, 86400000, stamp))
     {
         // Error message handling
@@ -182,6 +225,7 @@ static void *checkValidation(UA_DataValue *value, const EdgeMessage *msg, UA_Tim
         return NULL;
     }
 
+    /* Error check of status code returned by server */
     if (UA_STATUSCODE_GOOD != value->status)
     {
         // Error message handling
@@ -189,6 +233,7 @@ static void *checkValidation(UA_DataValue *value, const EdgeMessage *msg, UA_Tim
         return NULL;
     }
 
+    /* Error check for array value response */
     if (!UA_Variant_isScalar(&(value->value)))
     {
         if (value->value.arrayLength == 0)
@@ -201,6 +246,12 @@ static void *checkValidation(UA_DataValue *value, const EdgeMessage *msg, UA_Tim
     return value;
 }
 
+/**
+ * @brief readGroup - Executes read operation of single/group nodes
+ * @param client - Client handle
+ * @param msg - Request edge message
+ * @param attributeId - Attribute Id to read
+ */
 static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attributeId)
 {
     char errorDesc[ERROR_DESC_LENGTH] = {'\0'};
@@ -225,9 +276,13 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attri
 
     UA_ReadRequest readRequest;
     UA_ReadRequest_init(&readRequest);
+    /* Nodes information to read */
     readRequest.nodesToRead = rv;
+    /* Number of nodes to read */
     readRequest.nodesToReadSize = reqLen;
+    /* Max age */
     readRequest.maxAge = 2000;
+    /* Timestamp information requested from server */
     readRequest.timestampsToReturn = UA_TIMESTAMPSTORETURN_BOTH;
 
     //UA_RequestHeader_init(&(readRequest.requestHeader));
@@ -237,7 +292,7 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attri
 
     if (readResponse.responseHeader.serviceResult != UA_STATUSCODE_GOOD)
     {
-        // send error callback;
+        /* Error response in processing read request */
         EDGE_LOG_V(TAG, "Error in group read :: 0x%08x(%s)\n", readResponse.responseHeader.serviceResult,
                 UA_StatusCode_name(readResponse.responseHeader.serviceResult));
         strncpy(errorDesc, "Error in read.", ERROR_DESC_LENGTH);
@@ -252,6 +307,7 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attri
                 if (readResponse.results[0].hasSourceTimestamp
                         || readResponse.results[0].hasServerTimestamp)
                 {
+                    /* Invalid timestamp error */
                     EDGE_LOG(TAG, "BadInvalidTimestamp\n\n");
                     strncpy(errorDesc, "Bad Invalid Timestamp.", ERROR_DESC_LENGTH);
                     goto EXIT;
@@ -262,6 +318,7 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attri
                 if (!readResponse.results[0].hasSourceTimestamp
                         || !readResponse.results[0].hasServerTimestamp)
                 {
+                    /* Missing timestamp information in response */
                     EDGE_LOG(TAG, "Timestamp missing\n\n");
                     strncpy(errorDesc, "Timestamp missing.", ERROR_DESC_LENGTH);
                     goto EXIT;
@@ -272,6 +329,7 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attri
                 if (!readResponse.results[0].hasSourceTimestamp
                         || readResponse.results[0].hasServerTimestamp)
                 {
+                    /* Source timestamp requested. But source timestamp missing in response */
                     EDGE_LOG(TAG, "source Timestamp missing\n\n");
                     strncpy(errorDesc, "source Timestamp missing.", ERROR_DESC_LENGTH);
                     goto EXIT;
@@ -282,6 +340,7 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attri
                 if (readResponse.results[0].hasSourceTimestamp
                         || !readResponse.results[0].hasServerTimestamp)
                 {
+                    /* Server timestamp requested. But server timestamp missing in response */
                     EDGE_LOG(TAG, "server Timestamp missing\n\n");
                     strncpy(errorDesc, "server Timestamp missing.", ERROR_DESC_LENGTH);
                     goto EXIT;
@@ -292,6 +351,7 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attri
                     && !checkMaxAge(readResponse.results[0].serverTimestamp, UA_DateTime_now(),
                             readRequest.maxAge * 2))
             {
+                /* MaxAge error */
                 EDGE_LOG(TAG, "Max age failed\n\n");
                 strncpy(errorDesc, "Max Age failed.", ERROR_DESC_LENGTH);
                 goto EXIT;
@@ -377,11 +437,13 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attri
             bool isScalar = UA_Variant_isScalar(&val);
             if (isScalar)
             {
+                /* Scalar response */
                 versatility->arrayLength = 0;
                 versatility->isArray = false;
             }
             else
             {
+                /* Array response */
                 versatility->arrayLength = val.arrayLength;
                 versatility->isArray = true;
             }
@@ -389,10 +451,12 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attri
 
             if (isScalar)
             {
+                /* Scalar response handling */
                 size_t size = get_size(response->type, false);
                 if ((response->type == UA_NS0ID_STRING) || (response->type == UA_NS0ID_BYTESTRING)
                 		|| (response->type == UA_NS0ID_XMLELEMENT))
                 {
+                    /* STRING or BYTESTRING or XMLELEMENT scalar response handling */
                     UA_String str = *((UA_String *) val.data);
                     size_t len = str.length;
                     versatility->value = (void *) EdgeCalloc(1, len+1);
@@ -408,6 +472,7 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attri
                 }
                 else if (response->type == UA_NS0ID_GUID)
                 {
+                    /* GUID scalar response handling */
                     UA_Guid str = *((UA_Guid *) val.data);
                     char *value = (char *) EdgeMalloc(GUID_LENGTH + 1);
                     if(IS_NULL(value))
@@ -427,6 +492,7 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attri
                 }
                 else if(response->type == UA_NS0ID_LOCALIZEDTEXT)
                 {
+                    /* LOCALIZEDTEXT scalar response handling */
                     Edge_LocalizedText *value = convertToEdgeLocalizedText((UA_LocalizedText *) val.data);
                     if(IS_NULL(value))
                     {
@@ -439,6 +505,7 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attri
                 }
                 else if(response->type == UA_NS0ID_QUALIFIEDNAME)
                 {
+                    /* QUALIFIEDNAME scalar response handling */
                     Edge_QualifiedName *value = convertToEdgeQualifiedName((UA_QualifiedName *) val.data);
                     if(IS_NULL(value))
                     {
@@ -451,6 +518,7 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attri
                 }
                 else if(response->type == UA_NS0ID_NODEID)
                 {
+                    /* NODEID scalar response handling */
                     versatility->value = convertToEdgeNodeIdType((UA_NodeId *) val.data);
                     if(IS_NULL(versatility->value))
                     {
@@ -461,7 +529,8 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attri
                     }
                 }
                 else
-                {
+                {                    
+                    /* Response handling for other array data types */
                     versatility->value = (void *) EdgeCalloc(1, size);
                     if(IS_NULL(versatility->value))
                     {
@@ -475,10 +544,11 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attri
             }
             else
             {
+                /* Array response handling */
                 if (response->type == UA_NS0ID_STRING || response->type == UA_NS0ID_BYTESTRING
                 		|| response->type == UA_NS0ID_XMLELEMENT)
                 {
-                    // String Array
+                    /* STRING or BYTESTRING or XMLELEMENT array response handling */
                     UA_String *str = ((UA_String *) val.data);
                     versatility->value = EdgeCalloc (val.arrayLength, sizeof(char *));
                     if(IS_NULL(versatility->value))
@@ -506,7 +576,7 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attri
                 }
                 else if (response->type == UA_NS0ID_GUID)
                 {
-                    // Guid Array
+                    /* GUID Array response handling */
                     UA_Guid *str = ((UA_Guid *) val.data);
                     versatility->value = EdgeCalloc(val.arrayLength, sizeof(char *));
                     if(IS_NULL(versatility->value))
@@ -538,6 +608,7 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attri
                 }
                 else if(response->type == UA_NS0ID_QUALIFIEDNAME)
                 {
+                    /* QUALIFIEDNAME array response handling */
                     UA_QualifiedName *qnArr = ((UA_QualifiedName *) val.data);
                     versatility->value = EdgeCalloc(val.arrayLength, sizeof(UA_QualifiedName *));
                     if(IS_NULL(versatility->value))
@@ -563,6 +634,7 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attri
                 }
                 else if(response->type == UA_NS0ID_LOCALIZEDTEXT)
                 {
+                    /* LOCALIZEDTEXT array response handling */
                     UA_LocalizedText *ltArr = ((UA_LocalizedText *) val.data);
                     versatility->value = EdgeCalloc(val.arrayLength, sizeof(UA_LocalizedText *));
                     if(IS_NULL(versatility->value))
@@ -588,6 +660,7 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attri
                 }
                 else if(response->type == UA_NS0ID_NODEID)
                 {
+                    /* NODEID array response handling */
                     UA_NodeId *nodeIdArr = ((UA_NodeId *) val.data);
                     versatility->value = EdgeCalloc(val.arrayLength, sizeof(Edge_NodeId *));
                     if(IS_NULL(versatility->value))
@@ -613,6 +686,7 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attri
                 }
                 else
                 {
+                    /* Response handling for other array data types */
                     if(IS_NULL(val.type))
                     {
                         EDGE_LOG(TAG, "Vaue type is NULL ERROR.");
@@ -634,7 +708,7 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attri
                 }
             }
 
-            // ctt check
+            /* Check for diagnostic information in read response */
             response->m_diagnosticInfo = checkDiagnosticInfo(msg->requestLength,
                     readResponse.diagnosticInfos, readResponse.diagnosticInfosSize,
                     readRequest.requestHeader.returnDiagnostics);
@@ -644,7 +718,7 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attri
         }
         else
         {
-            // failure read response for this particular node
+            /* Error in read response for a particular node */
             EDGE_LOG_V(TAG, "Error in group read response for particular node :: 0x%08x(%s)\n",
                     readResponse.results[i].status, UA_StatusCode_name(readResponse.results[i].status));
             if(1 == reqLen)
@@ -664,7 +738,7 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attri
         strncpy(errorDesc, "There are no valid responses.", ERROR_DESC_LENGTH);
         goto EXIT;
     }
-
+    /* Adding the read response to receiver Q */
     add_to_recvQ(resultMsg);
     for (size_t i = 0; i < reqLen; i++)
     {
@@ -676,7 +750,7 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attri
     return;
 
     EXIT:
-    // Deallocate memory.
+    /* Free the memory */
     sendErrorResponse(msg, errorDesc);
     freeEdgeMessage(resultMsg);
     for (size_t i = 0; i < reqLen; i++)
@@ -696,10 +770,12 @@ EdgeResult executeRead(UA_Client *client, const EdgeMessage *msg)
 
     if (CMD_READ == msg->command)
     {
+        /* Read value attribute */
         readGroup(client, msg, UA_ATTRIBUTEID_VALUE);
     }
     else if (CMD_READ_SAMPLING_INTERVAL == msg->command)
     {
+        /* Read sampling interval attribute */
         readGroup(client,msg, UA_ATTRIBUTEID_MINIMUMSAMPLINGINTERVAL);
     }
 

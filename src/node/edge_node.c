@@ -41,6 +41,12 @@ static void getDisplayInfo(const EdgeNodeItem *item, char* displayInfo) {
     }
 }
 
+/**
+ * @brief addVariableNode - Add variable node to server
+ * @param server - server handle
+ * @param nsIndex - namespace index under which node has to be added
+ * @param item - node to add
+ */
 static void addVariableNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem *item)
 {
     char *name = item->browseName;
@@ -149,6 +155,12 @@ static void addVariableNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeI
     UA_Variant_deleteMembers(&attr.value);
 }
 
+/**
+ * @brief addArrayNode - Add array node to server
+ * @param server - server handle
+ * @param nsIndex - namespace index under which array node has to be added
+ * @param item - node to add
+ */
 static void addArrayNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem *item)
 {
     char *name = item->browseName;
@@ -249,6 +261,12 @@ static void addArrayNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem
     UA_Variant_deleteMembers(&attr.value);
 }
 
+/**
+ * @brief addObjectNode - Add object node to server
+ * @param server - server handle
+ * @param nsIndex - namespace index under which object node has to be added
+ * @param item - Object node to be added
+ */
 static void addObjectNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem *item)
 {
     char *name = item->browseName;
@@ -284,6 +302,12 @@ static void addObjectNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeIte
     }
 }
 
+/**
+ * @brief addObjectTypeNode - Add object type node to server
+ * @param server - server handle
+ * @param nsIndex - namespace index under which object type node has to added
+ * @param item - Object type node to add
+ */
 static void addObjectTypeNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem *item)
 {
     char *name = item->browseName;
@@ -319,6 +343,12 @@ static void addObjectTypeNode(UA_Server *server, uint16_t nsIndex, const EdgeNod
     }
 }
 
+/**
+ * @brief addVariableTypeNode - Add VariableType node to server
+ * @param server - server handle
+ * @param nsIndex - namespace index under which variableType node has to be added
+ * @param item - VariableType node to add
+ */
 static void addVariableTypeNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem *item)
 {
     char *name = item->browseName;
@@ -370,6 +400,12 @@ static void addVariableTypeNode(UA_Server *server, uint16_t nsIndex, const EdgeN
     //UA_Variant_deleteMembers(&attr.value);
 }
 
+/**
+ * @brief addDataTypeNode - Add datatype node to server
+ * @param server - server handle
+ * @param nsIndex - namespace index under which node has to be added
+ * @param item - datatype node to add
+ */
 static void addDataTypeNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem *item)
 {
     char *name = item->browseName;
@@ -405,6 +441,12 @@ static void addDataTypeNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeI
     }
 }
 
+/**
+ * @brief addViewNode - Add view node to server
+ * @param server - server handle
+ * @param nsIndex - namespace index under which node has to be added
+ * @param item - node to add
+ */
 static void addViewNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem *item)
 {
     char *name = item->browseName;

@@ -38,30 +38,49 @@
 #define DEFAULT_RETRANSMIT_SEQUENCENUM (2)
 #define GUID_LENGTH (36)
 
+/* Subscription information */
 typedef struct subscriptionInfo
 {
+    /* Edge Message */
     EdgeMessage *msg;
+    /* Subscription Id */
     UA_UInt32 subId;
+    /* MonitoredItem Id */
     UA_UInt32 monId;
+    /* Context */
     void *hfContext;
 } subscriptionInfo;
 
 typedef struct clientSubscription
 {
+    /* Number of subscriptions */
     int subscriptionCount;
+    /* Subscription thread */
     pthread_t subscription_thread;
+    /* flag to determine to execution of subscription thread */
     bool subscription_thread_running;
+    /* Subscription list */
     edgeMap *subscriptionList;
 } clientSubscription;
 
 typedef struct client_valueAlias
 {
+    /* Client handle */
     UA_Client *client;
+    /* value alias */
     char *valueAlias;
 } client_valueAlias;
 
 static edgeMap *clientSubMap  = NULL;
 
+/**
+ * @brief validateMonitoringId - Function that checks whether monitoredItem id
+ * is present under the given subscription Id
+ * @param list - subscription list
+ * @param subId - subscription Id
+ * @param monId - monitored Id to check under the given subscription Id
+ * @return
+ */
 static bool validateMonitoringId(edgeMap *list, UA_UInt32 subId, UA_UInt32 monId)
 {
     if (list)
@@ -81,6 +100,12 @@ static bool validateMonitoringId(edgeMap *list, UA_UInt32 subId, UA_UInt32 monId
     return true;
 }
 
+/**
+ * @brief hasSubscriptionId - Function that checks whether subscription id is valid
+ * @param list - subscription list
+ * @param subId - subscription Id to check whether its valid
+ * @return
+ */
 static bool hasSubscriptionId(edgeMap *list, UA_UInt32 subId)
 {
     if (list)
@@ -99,6 +124,11 @@ static bool hasSubscriptionId(edgeMap *list, UA_UInt32 subId)
     return false;
 }
 
+/**
+ * @brief get_subscription_list - Gets the subscription list associated with particular client handle
+ * @param client - Client handle
+ * @return void pointer representing the client handle info.
+ */
 static void* get_subscription_list(UA_Client *client)
 {
     if (clientSubMap)
@@ -118,6 +148,12 @@ static void* get_subscription_list(UA_Client *client)
     return NULL;
 }
 
+/**
+ * @brief getSubInfo - Gets subscription information from the list with valueAlias filter
+ * @param list - subscription list
+ * @param valueAlias - value alias
+ * @return keyValue
+ */
 static keyValue getSubInfo(edgeMap* list, const char *valueAlias)
 {
     if(IS_NOT_NULL(list))
@@ -135,6 +171,12 @@ static keyValue getSubInfo(edgeMap* list, const char *valueAlias)
     return NULL;
 }
 
+/**
+ * @brief removeSubFromMap - Remove the subscription information from the subscription list
+ * @param list - subscription list
+ * @param valueAlias - value alias
+ * @return the removed subscription info
+ */
 static edgeMapNode *removeSubFromMap(edgeMap *list, const char *valueAlias)
 {
     edgeMapNode *temp = list->head;
@@ -166,6 +208,13 @@ void sendPublishRequest(UA_Client *client)
     UA_Client_Subscriptions_manuallySendPublishRequest(client);
 }
 
+/**
+ * @brief monitoredItemHandler - Callback function for getting DATACHANGE notifications for subscribed nodes
+ * @param client - Client handle
+ * @param monId - MonitoredItem Id
+ * @param value - Changed value
+ * @param context - Context
+ */
 static void monitoredItemHandler(UA_Client *client, UA_UInt32 monId, UA_DataValue *value, void *context)
 {
     (void) client;
@@ -254,11 +303,13 @@ static void monitoredItemHandler(UA_Client *client, UA_UInt32 monId, UA_DataValu
     bool isScalar = UA_Variant_isScalar(&(value->value));
     if (isScalar)
     {
+        /* Scalar value */
         response->message->arrayLength = 0;
         response->message->isArray = false;
     }
     else
     {
+        /* Array value */
         response->message->arrayLength = value->value.arrayLength;
         response->message->isArray = true;
     }
@@ -266,9 +317,11 @@ static void monitoredItemHandler(UA_Client *client, UA_UInt32 monId, UA_DataValu
 
     if (isScalar)
     {
+        /* Scalar value handling */
         size_t size = get_size(response->type, false);
         if ((response->type == UA_NS0ID_STRING) || (response->type == UA_NS0ID_BYTESTRING))
         {
+            /* STRING or BYTESTRING handling */
             UA_String str = *((UA_String *) value->value.data);
             size_t len = str.length;
             response->message->value = (void *) EdgeCalloc(1, len+1);
@@ -282,6 +335,7 @@ static void monitoredItemHandler(UA_Client *client, UA_UInt32 monId, UA_DataValu
         }
         else if (response->type == UA_NS0ID_GUID)
         {
+            /* GUID handling */
             UA_Guid str = *((UA_Guid *) value->value.data);
             response->message->value = EdgeMalloc(GUID_LENGTH + 1);
             if(IS_NULL(response->message->value))
@@ -297,15 +351,17 @@ static void monitoredItemHandler(UA_Client *client, UA_UInt32 monId, UA_DataValu
         }
         else
         {
+            /* Handling other scalar value data types */
             response->message->value = (void *) EdgeCalloc(1, size);
             memcpy(response->message->value, value->value.data, size);
         }
     }
     else
     {
+        /* Array value handling */
         if (response->type == UA_NS0ID_STRING)
         {
-            // String Array
+            /* STRING array handling */
             UA_String *str = ((UA_String *) value->value.data);
             response->message->value = EdgeMalloc(sizeof(char *) * value->value.arrayLength);
             if(IS_NULL(response->message->value))
@@ -328,7 +384,7 @@ static void monitoredItemHandler(UA_Client *client, UA_UInt32 monId, UA_DataValu
         }
         else if (response->type == UA_NS0ID_BYTESTRING)
         {
-            // ByteString Array
+            /* BYTESTRING array handling */
             UA_ByteString *str = ((UA_ByteString *) value->value.data);
             response->message->value = EdgeMalloc(sizeof(char *) * value->value.arrayLength);
             if(IS_NULL(response->message->value))
@@ -351,7 +407,7 @@ static void monitoredItemHandler(UA_Client *client, UA_UInt32 monId, UA_DataValu
         }
         else if (response->type == UA_NS0ID_GUID)
         {
-            // Guid Array
+            /* GUID array handling */
             UA_Guid *str = ((UA_Guid *) value->value.data);
             response->message->value = EdgeMalloc(sizeof(char *) * value->value.arrayLength);
             if(IS_NULL(response->message->value))
@@ -379,6 +435,7 @@ static void monitoredItemHandler(UA_Client *client, UA_UInt32 monId, UA_DataValu
         }
         else
         {
+            /* Other data types array handling */
             if(IS_NULL(value->value.type))
             {
                 EDGE_LOG(TAG, "Vaue type is NULL ERROR.");
@@ -397,12 +454,13 @@ static void monitoredItemHandler(UA_Client *client, UA_UInt32 monId, UA_DataValu
         }
     }
 
-    //onResponseMessage(resultMsg);
+    /* Adding the subscription response to receiver Q */
     add_to_recvQ(resultMsg);
 
     return;
 
     ERROR:
+    /* Free memory */
     freeEdgeMessage(resultMsg);
 }
 
@@ -417,6 +475,8 @@ static void *subscription_thread_handler(void *ptr)
     clientSub->subscription_thread_running = true;
     while (clientSub->subscription_thread_running)
     {
+        /* Manually send publish request to server every
+         * (EDGE_UA_MINIMUM_PUBLISHING_TIME * 1000) ms */
         sendPublishRequest(client);
         usleep(EDGE_UA_MINIMUM_PUBLISHING_TIME * 1000);
     }
@@ -639,7 +699,7 @@ static UA_StatusCode createSub(UA_Client *client, const EdgeMessage *msg)
                 EDGE_LOG(TAG, "Error : Malloc failed for msgCopy in create subscription");
                 goto EXIT;
             }
-            //memcpy(msgCopy, msg, sizeof * msg);
+
             subInfo->msg = msgCopy;
             subInfo->subId = subId;
             subInfo->monId = monId[i];
@@ -676,7 +736,7 @@ static UA_StatusCode createSub(UA_Client *client, const EdgeMessage *msg)
     clientSub->subscriptionCount++;
 
     EXIT:
-    // Deallocate memory.
+    /* Free memory */
     EdgeFree(monId);
     EdgeFree(hfs);
     EdgeFree(itemResults);
@@ -710,7 +770,7 @@ static UA_StatusCode deleteSub(UA_Client *client, const EdgeMessage *msg)
     }
     else
     {
-        EDGE_LOG(TAG, "Monitoring deleted successfully\n\n");
+        EDGE_LOG(TAG, "Monitoring deleted successfully\n\n");        
         edgeMapNode *removed = removeSubFromMap(clientSub->subscriptionList,
             msg->request->nodeInfo->valueAlias);
         if (removed != NULL)
@@ -799,7 +859,7 @@ static UA_StatusCode modifySub(UA_Client *client, const EdgeMessage *msg)
 
     UA_ModifySubscriptionRequest_deleteMembers(&modifySubscriptionRequest);
 
-    // modifyMonitoredItems
+    /* modifyMonitoredItems */
     UA_ModifyMonitoredItemsRequest modifyMonitoredItemsRequest;
     UA_ModifyMonitoredItemsRequest_init(&modifyMonitoredItemsRequest);
     modifyMonitoredItemsRequest.subscriptionId = subInfo->subId;
@@ -810,8 +870,7 @@ static UA_StatusCode modifySub(UA_Client *client, const EdgeMessage *msg)
 
     UA_UInt32 monId = subInfo->monId;
 
-    modifyMonitoredItemsRequest.itemsToModify[0].monitoredItemId = monId; //monId;
-    //UA_MonitoringParameters parameters = modifyMonitoredItemsRequest.itemsToModify[0].requestedParameters;
+    modifyMonitoredItemsRequest.itemsToModify[0].monitoredItemId = monId;
     UA_MonitoringParameters_init(&modifyMonitoredItemsRequest.itemsToModify[0].requestedParameters);
     (modifyMonitoredItemsRequest.itemsToModify[0].requestedParameters).clientHandle = (UA_UInt32) 1;
     (modifyMonitoredItemsRequest.itemsToModify[0].requestedParameters).discardOldest = true;
@@ -862,7 +921,7 @@ static UA_StatusCode modifySub(UA_Client *client, const EdgeMessage *msg)
     UA_ModifyMonitoredItemsRequest_deleteMembers(&modifyMonitoredItemsRequest);
     UA_ModifyMonitoredItemsResponse_deleteMembers(&modifyMonitoredItemsResponse);
 
-    // setMonitoringMode
+    /* setMonitoringMode */
     UA_SetMonitoringModeRequest setMonitoringModeRequest;
     UA_SetMonitoringModeRequest_init(&setMonitoringModeRequest);
     setMonitoringModeRequest.subscriptionId = subInfo->subId;
@@ -902,7 +961,7 @@ static UA_StatusCode modifySub(UA_Client *client, const EdgeMessage *msg)
     UA_SetMonitoringModeRequest_deleteMembers(&setMonitoringModeRequest);
     UA_SetMonitoringModeResponse_deleteMembers(&setMonitoringModeResponse);
 
-    // setPublishingMode
+    /* setPublishingMode */
     UA_SetPublishingModeRequest setPublishingModeRequest;
     UA_SetPublishingModeRequest_init(&setPublishingModeRequest);
     setPublishingModeRequest.subscriptionIdsSize = 1;
@@ -959,7 +1018,7 @@ static UA_StatusCode rePublish(UA_Client *client, const EdgeMessage *msg)
     //EDGE_LOG(TAG, "subscription id retrieved from map :: %d \n\n", subInfo->subId);
     VERIFY_NON_NULL_MSG(subInfo, "subInfo is NULL in rePublish\n", UA_STATUSCODE_BADNOSUBSCRIPTION);
 
-    // re PublishingMode
+    /* re PublishingMode */
     UA_RepublishRequest republishRequest;
     UA_RepublishRequest_init(&republishRequest);
     republishRequest.retransmitSequenceNumber = DEFAULT_RETRANSMIT_SEQUENCENUM;
@@ -1019,18 +1078,22 @@ EdgeResult executeSub(UA_Client *client, const EdgeMessage *msg)
 
     if (subReq->subType == Edge_Create_Sub)
     {
+        /* Create Subscription */
         retVal = createSub(client, msg);
     }
     else if (subReq->subType == Edge_Modify_Sub)
     {
+        /* Modify Subscription */
         retVal = modifySub(client, msg);
     }
     else if (subReq->subType == Edge_Delete_Sub)
     {
+        /* Delete subscription */
         retVal = deleteSub(client, msg);
     }
     else if (subReq->subType == Edge_Republish_Sub)
     {
+        /* Republish */
         retVal = rePublish(client, msg);
     }
 
