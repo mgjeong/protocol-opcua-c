@@ -53,6 +53,7 @@ EdgeResult executeMethod(UA_Client *client, const EdgeMessage *msg)
         UA_Variant_init(&input[idx]);
         if (params->inpArg[idx]->valType == SCALAR)
         {
+            /* Input argument is scalar value */
             int type = (int) params->inpArg[idx]->argType - 1;
             if (type == UA_TYPES_STRING)
             {
@@ -69,6 +70,7 @@ EdgeResult executeMethod(UA_Client *client, const EdgeMessage *msg)
         }
         else if (params->inpArg[idx]->valType == ARRAY_1D)
         {
+            /* Input argument is array of scalar values */
             int type = (int) params->inpArg[idx]->argType - 1;
             if (type == UA_TYPES_STRING)
             {
@@ -98,11 +100,13 @@ EdgeResult executeMethod(UA_Client *client, const EdgeMessage *msg)
     size_t outputSize = 0;
     UA_Variant *output = NULL;
     EdgeMessage *resultMsg = NULL;
+    /* Execute Method Call */
     UA_StatusCode retVal = UA_Client_call(client, UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER),
             UA_NODEID_STRING(request->nodeInfo->nodeId->nameSpace, request->nodeInfo->valueAlias),
             num_inpArgs, input, &outputSize, &output);
     if (retVal != UA_STATUSCODE_GOOD)
     {
+        /* Method call failed */
         EDGE_LOG_V(TAG, "method call failed 0x%08x\n", retVal);
         sendErrorResponse(msg, "Error in executing METHOD OPERATION.");
     }
@@ -168,6 +172,7 @@ EdgeResult executeMethod(UA_Client *client, const EdgeMessage *msg)
                 size_t size = get_size(resultMsg->responses[i]->type, false);
                 if ((resultMsg->responses[i]->type == UA_NS0ID_STRING) || (resultMsg->responses[i]->type == UA_NS0ID_BYTESTRING))
                 {
+                    /* STRING or BYTESTRING response */
                     UA_String str = *((UA_String *) output[i].data);
                     size_t len = str.length;
                     versatility->value = (void *) EdgeCalloc(1, len+1);
@@ -181,6 +186,7 @@ EdgeResult executeMethod(UA_Client *client, const EdgeMessage *msg)
                 }
                 else if (resultMsg->responses[i]->type == UA_NS0ID_GUID)
                 {
+                    /* GUID response */
                     UA_Guid str = *((UA_Guid *) output[i].data);
                     char *value = (char *) EdgeMalloc(GUID_LENGTH + 1);
                     if(IS_NULL(value))
@@ -215,7 +221,7 @@ EdgeResult executeMethod(UA_Client *client, const EdgeMessage *msg)
                 size_t size = get_size(resultMsg->responses[i]->type, true);
                 if (resultMsg->responses[i]->type == UA_NS0ID_STRING || resultMsg->responses[i]->type == UA_NS0ID_BYTESTRING)
                 {
-                    // String Array
+                    /* STRING or BYTESTRING ARRAY response */
                     UA_String *str = ((UA_String *) output[i].data);
                     versatility->value = EdgeCalloc(output[i].arrayLength, sizeof(char *));
                     if(IS_NULL(versatility->value))
@@ -239,7 +245,7 @@ EdgeResult executeMethod(UA_Client *client, const EdgeMessage *msg)
                 }
                 else if (resultMsg->responses[i]->type == UA_NS0ID_GUID)
                 {
-                    // Guid Array
+                    /* GUID ARRAY response */
                     UA_Guid *str = ((UA_Guid *) output[i].data);
                     versatility->value = EdgeCalloc(output[i].arrayLength, sizeof(char *));
                     if(IS_NULL(versatility->value))
@@ -281,13 +287,14 @@ EdgeResult executeMethod(UA_Client *client, const EdgeMessage *msg)
             resultMsg->responses[i]->m_diagnosticInfo = NULL;
         }
 
+        /* Adding the method response to receiverQ */
         add_to_recvQ(resultMsg);
         result.code = STATUS_OK;
         resultMsg = NULL;
     }
 
 EXIT:
-    // Deallocate memory.
+    /* Free the memory */
     if(IS_NOT_NULL(resultMsg))
     {
         freeEdgeMessage(resultMsg);

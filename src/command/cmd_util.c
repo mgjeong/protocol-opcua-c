@@ -29,78 +29,97 @@ int get_response_type(const UA_DataType *datatype)
 {
     if (datatype == &UA_TYPES[UA_TYPES_BOOLEAN])
     {
+        /* Boolean */
         return UA_NS0ID_BOOLEAN;
     }
     else if (datatype == &UA_TYPES[UA_TYPES_INT16])
     {
+        /* INT16 */
         return UA_NS0ID_INT16;
     }
     else if (datatype == &UA_TYPES[UA_TYPES_UINT16])
     {
+        /* UINT16 */
         return UA_NS0ID_UINT16;
     }
     else if (datatype == &UA_TYPES[UA_TYPES_INT32])
     {
+        /* INT32 */
         return UA_NS0ID_INT32;
     }
     else if (datatype == &UA_TYPES[UA_TYPES_UINT32])
     {
+        /* UINT32 */
         return UA_NS0ID_UINT32;
     }
     else if (datatype == &UA_TYPES[UA_TYPES_INT64])
     {
+        /* INT64 */
         return UA_NS0ID_INT64;
     }
     else if (datatype == &UA_TYPES[UA_TYPES_UINT64])
     {
+        /* UINT64 */
         return UA_NS0ID_UINT64;
     }
     else if (datatype == &UA_TYPES[UA_TYPES_FLOAT])
     {
+        /* FLOAT */
         return UA_NS0ID_FLOAT;
     }
     else if (datatype == &UA_TYPES[UA_TYPES_DOUBLE])
     {
+        /* DOUBLE */
         return UA_NS0ID_DOUBLE;
     }
     else if (datatype == &UA_TYPES[UA_TYPES_STRING])
     {
+        /* STRING */
         return UA_NS0ID_STRING;
     }
     else if (datatype == &UA_TYPES[UA_TYPES_BYTESTRING])
     {
+        /* BYTESTRING */
         return UA_NS0ID_BYTESTRING;
     }
     else if (datatype == &UA_TYPES[UA_TYPES_GUID])
     {
+        /* GUID */
         return UA_NS0ID_GUID;
     }
     else if (datatype == &UA_TYPES[UA_TYPES_SBYTE])
     {
+        /* SBYTE */
         return UA_NS0ID_SBYTE;
     }
     else if (datatype == &UA_TYPES[UA_TYPES_BYTE])
     {
+        /* BYTE */
         return UA_NS0ID_BYTE;
     }
     else if (datatype == &UA_TYPES[UA_TYPES_DATETIME])
     {
+        /* DATETIME */
         return UA_NS0ID_DATETIME;
     }
     else if (datatype == &UA_TYPES[UA_TYPES_XMLELEMENT])
     {
+        /* XML ELEMENT */
         return UA_NS0ID_XMLELEMENT;
     }
     else if (datatype == &UA_TYPES[UA_TYPES_QUALIFIEDNAME])
     {
+        /* QUALIFIED NAME */
         return UA_NS0ID_QUALIFIEDNAME;
     }
     else if (datatype == &UA_TYPES[UA_TYPES_LOCALIZEDTEXT])
     {
+        /* LOCALIZED TEXT */
         return UA_NS0ID_LOCALIZEDTEXT;
     }
     else if (datatype == &UA_TYPES[UA_TYPES_NODEID])
     {
+        /* NODE ID */
         return UA_NS0ID_NODEID;
     }
 
@@ -139,10 +158,12 @@ void sendErrorResponse(const EdgeMessage *msg, char *err_desc)
     }
     resultMsg->result->code = STATUS_ERROR;
 
+    /* Adding Error response message to receiver Q */
     add_to_recvQ(resultMsg);
     return ;
 
     EXIT:
+    /* Free the memory */
     freeEdgeMessage(resultMsg);
 }
 
@@ -155,14 +176,15 @@ EdgeDiagnosticInfo *checkDiagnosticInfo(int nodesToProcess,
     diagnostics->localizedText = 0;
     diagnostics->additionalInfo = NULL;
     diagnostics->innerDiagnosticInfo = NULL;
-
     
     if (0 == returnDiagnostic && 0 == diagnosticInfoLength)
     {
+        /* ReturnDiagnostic not requested */
         diagnostics->msg = NULL;
     }
     else if (diagnosticInfoLength == nodesToProcess)
     {
+        /* Diagnostics information received from server */
         diagnostics->symbolicId = diagnosticInfo[0].symbolicId;
         diagnostics->localizedText = diagnosticInfo[0].localizedText;
         diagnostics->locale = diagnosticInfo[0].locale;
@@ -185,11 +207,14 @@ EdgeDiagnosticInfo *checkDiagnosticInfo(int nodesToProcess,
     }
     else if (0 != returnDiagnostic && 0 == diagnosticInfoLength)
     {
+        /* Diagnostic info requested. But no diagnostic info returned from server */
         diagnostics->msg =
                 (void *) "no diagnostics were returned even though returnDiagnostic requested";
     }
     else
     {
+        /* Diagnostic info length returned by server doesn't
+         * match with the number of nodes processed */
         diagnostics->msg = (void *) "mismatch entries returned";
     }
     return diagnostics;

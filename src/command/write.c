@@ -29,6 +29,11 @@
 
 #define TAG "write"
 
+/**
+ * @brief writeGroup - Executes write operation
+ * @param client - Client handle
+ * @param msg - Request Edge Message
+ */
 static void writeGroup(UA_Client *client, const EdgeMessage *msg)
 {
     size_t reqLen = msg->requestLength;
@@ -49,19 +54,23 @@ static void writeGroup(UA_Client *client, const EdgeMessage *msg)
         uint32_t type = Nodeid - 1;
         UA_WriteValue_init(&wv[i]);
         UA_Variant_init(&myVariant[i]);
+        /* Attribute Id to write to */
         wv[i].attributeId = UA_ATTRIBUTEID_VALUE;
+        /* Node id */
         wv[i].nodeId = UA_NODEID_STRING(msg->requests[i]->nodeInfo->nodeId->nameSpace,
                 msg->requests[i]->nodeInfo->valueAlias);
         wv[i].value.hasValue = true;
+        /* Data type */
         wv[i].value.value.type = &UA_TYPES[type];
         wv[i].value.value.storageType = UA_VARIANT_DATA_NODELETE; /* do not free the integer on deletion */
 
         EdgeVersatility *message = (EdgeVersatility * ) msg->requests[i]->value;
         if (message->isArray == 0)
         {
-            // scalar value to write
+            /* scalar value to write */
             if (type == UA_TYPES_STRING)
             {
+                /* STRING */
                 char *value_to_write = (char*) message->value;
                 UA_String val = UA_STRING_ALLOC(value_to_write);
                 UA_Variant_setScalarCopy(&myVariant[i], &val, &UA_TYPES[type]);
@@ -70,6 +79,7 @@ static void writeGroup(UA_Client *client, const EdgeMessage *msg)
             }
             else if (type == UA_TYPES_BYTESTRING)
             {
+                /* BYTESTRING */
                 char *value_to_write = (char*) message->value;
                 UA_ByteString val = UA_BYTESTRING_ALLOC(value_to_write);
                 UA_Variant_setScalarCopy(&myVariant[i], &val, &UA_TYPES[type]);
@@ -78,14 +88,16 @@ static void writeGroup(UA_Client *client, const EdgeMessage *msg)
             }
             else
             {
+                /* Other data types */
                 UA_Variant_setScalarCopy(&myVariant[i], message->value, &UA_TYPES[type]);
             }
         }
         else
         {
-            // array value to write
+            /* array value to write */
             if (type == UA_TYPES_STRING)
             {
+                /* STRING array */
                 int idx = 0;
                 char **data = (char **) message->value;
                 UA_String *array = (UA_String *) UA_Array_new(message->arrayLength, &UA_TYPES[type]);
@@ -102,6 +114,7 @@ static void writeGroup(UA_Client *client, const EdgeMessage *msg)
             }
             else if (type == UA_TYPES_BYTESTRING)
             {
+                /* BYTESTRING array */
                 int idx = 0;
                 char **dataArray = (char**) message->value;
                 UA_ByteString *array = (UA_ByteString *) UA_Array_new(message->arrayLength, &UA_TYPES[type]);
@@ -119,6 +132,7 @@ static void writeGroup(UA_Client *client, const EdgeMessage *msg)
             }
             else
             {
+                /* Other data types */
                 UA_Variant_setArrayCopy(&myVariant[i], message->value, message->arrayLength, &UA_TYPES[type]);
             }
         }
@@ -127,13 +141,17 @@ static void writeGroup(UA_Client *client, const EdgeMessage *msg)
 
     UA_WriteRequest writeRequest;
     UA_WriteRequest_init(&writeRequest);
+    /* Node information */
     writeRequest.nodesToWrite = wv;
+    /* Number of nodes to write */
     writeRequest.nodesToWriteSize = reqLen;
     //writeRequest.requestHeader.returnDiagnostics = 1;
 
+    /* Execute write operation */
     UA_WriteResponse writeResponse = UA_Client_Service_write(client, writeRequest);
     if (writeResponse.responseHeader.serviceResult != UA_STATUSCODE_GOOD)
     {
+        /* Error in write request */
         EDGE_LOG_V(TAG, "Error in write :: 0x%08x(%s)\n", writeResponse.responseHeader.serviceResult,
                 UA_StatusCode_name(writeResponse.responseHeader.serviceResult));
 
@@ -193,6 +211,7 @@ static void writeGroup(UA_Client *client, const EdgeMessage *msg)
 
         if (code != UA_STATUSCODE_GOOD)
         {
+            /* Error in write response for a particular node */
             EDGE_LOG_V(TAG, "Error in write response for a particular node :: 0x%08x(%s)\n", code,
                     UA_StatusCode_name(code));
 
@@ -251,14 +270,14 @@ static void writeGroup(UA_Client *client, const EdgeMessage *msg)
     {
         goto ERROR;
     }
-
+    /* Adding the write response to receiver Q */
     add_to_recvQ(resultMsg);
 
     UA_WriteResponse_deleteMembers(&writeResponse);
     return;
 
     ERROR:
-    // Deallocate memory.
+    /* Free memory */
     freeEdgeMessage(resultMsg);
     UA_WriteResponse_deleteMembers(&writeResponse);
 }
