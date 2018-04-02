@@ -24,6 +24,7 @@
 #include "message_dispatcher.h"
 #include "edge_logger.h"
 #include "edge_malloc.h"
+#include "edge_open62541.h"
 
 #include <inttypes.h>
 
@@ -694,7 +695,7 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attri
                         freeEdgeResponse(response);
                         goto EXIT;
                     }
-                    
+
                     versatility->value = (void *) EdgeCalloc(versatility->arrayLength, val.type->memSize);
                     if(IS_NULL(versatility->value))
                     {

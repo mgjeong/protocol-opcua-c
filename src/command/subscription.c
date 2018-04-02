@@ -22,6 +22,8 @@
 #include "cmd_util.h"
 #include "edge_random.h"
 #include "edge_utils.h"
+#include "edge_open62541.h"
+#include "edge_map.h"
 #include "edge_logger.h"
 #include "edge_malloc.h"
 #include "message_dispatcher.h"
@@ -441,8 +443,8 @@ static void monitoredItemHandler(UA_Client *client, UA_UInt32 monId, UA_DataValu
                 EDGE_LOG(TAG, "Vaue type is NULL ERROR.");
                 goto ERROR;
             }
-            
-            response->message->value = (void *) EdgeCalloc(response->message->arrayLength, 
+
+            response->message->value = (void *) EdgeCalloc(response->message->arrayLength,
                 value->value.type->memSize);
             if(IS_NULL(response->message->value))
             {

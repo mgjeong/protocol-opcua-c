@@ -111,7 +111,7 @@ src = [
 		buildDir + srcPath + '/command/write.c',
 		buildDir + srcPath + '/command/method.c',
 		buildDir + srcPath + '/command/subscription.c',
-                buildDir + srcPath + '/command/cmd_util.c',
+		buildDir + srcPath + '/command/cmd_util.c',
 		buildDir + srcPath + '/node/edge_node.c',
 		buildDir + srcPath + '/queue/caqueueingthread.c',
 		buildDir + srcPath + '/queue/cathreadpool_pthreads.c',
@@ -123,7 +123,10 @@ src = [
 		buildDir + srcPath + '/session/edge_opcua_server.c',
 		buildDir + srcPath + '/utils/edge_malloc.c',	
 		buildDir + srcPath + '/utils/edge_utils.c',	
-                buildDir + srcPath + '/utils/edge_random.c'
+		buildDir + srcPath + '/utils/edge_random.c',
+		buildDir + srcPath + '/utils/edge_map.c',
+		buildDir + srcPath + '/utils/edge_list.c',
+		buildDir + srcPath + '/utils/edge_open62541.c'
 	]
 
 env.VariantDir(variant_dir = (buildDir + '/' + srcPath), src_dir = 'src', duplicate = 0)
