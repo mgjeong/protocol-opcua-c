@@ -19,19 +19,16 @@
  ******************************************************************/
 
 /**
- * @file browse.h
+ * @file browse_view.h
  *
- * @brief This file contains the definition, types and APIs for BROWSE command request.
+ * @brief This file contains APIs for BrowseView request.
  */
 
-#ifndef EDGE_BROWSE_H
-#define EDGE_BROWSE_H
+#ifndef EDGE_BROWSE_VIEW_H
+#define EDGE_BROWSE_VIEW_H
 
 #include "opcua_common.h"
 #include "open62541.h"
-
-#include "edge_utils.h"
-#include "command_adapter.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -39,20 +36,14 @@ extern "C"
 #endif
 
 /**
- * @brief Executes Browse operation
+ * @brief Executes BrowseView operation.
  * @param[in]  client Client Handle.
- * @param[in]  msg EdgeMessage request data
+ * @param[in]  msg EdgeMessage request data.
  */
-void executeBrowse(UA_Client *client, EdgeMessage *msg);
-
-/**
- * @brief Register callback for browse response
- * @param[in]  callback response callback
- */
-void registerBrowseResponseCallback(response_cb_t callback);
+void browseView(UA_Client *client, EdgeMessage *msg);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif
+#endif // EDGE_BROWSE_VIEW_H

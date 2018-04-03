@@ -128,6 +128,13 @@ size_t get_size(int type, bool isArray);
  */
 char getCharacterNodeIdType(uint32_t type);
 
+/**
+ * @brief To display the given node id on console.
+ * @remarks Works only when the stack is built in debug mode.
+ * @param[in]  id Node Id to be logged.
+ */
+void logNodeId(UA_NodeId id);
+
 #ifdef __cplusplus
 }
 #endif

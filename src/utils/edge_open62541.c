@@ -720,3 +720,30 @@ char getCharacterNodeIdType(uint32_t type)
     }
     return nodeType;
 }
+
+void logNodeId(UA_NodeId id)
+{
+#if DEBUG
+    char *str = NULL;
+    switch (id.identifierType)
+    {
+        case UA_NODEIDTYPE_NUMERIC:
+            EDGE_LOG_V(TAG, "Numeric: %d\t", id.identifier.numeric);
+            break;
+        case UA_NODEIDTYPE_STRING:
+            str = convertUAStringToString(&id.identifier.string);
+            EDGE_LOG_V(TAG, "String: %s\t", str);
+            break;
+        case UA_NODEIDTYPE_BYTESTRING:
+            str = convertUAStringToString(&id.identifier.byteString);
+            EDGE_LOG_V(TAG, "Byte String: %s\t", str);
+            break;
+        case UA_NODEIDTYPE_GUID:
+            EDGE_LOG(TAG, "GUID\n");
+            break;
+    }
+    EdgeFree(str);
+#else
+    (void) id;
+#endif
+}
