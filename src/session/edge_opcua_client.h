@@ -73,10 +73,9 @@ void disconnect_client(EdgeEndPointInfo *epInfo);
  * @retval #STATUS_PARAM_INVALID Invalid parameter
  * @retval #STATUS_ERROR Operation failed
  */
-EdgeResult findServersInternal(const char *endpointUri, size_t serverUrisSize,
+EdgeResult client_findServers(const char *endpointUri, size_t serverUrisSize,
     unsigned char **serverUris, size_t localeIdsSize, unsigned char **localeIds,
     size_t *registeredServersSize, EdgeApplicationConfig **registeredServers);
-
 
 /**
  * @brief Gets the detailed end point information
@@ -86,7 +85,7 @@ EdgeResult findServersInternal(const char *endpointUri, size_t serverUrisSize,
  * @retval #STATUS_PARAM_INVALID Invalid parameter
  * @retval #STATUS_ERROR Operation failed
  */
-EdgeResult getClientEndpoints(char *endpointUri);
+EdgeResult client_getEndpoints(char *endpointUri);
 
 /**
  * @brief Send the read request data to server
