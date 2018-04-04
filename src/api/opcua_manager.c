@@ -152,14 +152,14 @@ EdgeResult getEndpointInfo(EdgeMessage *msg)
     }
 
     EDGE_LOG_V(TAG, "[Received command] :: Get endpoint info for [%s].\n", msg->endpointInfo->endpointUri);
-    return getClientEndpoints(msg->endpointInfo->endpointUri);
+    return client_getEndpoints(msg->endpointInfo->endpointUri);
 }
 
 EdgeResult findServers(const char *endpointUri, size_t serverUrisSize, unsigned char **serverUris,
         size_t localeIdsSize, unsigned char **localeIds, size_t *registeredServersSize,
         EdgeApplicationConfig **registeredServers)
 {
-    return findServersInternal(endpointUri, serverUrisSize, serverUris, localeIdsSize, localeIds,
+    return client_findServers(endpointUri, serverUrisSize, serverUris, localeIdsSize, localeIds,
             registeredServersSize, registeredServers);
 }
 

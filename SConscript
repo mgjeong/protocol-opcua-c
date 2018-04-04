@@ -88,6 +88,7 @@ env.AppendUnique(CPPPATH= [
 		srcPath + '/node',
 		srcPath + '/queue',
 		srcPath + '/session',
+		srcPath + '/session/discovery',
 		srcPath + '/utils'
 ])
 
@@ -125,8 +126,11 @@ src = [
 		buildDir + srcPath + '/queue/message_dispatcher.c',
 		buildDir + srcPath + '/session/edge_opcua_client.c',
 		buildDir + srcPath + '/session/edge_opcua_server.c',
-		buildDir + srcPath + '/utils/edge_malloc.c',	
-		buildDir + srcPath + '/utils/edge_utils.c',	
+		buildDir + srcPath + '/session/discovery/edge_discovery_common.c',
+		buildDir + srcPath + '/session/discovery/edge_find_servers.c',
+		buildDir + srcPath + '/session/discovery/edge_get_endpoints.c',
+		buildDir + srcPath + '/utils/edge_malloc.c',
+		buildDir + srcPath + '/utils/edge_utils.c',
 		buildDir + srcPath + '/utils/edge_random.c',
 		buildDir + srcPath + '/utils/edge_map.c',
 		buildDir + srcPath + '/utils/edge_list.c',
