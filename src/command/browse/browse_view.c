@@ -78,6 +78,7 @@ static EdgeMessage *prepareEdgeMessageForBrowseView(EdgeMessage *msg, List *view
     browseViewMsg->endpointInfo->endpointUri = cloneString(msg->endpointInfo->endpointUri);
     browseViewMsg->type = SEND_REQUESTS;
     browseViewMsg->command = CMD_BROWSE;
+    browseViewMsg->message_id = msg->message_id;
 
     size_t size = getListSize(viewNodeList);
 
