@@ -207,13 +207,13 @@ static void init()
     configure(config);
 }
 
-static void startServer()
+static void startServer(int port)
 {
     EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) EdgeCalloc(1,
             sizeof(EdgeEndpointConfig));
     VERIFY_NON_NULL_NR(endpointConfig);
     endpointConfig->bindAddress = ipAddress;
-    endpointConfig->bindPort = 12686;
+    endpointConfig->bindPort = port;
     endpointConfig->serverName = (char *) DEFAULT_SERVER_NAME_VALUE;
     //endpointConfig->requestTimeout = 60000;
 
@@ -1852,11 +1852,15 @@ int main()
                     "\n" COLOR_YELLOW " ------------------------------------------------------" COLOR_RESET
                     "\n\n");
 
+            int port;
+            printf("[input port] : ");
+            scanf("%d", &port);
+
             strncpy(ipAddress, DEFAULT_HOST_NAME, strlen(DEFAULT_HOST_NAME));
             ipAddress[strlen(DEFAULT_HOST_NAME)] = '\0';
 
-            snprintf(endpointUri, sizeof(endpointUri), "opc:tcp://%s:12686/edge-opc-server",
-                    ipAddress);
+            snprintf(endpointUri, sizeof(endpointUri), "opc:tcp://%s:%d/edge-opc-server",
+                    ipAddress, port);
 
             epInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
             if (IS_NOT_NULL(epInfo))
@@ -1864,7 +1868,7 @@ int main()
                 epInfo->endpointUri = endpointUri;
 
                 init();
-                startServer();
+                startServer(port);
 
                 print_menu();
             }
