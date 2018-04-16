@@ -55,27 +55,27 @@ extern "C"
 #define MAX_DISPLAYNAME_SIZE (1000)
 #define UNIQUE_NODE_PATH     "{%d;%c;v=%d}%1000[^\n]s"
 
-#define Boolean 1 // DataType
-#define SByte 2 // DataType
-#define Byte 3 // DataType
-#define Int16 4 // DataType
-#define UInt16 5 // DataType
-#define Int32 6 // DataType
-#define UInt32 7 // DataType
-#define Int64 8 // DataType
-#define UInt64 9 // DataType
-#define Float 10 // DataType
-#define Double 11 // DataType
-#define String 12 // DataType
-#define DateTime 13 // DataType
-#define Guid 14 // DataType
-#define ByteString 15 // DataType
-#define XmlElement 16 // DataType
-#define NodeId 17 // DataType
-#define ExpandedNodeId 18 // DataType
-#define StatusCode 19 // DataType
-#define QualifiedName 20 // DataType
-#define LocalizedText 21 // DataType
+#define EDGE_NODEID_BOOLEAN (1)
+#define EDGE_NODEID_SBYTE (2)
+#define EDGE_NODEID_BYTE (3)
+#define EDGE_NODEID_INT16 (4)
+#define EDGE_NODEID_UINT16 (5)
+#define EDGE_NODEID_INT32 (6)
+#define EDGE_NODEID_UINT32 (7)
+#define EDGE_NODEID_INT64 (8)
+#define EDGE_NODEID_UINT64 (9)
+#define EDGE_NODEID_FLOAT (10)
+#define EDGE_NODEID_DOUBLE (11)
+#define EDGE_NODEID_STRING (12)
+#define EDGE_NODEID_DATETIME (13)
+#define EDGE_NODEID_GUID (14)
+#define EDGE_NODEID_BYTESTRING (15)
+#define EDGE_NODEID_XMLELEMENT (16)
+#define EDGE_NODEID_NODEID (17)
+#define EDGE_NODEID_EXPANDEDNODEID (18)
+#define EDGE_NODEID_STATUSCODE (19)
+#define EDGE_NODEID_QUALIFIEDNAME (20)
+#define EDGE_NODEID_LOCALIZEDTEXT (21)
 
 #define EDGE_NODEID_STRUCTURE 22
 #define EDGE_NODEID_DATAVALUE 23

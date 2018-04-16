@@ -276,19 +276,19 @@ static void testCreateNodes()
     printf("\n[%d] Variable node with string variant\n", ++index);
 
     EdgeNodeItem* item = NULL;
-    item = createVariableNodeItem("String1", String, "test1", VARIABLE_NODE, 100);
+    item = createVariableNodeItem("String1", EDGE_NODEID_STRING, "test1", VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added]  %s\n", item->browseName);
     deleteNodeItem(item);
 
-    item = createVariableNodeItem("String2", String, "test2", VARIABLE_NODE, 100);
+    item = createVariableNodeItem("String2", EDGE_NODEID_STRING, "test2", VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
     deleteNodeItem(item);
 
-    item = createVariableNodeItem("String3", String, "test3", VARIABLE_NODE, 100);
+    item = createVariableNodeItem("String3", EDGE_NODEID_STRING, "test3", VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
@@ -301,7 +301,7 @@ static void testCreateNodes()
     {
         xml_value->length = 2;
         xml_value->data = (Edge_Byte *) "ab";
-        item = createVariableNodeItem("xml_value", XmlElement, (void *) xml_value, VARIABLE_NODE, 100);
+        item = createVariableNodeItem("xml_value", EDGE_NODEID_XMLELEMENT, (void *) xml_value, VARIABLE_NODE, 100);
         VERIFY_NON_NULL_NR(item);
         createNode(DEFAULT_NAMESPACE_VALUE, item);
         printf("\n|------------[Added] %s\n", item->browseName);
@@ -319,7 +319,7 @@ static void testCreateNodes()
     {
         lt_value->locale = EdgeStringAlloc("COUNTRY");
         lt_value->text = EdgeStringAlloc("INDIA");
-        item = createVariableNodeItem("LocalizedText", LocalizedText, (void *) lt_value,
+        item = createVariableNodeItem("LocalizedText", EDGE_NODEID_LOCALIZEDTEXT, (void *) lt_value,
                 VARIABLE_NODE, 100);
         VERIFY_NON_NULL_NR(item);
         createNode(DEFAULT_NAMESPACE_VALUE, item);
@@ -335,7 +335,7 @@ static void testCreateNodes()
     }
 
     printf("\n[%d] Variable node with byte string variant: \n", ++index);
-    item = createVariableNodeItem("ByteString", ByteString, (void *) "samsung", VARIABLE_NODE, 100);
+    item = createVariableNodeItem("ByteString", EDGE_NODEID_BYTESTRING, (void *) "samsung", VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
@@ -343,7 +343,7 @@ static void testCreateNodes()
 
     printf("\n[%d] Variable node with byte variant: \n", ++index);
     Edge_Byte b_value = 2;
-    item = createVariableNodeItem("Byte", Byte, (void *) &b_value, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("Byte", EDGE_NODEID_BYTE, (void *) &b_value, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
@@ -351,7 +351,7 @@ static void testCreateNodes()
 
     printf("\n[%d] Variable node with float variant: \n", ++index);
     float f_value = 4.4;
-    item = createVariableNodeItem("Float", Float, (void *) &f_value, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("Float", EDGE_NODEID_FLOAT, (void *) &f_value, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
@@ -359,7 +359,7 @@ static void testCreateNodes()
 
     printf("\n[%d] Variable node with int variant: \n", ++index);
     uint16_t uint16_val = 30;
-    item = createVariableNodeItem("UInt16", UInt16, (void *) &uint16_val, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("UInt16", EDGE_NODEID_UINT16, (void *) &uint16_val, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
@@ -367,7 +367,7 @@ static void testCreateNodes()
 
     printf("\n[%d] Variable node with UInt32 variant: \n", ++index);
     uint32_t uint32_val = 444;
-    item = createVariableNodeItem("UInt32", UInt32, (void *) &uint32_val, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("UInt32", EDGE_NODEID_UINT32, (void *) &uint32_val, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
@@ -375,7 +375,7 @@ static void testCreateNodes()
 
     printf("\n[%d] Variable node with UInt64 variant: \n", ++index);
     uint64_t uint64_val = 3445516;
-    item = createVariableNodeItem("UInt64", UInt64, (void *) &uint64_val, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("UInt64", EDGE_NODEID_UINT64, (void *) &uint64_val, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
@@ -383,7 +383,7 @@ static void testCreateNodes()
 
     printf("\n[%d] Variable node with Int16 variant: \n", ++index);
     int16_t int16_val = 4;
-    item = createVariableNodeItem("Int16", Int16, (void *) &int16_val, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("Int16", EDGE_NODEID_INT16, (void *) &int16_val, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
@@ -391,7 +391,7 @@ static void testCreateNodes()
 
     printf("\n[%d] Variable node with Int32 variant: \n", ++index);
     int32_t int32_val = 40;
-    item = createVariableNodeItem("Int32", Int32, (void *) &int32_val, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("Int32", EDGE_NODEID_INT32, (void *) &int32_val, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
@@ -399,7 +399,7 @@ static void testCreateNodes()
 
     printf("\n[%d] Variable node with Int64 variant: \n", ++index);
     int64_t int64_val = 32700;
-    item = createVariableNodeItem("Int64", Int64, (void *) &int64_val, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("Int64", EDGE_NODEID_INT64, (void *) &int64_val, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
@@ -407,7 +407,7 @@ static void testCreateNodes()
 
     printf("\n[%d] Variable node with UInt32 variant: \n", ++index);
     int32_val = 4456;
-    item = createVariableNodeItem("UInt32writeonly", UInt32, (void *) &int32_val, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("UInt32writeonly", EDGE_NODEID_UINT32, (void *) &int32_val, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     item->accessLevel = WRITE;
     item->userAccessLevel = WRITE;
@@ -417,7 +417,7 @@ static void testCreateNodes()
 
     printf("\n[%d] Variable node with UInt64 variant: \n", ++index);
     int64_val = 3270000;
-    item = createVariableNodeItem("UInt64readonly", UInt64, (void *) &int64_val, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("UInt64readonly", EDGE_NODEID_UINT64, (void *) &int64_val, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     item->userAccessLevel = READ;
     item->accessLevel = READ;
@@ -427,7 +427,7 @@ static void testCreateNodes()
 
     printf("\n[%d] Variable node with double variant: \n", ++index);
     double d_val = 50.4;
-    item = createVariableNodeItem("Double", Double, (void *) &d_val, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("Double", EDGE_NODEID_DOUBLE, (void *) &d_val, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
@@ -435,7 +435,7 @@ static void testCreateNodes()
 
     printf("\n[%d] Variable node with boolean variant: \n", ++index);
     bool flag = true;
-    item = createVariableNodeItem("Boolean", Boolean, (void *) &flag, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("Boolean", EDGE_NODEID_BOOLEAN, (void *) &flag, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
@@ -445,7 +445,7 @@ static void testCreateNodes()
     struct timeval tv;
     gettimeofday(&tv, NULL);
     Edge_DateTime time = (tv.tv_sec * DATETIME_SEC) + (tv.tv_usec * DATETIME_USEC) + DATETIME_UNIX_EPOCH;
-    item = createVariableNodeItem("DateTime", DateTime, (void *) &time, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("DateTime", EDGE_NODEID_DATETIME, (void *) &time, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s [Value: %" PRId64 "]\n", item->browseName, time);
@@ -453,7 +453,7 @@ static void testCreateNodes()
 
     printf("\n[%d] Variable node with SByte variant: \n", ++index);
     Edge_SByte sbyte = 2;
-    item = createVariableNodeItem("SByte", SByte, (void *) &sbyte, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("SByte", EDGE_NODEID_SBYTE, (void *) &sbyte, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
@@ -463,7 +463,7 @@ static void testCreateNodes()
     Edge_Guid guid =
     { 1, 0, 1,
     { 0, 0, 0, 0, 1, 1, 1, 1 } };
-    item = createVariableNodeItem("Guid", Guid, (void *) &guid, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("Guid", EDGE_NODEID_GUID, (void *) &guid, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
@@ -476,7 +476,7 @@ static void testCreateNodes()
         Edge_String str = EdgeStringAlloc("qualifiedName");
         qn_value->namespaceIndex = 2;
         qn_value->name = str;
-        item = createVariableNodeItem("QualifiedName", QualifiedName, (void *) qn_value,
+        item = createVariableNodeItem("QualifiedName", EDGE_NODEID_QUALIFIEDNAME, (void *) qn_value,
                 VARIABLE_NODE, 100);
         VERIFY_NON_NULL_NR(item);
         createNode(DEFAULT_NAMESPACE_VALUE, item);
@@ -496,7 +496,7 @@ static void testCreateNodes()
     node->identifierType = INTEGER;
     node->identifier.numeric = EDGE_NODEID_ROOTFOLDER;
 
-    item = createVariableNodeItem("NodeId", NodeId, node, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("NodeId", EDGE_NODEID_NODEID, node, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
@@ -526,7 +526,7 @@ static void testCreateNodes()
             dataArray[3][strlen("pqrst")] = '\0';
             strncpy(dataArray[4], "uvwxyz", strlen("uvwxyz"));
             dataArray[4][strlen("uvwxyz")] = '\0';
-            item = createVariableNodeItem("ByteStringArray", ByteString, (void *) dataArray,
+            item = createVariableNodeItem("ByteStringArray", EDGE_NODEID_BYTESTRING, (void *) dataArray,
                     VARIABLE_NODE, 100);
             VERIFY_NON_NULL_NR(item);
             item->nodeType = ARRAY_NODE;
@@ -561,7 +561,7 @@ static void testCreateNodes()
         arr[2] = true;
         arr[3] = false;
         arr[4] = true;
-        item = createVariableNodeItem("BoolArray", Boolean, (void *) arr, VARIABLE_NODE, 100);
+        item = createVariableNodeItem("BoolArray", EDGE_NODEID_BOOLEAN, (void *) arr, VARIABLE_NODE, 100);
         VERIFY_NON_NULL_NR(item);
         item->nodeType = ARRAY_NODE;
         item->arrayLength = 5;
@@ -584,7 +584,7 @@ static void testCreateNodes()
         sbData[2] = 120;
         sbData[3] = 122;
         sbData[4] = 127;
-        item = createVariableNodeItem("SByteArray", SByte, (void *) sbData, VARIABLE_NODE, 100);
+        item = createVariableNodeItem("SByteArray", EDGE_NODEID_SBYTE, (void *) sbData, VARIABLE_NODE, 100);
         VERIFY_NON_NULL_NR(item);
         item->nodeType = ARRAY_NODE;
         item->arrayLength = 5;
@@ -609,7 +609,7 @@ static void testCreateNodes()
         intData[4] = 55;
         intData[5] = 66;
         intData[6] = 77;
-        item = createVariableNodeItem("int32Array", Int32, (void *) intData, VARIABLE_NODE, 100);
+        item = createVariableNodeItem("int32Array", EDGE_NODEID_INT32, (void *) intData, VARIABLE_NODE, 100);
         VERIFY_NON_NULL_NR(item);
         item->nodeType = ARRAY_NODE;
         item->arrayLength = 7;
@@ -632,7 +632,7 @@ static void testCreateNodes()
         int64Data[2] = 33333;
         int64Data[3] = 44444;
         int64Data[4] = 55555;
-        item = createVariableNodeItem("int64Array", Int64, (void *) int64Data, VARIABLE_NODE, 100);
+        item = createVariableNodeItem("int64Array", EDGE_NODEID_INT64, (void *) int64Data, VARIABLE_NODE, 100);
         VERIFY_NON_NULL_NR(item);
         item->nodeType = ARRAY_NODE;
         item->arrayLength = 5;
@@ -648,7 +648,7 @@ static void testCreateNodes()
 
     printf("\n[%d] Array node with UInt16 values: \n", ++index);
     uint16_t uInt16Arr[] = {0, 100, 10000, 50000, 65535};
-    item = createVariableNodeItem("UInt16Array", UInt16, (void *) uInt16Arr, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("UInt16Array", EDGE_NODEID_UINT16, (void *) uInt16Arr, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     item->nodeType = ARRAY_NODE;
     item->arrayLength = 5;
@@ -658,7 +658,7 @@ static void testCreateNodes()
 
     printf("\n[%d] Array node with Int16 values: \n", ++index);
     int16_t int16Arr[] = {-32768, -10000, 0, 10000, 32767};
-    item = createVariableNodeItem("Int16Array", Int16, (void *) int16Arr, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("Int16Array", EDGE_NODEID_INT16, (void *) int16Arr, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     item->nodeType = ARRAY_NODE;
     item->arrayLength = 5;
@@ -668,7 +668,7 @@ static void testCreateNodes()
 
     printf("\n[%d] Array node with UInt32 values: \n", ++index);
     uint32_t uInt32Arr[] = {0, 100, 10000, 1000000, 100000000};
-    item = createVariableNodeItem("UInt32Array", UInt32, (void *) uInt32Arr, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("UInt32Array", EDGE_NODEID_UINT32, (void *) uInt32Arr, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     item->nodeType = ARRAY_NODE;
     item->arrayLength = 5;
@@ -678,7 +678,7 @@ static void testCreateNodes()
 
     printf("\n[%d] Array node with UInt64 values: \n", ++index);
     uint64_t uInt64Arr[] = {0, 10000, 1000000, 100000000, 10000000000};
-    item = createVariableNodeItem("UInt64Array", UInt64, (void *) uInt64Arr, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("UInt64Array", EDGE_NODEID_UINT64, (void *) uInt64Arr, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     item->nodeType = ARRAY_NODE;
     item->arrayLength = 5;
@@ -688,7 +688,7 @@ static void testCreateNodes()
 
     printf("\n[%d] Array node with float values: \n", ++index);
     float floatArr[] = {-111.11, 0, 111.11, 222.22, 333.33};
-    item = createVariableNodeItem("FloatArray", Float, (void *) floatArr, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("FloatArray", EDGE_NODEID_FLOAT, (void *) floatArr, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     item->nodeType = ARRAY_NODE;
     item->arrayLength = 5;
@@ -705,7 +705,7 @@ static void testCreateNodes()
         data[2] = 30.2;
         data[3] = 40.2;
         data[4] = 50.2;
-        item = createVariableNodeItem("DoubleArray", Double, (void *) data, VARIABLE_NODE, 100);
+        item = createVariableNodeItem("DoubleArray", EDGE_NODEID_DOUBLE, (void *) data, VARIABLE_NODE, 100);
         VERIFY_NON_NULL_NR(item);
         item->nodeType = ARRAY_NODE;
         item->arrayLength = 5;
@@ -743,7 +743,7 @@ static void testCreateNodes()
             strncpy(data1[4], "elephant", strlen("elephant"));
             data1[4][strlen("elephant")] = '\0';
 
-            item = createVariableNodeItem("CharArray", String, (void *) data1, VARIABLE_NODE, 100);
+            item = createVariableNodeItem("CharArray", EDGE_NODEID_STRING, (void *) data1, VARIABLE_NODE, 100);
             VERIFY_NON_NULL_NR(item);
             item->nodeType = ARRAY_NODE;
             item->arrayLength = 5;
@@ -776,7 +776,7 @@ static void testCreateNodes()
         b_arrvalue[2] = 0x33;
         b_arrvalue[3] = 0x44;
         b_arrvalue[4] = 0x55;
-        item = createVariableNodeItem("ByteArray", Byte, (void *) b_arrvalue, VARIABLE_NODE, 100);
+        item = createVariableNodeItem("ByteArray", EDGE_NODEID_BYTE, (void *) b_arrvalue, VARIABLE_NODE, 100);
         VERIFY_NON_NULL_NR(item);
         item->arrayLength = 5;
         item->nodeType = ARRAY_NODE;
@@ -798,7 +798,7 @@ static void testCreateNodes()
         { 4, 4, 4, { 0, 4, 4, 4, 4, 0, 0, 0 } },
         { 0, 0, 5, { 5, 0, 0, 5, 0, 0, 5, 0 } }
     };
-    item = createVariableNodeItem("GuidArray", Guid, (void *) guidArr, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("GuidArray", EDGE_NODEID_GUID, (void *) guidArr, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     item->nodeType = ARRAY_NODE;
     item->arrayLength = 5;
@@ -815,7 +815,7 @@ static void testCreateNodes()
         time_now/2,
         time_now+10
     };
-    item = createVariableNodeItem("DateTimeArray", DateTime, (void *) timeArr, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("DateTimeArray", EDGE_NODEID_DATETIME, (void *) timeArr, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     item->nodeType = ARRAY_NODE;
     item->arrayLength = 5;
@@ -832,7 +832,7 @@ static void testCreateNodes()
         {2, (uint8_t *)"cd"},
         {3, (uint8_t *)"xyz"}
     };
-    item = createVariableNodeItem("XmlElementArray", XmlElement, (void *) xmlValueArr, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("XmlElementArray", EDGE_NODEID_XMLELEMENT, (void *) xmlValueArr, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     item->nodeType = ARRAY_NODE;
     item->arrayLength = 6;
@@ -856,7 +856,7 @@ static void testCreateNodes()
             nodeArr[index].identifier.string = EdgeStringAlloc("StringNodeId");
         }
     }
-    item = createVariableNodeItem("NodeIdArray", NodeId, nodeArr, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("NodeIdArray", EDGE_NODEID_NODEID, nodeArr, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     item->nodeType = ARRAY_NODE;
     item->arrayLength = 5;
@@ -872,7 +872,7 @@ static void testCreateNodes()
         {2, {7, (uint8_t *)"qn10000"} },
         {2, {7, (uint8_t *)"qn50000"} }
     };
-    item = createVariableNodeItem("QualifiedNameArray", QualifiedName, (void *) qnValueArr,
+    item = createVariableNodeItem("QualifiedNameArray", EDGE_NODEID_QUALIFIEDNAME, (void *) qnValueArr,
             VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     item->nodeType = ARRAY_NODE;
@@ -891,7 +891,7 @@ static void testCreateNodes()
         { {7, (uint8_t *)"localeF"}, {5, (uint8_t *)"textF"} },
         { {7, (uint8_t *)"localeG"}, {5, (uint8_t *)"textG"} }
     };
-    item = createVariableNodeItem("LocalizedTextArray", LocalizedText, (void *) ltValueArr,
+    item = createVariableNodeItem("LocalizedTextArray", EDGE_NODEID_LOCALIZEDTEXT, (void *) ltValueArr,
             VARIABLE_NODE, 100);
     item->nodeType = ARRAY_NODE;
     item->arrayLength = 7;
@@ -1061,7 +1061,7 @@ static void testCreateNodes()
     printf(COLOR_GREEN"\n[Create Variable Type Node]\n"COLOR_RESET);
     printf("\n[%d] Variable Type Node with Double Variable Type \n", ++index);
     double d[2] = { 10.2, 20.2 };
-    item = createVariableNodeItem("DoubleVariableType", Double, (void *) d, VARIABLE_TYPE_NODE, 100);
+    item = createVariableNodeItem("DoubleVariableType", EDGE_NODEID_DOUBLE, (void *) d, VARIABLE_TYPE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     item->arrayLength = 2;
     createNode(DEFAULT_NAMESPACE_VALUE, item);
@@ -1183,7 +1183,7 @@ static void testCreateNodes()
                     idx);
             return;
         }
-        method->inpArg[idx]->argType = Double;
+        method->inpArg[idx]->argType = EDGE_NODEID_DOUBLE;
         method->inpArg[idx]->valType = SCALAR;
     }
 
@@ -1227,7 +1227,7 @@ static void testCreateNodes()
                     idx);
             return;
         }
-        method->outArg[idx]->argType = Double;
+        method->outArg[idx]->argType = EDGE_NODEID_DOUBLE;
         method->outArg[idx]->valType = SCALAR;
     }
     createMethodNode(DEFAULT_NAMESPACE_VALUE, methodNodeItem, method);
@@ -1270,7 +1270,7 @@ static void testCreateNodes()
         printf("Error :: EdgeMalloc failed for method method1->inpArg[0]  in Test create Nodes\n");
         return;
     }
-    method1->inpArg[0]->argType = Int32;
+    method1->inpArg[0]->argType = EDGE_NODEID_INT32;
     method1->inpArg[0]->valType = ARRAY_1D;
     method1->inpArg[0]->arrayLength = 5;
 
@@ -1284,7 +1284,7 @@ static void testCreateNodes()
         printf("Error :: EdgeMalloc failed for method method1->inpArg[1]  in Test create Nodes\n");
         return;
     }
-    method1->inpArg[1]->argType = Int32;
+    method1->inpArg[1]->argType = EDGE_NODEID_INT32;
     method1->inpArg[1]->valType = SCALAR;
 
     method1->num_outArgs = 1;
@@ -1322,7 +1322,7 @@ static void testCreateNodes()
                     idx);
             return;
         }
-        method1->outArg[idx]->argType = Int32;
+        method1->outArg[idx]->argType = EDGE_NODEID_INT32;
         method1->outArg[idx]->valType = ARRAY_1D;
         method1->outArg[idx]->arrayLength = 5;
     }
@@ -1392,7 +1392,7 @@ static void testCreateNodes()
         printf("Error :: EdgeMalloc failed for method method3->inpArg[0]  in Test create Nodes\n");
         return;
     }
-    method3->inpArg[0]->argType = Int32;
+    method3->inpArg[0]->argType = EDGE_NODEID_INT32;
     method3->inpArg[0]->valType = SCALAR;
 
     method3->num_outArgs = 0;
@@ -1440,7 +1440,7 @@ static void testCreateNodes()
         printf("Error :: EdgeMalloc failed for method method4->outArg[0]  in Test create Nodes\n");
         return;
     }
-    method4->outArg[0]->argType = String;
+    method4->outArg[0]->argType = EDGE_NODEID_STRING;
     method4->outArg[0]->valType = SCALAR;
 
     createMethodNode(DEFAULT_NAMESPACE_VALUE, methodNodeItem4, method4);
@@ -1448,13 +1448,13 @@ static void testCreateNodes()
     EdgeFree(methodNodeItem4);
 
     /******************* Robot Scenario Demo *********************/
-    item = createVariableNodeItem("robot_name", String, "GTC-Robot-1", VARIABLE_NODE, 100);
+    item = createVariableNodeItem("robot_name", EDGE_NODEID_STRING, "GTC-Robot-1", VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
     deleteNodeItem(item);
 
-    item = createVariableNodeItem("robot_id", String, "A31FR-23214-ASFF", VARIABLE_NODE, 100);
+    item = createVariableNodeItem("robot_id", EDGE_NODEID_STRING, "A31FR-23214-ASFF", VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
@@ -1466,7 +1466,7 @@ static void testCreateNodes()
         posArray[0] = 123;
         posArray[1] = 34;
         posArray[2] = 20;
-        item = createVariableNodeItem("robot_position", Int32, (void *) posArray, VARIABLE_NODE, 100);
+        item = createVariableNodeItem("robot_position", EDGE_NODEID_INT32, (void *) posArray, VARIABLE_NODE, 100);
         VERIFY_NON_NULL_NR(item);
         item->nodeType = ARRAY_NODE;
         item->arrayLength = 3;

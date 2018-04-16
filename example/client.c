@@ -98,7 +98,7 @@ static void showNodeId(Edge_NodeId *id)
             printf("String: %s\n", (char *) id->identifier.string.data);
             break;
         case BYTESTRING:
-            printf("Byte String: %s\n", (char *) id->identifier.byteString.data);
+            printf("ByteString: %s\n", (char *) id->identifier.byteString.data);
             break;
         case UUID:
             {
@@ -134,7 +134,7 @@ static void response_msg_cb (EdgeMessage *data)
                     {
                         // Handle Output array
                         int arrayLen = data->responses[idx]->message->arrayLength;
-                        if (data->responses[idx]->type == Boolean)
+                        if (data->responses[idx]->type == EDGE_NODEID_BOOLEAN)
                         {
                             /* Handle Boolean output array */
                             for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
@@ -142,23 +142,23 @@ static void response_msg_cb (EdgeMessage *data)
                                 printf("%d  ", ((bool *) data->responses[idx]->message->value)[arrayIdx]);
                             }
                         }
-                        else if (data->responses[idx]->type == Byte)
+                        else if (data->responses[idx]->type == EDGE_NODEID_BYTE)
                         {
-                            /* Handle Byte output array */
+                            /* Handle EDGE_NODEID_BYTE output array */
                             for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                             {
                                 printf("%" PRIu8 " ", ((uint8_t *) data->responses[idx]->message->value)[arrayIdx]);
                             }
                         }
-                        else if (data->responses[idx]->type == SByte)
+                        else if (data->responses[idx]->type == EDGE_NODEID_SBYTE)
                         {
-                            /* Handle SByte output array */
+                            /* Handle SEDGE_NODEID_BYTE output array */
                             for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                             {
                                 printf("%" PRId8 " ", ((int8_t *) data->responses[idx]->message->value)[arrayIdx]);
                             }
                         }
-                        else if (data->responses[idx]->type == Int16)
+                        else if (data->responses[idx]->type == EDGE_NODEID_INT16)
                         {
                             /* Handle int16 output array */
                             for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
@@ -166,64 +166,66 @@ static void response_msg_cb (EdgeMessage *data)
                                 printf("%" PRId16 "  ", ((int16_t *) data->responses[idx]->message->value)[arrayIdx]);
                             }
                         }
-                        else if (data->responses[idx]->type == UInt16)
+                        else if (data->responses[idx]->type == EDGE_NODEID_UINT16)
                         {
-                            /* Handle UInt16 output array */
+                            /* Handle UEDGE_NODEID_INT16 output array */
                             for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                             {
                                 printf("%" PRIu16 "  ", ((uint16_t *) data->responses[idx]->message->value)[arrayIdx]);
                             }
                         }
-                        else if (data->responses[idx]->type == Int32)
+                        else if (data->responses[idx]->type == EDGE_NODEID_INT32)
                         {
-                            /* Handle Int32 output array */
+                            /* Handle EDGE_NODEID_INT32 output array */
                             for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                             {
                                 printf("%d  ", ((int32_t *) data->responses[idx]->message->value)[arrayIdx]);
                             }
                         }
-                        else if (data->responses[idx]->type == UInt32)
+                        else if (data->responses[idx]->type == EDGE_NODEID_UINT32)
                         {
-                            /* Handle UInt32 output array */
+                            /* Handle UEDGE_NODEID_INT32 output array */
                             for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                             {
                                 printf("%u  ", ((uint *) data->responses[idx]->message->value)[arrayIdx]);
                             }
                         }
-                        else if (data->responses[idx]->type == Int64)
+                        else if (data->responses[idx]->type == EDGE_NODEID_INT64)
                         {
-                            /* Handle Int64 output array */
+                            /* Handle EDGE_NODEID_INT64 output array */
                             for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                             {
                                 printf("%ld  ", ((long int *) data->responses[idx]->message->value)[arrayIdx]);
                             }
                         }
-                        else if (data->responses[idx]->type == UInt64)
+                        else if (data->responses[idx]->type == EDGE_NODEID_UINT64)
                         {
-                            /* Handle UInt64 output array */
+                            /* Handle UEDGE_NODEID_INT64 output array */
                             for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                             {
                                 printf("%lu  ", ((ulong *) data->responses[idx]->message->value)[arrayIdx]);
                             }
                         }
-                        else if (data->responses[idx]->type == Float)
+                        else if (data->responses[idx]->type == EDGE_NODEID_FLOAT)
                         {
-                            /* Handle Float output array */
+                            /* Handle EDGE_NODEID_FLOAT output array */
                             for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                             {
                                 printf("%g  ", ((float *) data->responses[idx]->message->value)[arrayIdx]);
                             }
                         }
-                        else if (data->responses[idx]->type == Double)
+                        else if (data->responses[idx]->type == EDGE_NODEID_DOUBLE)
                         {
-                            /* Handle Double output array */
+                            /* Handle EDGE_NODEID_DOUBLE output array */
                             for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                             {
                                 printf("%g  ", ((double *) data->responses[idx]->message->value)[arrayIdx]);
                             }
                         }
-                        else if (data->responses[idx]->type == String || data->responses[idx]->type == ByteString
-                                 || data->responses[idx]->type == Guid || data->responses[idx]->type == XmlElement)
+                        else if (data->responses[idx]->type == EDGE_NODEID_STRING
+                                || data->responses[idx]->type == EDGE_NODEID_BYTESTRING
+                                 || data->responses[idx]->type == EDGE_NODEID_GUID
+                                 || data->responses[idx]->type == EDGE_NODEID_XMLELEMENT)
                         {
                             /* Handle String/ByteString/Guid/XmlElement output array */
                             char **values = ((char **) data->responses[idx]->message->value);
@@ -232,7 +234,7 @@ static void response_msg_cb (EdgeMessage *data)
                                 printf("%s  ", values[arrayIdx]);
                             }
                         }
-                        else if (data->responses[idx]->type == DateTime)
+                        else if (data->responses[idx]->type == EDGE_NODEID_DATETIME)
                         {
                             /* Handle DateTime output array */
                             for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
@@ -241,7 +243,7 @@ static void response_msg_cb (EdgeMessage *data)
                                 printf("%" PRId64 "  ", value);
                             }
                         }
-                        else if (data->responses[idx]->type == NodeId)
+                        else if (data->responses[idx]->type == EDGE_NODEID_NODEID)
                         {
                             /* Handle NodeId output array */
                             printf("NodeId output array length :: %d\n", arrayLen);
@@ -249,7 +251,7 @@ static void response_msg_cb (EdgeMessage *data)
                             for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                                 showNodeId(nodeId[arrayIdx]);
                         }
-                        else if (data->responses[idx]->type == QualifiedName)
+                        else if (data->responses[idx]->type == EDGE_NODEID_QUALIFIEDNAME)
                         {
                             /* Handle QualifiedName output array */
                             printf("QualifiedName output array length :: %d\n", arrayLen);
@@ -257,7 +259,7 @@ static void response_msg_cb (EdgeMessage *data)
                             for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                                 printf("[NameSpace Index: %" PRIu16 ", Name: %s]\n", qn[arrayIdx]->namespaceIndex, qn[arrayIdx]->name.data);
                         }
-                        else if (data->responses[idx]->type == LocalizedText)
+                        else if (data->responses[idx]->type == EDGE_NODEID_LOCALIZEDTEXT)
                         {
                             /* Handle LocalizedText output array */
                             printf("LocalizedText output array length :: %d\n", arrayLen);
@@ -269,60 +271,61 @@ static void response_msg_cb (EdgeMessage *data)
                     }
                     else
                     {
-                        if (data->responses[idx]->type == Boolean)
+                        if (data->responses[idx]->type == EDGE_NODEID_BOOLEAN)
                             printf("[%d]\n",
                                    *((bool *)data->responses[idx]->message->value));
-                        else if (data->responses[idx]->type == Byte)
+                        else if (data->responses[idx]->type == EDGE_NODEID_BYTE)
                             printf("[%" PRIu8 "]\n",
                                    *((uint8_t *)data->responses[idx]->message->value));
-                        else if (data->responses[idx]->type == SByte)
+                        else if (data->responses[idx]->type == EDGE_NODEID_SBYTE)
                             printf("[%" PRId8 "]\n",
                                    *((int8_t *)data->responses[idx]->message->value));
-                        else if (data->responses[idx]->type == ByteString)
+                        else if (data->responses[idx]->type == EDGE_NODEID_BYTESTRING)
                             printf("[%s]\n",
                                    (char *)data->responses[idx]->message->value);
-                        else if (data->responses[idx]->type == DateTime)
+                        else if (data->responses[idx]->type == EDGE_NODEID_DATETIME)
                             printf("[%" PRId64 "]\n",
                                    *((int64_t *)data->responses[idx]->message->value));
-                        else if (data->responses[idx]->type == Double)
+                        else if (data->responses[idx]->type == EDGE_NODEID_DOUBLE)
                             printf(" [%g]\n",
                                    *((double *)data->responses[idx]->message->value));
-                        else if (data->responses[idx]->type == Float)
+                        else if (data->responses[idx]->type == EDGE_NODEID_FLOAT)
                             printf("[%g]\n",
                                    *((float *)data->responses[idx]->message->value));
-                        else if (data->responses[idx]->type == Int16)
+                        else if (data->responses[idx]->type == EDGE_NODEID_INT16)
                             printf("[%" PRId16 "]\n",
                                    *((int16_t *)data->responses[idx]->message->value));
-                        else if (data->responses[idx]->type == UInt16)
+                        else if (data->responses[idx]->type == EDGE_NODEID_UINT16)
                             printf("[%" PRIu16 "]\n",
                                    *((uint16_t *)data->responses[idx]->message->value));
-                        else if (data->responses[idx]->type == Int32)
+                        else if (data->responses[idx]->type == EDGE_NODEID_INT32)
                             printf("[%" PRId32 "]\n",
                                    *((int32_t *)data->responses[idx]->message->value));
-                        else if (data->responses[idx]->type == UInt32)
+                        else if (data->responses[idx]->type == EDGE_NODEID_UINT32)
                             printf("[%" PRIu32 "]\n",
                                    *((uint32_t *)data->responses[idx]->message->value));
-                        else if (data->responses[idx]->type == Int64)
+                        else if (data->responses[idx]->type == EDGE_NODEID_INT64)
                             printf("[%" PRId64 "]\n",
                                    *((int64_t *)data->responses[idx]->message->value));
-                        else if (data->responses[idx]->type == UInt64)
+                        else if (data->responses[idx]->type == EDGE_NODEID_UINT64)
                             printf("[%" PRIu64 "]\n",
                                    *((uint64_t *)data->responses[idx]->message->value));
-                        else if (data->responses[idx]->type == String || data->responses[idx]->type == XmlElement
-                                || data->responses[idx]->type == Guid)
+                        else if (data->responses[idx]->type == EDGE_NODEID_STRING
+                                || data->responses[idx]->type == EDGE_NODEID_XMLELEMENT
+                                || data->responses[idx]->type == EDGE_NODEID_GUID)
                             printf("[%s]\n",
                                    (char *)data->responses[idx]->message->value);
-                        else if (data->responses[idx]->type == LocalizedText)
+                        else if (data->responses[idx]->type == EDGE_NODEID_LOCALIZEDTEXT)
                         {
                             Edge_LocalizedText *lt = (Edge_LocalizedText *) data->responses[idx]->message->value;
                             printf("[Locale: %s, Text: %s]\n", (uint8_t*)lt->locale.data, (uint8_t*)lt->text.data);
                         }
-                        else if (data->responses[idx]->type == QualifiedName)
+                        else if (data->responses[idx]->type == EDGE_NODEID_QUALIFIEDNAME)
                         {
                             Edge_QualifiedName *lt = (Edge_QualifiedName *) data->responses[idx]->message->value;
                             printf("[NameSpace Index: %" PRIu16 ", Name: %s]\n", lt->namespaceIndex, lt->name.data);
                         }
-                        else if (data->responses[idx]->type == NodeId)
+                        else if (data->responses[idx]->type == EDGE_NODEID_NODEID)
                         {
                             Edge_NodeId *nodeId = (Edge_NodeId *) data->responses[idx]->message->value;
                             showNodeId(nodeId);
@@ -377,7 +380,7 @@ static void monitored_msg_cb (EdgeMessage *data)
             {
                 // Handle Output array
                 int arrayLen = data->responses[idx]->message->arrayLength;
-                if (data->responses[idx]->type == Boolean)
+                if (data->responses[idx]->type == EDGE_NODEID_BOOLEAN)
                 {
                     /* Handle Boolean output array */
                     for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
@@ -385,23 +388,23 @@ static void monitored_msg_cb (EdgeMessage *data)
                         printf("%d  ", ((bool *) data->responses[idx]->message->value)[arrayIdx]);
                     }
                 }
-                else if (data->responses[idx]->type == Byte)
+                else if (data->responses[idx]->type == EDGE_NODEID_BYTE)
                 {
-                    /* Handle Byte output array */
+                    /* Handle EDGE_NODEID_BYTE output array */
                     for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                     {
                         printf("%" PRIu8 " ", ((uint8_t *) data->responses[idx]->message->value)[arrayIdx]);
                     }
                 }
-                else if (data->responses[idx]->type == SByte)
+                else if (data->responses[idx]->type == EDGE_NODEID_BYTE)
                 {
-                    /* Handle SByte output array */
+                    /* Handle SEDGE_NODEID_BYTE output array */
                     for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                     {
                         printf("%" PRId8 " ", ((int8_t *) data->responses[idx]->message->value)[arrayIdx]);
                     }
                 }
-                else if (data->responses[idx]->type == Int16)
+                else if (data->responses[idx]->type == EDGE_NODEID_INT16)
                 {
                     /* Handle int16 output array */
                     for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
@@ -409,64 +412,65 @@ static void monitored_msg_cb (EdgeMessage *data)
                         printf("%" PRId16 "  ", ((int16_t *) data->responses[idx]->message->value)[arrayIdx]);
                     }
                 }
-                else if (data->responses[idx]->type == UInt16)
+                else if (data->responses[idx]->type == EDGE_NODEID_INT16)
                 {
-                    /* Handle UInt16 output array */
+                    /* Handle UEDGE_NODEID_INT16 output array */
                     for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                     {
                         printf("%" PRIu16 "  ", ((uint16_t *) data->responses[idx]->message->value)[arrayIdx]);
                     }
                 }
-                else if (data->responses[idx]->type == Int32)
+                else if (data->responses[idx]->type == EDGE_NODEID_INT32)
                 {
-                    /* Handle Int32 output array */
+                    /* Handle EDGE_NODEID_INT32 output array */
                     for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                     {
                         printf("%d  ", ((int32_t *) data->responses[idx]->message->value)[arrayIdx]);
                     }
                 }
-                else if (data->responses[idx]->type == UInt32)
+                else if (data->responses[idx]->type == EDGE_NODEID_INT32)
                 {
-                    /* Handle UInt32 output array */
+                    /* Handle UEDGE_NODEID_INT32 output array */
                     for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                     {
                         printf("%u  ", ((uint *) data->responses[idx]->message->value)[arrayIdx]);
                     }
                 }
-                else if (data->responses[idx]->type == Int64)
+                else if (data->responses[idx]->type == EDGE_NODEID_INT64)
                 {
-                    /* Handle Int64 output array */
+                    /* Handle EDGE_NODEID_INT64 output array */
                     for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                     {
                         printf("%ld  ", ((long int *) data->responses[idx]->message->value)[arrayIdx]);
                     }
                 }
-                else if (data->responses[idx]->type == UInt64)
+                else if (data->responses[idx]->type == EDGE_NODEID_INT64)
                 {
-                    /* Handle UInt64 output array */
+                    /* Handle UEDGE_NODEID_INT64 output array */
                     for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                     {
                         printf("%lu  ", ((ulong *) data->responses[idx]->message->value)[arrayIdx]);
                     }
                 }
-                else if (data->responses[idx]->type == Float)
+                else if (data->responses[idx]->type == EDGE_NODEID_FLOAT)
                 {
-                    /* Handle Float output array */
+                    /* Handle EDGE_NODEID_FLOAT output array */
                     for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                     {
                         printf("%g  ", ((float *) data->responses[idx]->message->value)[arrayIdx]);
                     }
                 }
-                else if (data->responses[idx]->type == Double)
+                else if (data->responses[idx]->type == EDGE_NODEID_DOUBLE)
                 {
-                    /* Handle Double output array */
+                    /* Handle EDGE_NODEID_DOUBLE output array */
                     for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                     {
                         printf("%g  ", ((double *) data->responses[idx]->message->value)[arrayIdx]);
                     }
                 }
-                else if (data->responses[idx]->type == String || data->responses[idx]->type == ByteString
-                         || data->responses[idx]->type == Guid)
+                else if (data->responses[idx]->type == EDGE_NODEID_STRING
+                        || data->responses[idx]->type == EDGE_NODEID_BYTE
+                         || data->responses[idx]->type == EDGE_NODEID_GUID)
                 {
                     /* Handle String/ByteString/Guid output array */
                     char **values = ((char **) data->responses[idx]->message->value);
@@ -475,7 +479,7 @@ static void monitored_msg_cb (EdgeMessage *data)
                         printf("%s  ", values[arrayIdx]);
                     }
                 }
-                else if (data->responses[idx]->type == DateTime)
+                else if (data->responses[idx]->type == EDGE_NODEID_DATETIME)
                 {
                     /* Handle DateTime output array */
                     for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
@@ -487,37 +491,37 @@ static void monitored_msg_cb (EdgeMessage *data)
             }
             else
             {
-                if (data->responses[idx]->type == Int16)
+                if (data->responses[idx]->type == EDGE_NODEID_INT16)
                     printf("[%d]\n",
                            *((int *)data->responses[idx]->message->value));
-                else if (data->responses[idx]->type == Byte)
+                else if (data->responses[idx]->type == EDGE_NODEID_BYTE)
                     printf("[%d]\n",
                            *((uint8_t *)data->responses[idx]->message->value));
-                else if (data->responses[idx]->type == ByteString)
+                else if (data->responses[idx]->type == EDGE_NODEID_BYTESTRING)
                     printf("[%s]\n",
                            (char *)data->responses[idx]->message->value);
-                else if (data->responses[idx]->type == UInt16)
+                else if (data->responses[idx]->type == EDGE_NODEID_UINT16)
                     printf("[%d]\n",
                            *((int *)data->responses[idx]->message->value));
-                else if (data->responses[idx]->type == Int32)
+                else if (data->responses[idx]->type == EDGE_NODEID_INT32)
                     printf("[%d]\n",
                            *((int *)data->responses[idx]->message->value));
-                else if (data->responses[idx]->type == UInt32)
+                else if (data->responses[idx]->type == EDGE_NODEID_UINT32)
                     printf("[%d]\n",
                            *((int *)data->responses[idx]->message->value));
-                else if (data->responses[idx]->type == Int64)
+                else if (data->responses[idx]->type == EDGE_NODEID_INT64)
                     printf("[%ld]\n",
                            *((long *)data->responses[idx]->message->value));
-                else if (data->responses[idx]->type == UInt64)
+                else if (data->responses[idx]->type == EDGE_NODEID_UINT64)
                     printf("[%ld]\n",
                            *((long *)data->responses[idx]->message->value));
-                else if (data->responses[idx]->type == Float)
+                else if (data->responses[idx]->type == EDGE_NODEID_FLOAT)
                     printf("[%f]\n",
                            *((float *)data->responses[idx]->message->value));
-                else if (data->responses[idx]->type == Double)
+                else if (data->responses[idx]->type == EDGE_NODEID_DOUBLE)
                     printf("[%f]\n",
                            *((double *)data->responses[idx]->message->value));
-                else if (data->responses[idx]->type == String)
+                else if (data->responses[idx]->type == EDGE_NODEID_STRING)
                     printf("[%s]\n",
                            ((char *)data->responses[idx]->message->value));
             }
@@ -1340,7 +1344,7 @@ static void testMethod()
         return;
     }
     double input = 16.0;
-    EdgeResult ret = insertEdgeMethodParameter(&msg, "{2;S;v=0}sqrt(x)", 1, Double, SCALAR, (void *) &input, NULL, 0);
+    EdgeResult ret = insertEdgeMethodParameter(&msg, "{2;S;v=0}sqrt(x)", 1, EDGE_NODEID_DOUBLE, SCALAR, (void *) &input, NULL, 0);
     if (ret.code != STATUS_OK) {
         printf("Error : insertEdgeMethodParameter has failed\n");
         goto EXIT_METHOD;
@@ -1363,14 +1367,14 @@ static void testMethod()
 
     int32_t array[5] = {10, 20, 30, 40, 50};
     ret = insertEdgeMethodParameter(&msg, "{2;S;v=0}incrementInc32Array(x,delta)", 2,
-            Int32, ARRAY_1D, NULL, (void *) array, 5);
+            EDGE_NODEID_INT32, ARRAY_1D, NULL, (void *) array, 5);
     if (ret.code != STATUS_OK) {
         printf("Error : insertEdgeMethodParameter has failed\n");
         goto EXIT_METHOD1;
     }
     int delta = 5;
     ret = insertEdgeMethodParameter(&msg, "{2;S;v=0}incrementInc32Array(x,delta)", 2,
-            Int32, SCALAR, (void *) &delta, NULL, 0);
+            EDGE_NODEID_INT32, SCALAR, (void *) &delta, NULL, 0);
     if (ret.code != STATUS_OK) {
         printf("Error : insertEdgeMethodParameter has failed\n");
         goto EXIT_METHOD1;
@@ -1394,7 +1398,7 @@ static void testMethod()
 
     int32_t val = 0;
     ret = insertEdgeMethodParameter(&msg, "{2;S;v=0}move_start_point", 1,
-                Int32, SCALAR, (void *)&val, NULL, 0);
+                EDGE_NODEID_INT32, SCALAR, (void *)&val, NULL, 0);
     if (ret.code != STATUS_OK) {
         printf("Error : insertEdgeMethodParameter has failed\n");
         goto EXIT_METHOD2;
@@ -1609,7 +1613,7 @@ static void *getNewValuetoWrite(int type, int num_values)
     printf("Enter the new value to write :: ");
     switch (type)
     {
-        case Boolean:
+        case EDGE_NODEID_BOOLEAN:
             {
                 int *val = (int *) EdgeMalloc(sizeof(int) * num_values);
                 if(IS_NULL(val))
@@ -1619,7 +1623,7 @@ static void *getNewValuetoWrite(int type, int num_values)
                 return (void *) val;
             }
             break;
-        case SByte:
+        case EDGE_NODEID_BYTE:
             {
                 int8_t *val = (int8_t *) EdgeMalloc(sizeof(int8_t) * num_values);
                 if(IS_NULL(val))
@@ -1628,7 +1632,7 @@ static void *getNewValuetoWrite(int type, int num_values)
                     scanf("%" SCNd8, &val[i]);
                 return (void *) val;
             }
-        case Byte:
+        case EDGE_NODEID_BYTESTRING:
             {
                 uint8_t *val = (uint8_t *) EdgeMalloc(sizeof(uint8_t) * num_values);
                 if(IS_NULL(val))
@@ -1638,7 +1642,7 @@ static void *getNewValuetoWrite(int type, int num_values)
                 return (void *) val;
             }
             break;
-        case Int16:
+        case EDGE_NODEID_INT16:
             {
                 int16_t *val = (int16_t *) EdgeMalloc(sizeof(int16_t) * num_values);
                 if(IS_NULL(val))
@@ -1647,7 +1651,7 @@ static void *getNewValuetoWrite(int type, int num_values)
                     scanf("%" SCNd16, &val[i]);
                 return (void *) val;
             }
-        case UInt16:
+        case EDGE_NODEID_UINT16:
             {
                 uint16_t *val = (uint16_t *) EdgeMalloc(sizeof(uint16_t) * num_values);
                 if(IS_NULL(val))
@@ -1657,7 +1661,7 @@ static void *getNewValuetoWrite(int type, int num_values)
                 return (void *) val;
             }
             break;
-        case Int32:
+        case EDGE_NODEID_INT32:
             {
                 int32_t *val = (int32_t *) EdgeMalloc(sizeof(int32_t) * num_values);
                 if(IS_NULL(val))
@@ -1667,7 +1671,7 @@ static void *getNewValuetoWrite(int type, int num_values)
                 return (void *) val;
             }
             break;
-        case UInt32:
+        case EDGE_NODEID_UINT32:
             {
                 uint32_t *val = (uint32_t *) EdgeMalloc(sizeof(uint32_t) * num_values);
                 if(IS_NULL(val))
@@ -1677,7 +1681,7 @@ static void *getNewValuetoWrite(int type, int num_values)
                 return (void *) val;
             }
             break;
-        case Int64:
+        case EDGE_NODEID_INT64:
             {
                 int64_t *val = (int64_t *) EdgeMalloc(sizeof(int64_t) * num_values);
                 if(IS_NULL(val))
@@ -1687,7 +1691,7 @@ static void *getNewValuetoWrite(int type, int num_values)
                 return (void *) val;
             }
             break;
-        case UInt64:
+        case EDGE_NODEID_UINT64:
             {
                 uint64_t *val = (uint64_t *) EdgeMalloc(sizeof(uint64_t) * num_values);
                 if(IS_NULL(val))
@@ -1697,7 +1701,7 @@ static void *getNewValuetoWrite(int type, int num_values)
                 return (void *) val;
             }
             break;
-        case Float:
+        case EDGE_NODEID_FLOAT:
             {
                 float *val = (float *) EdgeMalloc(sizeof(float) * num_values);
                 if(IS_NULL(val))
@@ -1707,7 +1711,7 @@ static void *getNewValuetoWrite(int type, int num_values)
                 return (void *) val;
             }
             break;
-        case Double:
+        case EDGE_NODEID_DOUBLE:
             {
                 double *val = (double *) EdgeMalloc(sizeof(double) * num_values);
                 if(IS_NULL(val))
@@ -1717,7 +1721,7 @@ static void *getNewValuetoWrite(int type, int num_values)
                 return (void *) val;
             }
             break;
-        case String:
+        case EDGE_NODEID_STRING:
             {
                 if(num_values > 1)
                 {
@@ -1773,7 +1777,7 @@ static void testRobotMethod() {
 
     int32_t val = 0;
     EdgeResult ret = insertEdgeMethodParameter(&msg, "{2;S;v=0}move_start_point", 1,
-                Int32, SCALAR, (void *)&val, NULL, 0);
+                EDGE_NODEID_INT32, SCALAR, (void *)&val, NULL, 0);
     if (ret.code != STATUS_OK) {
         printf("Error : insertEdgeMethodParameter has failed\n");
         goto EXIT_METHOD2;
