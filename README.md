@@ -46,3 +46,23 @@ all header files into a single header file(open62541.h) and all source files int
         1. server : `./server`
 
         2. client : `./client`
+
+#### How to run browseNext in client example ####
+
+1. 'start' : Connection establishment.
+
+2. 'set_max_ref' : Set the maximum references per node to be returned. [ex 10]
+
+3. 'browse' : Performs browse with '10' as maximum references per node.
+...
+<browse callback may come with 1 or more continuation points. Callback in sample stores all of them in a list>
+...
+
+4. 'browse_next' : Perform browse next with stroed continuation points
+
+...
+<browse callback may come with 1 or more continuation points again. Callback in sample stores all of them in a list>
+...
+
+5. go to Step 4.
+   Step 4 can be continued until continuation point list becomes empty.
