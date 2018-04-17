@@ -109,7 +109,8 @@ static unsigned char *convertUAStringToUnsignedChar(UA_String *uaStr)
     return str;
 }
 
-static EdgeContinuationPointList *getContinuationPointList(UA_String *uaStr)
+static EdgeContinuationPointList *getContinuationPointList(UA_String *uaStr,
+        unsigned char *browsePrefix)
 {
     VERIFY_NON_NULL_MSG(uaStr, "UA_String received is NULL\n", NULL);
 
@@ -118,7 +119,7 @@ static EdgeContinuationPointList *getContinuationPointList(UA_String *uaStr)
     VERIFY_NON_NULL_MSG(cpList, "EdgeCalloc FAILED for EdgeContinuationPointList\n", NULL);
 
     cpList->count = 1;
-    cpList->cp = (EdgeContinuationPoint **) calloc(cpList->count, sizeof(EdgeContinuationPoint *));
+    cpList->cp = (EdgeContinuationPoint **) EdgeCalloc(cpList->count, sizeof(EdgeContinuationPoint *));
     if (!cpList->cp)
     {
         freeEdgeContinuationPointList(cpList);
@@ -138,6 +139,9 @@ static EdgeContinuationPointList *getContinuationPointList(UA_String *uaStr)
         freeEdgeContinuationPointList(cpList);
         return NULL;
     }
+
+    if(IS_NOT_NULL(browsePrefix))
+        cpList->cp[0]->browsePrefix = cloneData(browsePrefix, strlen((char *)browsePrefix)+1);
 
     cpList->cp[0]->length = uaStr->length;
     return cpList;
@@ -529,12 +533,17 @@ ERROR:
     freeEdgeMessage(resultMsg);
 }
 
-static void invokeResponseCbForContinuationPoint(EdgeMessage *msg, int msgId, EdgeNodeId *srcNodeId,
-        UA_ByteString *continuationPoint)
+static void invokeResponseCbForContinuationPoint(EdgeMessage *msg, int msgId,
+        EdgeNodeId *srcNodeId, UA_ByteString *continuationPoint, unsigned char *browsePrefix)
 {
     if (!continuationPoint || continuationPoint->length < 1)
     {
         return;
+    }
+
+    if(browsePrefix)
+    {
+        ++browsePrefix; // To skip the leading '/'
     }
 
     EdgeMessage *resultMsg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
@@ -542,7 +551,7 @@ static void invokeResponseCbForContinuationPoint(EdgeMessage *msg, int msgId, Ed
 
     resultMsg->type = BROWSE_RESPONSE;
 
-    resultMsg->cpList = getContinuationPointList(continuationPoint);
+    resultMsg->cpList = getContinuationPointList(continuationPoint, browsePrefix);
     if (!resultMsg->cpList)
     {
         EDGE_LOG(TAG, "Failed to form the continuation point.");
@@ -639,60 +648,62 @@ EdgeNodeId *getEdgeNodeId(UA_NodeId *node)
     return edgeNodeId;
 }
 
-void DestroyBrowsePathNodeList() {
-    browsePathNode *ptr = browsePathNodeListHead;
-    while(ptr != NULL){
+void destroyBrowsePathNodeList(browsePathNode **browsePathListHead,
+        browsePathNode **browsePathListTail)
+{
+    browsePathNode *ptr = *browsePathListHead;
+    while(ptr != NULL)
+    {
         browsePathNode *nextNode = ptr->next;
         EdgeFree(ptr);
         ptr = nextNode;
     }
-    browsePathNodeListHead = NULL;
-    browsePathNodeListTail = NULL;
+    *browsePathListHead = *browsePathListTail = NULL;
 }
 
-browsePathNode *InitBrowsePathNodeList(){
-    if (browsePathNodeListHead != NULL){
-        DestroyBrowsePathNodeList();
-    }
-    browsePathNodeListHead = NULL;
-    browsePathNodeListHead = (browsePathNode*)EdgeCalloc(1, sizeof(browsePathNode));
-    VERIFY_NON_NULL_MSG(browsePathNodeListHead, "EdgeCalloc FAILED for browsePathNode\n", NULL);
-    browsePathNodeListTail = browsePathNodeListHead;
-    return browsePathNodeListHead;
-}
-
-static browsePathNode* PushBrowsePathNode(EdgeNodeId *edgeNodeId,
-        unsigned char *browseName)
+static browsePathNode* pushBrowsePathNode(browsePathNode **browsePathListHead,
+        browsePathNode **browsePathListTail, EdgeNodeId *edgeNodeId, unsigned char *browseName)
 {
-    VERIFY_NON_NULL_MSG(browsePathNodeListTail, "browsePathNodeListTail is NULL\n", NULL);
-    VERIFY_NON_NULL_MSG(browsePathNodeListHead, "browsePathNodeListHead is NULL\n", NULL);
-    browsePathNode *newNode = (browsePathNode*)EdgeMalloc(sizeof(browsePathNode));
-    VERIFY_NON_NULL_MSG(newNode, "EdgeCalloc FAILED for browsePathNode\n", NULL);
+    browsePathNode *newNode = (browsePathNode*)EdgeCalloc(1, sizeof(browsePathNode));
+    VERIFY_NON_NULL_MSG(newNode, "EdgeMalloc FAILED for browsePathNode\n", NULL);
     newNode->browseName = browseName;
     newNode->edgeNodeId = edgeNodeId;
-    newNode->pre = browsePathNodeListTail;
-    newNode->next = NULL;
-    browsePathNodeListTail->next = newNode;
-    browsePathNodeListTail = newNode;
+    if(IS_NULL(*browsePathListTail))
+    {
+        *browsePathListHead = *browsePathListTail = newNode;
+    }
+    else
+    {
+        (*browsePathListTail)->next = newNode;
+        newNode->pre = *browsePathListTail;
+        *browsePathListTail = newNode;
+    }
     return newNode;
 }
 
-static void PopBrowsePathNode(){
-    if(browsePathNodeListTail == NULL || browsePathNodeListHead == NULL
-            || browsePathNodeListTail == browsePathNodeListHead){
-        EDGE_LOG(TAG, "Browse Path Node Pop Error");
+static void popBrowsePathNode(browsePathNode **browsePathListHead, browsePathNode **browsePathListTail)
+{
+    if(*browsePathListHead == NULL || *browsePathListTail == NULL)
+    {
+        EDGE_LOG(TAG, "Browse Path Node Pop Error. List head/tail pointer is NULL.");
         return;
     }
-    browsePathNode *deleteNode = browsePathNodeListTail;
-    browsePathNodeListTail = browsePathNodeListTail->pre;
-    browsePathNodeListTail->next = NULL;
+    browsePathNode *deleteNode = *browsePathListTail;
+    *browsePathListTail = deleteNode->pre;
+    if(*browsePathListTail)
+    {
+        (*browsePathListTail)->next = NULL;
+    }
+    else
+    {
+        *browsePathListHead = NULL;
+    }
     EdgeFree(deleteNode);
 }
 
-static unsigned char *getCurrentBrowsePath()
+static unsigned char *getCurrentBrowsePath(browsePathNode *browsePathListHead)
 {
-    VERIFY_NON_NULL_MSG(browsePathNodeListTail, "browsePathNodeListTail is NULL\n", NULL);
-    VERIFY_NON_NULL_MSG(browsePathNodeListHead, "browsePathNodeListHead is NULL\n", NULL);
+    VERIFY_NON_NULL_MSG(browsePathListHead, "browsePathListHead is NULL\n", NULL);
 
     const size_t blockSize = 100;
     size_t curSize = blockSize;
@@ -700,7 +711,7 @@ static unsigned char *getCurrentBrowsePath()
     unsigned char *browsePath = (unsigned char *)EdgeMalloc(curSize * sizeof(unsigned char));
     VERIFY_NON_NULL_MSG(browsePath, "EdgeMalloc failed for browsePath in current\n", NULL);
 
-    for(browsePathNode *ptr = browsePathNodeListHead->next; ptr != NULL ; ptr = ptr->next)
+    for(browsePathNode *ptr = browsePathListHead; ptr != NULL ; ptr = ptr->next)
     {
         /*EdgeNodeTypeCommon type = ptr->edgeNodeId->type;
         if(type == INTEGER){
@@ -736,6 +747,29 @@ static unsigned char *getCurrentBrowsePath()
     }
     browsePath[lastUsed+1] = '\0';
     return browsePath;
+}
+
+static bool hasNode(UA_String *browseName, browsePathNode *browsePathListHead)
+{
+    unsigned char *browseNameCharStr = convertUAStringToUnsignedChar(browseName);
+    if(IS_NULL(browseNameCharStr))
+    {
+        return false;
+    }
+
+    bool found = false;
+    for(browsePathNode *ptr = browsePathListHead; ptr != NULL ; ptr = ptr->next)
+    {
+        if(IS_NOT_NULL(ptr->browseName) &&
+            !memcmp(ptr->browseName, browseNameCharStr, strlen((char *)ptr->browseName)+1))
+        {
+            found = true;
+            break;
+        }
+    }
+
+    FREE(browseNameCharStr);
+    return found;
 }
 
 static char *getValueAlias(char *browseName, UA_NodeId* nodeId, UA_LocalizedText description)
@@ -795,7 +829,8 @@ static char *getValueAlias(char *browseName, UA_NodeId* nodeId, UA_LocalizedText
     return valueAlias;
 }
 
-static unsigned char *getCompleteBrowsePath(char *valueAlias)
+static unsigned char *getCompleteBrowsePath(char *valueAlias,
+        browsePathNode *browsePathListHead)
 {
     int valueAliasLen = 0;
     if(IS_NOT_NULL(valueAlias))
@@ -803,7 +838,7 @@ static unsigned char *getCompleteBrowsePath(char *valueAlias)
         valueAliasLen = strlen(valueAlias);
     }
 
-    unsigned char *browsePath = getCurrentBrowsePath();
+    unsigned char *browsePath = getCurrentBrowsePath(browsePathListHead);
     int pathLen = IS_NOT_NULL(browsePath) ? strlen((char *)browsePath) : 0;
     unsigned char *completePath = (unsigned char *)EdgeCalloc(pathLen+valueAliasLen+2, sizeof(unsigned char));
     if(IS_NULL(completePath))
@@ -828,29 +863,6 @@ static unsigned char *getCompleteBrowsePath(char *valueAlias)
     completePath[pathLen] = '\0';
     EdgeFree(browsePath);
     return completePath;
-}
-
-static bool hasNode(UA_String *browseName)
-{
-    unsigned char *browseNameCharStr = convertUAStringToUnsignedChar(browseName);
-    if(IS_NULL(browseNameCharStr))
-    {
-        return false;
-    }
-
-    bool found = false;
-    for(browsePathNode *ptr = browsePathNodeListHead->next; ptr != NULL ; ptr = ptr->next)
-    {
-        if(IS_NOT_NULL(ptr->browseName) &&
-            !memcmp(ptr->browseName, browseNameCharStr, strlen((char *)ptr->browseName)+1))
-        {
-            found = true;
-            break;
-        }
-    }
-
-    FREE(browseNameCharStr);
-    return found;
 }
 
 unsigned char *convertNodeIdToString(UA_NodeId *nodeId)
@@ -928,7 +940,8 @@ void destroyViewListMembers(List *ptr)
 }
 
 EdgeStatusCode browse(UA_Client *client, EdgeMessage *msg, bool browseNext,
-    NodesToBrowse_t *browseNodesInfo, int *reqIdList, List **viewList)
+    NodesToBrowse_t *browseNodesInfo, int *reqIdList, List **viewList,
+    browsePathNode **browsePathListHead, browsePathNode **browsePathListTail)
 {
     UA_BrowseResponse *resp = NULL;
     UA_BrowseResponse browseResp =
@@ -1014,7 +1027,7 @@ EdgeStatusCode browse(UA_Client *client, EdgeMessage *msg, bool browseNext,
         freeEdgeNodeId(srcNodeId);
         srcNodeId = getEdgeNodeId(&browseNodesInfo->nodeId[i]);
         srcBrowseName = browseNodesInfo->browseName[i];
-        if(IS_NULL(PushBrowsePathNode(srcNodeId, srcBrowseName)))
+        if(IS_NULL(pushBrowsePathNode(browsePathListHead, browsePathListTail, srcNodeId, srcBrowseName)))
         {
             EDGE_LOG(TAG, "Push Node of Browse Path Error.");
             statusCode = STATUS_INTERNAL_ERROR;
@@ -1106,7 +1119,7 @@ EdgeStatusCode browse(UA_Client *client, EdgeMessage *msg, bool browseNext,
 #if DEBUG
                 logNodeId(ref->nodeId.nodeId);
 #endif
-                if (!hasNode(&ref->browseName.name))
+                if (!hasNode(&ref->browseName.name, *browsePathListHead))
                 {
                     if(IS_NULL(viewList))
                     {
@@ -1142,7 +1155,7 @@ EdgeStatusCode browse(UA_Client *client, EdgeMessage *msg, bool browseNext,
                         char *valueAlias = NULL;
                         if((!SHOW_SPECIFIC_NODECLASS) || (ref->nodeClass & SHOW_SPECIFIC_NODECLASS_MASK)){
                             valueAlias = getValueAlias(browseResult->browseName, &(ref->nodeId.nodeId), ref->displayName);
-                            completePath = getCompleteBrowsePath(valueAlias);
+                            completePath = getCompleteBrowsePath(valueAlias, *browsePathListHead);
                         }
 
                         invokeResponseCb(msg, reqId, srcNodeId, browseResult, size, completePath, valueAlias);
@@ -1192,15 +1205,18 @@ EdgeStatusCode browse(UA_Client *client, EdgeMessage *msg, bool browseNext,
         if (resp->results[i].continuationPoint.length > 0)
         {
             EDGE_LOG(TAG, "Passing continuation point to application.");
+            unsigned char *browsePrefix = getCurrentBrowsePath(*browsePathListHead);
             invokeResponseCbForContinuationPoint(msg, reqId, srcNodeId,
-                    &resp->results[i].continuationPoint);
+                    &resp->results[i].continuationPoint, browsePrefix);
+            EdgeFree(browsePrefix);
         }
 
         if (nextNodeListCount > 0)
         {
-            browse(client, msg, false, nextBrowseNodesInfo, nextReqIdList, viewList);
+            browse(client, msg, false, nextBrowseNodesInfo, nextReqIdList, viewList,
+                browsePathListHead, browsePathListTail);
         }
-        PopBrowsePathNode();
+        popBrowsePathNode(browsePathListHead, browsePathListTail);
         freeEdgeNodeId(srcNodeId);
         srcNodeId = NULL;
         FREE(nextReqIdList);
@@ -1272,21 +1288,16 @@ void browseNodes(UA_Client *client, EdgeMessage *msg)
         }
     }
 
-    if(IS_NULL(InitBrowsePathNodeList()))
+    browsePathNode *browsePathListHead = NULL, *browsePathListTail = NULL;
+    EdgeStatusCode statusCode = browse(client, msg, false, browseNodesInfo, reqIdList, NULL,
+        &browsePathListHead, &browsePathListTail);
+    if (statusCode != STATUS_OK)
     {
-        EDGE_LOG(TAG, "Failed to initialize a list for browse paths.");
-        invokeErrorCb(msg->message_id, NULL, STATUS_INTERNAL_ERROR, "Failed to initialize a list for browse paths.");
-    }
-    else
-    {
-        EdgeStatusCode statusCode = browse(client, msg, false, browseNodesInfo, reqIdList, NULL);
-        if (statusCode != STATUS_OK)
-        {
-            EDGE_LOG(TAG, "Browse failed.");
-            invokeErrorCb(msg->message_id, NULL, STATUS_ERROR, "Browse failed.");
-        }
+        EDGE_LOG(TAG, "Browse failed.");
+        invokeErrorCb(msg->message_id, NULL, STATUS_ERROR, "Browse failed.");
     }
 
     destroyNodesToBrowse(browseNodesInfo, true);
+    destroyBrowsePathNodeList(&browsePathListHead, &browsePathListTail);
     EdgeFree(reqIdList);
 }

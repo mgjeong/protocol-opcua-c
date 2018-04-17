@@ -114,6 +114,7 @@ void freeEdgeContinuationPoint(EdgeContinuationPoint *cp)
 {
     VERIFY_NON_NULL_NR_MSG(cp, "NULL EdgeContinuationPoint param in freeEdgeContinuationPoint\n");
     EdgeFree(cp->continuationPoint);
+    EdgeFree(cp->browsePrefix);
     EdgeFree(cp);
 }
 

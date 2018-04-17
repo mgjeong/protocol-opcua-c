@@ -467,6 +467,9 @@ typedef struct EdgeContinuationPoint
 
     /**< Continuation point **/
     unsigned char *continuationPoint;
+
+    /**< Browse prefix till this continuation point **/
+    unsigned char *browsePrefix;
 } EdgeContinuationPoint;
 
 /**

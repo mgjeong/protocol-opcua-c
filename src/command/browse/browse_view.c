@@ -223,38 +223,32 @@ void browseView(UA_Client *client, EdgeMessage *msg)
     reqIdList[0] = 0;
     EdgeFree(nodeId);
 
-    if(IS_NULL(InitBrowsePathNodeList()))
+    List *viewList = NULL;
+    browsePathNode *browsePathListHead = NULL, *browsePathListTail = NULL;
+    EdgeStatusCode statusCode = browse(client, msg, false, browseNodesInfo, reqIdList, &viewList,
+        &browsePathListHead, &browsePathListTail);
+    if (statusCode != STATUS_OK)
     {
-        EDGE_LOG(TAG, "Failed to initialize a list for browse paths.");
-        invokeErrorCb(msg->message_id, NULL, STATUS_INTERNAL_ERROR, "Failed to initialize a list for browse paths.");
+        EDGE_LOG(TAG, "Browse failed.");
+        invokeErrorCb(msg->message_id, NULL, STATUS_ERROR, "Browse failed.");
     }
     else
     {
-        List *viewList = NULL;
-        EdgeStatusCode statusCode = browse(client, msg, false, browseNodesInfo, reqIdList, &viewList);
-        if (statusCode != STATUS_OK)
+        EdgeMessage *browseViewMsg = prepareEdgeMessageForBrowseView(msg, viewList);
+        if(IS_NULL(browseViewMsg))
         {
-            EDGE_LOG(TAG, "Browse failed.");
-            invokeErrorCb(msg->message_id, NULL, STATUS_ERROR, "Browse failed.");
+            EDGE_LOG(TAG, "Failed to prepare message for browse view request.");
+            invokeErrorCb(msg->message_id, NULL, STATUS_INTERNAL_ERROR, "Failed to prepare message for browse view request.");
         }
         else
         {
-            EdgeMessage *browseViewMsg = prepareEdgeMessageForBrowseView(msg, viewList);
-            if(IS_NULL(browseViewMsg))
-            {
-                EDGE_LOG(TAG, "Failed to prepare message for browse view request.");
-                invokeErrorCb(msg->message_id, NULL, STATUS_INTERNAL_ERROR, "Failed to prepare message for browse view request.");
-            }
-            else
-            {
-                browseNodes(client, browseViewMsg);
-                freeEdgeMessage(browseViewMsg);
-            }
+            browseNodes(client, browseViewMsg);
+            freeEdgeMessage(browseViewMsg);
         }
-        destroyViewListMembers(viewList);
-        deleteList(&viewList);
     }
-
+    destroyViewListMembers(viewList);
+    deleteList(&viewList);
+    destroyBrowsePathNodeList(&browsePathListHead, &browsePathListTail);
     freeEdgeRequest(msg->request);
     msg->request = NULL;
     EdgeFree(msg->browseParam);

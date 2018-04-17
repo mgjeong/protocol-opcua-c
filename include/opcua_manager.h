@@ -477,56 +477,8 @@ EXPORT EdgeResult insertBrowseParameter(EdgeMessage **msg, EdgeNodeInfo* nodeInf
  */
 EXPORT int getValueType(const char* nodeName);
 
-/**
- * @brief Deallocates the dynamic memory for EdgeBrowseNextData. \n
-                   Behaviour is undefined if EdgeBrowseNextData is not dynamically allocated.
- * @param[in]  data EdgeBrowseNextData data used for BrowseNext
- */
-EXPORT void destroyBrowseNextData(EdgeBrowseNextData *data);
-
-/**
- * @brief Deallocates the dynamic memory for EdgeBrowseNextData. \n
-                   Behaviour is undefined if EdgeBrowseNextData is not dynamically allocated.
- * @param[in]  data EdgeBrowseNextDataElements data used for BrowseNext
- */
-EXPORT void destroyBrowseNextDataElements(EdgeBrowseNextData *data);
-
-/**
- * @brief Initialize the BrowseNextData request to be used in BrowseNext
- * @param[in]  data EdgeBrowseNextData data used for BrowseNext
- * @param[in]  browseParam Browse parameter
- * @param[in]  count Countinuation point list count
- * @return Create EdgeBrowseNextData request
- */
-EXPORT EdgeBrowseNextData* initBrowseNextData(EdgeBrowseNextData *browseNextData,
-        EdgeBrowseParameter *browseParam, size_t count);
-
-/**
- * @brief Add the BrowseNext data
- * @param[in]  data EdgeBrowseNextData data used for BrowseNext
- * @param[in]   cp CountinuationPoint data
- * @param[in]   nodeId Node id
- * @param[out] data EdgeBrowseNext request
- * @return @c EdgeResult code is 0 on success, otherwise an error value
- * @retval #STATUS_OK Successful
- * @retval #STATUS_PARAM_INVALID Invalid parameter
- * @retval #STATUS_ERROR Operation failed
- */
-EXPORT EdgeResult addBrowseNextData(EdgeBrowseNextData **data, EdgeContinuationPoint *cp,
-        EdgeNodeId *nodeId);
-
-/**
- * @brief Clone the BrowseNextData request to be used in BrowseNext
- * @param[in]  browseNextData EdgeBrowseNextData data to be cloned
- * @return Cloned EdgeBrowseNextData request,
- *                   NULL in case of any error
- */
-EXPORT EdgeBrowseNextData *cloneBrowseNextData(EdgeBrowseNextData* browseNextData);
-
 #ifdef __cplusplus
 }
 #endif
-
-
 
 #endif  // EDGE_OPCUA_MANAGER_H

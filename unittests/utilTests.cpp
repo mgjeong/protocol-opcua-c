@@ -246,18 +246,18 @@ TEST_F(OPC_util , getCharacterNodeIdType_P)
 
 TEST_F(OPC_util , get_size_P)
 {
-    ASSERT_EQ(get_size(Boolean, false) != -1, true);
-    ASSERT_EQ(get_size(SByte, false) != -1, true);
-    ASSERT_EQ(get_size(Byte, false) != -1, true);
-    ASSERT_EQ(get_size(Int16, false) != -1, true);
-    ASSERT_EQ(get_size(UInt16, false) != -1, true);
-    ASSERT_EQ(get_size(Int32, false) != -1, true);
-    ASSERT_EQ(get_size(UInt32, false) != -1, true);
-    ASSERT_EQ(get_size(Int64, false) != -1, true);
-    ASSERT_EQ(get_size(UInt64, false) != -1, true);
-    ASSERT_EQ(get_size(Float, false) != -1, true);
-    ASSERT_EQ(get_size(Double, false) != -1, true);
-    ASSERT_EQ(get_size(String, false) != -1, true);
+    ASSERT_EQ(get_size(EDGE_NODEID_BOOLEAN, false) != -1, true);
+    ASSERT_EQ(get_size(EDGE_NODEID_SBYTE, false) != -1, true);
+    ASSERT_EQ(get_size(EDGE_NODEID_BYTE, false) != -1, true);
+    ASSERT_EQ(get_size(EDGE_NODEID_INT16, false) != -1, true);
+    ASSERT_EQ(get_size(EDGE_NODEID_UINT16, false) != -1, true);
+    ASSERT_EQ(get_size(EDGE_NODEID_INT32, false) != -1, true);
+    ASSERT_EQ(get_size(EDGE_NODEID_UINT32, false) != -1, true);
+    ASSERT_EQ(get_size(EDGE_NODEID_INT64, false) != -1, true);
+    ASSERT_EQ(get_size(EDGE_NODEID_UINT64, false) != -1, true);
+    ASSERT_EQ(get_size(EDGE_NODEID_FLOAT, false) != -1, true);
+    ASSERT_EQ(get_size(EDGE_NODEID_DOUBLE, false) != -1, true);
+    ASSERT_EQ(get_size(EDGE_NODEID_STRING, false) != -1, true);
 
     int invalidValue = -1;
     ASSERT_EQ(get_size(invalidValue, false) == -1, true);

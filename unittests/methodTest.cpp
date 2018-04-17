@@ -44,7 +44,7 @@ void testMethod_P1(char *endpointUri)
 
     double *input = (double*) EdgeCalloc(1, sizeof(double));                       //  16.0;
     *input = 16.0;
-    EdgeResult ret = insertEdgeMethodParameter(&msg, "{2;S;v=0}square(x)", 1, Double, SCALAR, (void *) input, NULL, 0);
+    EdgeResult ret = insertEdgeMethodParameter(&msg, "{2;S;v=0}square(x)", 1, EDGE_NODEID_DOUBLE, SCALAR, (void *) input, NULL, 0);
     EXPECT_EQ(ret.code, STATUS_OK);
     sendRequest(msg);
     destroyEdgeMessage(msg);
@@ -54,12 +54,12 @@ void testMethod_P1(char *endpointUri)
 
     int32_t array[5] = {10, 20, 30, 40, 50};
     ret = insertEdgeMethodParameter(&msg, "{2;S;v=0}incrementInc32Array(x,delta)", 2,
-            Int32, ARRAY_1D, NULL, (void *) array, 5);
+            EDGE_NODEID_INT32, ARRAY_1D, NULL, (void *) array, 5);
     EXPECT_EQ(ret.code, STATUS_OK);
 
     int delta = 5;
     ret = insertEdgeMethodParameter(&msg, "{2;S;v=0}incrementInc32Array(x,delta)", 2,
-            Int32, SCALAR, (void *) &delta, NULL, 0);
+            EDGE_NODEID_INT32, SCALAR, (void *) &delta, NULL, 0);
     ASSERT_EQ(ret.code, STATUS_OK);
     sendRequest(msg);
     //destroyEdgeMessage(msg);
@@ -97,7 +97,7 @@ void testMethod_P2(char *endpointUri)
     array[4][strlen("elephant")] = '\0';
 
     EdgeResult ret = insertEdgeMethodParameter(&msg, "{2;S;v=0}print_string_array(x)", 1,
-            String, ARRAY_1D, NULL, (void *) array, 5);
+            EDGE_NODEID_STRING, ARRAY_1D, NULL, (void *) array, 5);
     EXPECT_EQ(ret.code, STATUS_OK);
     sendRequest(msg);
     //destroyEdgeMessage(msg);
@@ -111,7 +111,7 @@ void testMethod_P3(char *endpointUri)
     ASSERT_EQ(NULL != msg, true);
 
     EdgeResult ret = insertEdgeMethodParameter(&msg, "{2;S;v=0}print_string(x)", 1,
-                   String, SCALAR, (void*) "string method", NULL, 0);
+                   EDGE_NODEID_STRING, SCALAR, (void*) "string method", NULL, 0);
     ASSERT_EQ(ret.code, STATUS_OK);
     ret = sendRequest(msg);
     ASSERT_EQ(ret.code, STATUS_OK);
@@ -126,7 +126,7 @@ void testMethod_P4(char *endpointUri)
     EXPECT_EQ(NULL != msg, true);
 
     double input = 16.0;
-    EdgeResult ret = insertEdgeMethodParameter(&msg, "{2;S;v=0}InvalidNode", 1, Double, SCALAR, (void *) &input, NULL, 0);
+    EdgeResult ret = insertEdgeMethodParameter(&msg, "{2;S;v=0}InvalidNode", 1, EDGE_NODEID_DOUBLE, SCALAR, (void *) &input, NULL, 0);
     EXPECT_EQ(ret.code, STATUS_OK);
     sendRequest(msg);
     //destroyEdgeMessage(msg);
@@ -138,7 +138,7 @@ void testMethodWithoutEndpoint()
     ASSERT_EQ(NULL != msg, false);
 
     double input = 16.0;
-    EdgeResult ret = insertEdgeMethodParameter(&msg, "{2;S;v=0}square(x)", 1, Double, SCALAR, (void *) &input, NULL, 0);
+    EdgeResult ret = insertEdgeMethodParameter(&msg, "{2;S;v=0}square(x)", 1, EDGE_NODEID_DOUBLE, SCALAR, (void *) &input, NULL, 0);
     ASSERT_EQ(ret.code, STATUS_PARAM_INVALID);
     EdgeResult result = sendRequest(msg);
     ASSERT_EQ(result.code, STATUS_PARAM_INVALID);
@@ -150,7 +150,7 @@ void testMethodWithoutValueAlias(char *endpointUri)
     ASSERT_EQ(NULL != msg, true);
 
     double input = 16.0;
-    EdgeResult ret = insertEdgeMethodParameter(&msg, NULL, 1, Double, SCALAR, (void *) &input, NULL, 0);
+    EdgeResult ret = insertEdgeMethodParameter(&msg, NULL, 1, EDGE_NODEID_DOUBLE, SCALAR, (void *) &input, NULL, 0);
     ASSERT_EQ(ret.code, STATUS_PARAM_INVALID);
     EdgeResult result = sendRequest(msg);
     ASSERT_EQ(result.code, STATUS_PARAM_INVALID);

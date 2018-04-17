@@ -80,7 +80,8 @@ void setErrorResponseCallback(response_cb_t callback);
  * @return STATUS_OK on success. Otherwise appropriate error code.
  */
 EdgeStatusCode browse(UA_Client *client, EdgeMessage *msg, bool browseNext,
-    NodesToBrowse_t *browseNodesInfo, int *reqIdList, List **viewList);
+    NodesToBrowse_t *browseNodesInfo, int *reqIdList, List **viewList,
+    browsePathNode **browsePathListHead, browsePathNode **browsePathListTail);
 
 /**
  * @brief Executes Browse operation.
@@ -142,6 +143,15 @@ NodesToBrowse_t *initNodesToBrowse(size_t size);
  * @param[in]  deleteNodeId If true, this function will de-allocated the value of the each and every NodeId.
  */
 void destroyNodesToBrowse(NodesToBrowse_t *ptr, bool deleteNodeId);
+
+/**
+ * @brief De-allocates each and every node in the list.
+ * @remarks List nodes should have been allocated dynamically. Both params will be set to NULL.
+ * @param[in]  browsePathListHead Pointer to list's head.
+ * @param[in]  browsePathListTail Pointer to list's tail.
+ */
+void destroyBrowsePathNodeList(browsePathNode **browsePathListHead,
+        browsePathNode **browsePathListTail);
 
 /**
  * @brief Converts UA_NodeId to unsigned char string.

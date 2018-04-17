@@ -55,7 +55,9 @@ void browseNext(UA_Client *client, EdgeMessage *msg)
         EDGE_LOG(TAG, "Message Type: " SEND_REQUEST_DESC);
         UA_NodeId *nodeId;
         browseNodesInfo->nodeId[0] = (nodeId = getNodeId(msg->request)) ? *nodeId : UA_NODEID_NULL;
-        browseNodesInfo->browseName[0] = convertNodeIdToString(nodeId);
+        unsigned char *browsePrefix = msg->cpList->cp[0]->browsePrefix;
+        if(IS_NOT_NULL(browsePrefix))
+            browseNodesInfo->browseName[0] = cloneData(browsePrefix, strlen((char *)browsePrefix)+1);
         reqIdList[0] = 0;
         EdgeFree(nodeId);
     }
@@ -73,21 +75,16 @@ void browseNext(UA_Client *client, EdgeMessage *msg)
         }
     }
 
-    if(IS_NULL(InitBrowsePathNodeList()))
+    browsePathNode *browsePathListHead = NULL, *browsePathListTail = NULL;
+    EdgeStatusCode statusCode = browse(client, msg, true, browseNodesInfo, reqIdList, NULL,
+        &browsePathListHead, &browsePathListTail);
+    if (statusCode != STATUS_OK)
     {
-        EDGE_LOG(TAG, "Failed to initialize a list for browse paths.");
-        invokeErrorCb(msg->message_id, NULL, STATUS_INTERNAL_ERROR, "Failed to initialize a list for browse paths.");
-    }
-    else
-    {
-        EdgeStatusCode statusCode = browse(client, msg, true, browseNodesInfo, reqIdList, NULL);
-        if (statusCode != STATUS_OK)
-        {
-            EDGE_LOG(TAG, "Browse failed.");
-            invokeErrorCb(msg->message_id, NULL, STATUS_ERROR, "Browse failed.");
-        }
+        EDGE_LOG(TAG, "Browse failed.");
+        invokeErrorCb(msg->message_id, NULL, STATUS_ERROR, "Browse failed.");
     }
 
     destroyNodesToBrowse(browseNodesInfo, true);
+    destroyBrowsePathNodeList(&browsePathListHead, &browsePathListTail);
     EdgeFree(reqIdList);
 }

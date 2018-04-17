@@ -520,6 +520,16 @@ EdgeMessage* cloneEdgeMessage(EdgeMessage *msg)
             {
                 goto ERROR;
             }
+
+            if(IS_NOT_NULL(msg->cpList->cp[i]->browsePrefix))
+            {
+                clone->cpList->cp[i]->browsePrefix = (unsigned char *) cloneData(msg->cpList->cp[i]->browsePrefix,
+                                                                                      strlen((char *) msg->cpList->cp[i]->browsePrefix) + 1);
+                if(IS_NULL(clone->cpList->cp[i]->browsePrefix))
+                {
+                    goto ERROR;
+                }
+            }
         }
     }
 
