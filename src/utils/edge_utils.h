@@ -44,6 +44,8 @@ extern "C"
 #define VERIFY_NON_NULL_NR_MSG(arg, msg) { if (!(arg)) { EDGE_LOG(TAG, \
             msg); return; } }
 
+#define GUID_LENGTH (36)
+
 /**
  * @brief Prints the current system time in "MM/DD HH:MM:SS.sss" format.
  * @remarks Works only if the stack is built in debug mode.
@@ -195,20 +197,6 @@ void freeEdgeResponses(EdgeResponse **responses, int responseLength);
  * @param[in]  msg Pointer to EdgeMessage which needs to be freed.
  */
 void freeEdgeMessage(EdgeMessage *msg);
-
-/**
- * @brief De-allocates the memory consumed by EdgeContinuationPoint and its members.
- * @remarks Both EdgeContinuationPoint and its members should have been allocated dynamically.
- * @param[in]  cp Pointer to EdgeContinuationPoint which needs to be freed.
- */
-void freeEdgeContinuationPoint(EdgeContinuationPoint *cp);
-
-/**
- * @brief De-allocates the memory consumed by EdgeContinuationPointList and its members.
- * @remarks Both EdgeContinuationPointList and its members should have been allocated dynamically.
- * @param[in]  cpList Pointer to EdgeContinuationPointList which needs to be freed.
- */
-void freeEdgeContinuationPointList(EdgeContinuationPointList *cpList);
 
 /**
  * @brief De-allocates the memory consumed by EdgeDevice and its members.

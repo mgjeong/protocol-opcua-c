@@ -44,8 +44,6 @@ typedef struct EdgeDevice EdgeDevice;
 typedef struct EdgeEndPointInfo EdgeEndPointInfo;
 typedef struct EdgeReference EdgeReference;
 typedef struct EdgeMethodRequestParams EdgeMethodRequestParams;
-typedef struct EdgeContinuationPoint EdgeContinuationPoint;
-typedef struct EdgeContinuationPointList EdgeContinuationPointList;
 typedef struct EdgeRequest EdgeRequest;
 typedef struct EdgeEndpointConfig EdgeEndpointConfig;
 typedef struct EdgeApplicationConfig EdgeApplicationConfig;
@@ -289,22 +287,6 @@ EXPORT void destroyEdgeEndpointInfo(EdgeEndPointInfo *endpointInfo);
  * @param[in]  config EdgeApplicationConfig data
  */
 EXPORT void destroyEdgeApplicationConfigMembers(EdgeApplicationConfig *config);
-
-/**
- * @brief Deallocates the dynamic memory for EdgeContinuationPoint. \n
- *                Behaviour is undefined if EdgeContinuationPoint is not dynamically allocated.
- * @param[in]  cp EdgeContinuationPoint data
- */
-EXPORT void destroyEdgeContinuationPoint(EdgeContinuationPoint *cp);
-
-/**
- * @brief Deallocates the dynamic memory for EdgeContinuationPointList and its members. \n
- *                EdgeContinuationPointList has an array of dynamically allocated EdgeContinuationPoint objects. \n
- *                Array is also dynamically allocated. \n
- *                Behaviour is undefined if EdgeContinuationPoint is not dynamically allocated.
- * @param[in]  cpList EdgeContinuationPointList data
- */
-EXPORT void destroyEdgeContinuationPointList(EdgeContinuationPointList *cpList);
 
 /**
  * @brief Deallocates the dynamic memory for EdgeResponse. \n

@@ -58,17 +58,14 @@ typedef enum
     /** Command to browse one or more nodes in server's address space.*/
     CMD_BROWSE = 8,
 
-    /** Command to browse next set of nodes for continuing the previous browse operation.*/
-    CMD_BROWSENEXT = 9,
-
     /** Command to browse all view nodes in server's address space.*/
-    CMD_BROWSE_VIEW = 10,
+    CMD_BROWSE_VIEW = 9,
 
     /** Command to execute a method on server.*/
-    CMD_METHOD = 11,
+    CMD_METHOD = 10,
 
     /** Command to read sampling interval on server.*/
-    CMD_READ_SAMPLING_INTERVAL = 12
+    CMD_READ_SAMPLING_INTERVAL = 11
 } EdgeCommand;
 
 /** Read - String value.*/

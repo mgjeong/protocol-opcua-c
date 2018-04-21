@@ -79,7 +79,6 @@ static bool startServerFlag = false;
 static bool startClientFlag = false;
 static bool readNodeFlag = true;
 static bool browseNodeFlag = false;
-static bool browseNextFlag = false;
 static bool methodCallFlag = false;
 
 char node_arr[46][30] =
@@ -99,8 +98,6 @@ char node_arr[46][30] =
 
 static int method_arr[5] =
 { 15, 25, 35, 45, 55 };
-
-EdgeBrowseNextData *browseNextData = NULL;
 
 extern void testRead_P1(char *endpointUri);
 extern void testRead_P2(char *endpointUri);
@@ -166,65 +163,6 @@ extern "C"
                 }
                 break;
         }
-    }
-
-    static void browseNext(EdgeContinuationPoint *cp, EdgeNodeId *nodeId)
-    {
-        printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET);
-        printf("\n" COLOR_YELLOW "                       Browse Next            "COLOR_RESET);
-        printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET
-               "\n\n");
-
-        if (IS_NULL(cp) || cp->length < 1)
-        {
-            printf("Continuation point is empty or null.\n");
-            return;
-        }
-
-        // SEND_REQUEST : There is only one continuation point.
-        // CMD_BROWSENEXT : Command for browse next operation.
-        EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_BROWSENEXT);
-        if(IS_NULL(msg))
-        {
-            printf("Error : Malloc failed for EdgeMessage in test Method\n");
-            return;
-        }
-
-        EdgeBrowseParameter browseParam = { DIRECTION_FORWARD, 0 };
-        msg->requestLength = 1;
-        msg->request->nodeInfo = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
-        if(IS_NULL(msg->request->nodeInfo))
-        {
-            printf("Error : Malloc failed for nodeInfo in testBrowseNext()\n");
-            goto EXIT_BROWSENEXT;
-        }
-        msg->request->nodeInfo->nodeId = nodeId;
-
-        msg->browseParam = &browseParam;
-
-        msg->cpList = (EdgeContinuationPointList *)EdgeCalloc(1, sizeof(EdgeContinuationPointList));
-        if(IS_NULL(msg->cpList))
-        {
-            printf("Error : Malloc failed for msg->cpList in testBrowseNext()\n");
-            goto EXIT_BROWSENEXT;
-        }
-        msg->cpList->count = 1;
-        msg->cpList->cp = (EdgeContinuationPoint **)EdgeCalloc(1, sizeof(EdgeContinuationPoint *));
-        if(IS_NULL(msg->cpList->cp))
-        {
-            printf("Error : Malloc failed for msg->cpList->cp in testBrowseNext()\n");
-            goto EXIT_BROWSENEXT;
-        }
-        msg->cpList->cp[0] = cp;
-
-        sendRequest(msg);
-
-        EXIT_BROWSENEXT:
-
-        msg->request->nodeInfo->nodeId = NULL;
-        msg->cpList->cp[0] = NULL;
-        msg->browseParam = NULL;
-        destroyEdgeMessage(msg);
     }
 
     static void response_msg_cb(EdgeMessage *data)
@@ -685,36 +623,6 @@ extern "C"
             if(data->responses[0]->message != NULL)
             {
                 PRINT_ARG("\n", (unsigned char *)data->responses[0]->message->value);
-            }
-        }
-        else
-        {
-            if (data->cpList && data->cpList->count > 0)
-            {
-                printf("\n" COLOR_YELLOW "------------------------------------------------------\n" COLOR_RESET);
-
-                printf("Total number of continuation points: %zu\n", data->cpList->count);
-                for (size_t i = 0; i < data->cpList->count; ++i)
-                {
-                    EdgeNodeId *nodeId = data->responses[i]->nodeInfo->nodeId;
-                    printf("Node ID of Continuation point[%zu]: ", i + 1);
-                    (nodeId->type == INTEGER) ? printf("%d\n", nodeId->integerNodeId) : printf("%s\n", nodeId->nodeId);
-
-                    int length = data->cpList->cp[i]->length;
-                    unsigned char *cp = data->cpList->cp[i]->continuationPoint;
-                    printf("Length: %d\n", length);
-                    for (int j = 0; j < length; ++j)
-                    {
-                        printf("%02X", cp[j]);
-                    }
-                    printf("\n");
-                    printf("Browse prefix till this continuation point[%zu]: %s\n", i + 1, data->cpList->cp[i]->browsePrefix);
-
-                    printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET
-                           "\n\n");
-                    browseNext(data->cpList->cp[i], nodeId);
-                }
-                printf("\n\n");
             }
         }
     }
@@ -3600,26 +3508,6 @@ TEST_F(OPC_clientTests , ClientBrowseGroup_P)
     destroyEdgeMessage(msg);
 
     browseNodes();
-
-    stop_client();
-    EXPECT_EQ(startClientFlag, false);
-}
-
-TEST_F(OPC_clientTests , ClientBrowseNext_P)
-{
-    EXPECT_EQ(startClientFlag, false);
-
-    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_GET_ENDPOINTS);
-    EXPECT_EQ(NULL != msg, true);
-
-    EdgeResult res = getEndpointInfo(msg);
-    EXPECT_EQ(res.code, STATUS_OK);
-
-    EXPECT_EQ(startClientFlag, true);
-
-    destroyEdgeMessage(msg);
-
-    browse_next();
 
     stop_client();
     EXPECT_EQ(startClientFlag, false);

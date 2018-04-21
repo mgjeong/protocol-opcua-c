@@ -285,9 +285,6 @@ typedef enum
 /** STATUS_VIEW_BROWSERESULT_EMPTY - Description.*/
 #define STATUS_VIEW_BROWSERESULT_EMPTY_VALUE         "browse result is empty"
 
-/** STATUS_VIEW_BROWSEREQUEST_SIZEOVER - Description.*/
-#define STATUS_VIEW_BROWSEREQUEST_SIZEOVER_VALUE         "browse request's size is over maximum size"
-
 /** STATUS_SUB_PUB_INTERVAL_DIFFERENCE - Description.*/
 #define STATUS_SUB_PUB_INTERVAL_DIFFERENCE_VALUE         "check the revised value and if it is different to the requested"
 

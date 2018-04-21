@@ -226,16 +226,6 @@ void destroyEdgeNodeInfo(EdgeNodeInfo *nodeInfo)
     freeEdgeNodeInfo(nodeInfo);
 }
 
-void destroyEdgeContinuationPoint(EdgeContinuationPoint *cp)
-{
-    freeEdgeContinuationPoint(cp);
-}
-
-void destroyEdgeContinuationPointList(EdgeContinuationPointList *cpList)
-{
-    freeEdgeContinuationPointList(cpList);
-}
-
 void destroyEdgeEndpointInfo(EdgeEndPointInfo *endpointInfo)
 {
     freeEdgeEndpointInfo(endpointInfo);
@@ -289,8 +279,7 @@ static EdgeResult checkParameterValid(EdgeMessage *msg)
             VERIFY_NON_NULL_MSG(req, "EdgeRequest received is NULL in checkParameterValid\n", result);
             VERIFY_NON_NULL_MSG(req->nodeInfo, "Request Nodeinfo is NULL in checkParameterValid\n", result);
 
-            if(msg->command != CMD_BROWSE && msg->command != CMD_BROWSENEXT &&
-                    msg->command != CMD_BROWSE_VIEW)
+            if(msg->command != CMD_BROWSE && msg->command != CMD_BROWSE_VIEW)
             {
                 VERIFY_NON_NULL_MSG(req->nodeInfo->valueAlias, "valuealias NULL in checkParameterValid\n", result);
             }
@@ -413,8 +402,7 @@ void onSendMessage(EdgeMessage* msg)
         EDGE_LOG(TAG, "\n[Received command] :: SUB \n");
         executeSubscriptionInServer(msg);
     }
-    else if (CMD_BROWSE == msg->command || CMD_BROWSE_VIEW == msg->command
-            || CMD_BROWSENEXT == msg->command)
+    else if (CMD_BROWSE == msg->command || CMD_BROWSE_VIEW == msg->command)
     {
         EDGE_LOG(TAG, "\n[Received command] :: BROWSE \n");
         browseNodesInServer(msg);

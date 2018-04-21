@@ -457,35 +457,6 @@ typedef struct EdgeResult
 } EdgeResult;
 
 /**
-  * @brief Structure which represents the ContinuationPoints in Browse request data
-  *
-  */
-typedef struct EdgeContinuationPoint
-{
-    /**< Length of continuation point **/
-    size_t length;
-
-    /**< Continuation point **/
-    unsigned char *continuationPoint;
-
-    /**< Browse prefix till this continuation point **/
-    unsigned char *browsePrefix;
-} EdgeContinuationPoint;
-
-/**
-  * @brief Structure which represents the List of ContinuationPoints in Browse request data
-  *
-  */
-typedef struct EdgeContinuationPointList
-{
-    /**< Total number of continuation points **/
-    size_t count;
-
-    /**< List of continuation points **/
-    EdgeContinuationPoint **cp;
-} EdgeContinuationPointList;
-
-/**
   * @brief Structure which represents the request and response data
   *
   */
@@ -526,9 +497,6 @@ typedef struct EdgeMessage
 
     /**< Total number of browse result objects **/
     size_t browseResultLength;
-
-    /**< List of continuation point **/
-    EdgeContinuationPointList *cpList;
 
     /**< Message Id **/
     uint32_t message_id;
