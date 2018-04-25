@@ -55,6 +55,7 @@ extern "C"
 #define MAX_DISPLAYNAME_SIZE (1000)
 #define UNIQUE_NODE_PATH     "{%d;%c;v=%d}%1000[^\n]s"
 
+#define EDGE_NODEID_UNKNOWN (0)
 #define EDGE_NODEID_BOOLEAN (1)
 #define EDGE_NODEID_SBYTE (2)
 #define EDGE_NODEID_BYTE (3)

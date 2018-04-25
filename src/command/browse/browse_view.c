@@ -84,6 +84,8 @@ void browseView(UA_Client *client, EdgeMessage *msg)
     msg->browseParam->direction = DIRECTION_FORWARD;
     msg->browseParam->maxReferencesPerNode = 0;
 
+    // First browse all the view nodes under UA_NS0ID_VIEWSFOLDER.
+    // Then browse all the nodes under those view nodes.
     browseNodes(client, msg);
 
     freeEdgeRequest(msg->request);

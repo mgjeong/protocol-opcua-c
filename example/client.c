@@ -151,7 +151,7 @@ static void response_msg_cb (EdgeMessage *data)
                         }
                         else if (data->responses[idx]->type == EDGE_NODEID_SBYTE)
                         {
-                            /* Handle SEDGE_NODEID_BYTE output array */
+                            /* Handle EDGE_NODEID_SBYTE output array */
                             for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                             {
                                 printf("%" PRId8 " ", ((int8_t *) data->responses[idx]->message->value)[arrayIdx]);
@@ -395,9 +395,9 @@ static void monitored_msg_cb (EdgeMessage *data)
                         printf("%" PRIu8 " ", ((uint8_t *) data->responses[idx]->message->value)[arrayIdx]);
                     }
                 }
-                else if (data->responses[idx]->type == EDGE_NODEID_BYTE)
+                else if (data->responses[idx]->type == EDGE_NODEID_SBYTE)
                 {
-                    /* Handle SEDGE_NODEID_BYTE output array */
+                    /* Handle EDGE_NODEID_SBYTE output array */
                     for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                     {
                         printf("%" PRId8 " ", ((int8_t *) data->responses[idx]->message->value)[arrayIdx]);
@@ -468,7 +468,7 @@ static void monitored_msg_cb (EdgeMessage *data)
                     }
                 }
                 else if (data->responses[idx]->type == EDGE_NODEID_STRING
-                        || data->responses[idx]->type == EDGE_NODEID_BYTE
+                        || data->responses[idx]->type == EDGE_NODEID_BYTESTRING
                          || data->responses[idx]->type == EDGE_NODEID_GUID)
                 {
                     /* Handle String/ByteString/Guid output array */
@@ -1478,7 +1478,7 @@ static void *getNewValuetoWrite(int type, int num_values)
                 return (void *) val;
             }
             break;
-        case EDGE_NODEID_BYTE:
+        case EDGE_NODEID_SBYTE:
             {
                 int8_t *val = (int8_t *) EdgeMalloc(sizeof(int8_t) * num_values);
                 if(IS_NULL(val))
@@ -1487,7 +1487,7 @@ static void *getNewValuetoWrite(int type, int num_values)
                     scanf("%" SCNd8, &val[i]);
                 return (void *) val;
             }
-        case EDGE_NODEID_BYTESTRING:
+        case EDGE_NODEID_BYTE:
             {
                 uint8_t *val = (uint8_t *) EdgeMalloc(sizeof(uint8_t) * num_values);
                 if(IS_NULL(val))
