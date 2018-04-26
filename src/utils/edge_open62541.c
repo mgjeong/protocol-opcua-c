@@ -32,7 +32,7 @@ char *convertUAStringToString(UA_String *uaStr)
     }
 
     char *str = (char *) EdgeMalloc(uaStr->length + 1);
-    VERIFY_NON_NULL_MSG(str, "EdgeMalloc FAILED for conver UA string to string\n", NULL);
+    VERIFY_NON_NULL_MSG(str, "EdgeMalloc FAILED for convert UA string to string\n", NULL);
     memcpy(str, uaStr->data, uaStr->length);
     str[uaStr->length] = '\0';
     return str;
@@ -147,6 +147,53 @@ Edge_NodeId *convertToEdgeNodeIdType(UA_NodeId *nodeId)
         }
         edgeNodeId->identifier.byteString = *edgeStr;
         EdgeFree(edgeStr);
+    }
+
+    return edgeNodeId;
+}
+
+EdgeNodeId *getEdgeNodeId(UA_NodeId *node)
+{
+    VERIFY_NON_NULL_MSG(node, "NodeID Parameter is NULL\n", NULL);
+
+    EdgeNodeId *edgeNodeId = (EdgeNodeId *) EdgeCalloc(1, sizeof(EdgeNodeId));
+    VERIFY_NON_NULL_MSG(edgeNodeId, "EdgeCalloc FAILED for edge node ID in getEdgeNodeId\n", NULL);
+
+    edgeNodeId->nameSpace = node->namespaceIndex;
+    switch (node->identifierType)
+    {
+        case UA_NODEIDTYPE_NUMERIC:
+            edgeNodeId->type = INTEGER;
+            edgeNodeId->integerNodeId = node->identifier.numeric;
+            break;
+        case UA_NODEIDTYPE_STRING:
+            edgeNodeId->type = STRING;
+            edgeNodeId->nodeId = convertUAStringToString(&node->identifier.string);
+            break;
+        case UA_NODEIDTYPE_BYTESTRING:
+            edgeNodeId->type = BYTESTRING;
+            edgeNodeId->nodeId = convertUAStringToString(&node->identifier.string);
+            break;
+        case UA_NODEIDTYPE_GUID:
+            edgeNodeId->type = UUID;
+            UA_Guid guid = node->identifier.guid;
+            char *value = (char *) EdgeMalloc(GUID_LENGTH + 1);
+            if (IS_NULL(value))
+            {
+                EDGE_LOG(TAG, "Memory allocation failed.");
+                EdgeFree(edgeNodeId);
+                edgeNodeId = NULL;
+                break;
+            }
+
+            snprintf(value, GUID_LENGTH + 1, "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x",
+                    guid.data1, guid.data2, guid.data3, guid.data4[0], guid.data4[1], guid.data4[2],
+                    guid.data4[3], guid.data4[4], guid.data4[5], guid.data4[6], guid.data4[7]);
+            edgeNodeId->nodeId = value;
+            break;
+        default:
+            // All valid cases are handled above.
+            break;
     }
 
     return edgeNodeId;
@@ -490,39 +537,6 @@ EdgeMessage* cloneEdgeMessage(EdgeMessage *msg)
         clone->browseParam->maxReferencesPerNode = msg->browseParam->maxReferencesPerNode;
     }
 
-    if (msg->cpList)
-    {
-        clone->cpList = (EdgeContinuationPointList *)EdgeCalloc(1, sizeof(EdgeContinuationPointList));
-        if(IS_NULL(clone->cpList))
-        {
-            goto ERROR;
-        }
-
-        clone->cpList->count = msg->cpList->count;
-        clone->cpList->cp =  (EdgeContinuationPoint **)EdgeCalloc(msg->cpList->count, sizeof(EdgeContinuationPoint *));
-        if(IS_NULL(clone->cpList->cp))
-        {
-            goto ERROR;
-        }
-
-        for (size_t  i = 0; i < msg->cpList->count; i++)
-        {
-            clone->cpList->cp[i] = (EdgeContinuationPoint *)EdgeCalloc(1, sizeof(EdgeContinuationPoint));
-            if(IS_NULL(clone->cpList->cp[i]))
-            {
-                goto ERROR;
-            }
-
-            clone->cpList->cp[i]->length = msg->cpList->cp[i]->length;
-            clone->cpList->cp[i]->continuationPoint = (unsigned char *) cloneData(msg->cpList->cp[i]->continuationPoint,
-                                                                                  strlen((char *) msg->cpList->cp[i]->continuationPoint) + 1);
-            if(IS_NULL(clone->cpList->cp[i]->continuationPoint))
-            {
-                goto ERROR;
-            }
-        }
-    }
-
     if (msg->type == SEND_REQUEST)
     {
         if (msg->request)
@@ -719,6 +733,29 @@ char getCharacterNodeIdType(uint32_t type)
             break;
     }
     return nodeType;
+}
+
+UA_NodeId *cloneNodeId(UA_NodeId *nodeId)
+{
+    VERIFY_NON_NULL_MSG(nodeId, "nodeId param is NULL", NULL);
+    UA_NodeId *clone = UA_NodeId_new();
+    VERIFY_NON_NULL_MSG(clone, "Memory allocation failed.", NULL);
+    switch(nodeId->identifierType)
+    {
+        case UA_NODEIDTYPE_NUMERIC:
+            *clone = UA_NODEID_NUMERIC(nodeId->namespaceIndex, nodeId->identifier.numeric);
+            break;
+        case UA_NODEIDTYPE_STRING:
+            *clone = UA_NODEID_STRING_ALLOC(nodeId->namespaceIndex, (char *)nodeId->identifier.string.data);
+            break;
+        case UA_NODEIDTYPE_GUID:
+            *clone = UA_NODEID_GUID(nodeId->namespaceIndex, nodeId->identifier.guid);
+            break;
+        case UA_NODEIDTYPE_BYTESTRING:
+            *clone = UA_NODEID_BYTESTRING_ALLOC(nodeId->namespaceIndex, (char *)nodeId->identifier.byteString.data);
+            break;
+    }
+    return clone;
 }
 
 void logNodeId(UA_NodeId id)

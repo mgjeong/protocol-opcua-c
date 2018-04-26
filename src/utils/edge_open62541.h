@@ -76,6 +76,15 @@ UA_ApplicationType convertEdgeApplicationType(EdgeApplicationType appType);
 Edge_NodeId *convertToEdgeNodeIdType(UA_NodeId *nodeId);
 
 /**
+ * @brief Converts UA_NodeId to EdgeNodeId.
+ * @remarks Allocated memory should be freed by the caller.
+ * String, ByteString & Guid type NodeIds are NULL terminated.
+ * @param[in]  nodeId NodeId to be converted.
+ * @return Converted EdgeNodeId on success. Otherwise null.
+ */
+EdgeNodeId *getEdgeNodeId(UA_NodeId *node);
+
+/**
  * @brief De-allocates the memory consumed by EdgeArgument and its members.
  * @remarks Both EdgeArgument and its members should have been allocated dynamically.
  * @param[in]  arg Pointer to EdgeArgument which needs to be freed.
@@ -127,6 +136,14 @@ size_t get_size(int type, bool isArray);
  * @return Character equivalent for the given type.
  */
 char getCharacterNodeIdType(uint32_t type);
+
+/**
+ * @brief Clones UA_NodeId object.
+ * @remarks Allocated memory should be freed by the caller.
+ * @param[in]  nodeId UA_NodeId object to be cloned.
+ * @return Cloned UA_NodeId object on success. Otherwise null.
+ */
+UA_NodeId *cloneNodeId(UA_NodeId *nodeId);
 
 /**
  * @brief To display the given node id on console.

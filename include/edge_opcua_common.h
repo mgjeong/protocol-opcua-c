@@ -37,7 +37,6 @@
 #define SYSTEM_NAMESPACE_INDEX (0)
 #define DEFAULT_NAMESPACE_INDEX (2)
 #define DEFAULT_REQUEST_ID (10000)
-#define MAX_BROWSEREQUEST_SIZE (10)
 
 #define EDGE_EMPTY_ARRAY_SENTINEL ((void*)0x01)
 
@@ -67,7 +66,7 @@ typedef enum
 
 /**
  * Edge_String
- * 
+ *
  * A sequence of Unicode characters. Strings are just an array of UA_Byte. */
 typedef struct {
     size_t length; /* The length of the string */
@@ -85,7 +84,7 @@ typedef struct {
 
 /**
  * Edge_SByte
- * 
+ *
  * An integer value between -128 and 127. */
 typedef int8_t Edge_SByte;
 
@@ -97,7 +96,7 @@ typedef uint8_t Edge_Byte;
 
 /**
  * ByteString
- * 
+ *
  * A sequence of octets. */
 typedef Edge_String Edge_ByteString;
 
@@ -117,7 +116,7 @@ typedef int64_t Edge_DateTime;
 
 /**
  * Guid
- * 
+ *
  * A 16 byte value that can be used as a globally unique identifier. */
 typedef struct {
     uint32_t data1;

@@ -110,25 +110,6 @@ void freeEdgeApplicationConfig(EdgeApplicationConfig *config)
     EdgeFree(config);
 }
 
-void freeEdgeContinuationPoint(EdgeContinuationPoint *cp)
-{
-    VERIFY_NON_NULL_NR_MSG(cp, "NULL EdgeContinuationPoint param in freeEdgeContinuationPoint\n");
-    EdgeFree(cp->continuationPoint);
-    EdgeFree(cp);
-}
-
-void freeEdgeContinuationPointList(EdgeContinuationPointList *cpList)
-{
-    VERIFY_NON_NULL_NR_MSG(cpList, "NULL EdgeContinuationPoint param in freeEdgeContinuationPointList\n");
-    for (size_t i = 0; i < cpList->count; ++i)
-    {
-        freeEdgeContinuationPoint(cpList->cp[i]);
-    }
-
-    EdgeFree(cpList->cp);
-    EdgeFree(cpList);
-}
-
 void freeEdgeDevice(EdgeDevice *dev)
 {
     VERIFY_NON_NULL_NR_MSG(dev, "NULL edgeDevice in freeEdgeDevice\n");
@@ -496,9 +477,6 @@ void freeEdgeMessage(EdgeMessage *msg)
 
     if(IS_NOT_NULL(msg->browseResult))
         freeEdgeBrowseResult(msg->browseResult, msg->browseResultLength);
-
-    if(IS_NOT_NULL(msg->cpList))
-        freeEdgeContinuationPointList(msg->cpList);
 
     EdgeFree(msg);
 }

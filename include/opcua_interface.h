@@ -43,28 +43,6 @@ extern "C"
 #endif
 
 /**
-  * @brief Structure which represents the BrowseNext request data
-  *
-  */
-typedef struct EdgeBrowseNextData
-{
-    /**< Browse parameter */
-    EdgeBrowseParameter browseParam;
-
-    /**< Manimum number of continuation points */
-    size_t count;
-
-    /**< Index where the next continuation point will be added */
-    size_t next_free;
-
-    /** <Continuation point List. Size of list = next_free. */
-    EdgeContinuationPoint *cp;
-
-    /**< Source Node Id of every continuation point. Size of list = next_free.*/
-    EdgeNodeId **srcNodeId;
-} EdgeBrowseNextData;
-
-/**
  * @brief Response Message callback which represents the response message of requested operation
  *
  */

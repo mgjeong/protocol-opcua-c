@@ -21,7 +21,6 @@
 #include "browse.h"
 #include "browse_common.h"
 #include "browse_view.h"
-#include "browse_next.h"
 
 #define TAG "browse"
 
@@ -59,9 +58,6 @@ void executeBrowse(UA_Client *client, EdgeMessage *msg)
             break;
         case CMD_BROWSE_VIEW:
             browseView(client, msg);
-            break;
-        case CMD_BROWSENEXT:
-            browseNext(client, msg);
             break;
         default:
             EDGE_LOG(TAG, "Invalid command in message.");

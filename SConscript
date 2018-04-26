@@ -111,7 +111,6 @@ src = [
 		buildDir + srcPath + '/command/browse/browse.c',
 		buildDir + srcPath + '/command/browse/browse_common.c',
 		buildDir + srcPath + '/command/browse/browse_view.c',
-		buildDir + srcPath + '/command/browse/browse_next.c',
 		buildDir + srcPath + '/command/read.c',
 		buildDir + srcPath + '/command/write.c',
 		buildDir + srcPath + '/command/method.c',

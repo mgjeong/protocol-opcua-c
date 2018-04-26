@@ -75,7 +75,6 @@ typedef struct EndPointList {
 static EndPointList* epList = NULL;
 static EdgeConfigure *config = NULL;
 
-EdgeBrowseNextData *browseNextData = NULL;
 int maxReferencesPerNode = 0;
 
 static void add_to_endpoint_list(char *endpoint);
@@ -587,33 +586,6 @@ static void browse_msg_cb (EdgeMessage *data)
             printf("%s\n", (unsigned char *)data->responses[0]->message->value);
         }
     }
-    else
-    {
-        if (data->cpList && data->cpList->count > 0)
-        {
-            printf("Total number of continuation points: %zu\n", data->cpList->count);
-            for (size_t i = 0; i < data->cpList->count; ++i)
-            {
-                EdgeNodeId *nodeId = data->responses[i]->nodeInfo->nodeId;
-                printf("Node ID of Continuation point[%zu]: ", i + 1);
-                (nodeId->type == INTEGER) ? printf("%d\n", nodeId->integerNodeId) : printf("%s\n", nodeId->nodeId);
-
-                int length = data->cpList->cp[i]->length;
-                unsigned char *cp = data->cpList->cp[i]->continuationPoint;
-                printf("Length: %d\n", length);
-                for (int j = 0; j < length; ++j)
-                {
-                    printf("%02X", cp[j]);
-                }
-                printf("\n");
-
-                EdgeResult ret = addBrowseNextData(&browseNextData, data->cpList->cp[i], nodeId);
-                if (STATUS_OK != ret.code)
-                    break;
-            }
-            printf("\n\n");
-        }
-    }
 }
 
 /* status callbacks */
@@ -989,117 +961,6 @@ static void deinit()
     }
 }
 
-static void testBrowseNext()
-{
-    printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET);
-    printf("\n" COLOR_YELLOW "                       Browse Next            "COLOR_RESET);
-    printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET
-           "\n\n");
-
-    if (!browseNextData || browseNextData->next_free < 1)
-    {
-        printf("Invalid data for browse next service.\n");
-        return;
-    }
-
-    EdgeBrowseNextData *clone = cloneBrowseNextData(browseNextData);
-    if (!clone)
-    {
-        printf("Failed to clone the BrowseNextData.\n");
-        return;
-    }
-
-    browseNextData = initBrowseNextData(browseNextData, &browseNextData->browseParam, MAX_CP_LIST_COUNT);
-    printf("Total number of continuation points: %zu.\n", clone->next_free);
-
-    // SEND_REQUESTS : There can be one or more continuation points.
-    // CMD_BROWSENEXT : Using the same existing command for browse next operation as well.
-    size_t requestLength = clone->next_free;
-    EdgeMessage *msg = createEdgeMessage(endpointUri, requestLength, CMD_BROWSENEXT);
-    if(IS_NULL(msg))
-    {
-        printf("Error : Malloc failed for EdgeMessage in test Method\n");
-        return;
-    }
-
-    if(requestLength == 1)
-    {
-        msg->request->nodeInfo = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
-        if(IS_NULL(msg->request->nodeInfo))
-        {
-            printf("Error : Malloc failed for nodeInfo in testBrowseNext()\n");
-            goto EXIT_BROWSENEXT;
-        }
-        msg->request->nodeInfo->nodeId = clone->srcNodeId[0];
-    }
-    else
-    {
-        for (size_t i = 0; i < requestLength; i++)
-        {
-            msg->requests[i] = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
-            if(IS_NULL(msg->requests[i]))
-            {
-                printf("Error : Malloc failed for requests[%zu] in testBrowseNext()\n", i);
-                goto EXIT_BROWSENEXT;
-            }
-
-            msg->requests[i]->nodeInfo = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
-            if(IS_NULL(msg->requests[i]->nodeInfo))
-            {
-                printf("Error : Malloc failed for nodeInfo in testBrowseNext()\n");
-                goto EXIT_BROWSENEXT;
-            }
-            msg->requests[i]->nodeInfo->nodeId = clone->srcNodeId[i];
-        }
-    }
-
-    msg->requestLength = requestLength;
-    msg->browseParam = &clone->browseParam;
-
-    msg->cpList = (EdgeContinuationPointList *)EdgeCalloc(1, sizeof(EdgeContinuationPointList));
-    if(IS_NULL(msg->cpList))
-    {
-        printf("Error : Malloc failed for msg->cpList in testBrowseNext()\n");
-        goto EXIT_BROWSENEXT;
-    }
-    msg->cpList->count = requestLength;
-    msg->cpList->cp = (EdgeContinuationPoint **)calloc(requestLength, sizeof(EdgeContinuationPoint *));
-    if(IS_NULL(msg->cpList->cp))
-    {
-        printf("Error : Malloc failed for msg->cpList->cp in testBrowseNext()\n");
-        goto EXIT_BROWSENEXT;
-    }
-    for (size_t i = 0; i < requestLength; i++)
-    {
-        msg->cpList->cp[i] = &clone->cp[i];
-    }
-
-    sendRequest(msg);
-
-    EXIT_BROWSENEXT:
-
-    // Free request or requests based on the request length.
-    if(requestLength == 1)
-    {
-        msg->request->nodeInfo->nodeId = NULL;
-    }
-    else
-    {
-        for (size_t i = 0; i < requestLength; i++)
-            msg->requests[i]->nodeInfo->nodeId = NULL;
-    }
-
-    // Free continuation point list
-    for (size_t i = 0; i < requestLength; i++)
-    {
-        msg->cpList->cp[i] = NULL;
-    }
-
-    msg->browseParam = NULL;
-    destroyEdgeMessage(msg);
-    destroyBrowseNextData(clone);
-}
-
 static void testBrowseViews(char* endpointUri)
 {
     printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET);
@@ -1116,8 +977,6 @@ static void testBrowseViews(char* endpointUri)
 
     printf("\n" COLOR_YELLOW "********** Browse Views under RootFolder node in system namespace **********"
            COLOR_RESET "\n");
-
-    browseNextData = initBrowseNextData(browseNextData, msg->browseParam, MAX_CP_LIST_COUNT);
 
     sendRequest(msg);
 
@@ -1143,8 +1002,6 @@ static void testBrowse(char* endpointUri)
     insertBrowseParameter(&msg, nodeInfo, param);
     printf("\n\n" COLOR_YELLOW "********** Browse RootFolder node in system namespace **********"
            COLOR_RESET "\n");
-
-    browseNextData = initBrowseNextData(browseNextData, msg->browseParam, MAX_CP_LIST_COUNT);
 
     sendRequest(msg);
 
@@ -1177,8 +1034,6 @@ static void testBrowses(char* endpointUri)
     printf("\n\n" COLOR_YELLOW
            "********** Browse RootFolder, ObjectsFolder nodes in system namespace and Object1 in namespace 1 **********"
            COLOR_RESET "\n");
-
-    browseNextData = initBrowseNextData(browseNextData, msg->browseParam, MAX_CP_LIST_COUNT);
 
     sendRequest(msg);
 
@@ -1855,7 +1710,6 @@ static void print_menu()
     printf("write_group : group write attributes from nodes\n");
     printf("browse : browse nodes\n");
     printf("browse_m : browse multiple nodes\n");
-    printf("browse_next : browse next nodes\n");
     printf("browse_v : browse views\n");
     printf("method : method call\n");
     printf("create_sub : create subscription\n");
@@ -1945,10 +1799,6 @@ int main()
                 testBrowses(ep);
             }
         }
-        else if (!strcmp(command, "browse_next"))
-        {
-            testBrowseNext();
-        }
         else if (!strcmp(command, "browse_v"))
         {
             char *ep = getEndPoint_input();
@@ -2001,6 +1851,5 @@ int main()
         }
     }
 
-    destroyBrowseNextData(browseNextData);
     return 0;
 }

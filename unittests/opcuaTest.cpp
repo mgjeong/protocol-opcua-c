@@ -37,6 +37,9 @@ extern "C"
 
 #define TAG "TC"
 
+#define COLOR_YELLOW      "\x1b[33m"
+#define COLOR_RESET         "\x1b[0m"
+
 #define LOCALHOST "localhost"
 #define ENDPOINT_URI  "opc:tcp://%s:12686/edge-opc-server"
 #define IPADDRESS "opc.tcp://localhost:12686"
@@ -76,7 +79,6 @@ static bool startServerFlag = false;
 static bool startClientFlag = false;
 static bool readNodeFlag = true;
 static bool browseNodeFlag = false;
-static bool browseNextFlag = false;
 static bool methodCallFlag = false;
 
 char node_arr[46][30] =
@@ -96,8 +98,6 @@ char node_arr[46][30] =
 
 static int method_arr[5] =
 { 15, 25, 35, 45, 55 };
-
-EdgeBrowseNextData *browseNextData = NULL;
 
 extern void testRead_P1(char *endpointUri);
 extern void testRead_P2(char *endpointUri);
@@ -181,7 +181,7 @@ extern "C"
                         {
                             // Handle Output array
                             int arrayLen = data->responses[idx]->message->arrayLength;
-                            if (data->responses[idx]->type == Boolean)
+                            if (data->responses[idx]->type == EDGE_NODEID_BOOLEAN)
                             {
                                 /* Handle Boolean output array */
                                 PRINT_ARG("Boolean output array length :: ", arrayLen);
@@ -191,7 +191,7 @@ extern "C"
                                             ((bool * ) data->responses[idx]->message->value)[arrayIdx]);
                                 }
                             }
-                            else if (data->responses[idx]->type == Byte)
+                            else if (data->responses[idx]->type == EDGE_NODEID_BYTE)
                             {
                                 /* Handle Byte output array */
                                 PRINT_ARG("Byte output array length ::", arrayLen);
@@ -201,7 +201,7 @@ extern "C"
                                             ((int8_t * ) data->responses[idx]->message->value)[arrayIdx]);
                                 }
                             }
-                            else if (data->responses[idx]->type == SByte)
+                            else if (data->responses[idx]->type == EDGE_NODEID_SBYTE)
                             {
                                 /* Handle SByte output array */
                                 PRINT_ARG("SByte output array length :: ", arrayLen);
@@ -211,7 +211,7 @@ extern "C"
                                             ((int8_t * ) data->responses[idx]->message->value)[arrayIdx]);
                                 }
                             }
-                            else if (data->responses[idx]->type == Int16)
+                            else if (data->responses[idx]->type == EDGE_NODEID_INT16)
                             {
                                 /* Handle int16 output array */
                                 PRINT_ARG("Int16 output array length :: ", arrayLen);
@@ -221,7 +221,7 @@ extern "C"
                                             ((int16_t * ) data->responses[idx]->message->value)[arrayIdx]);
                                 }
                             }
-                            else if (data->responses[idx]->type == UInt16)
+                            else if (data->responses[idx]->type == EDGE_NODEID_UINT16)
                             {
                                 /* Handle UInt16 output array */
                                 PRINT_ARG("UInt16 output array length ::", arrayLen);
@@ -231,7 +231,7 @@ extern "C"
                                             ((int16_t * ) data->responses[idx]->message->value)[arrayIdx]);
                                 }
                             }
-                            else if (data->responses[idx]->type == Int32)
+                            else if (data->responses[idx]->type == EDGE_NODEID_INT32)
                             {
                                 /* Handle Int32 output array */
                                 PRINT_ARG("Int32 output array length :: ", arrayLen);
@@ -248,7 +248,7 @@ extern "C"
                                 }
                                 methodCallFlag = false;
                             }
-                            else if (data->responses[idx]->type == UInt32)
+                            else if (data->responses[idx]->type == EDGE_NODEID_UINT32)
                             {
                                 /* Handle UInt32 output array */
                                 PRINT_ARG("UInt32 output array length :: ", arrayLen);
@@ -258,7 +258,7 @@ extern "C"
                                             ((int32_t * ) data->responses[idx]->message->value)[arrayIdx]);
                                 }
                             }
-                            else if (data->responses[idx]->type == Int64)
+                            else if (data->responses[idx]->type == EDGE_NODEID_INT64)
                             {
                                 /* Handle Int64 output array */
                                 PRINT_ARG("Int64 output array length :: ", arrayLen);
@@ -268,7 +268,7 @@ extern "C"
                                             ((long int * ) data->responses[idx]->message->value)[arrayIdx]);
                                 }
                             }
-                            else if (data->responses[idx]->type == UInt64)
+                            else if (data->responses[idx]->type == EDGE_NODEID_UINT64)
                             {
                                 /* Handle UInt64 output array */
                                 PRINT_ARG("UInt64 output array length :: ", arrayLen);
@@ -278,7 +278,7 @@ extern "C"
                                             ((long int * ) data->responses[idx]->message->value)[arrayIdx]);
                                 }
                             }
-                            else if (data->responses[idx]->type == Float)
+                            else if (data->responses[idx]->type == EDGE_NODEID_FLOAT)
                             {
                                 /* Handle Float output array */
                                 PRINT_ARG("Float output array length :: ", arrayLen);
@@ -288,7 +288,7 @@ extern "C"
                                             ((float * ) data->responses[idx]->message->value)[arrayIdx]);
                                 }
                             }
-                            else if (data->responses[idx]->type == Double)
+                            else if (data->responses[idx]->type == EDGE_NODEID_DOUBLE)
                             {
                                 /* Handle Double output array */
                                 PRINT_ARG("Double output array length :: ", arrayLen);
@@ -298,10 +298,10 @@ extern "C"
                                             ((double * ) data->responses[idx]->message->value)[arrayIdx]);
                                 }
                             }
-                            else if (data->responses[idx]->type == String
-                                    || data->responses[idx]->type == ByteString
-                                    || data->responses[idx]->type == XmlElement
-                                    || data->responses[idx]->type == Guid)
+                            else if (data->responses[idx]->type == EDGE_NODEID_STRING
+                                    || data->responses[idx]->type == EDGE_NODEID_BYTESTRING
+                                    || data->responses[idx]->type == EDGE_NODEID_XMLELEMENT
+                                    || data->responses[idx]->type == EDGE_NODEID_GUID)
                             {
                                 /* Handle String/ByteString/Guid output array */
                                 PRINT_ARG("String/ByteString/Guid/XmlElement output array length :: ",
@@ -312,7 +312,7 @@ extern "C"
                                     PRINT(values[arrayIdx]);
                                 }
                             }
-                            else if (data->responses[idx]->type == DateTime)
+                            else if (data->responses[idx]->type == EDGE_NODEID_DATETIME)
                             {
                                 /* Handle DateTime output array */
                                 PRINT_ARG("DateTime output array length :: ", arrayLen);
@@ -322,7 +322,7 @@ extern "C"
                                             ((int64_t * ) data->responses[idx]->message->value)[arrayIdx]);
                                 }
                             }
-                            else if (data->responses[idx]->type == NodeId)
+                            else if (data->responses[idx]->type == EDGE_NODEID_NODEID)
                             {
                                 /* Handle NodeId output array */
                                 PRINT_ARG("NodeId output array length :: ", arrayLen);
@@ -330,7 +330,7 @@ extern "C"
                                 for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                                     showNodeId(nodeId[arrayIdx]);
                             }
-                            else if (data->responses[idx]->type == QualifiedName)
+                            else if (data->responses[idx]->type == EDGE_NODEID_QUALIFIEDNAME)
                             {
                                 /* Handle QualifiedName output array */
                                 PRINT_ARG("QualifiedName output array length :: ", arrayLen);
@@ -338,7 +338,7 @@ extern "C"
                                 for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                                     printf("[NameSpace Index: %" PRIu16 ", Name: %s]\n", qn[arrayIdx]->namespaceIndex, qn[arrayIdx]->name.data);
                             }
-                            else if (data->responses[idx]->type == LocalizedText)
+                            else if (data->responses[idx]->type == EDGE_NODEID_LOCALIZEDTEXT)
                             {
                                 /* Handle LocalizedText output array */
                                 PRINT_ARG("LocalizedText output array length :: ", arrayLen);
@@ -349,82 +349,82 @@ extern "C"
                         }
                         else
                         {
-                            if (data->responses[idx]->type == Boolean)
+                            if (data->responses[idx]->type == EDGE_NODEID_BOOLEAN)
                                 PRINT_ARG(
                                         "[Application response Callback] Data read from node ===>> ",
                                         *((int * )data->responses[idx]->message->value));
-                            else if (data->responses[idx]->type == Byte)
+                            else if (data->responses[idx]->type == EDGE_NODEID_BYTE)
                                 PRINT_ARG(
                                         "[Application response Callback] Data read from node ===>> ",
                                         *((int8_t * )data->responses[idx]->message->value));
-                            else if (data->responses[idx]->type == SByte)
+                            else if (data->responses[idx]->type == EDGE_NODEID_SBYTE)
                                 PRINT_ARG(
                                         "[Application response Callback] Data read from node ===>> ",
                                         *((int8_t * )data->responses[idx]->message->value));
-                            else if (data->responses[idx]->type == ByteString)
+                            else if (data->responses[idx]->type == EDGE_NODEID_BYTESTRING)
                                 PRINT_ARG(
                                         "[Application response Callback] Data read from node ===>> ",
                                         (char * )data->responses[idx]->message->value);
-                            else if (data->responses[idx]->type == DateTime)
+                            else if (data->responses[idx]->type == EDGE_NODEID_DATETIME)
                                 PRINT_ARG(
                                         "[Application response Callback] Data read from node ===>> ",
                                         *((int64_t * )data->responses[idx]->message->value));
-                            else if (data->responses[idx]->type == Double)
+                            else if (data->responses[idx]->type == EDGE_NODEID_DOUBLE)
                             {
                                 PRINT_ARG(
                                         "[Application response Callback] Data read from node ===>>  ",
                                         *((double * )data->responses[idx]->message->value));
                             }
-                            else if (data->responses[idx]->type == Float)
+                            else if (data->responses[idx]->type == EDGE_NODEID_FLOAT)
                                 PRINT_ARG(
                                         "[Application response Callback] Data read from node ===>>  ",
                                         *((float * )data->responses[idx]->message->value));
-                            else if (data->responses[idx]->type == Int16)
+                            else if (data->responses[idx]->type == EDGE_NODEID_INT16)
                                 PRINT_ARG(
                                         "[Application response Callback] Data read from node ===>> ",
                                         *((int16_t * )data->responses[idx]->message->value));
-                            else if (data->responses[idx]->type == UInt16)
+                            else if (data->responses[idx]->type == EDGE_NODEID_UINT16)
                             {
                                 PRINT_ARG(
                                         "[Application response Callback] Data read from node ===>> ",
                                         *((int16_t * )data->responses[idx]->message->value));
                             }
-                            else if (data->responses[idx]->type == Int32)
+                            else if (data->responses[idx]->type == EDGE_NODEID_INT32)
                             {
                                 PRINT_ARG(
                                         "[Application response Callback] Data read from node ===>>  ",
                                         *((int32_t * )data->responses[idx]->message->value));
                             }
-                            else if (data->responses[idx]->type == UInt32)
+                            else if (data->responses[idx]->type == EDGE_NODEID_UINT32)
                                 PRINT_ARG(
                                         "[Application response Callback] Data read from node ===>>  ",
                                         *((int32_t * )data->responses[idx]->message->value));
-                            else if (data->responses[idx]->type == Int64)
+                            else if (data->responses[idx]->type == EDGE_NODEID_INT64)
                                 PRINT_ARG(
                                         "[Application response Callback] Data read from node ===>>  ",
                                         *((int64_t * )data->responses[idx]->message->value));
-                            else if (data->responses[idx]->type == UInt64)
+                            else if (data->responses[idx]->type == EDGE_NODEID_UINT64)
                                 PRINT_ARG(
                                         "[Application response Callback] Data read from node ===>>  ",
                                         *((int64_t * )data->responses[idx]->message->value));
-                            else if (data->responses[idx]->type == String || data->responses[idx]->type == Guid
-                                || data->responses[idx]->type == XmlElement)
+                            else if (data->responses[idx]->type == EDGE_NODEID_STRING || data->responses[idx]->type == EDGE_NODEID_GUID
+                                || data->responses[idx]->type == EDGE_NODEID_XMLELEMENT)
                             {
                                 PRINT_ARG(
                                         "[Application response Callback] Data read from node ===>>  ",
                                         (char * )data->responses[idx]->message->value);
                             }
-                            else if (data->responses[idx]->type == LocalizedText)
+                            else if (data->responses[idx]->type == EDGE_NODEID_LOCALIZEDTEXT)
                             {
                                 Edge_LocalizedText *lt = (Edge_LocalizedText *) data->responses[idx]->message->value;
                                 printf("[Locale: %s, Text: %s]\n", (uint8_t*)lt->locale.data, (uint8_t*)lt->text.data);
                             }
-                            else if (data->responses[idx]->type == QualifiedName)
+                            else if (data->responses[idx]->type == EDGE_NODEID_QUALIFIEDNAME)
                             {
                                 Edge_QualifiedName *lt = (Edge_QualifiedName *) data->responses[idx]->message->value;
                                 printf("[NameSpace Index: %" PRIu16 ", Name: %s]\n", lt->namespaceIndex, lt->name.data);
                             }
-                            else if (data->responses[idx]->type == NodeId)
+                            else if (data->responses[idx]->type == EDGE_NODEID_NODEID)
                             {
                                 Edge_NodeId *nodeId = (Edge_NodeId *) data->responses[idx]->message->value;
                                 showNodeId(nodeId);
@@ -458,7 +458,7 @@ extern "C"
                 {
                     // Handle Output array
                     int arrayLen = data->responses[idx]->message->arrayLength;
-                    if (data->responses[idx]->type == Boolean)
+                    if (data->responses[idx]->type == EDGE_NODEID_BOOLEAN)
                     {
                         /* Handle Boolean output array */
                         for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
@@ -466,7 +466,7 @@ extern "C"
                             printf("%d  ", ((bool *) data->responses[idx]->message->value)[arrayIdx]);
                         }
                     }
-                    else if (data->responses[idx]->type == Byte)
+                    else if (data->responses[idx]->type == EDGE_NODEID_BYTE)
                     {
                         /* Handle Byte output array */
                         for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
@@ -474,7 +474,7 @@ extern "C"
                             printf("%" PRIu8 " ", ((uint8_t *) data->responses[idx]->message->value)[arrayIdx]);
                         }
                     }
-                    else if (data->responses[idx]->type == SByte)
+                    else if (data->responses[idx]->type == EDGE_NODEID_SBYTE)
                     {
                         /* Handle SByte output array */
                         for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
@@ -482,7 +482,7 @@ extern "C"
                             printf("%" PRId8 " ", ((int8_t *) data->responses[idx]->message->value)[arrayIdx]);
                         }
                     }
-                    else if (data->responses[idx]->type == Int16)
+                    else if (data->responses[idx]->type == EDGE_NODEID_INT16)
                     {
                         /* Handle int16 output array */
                         for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
@@ -490,7 +490,7 @@ extern "C"
                             printf("%" PRId16 "  ", ((int16_t *) data->responses[idx]->message->value)[arrayIdx]);
                         }
                     }
-                    else if (data->responses[idx]->type == UInt16)
+                    else if (data->responses[idx]->type == EDGE_NODEID_UINT16)
                     {
                         /* Handle UInt16 output array */
                         for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
@@ -498,7 +498,7 @@ extern "C"
                             printf("%" PRIu16 "  ", ((uint16_t *) data->responses[idx]->message->value)[arrayIdx]);
                         }
                     }
-                    else if (data->responses[idx]->type == Int32)
+                    else if (data->responses[idx]->type == EDGE_NODEID_INT32)
                     {
                         /* Handle Int32 output array */
                         for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
@@ -506,7 +506,7 @@ extern "C"
                             printf("%d  ", ((int32_t *) data->responses[idx]->message->value)[arrayIdx]);
                         }
                     }
-                    else if (data->responses[idx]->type == UInt32)
+                    else if (data->responses[idx]->type == EDGE_NODEID_UINT32)
                     {
                         /* Handle UInt32 output array */
                         for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
@@ -514,7 +514,7 @@ extern "C"
                             printf("%u  ", ((uint *) data->responses[idx]->message->value)[arrayIdx]);
                         }
                     }
-                    else if (data->responses[idx]->type == Int64)
+                    else if (data->responses[idx]->type == EDGE_NODEID_INT64)
                     {
                         /* Handle Int64 output array */
                         for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
@@ -522,7 +522,7 @@ extern "C"
                             printf("%ld  ", ((long int *) data->responses[idx]->message->value)[arrayIdx]);
                         }
                     }
-                    else if (data->responses[idx]->type == UInt64)
+                    else if (data->responses[idx]->type == EDGE_NODEID_UINT64)
                     {
                         /* Handle UInt64 output array */
                         for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
@@ -530,7 +530,7 @@ extern "C"
                             printf("%lu  ", ((ulong *) data->responses[idx]->message->value)[arrayIdx]);
                         }
                     }
-                    else if (data->responses[idx]->type == Float)
+                    else if (data->responses[idx]->type == EDGE_NODEID_FLOAT)
                     {
                         /* Handle Float output array */
                         for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
@@ -538,7 +538,7 @@ extern "C"
                             printf("%g  ", ((float *) data->responses[idx]->message->value)[arrayIdx]);
                         }
                     }
-                    else if (data->responses[idx]->type == Double)
+                    else if (data->responses[idx]->type == EDGE_NODEID_DOUBLE)
                     {
                         /* Handle Double output array */
                         for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
@@ -546,8 +546,9 @@ extern "C"
                             printf("%g  ", ((double *) data->responses[idx]->message->value)[arrayIdx]);
                         }
                     }
-                    else if (data->responses[idx]->type == String || data->responses[idx]->type == ByteString
-                             || data->responses[idx]->type == Guid)
+                    else if (data->responses[idx]->type == EDGE_NODEID_STRING
+                            || data->responses[idx]->type == EDGE_NODEID_BYTESTRING
+                            || data->responses[idx]->type == EDGE_NODEID_GUID)
                     {
                         /* Handle String/ByteString/Guid output array */
                         char **values = ((char **) data->responses[idx]->message->value);
@@ -556,7 +557,7 @@ extern "C"
                             printf("%s  ", values[arrayIdx]);
                         }
                     }
-                    else if (data->responses[idx]->type == DateTime)
+                    else if (data->responses[idx]->type == EDGE_NODEID_DATETIME)
                     {
                         /* Handle DateTime output array */
                         for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
@@ -570,37 +571,37 @@ extern "C"
                 {
                     if (data->responses[idx]->message != NULL)
                     {
-                        if (data->responses[idx]->type == Int16)
+                        if (data->responses[idx]->type == EDGE_NODEID_INT16)
                             printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>> [%d]\n",
                                    *((int *)data->responses[idx]->message->value));
-                        else if (data->responses[idx]->type == Byte)
+                        else if (data->responses[idx]->type == EDGE_NODEID_BYTE)
                             printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>> [%d]\n",
                                    *((uint8_t *)data->responses[idx]->message->value));
-                        else if (data->responses[idx]->type == ByteString)
+                        else if (data->responses[idx]->type == EDGE_NODEID_BYTESTRING)
                             printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>> [%s]\n",
                                    (char *)data->responses[idx]->message->value);
-                        else if (data->responses[idx]->type == UInt16)
+                        else if (data->responses[idx]->type == EDGE_NODEID_UINT16)
                             printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>> [%d]\n",
                                    *((int *)data->responses[idx]->message->value));
-                        else if (data->responses[idx]->type == Int32)
+                        else if (data->responses[idx]->type == EDGE_NODEID_INT32)
                             printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>>  [%d]\n",
                                    *((int *)data->responses[idx]->message->value));
-                        else if (data->responses[idx]->type == UInt32)
+                        else if (data->responses[idx]->type == EDGE_NODEID_UINT32)
                             printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>>  [%d]\n",
                                    *((int *)data->responses[idx]->message->value));
-                        else if (data->responses[idx]->type == Int64)
+                        else if (data->responses[idx]->type == EDGE_NODEID_INT64)
                             printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>>  [%ld]\n",
                                    *((long *)data->responses[idx]->message->value));
-                        else if (data->responses[idx]->type == UInt64)
+                        else if (data->responses[idx]->type == EDGE_NODEID_UINT64)
                             printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>>  [%ld]\n",
                                    *((long *)data->responses[idx]->message->value));
-                        else if (data->responses[idx]->type == Float)
+                        else if (data->responses[idx]->type == EDGE_NODEID_FLOAT)
                             printf("[MonitoredItem DataChange callback] Monitored Change Value read from node  ===>>  [%f]\n",
                                    *((float *)data->responses[idx]->message->value));
-                        else if (data->responses[idx]->type == Double)
+                        else if (data->responses[idx]->type == EDGE_NODEID_DOUBLE)
                             printf("[MonitoredItem DataChange callback] Monitored Change Value read from node  ===>>  [%f]\n",
                                    *((double *)data->responses[idx]->message->value));
-                        else if (data->responses[idx]->type == String || data->responses[idx]->type == Guid)
+                        else if (data->responses[idx]->type == EDGE_NODEID_STRING || data->responses[idx]->type == EDGE_NODEID_GUID)
                             printf("[MonitoredItem DataChange callback] Monitored Change Value read from node ===>>  [%s]\n",
                                    ((char *)data->responses[idx]->message->value));
                     }
@@ -621,38 +622,7 @@ extern "C"
         {
             if(data->responses[0]->message != NULL)
             {
-                //PRINT_ARG("\n", (unsigned char *)data->responses[0]->message->value);
-            }
-        }
-        else
-        {
-            if (data->cpList && data->cpList->count > 0)
-            {
-                // Do somethings
-                if (data->cpList && data->cpList->count > 0)
-                {
-                    printf("Total number of continuation points: %zu\n", data->cpList->count);
-                    for (size_t i = 0; i < data->cpList->count; ++i)
-                    {
-                        EdgeNodeId *nodeId = data->responses[i]->nodeInfo->nodeId;
-                        printf("Node ID of Continuation point[%zu]: ", i + 1);
-                        (nodeId->type == INTEGER) ? printf("%d\n", nodeId->integerNodeId) : printf("%s\n", nodeId->nodeId);
-
-                        int length = data->cpList->cp[i]->length;
-                        unsigned char *cp = data->cpList->cp[i]->continuationPoint;
-                        printf("Length: %d\n", length);
-                        for (int j = 0; j < length; ++j)
-                        {
-                            printf("%02X", cp[j]);
-                        }
-                        printf("\n");
-
-                        EdgeResult ret = addBrowseNextData(&browseNextData, data->cpList->cp[i], nodeId);
-                        if (STATUS_OK != ret.code)
-                            break;
-                    }
-                    printf("\n\n");
-                }
+                PRINT_ARG("\n", (unsigned char *)data->responses[0]->message->value);
             }
         }
     }
@@ -899,85 +869,18 @@ static void browseViews()
 
 static void browse_next()
 {
-    int  maxReferencesPerNode = 2;
+    int  maxReferencesPerNode = 5;
     EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_BROWSE);
     EXPECT_EQ(NULL != msg, true);
 
     EdgeNodeInfo* nodeInfo = createEdgeNodeInfoForNodeId(INTEGER, EDGE_NODEID_ROOTFOLDER,
-    		SYSTEM_NAMESPACE_INDEX);
+            SYSTEM_NAMESPACE_INDEX);
     EdgeBrowseParameter param = {DIRECTION_FORWARD, maxReferencesPerNode};
     insertBrowseParameter(&msg, nodeInfo, param);
 
-    browseNextData = initBrowseNextData(browseNextData, msg->browseParam, 1000);
     EXPECT_EQ(browseNodeFlag, false);
     sendRequest(msg);
     destroyEdgeMessage(msg);
-    sleep(1);
-
-    /* Wait some time and check whether browse callback is received */
-    EXPECT_EQ(browseNodeFlag, true);
-    browseNodeFlag = false;
-
-    EdgeBrowseNextData *clone = cloneBrowseNextData(browseNextData);
-    EXPECT_EQ(NULL != clone, true);
-    browseNextData = initBrowseNextData(browseNextData, &browseNextData->browseParam, 1000);
-    size_t requestLength = clone->next_free;
-    msg = createEdgeMessage(endpointUri, requestLength, CMD_BROWSENEXT);
-
-    if(requestLength == 1)
-    {
-        msg->request->nodeInfo = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
-        EXPECT_EQ(NULL!= msg->request->nodeInfo, true);
-        msg->request->nodeInfo->nodeId = clone->srcNodeId[0];
-    }
-    else
-    {
-        for (size_t i = 0; i < requestLength; i++)
-        {
-            msg->requests[i] = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
-            EXPECT_EQ(NULL!= msg->requests[i], true);
-
-            msg->requests[i]->nodeInfo = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
-            EXPECT_EQ(NULL!= msg->requests[i]->nodeInfo, true);
-            msg->requests[i]->nodeInfo->nodeId = clone->srcNodeId[i];
-        }
-    }
-    msg->requestLength = requestLength;
-    msg->browseParam = &clone->browseParam;
-
-    msg->cpList = (EdgeContinuationPointList *)EdgeCalloc(1, sizeof(EdgeContinuationPointList));
-    EXPECT_EQ(NULL != msg->cpList, true);
-    msg->cpList->count = requestLength;
-    msg->cpList->cp = (EdgeContinuationPoint **)calloc(requestLength, sizeof(EdgeContinuationPoint *));
-    EXPECT_EQ(NULL != msg->cpList->cp, true);
-    for (size_t i = 0; i < requestLength; i++)
-    {
-        msg->cpList->cp[i] = &clone->cp[i];
-    }
-
-    sendRequest(msg);
-
-    // Free request or requests based on the request length.
-    if(requestLength == 1)
-    {
-        msg->request->nodeInfo->nodeId = NULL;
-    }
-    else
-    {
-        for (size_t i = 0; i < requestLength; i++)
-            msg->requests[i]->nodeInfo->nodeId = NULL;
-    }
-
-    // Free continuation point list
-    for (size_t i = 0; i < requestLength; i++)
-    {
-        msg->cpList->cp[i] = NULL;
-    }
-
-    msg->browseParam = NULL;
-    destroyEdgeMessage(msg);
-    destroyBrowseNextData(clone);
-
     sleep(1);
 
     /* Wait some time and check whether browse callback is received */
@@ -1696,7 +1599,7 @@ TEST_F(OPC_serverTests , ServerCreateNamespace_N4)
 TEST_F(OPC_serverTests , ServerCreateVariableNodeItem_P)
 {
     EdgeNodeItem* item = NULL;
-    item = createVariableNodeItem("String1", String, (void*) "test1", VARIABLE_NODE, 100);
+    item = createVariableNodeItem("String1", EDGE_NODEID_STRING, (void*) "test1", VARIABLE_NODE, 100);
     ASSERT_EQ(NULL != item, true);
     EdgeFree(item);
 }
@@ -1704,7 +1607,7 @@ TEST_F(OPC_serverTests , ServerCreateVariableNodeItem_P)
 TEST_F(OPC_serverTests , ServerCreateVariableNodeItem_N)
 {
     EdgeNodeItem* item = NULL;
-    item = createVariableNodeItem(NULL, String, (void*) "test1", VARIABLE_NODE, 100);
+    item = createVariableNodeItem(NULL, EDGE_NODEID_STRING, (void*) "test1", VARIABLE_NODE, 100);
     ASSERT_EQ(NULL != item, false);
 }
 
@@ -1860,19 +1763,19 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
 
     int index = 0;
     EdgeNodeItem* item = NULL;
-    item = createVariableNodeItem("String1", String, (void*) "test1", VARIABLE_NODE, 100);
+    item = createVariableNodeItem("String1", EDGE_NODEID_STRING, (void*) "test1", VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added]  %s\n", item->browseName);
     deleteNodeItem(item);
 
-    item = createVariableNodeItem("String2", String, (void*) "test2", VARIABLE_NODE, 100);
+    item = createVariableNodeItem("String2", EDGE_NODEID_STRING, (void*) "test2", VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
     deleteNodeItem(item);
 
-    item = createVariableNodeItem("String3", String, (void*) "test3", VARIABLE_NODE, 100);
+    item = createVariableNodeItem("String3", EDGE_NODEID_STRING, (void*) "test3", VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
@@ -1884,7 +1787,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     {
         xml_value->length = 2;
         xml_value->data = (UA_Byte *) "ab";
-        item = createVariableNodeItem("XmlElement", XmlElement, (void *) xml_value, VARIABLE_NODE, 100);
+        item = createVariableNodeItem("XmlElement", EDGE_NODEID_XMLELEMENT, (void *) xml_value, VARIABLE_NODE, 100);
         VERIFY_NON_NULL_NR(item);
         createNode(DEFAULT_NAMESPACE_VALUE, item);
         printf("\n|------------[Added] %s\n", item->browseName);
@@ -1902,7 +1805,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     {
         lt_value->locale = EdgeStringAlloc("COUNTRY");
         lt_value->text = EdgeStringAlloc("INDIA");
-        item = createVariableNodeItem("LocalizedText", LocalizedText, (void *) lt_value,
+        item = createVariableNodeItem("LocalizedText", EDGE_NODEID_LOCALIZEDTEXT, (void *) lt_value,
                 VARIABLE_NODE, 100);
         VERIFY_NON_NULL_NR(item);
         createNode(DEFAULT_NAMESPACE_VALUE, item);
@@ -1924,7 +1827,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     {
         strncpy(bs_value, "samsung", strlen("samsung"));
         bs_value[strlen("samsung")] = '\0';
-        item = createVariableNodeItem("ByteString", ByteString, (void *) bs_value, VARIABLE_NODE, 100);
+        item = createVariableNodeItem("ByteString", EDGE_NODEID_BYTESTRING, (void *) bs_value, VARIABLE_NODE, 100);
         VERIFY_NON_NULL_NR(item);
         createNode(DEFAULT_NAMESPACE_VALUE, item);
         printf("\n|------------[Added] %s\n", item->browseName);
@@ -1938,7 +1841,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
 
     printf("\n[%d] Variable node with byte variant: \n", ++index);
     Edge_Byte b_value = 2;
-    item = createVariableNodeItem("Byte", Byte, (void *) &b_value, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("Byte", EDGE_NODEID_BYTE, (void *) &b_value, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
@@ -1946,7 +1849,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
 
     printf("\n[%d] Variable node with float variant: \n", ++index);
     float f_value = 4.4;
-    item = createVariableNodeItem("Float", Float, (void *) &f_value, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("Float", EDGE_NODEID_FLOAT, (void *) &f_value, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
@@ -1954,7 +1857,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
 
     printf("\n[%d] Variable node with int variant: \n", ++index);
     int value = 30;
-    item = createVariableNodeItem("UInt16", UInt16, (void *) &value, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("UInt16", EDGE_NODEID_UINT16, (void *) &value, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
@@ -1962,7 +1865,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
 
     printf("\n[%d] Variable node with UInt32 variant: \n", ++index);
     value = 444;
-    item = createVariableNodeItem("UInt32", UInt32, (void *) &value, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("UInt32", EDGE_NODEID_UINT32, (void *) &value, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
@@ -1970,7 +1873,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
 
     printf("\n[%d] Variable node with UInt64 variant: \n", ++index);
     value = 3445516;
-    item = createVariableNodeItem("UInt64", UInt64, (void *) &value, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("UInt64", EDGE_NODEID_UINT64, (void *) &value, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
@@ -1978,7 +1881,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
 
     printf("\n[%d] Variable node with Int16 variant: \n", ++index);
     value = 4;
-    item = createVariableNodeItem("Int16", Int16, (void *) &value, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("Int16", EDGE_NODEID_INT16, (void *) &value, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
@@ -1986,7 +1889,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
 
     printf("\n[%d] Variable node with Int32 variant: \n", ++index);
     value = 40;
-    item = createVariableNodeItem("Int32", Int32, (void *) &value, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("Int32", EDGE_NODEID_INT32, (void *) &value, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
@@ -1996,7 +1899,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     VERIFY_NON_NULL_NR(item);
     printf("\n[%d] Variable node with Int64 variant: \n", ++index);
     value = 32700;
-    item = createVariableNodeItem("Int64", Int64, (void *) &value, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("Int64", EDGE_NODEID_INT64, (void *) &value, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
@@ -2004,7 +1907,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
 
     printf("\n[%d] Variable node with UInt32 variant: \n", ++index);
     uint32_t int32_val = 4456;
-    item = createVariableNodeItem("UInt32writeonly", UInt32, (void *) &int32_val, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("UInt32writeonly", EDGE_NODEID_UINT32, (void *) &int32_val, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     item->accessLevel = WRITE;
     item->userAccessLevel = WRITE;
@@ -2014,7 +1917,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
 
     printf("\n[%d] Variable node with UInt64 variant: \n", ++index);
     int64_t int64_val = 3270000;
-    item = createVariableNodeItem("UInt64readonly", UInt64, (void *) &int64_val, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("UInt64readonly", EDGE_NODEID_UINT64, (void *) &int64_val, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     item->userAccessLevel = READ;
     item->accessLevel = READ;
@@ -2024,7 +1927,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
 
     printf("\n[%d] Variable node with double variant: \n", ++index);
     double d_val = 50.4;
-    item = createVariableNodeItem("Double", Double, (void *) &d_val, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("Double", EDGE_NODEID_DOUBLE, (void *) &d_val, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
@@ -2032,7 +1935,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
 
     printf("\n[%d] Variable node with boolean variant: \n", ++index);
     bool flag = true;
-    item = createVariableNodeItem("Boolean", Boolean, (void *) &flag, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("Boolean", EDGE_NODEID_BOOLEAN, (void *) &flag, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
@@ -2040,7 +1943,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
 
     printf("\n[%d] Variable node with dateTime variant: \n", ++index);
     UA_DateTime time = UA_DateTime_now();
-    item = createVariableNodeItem("DateTime", DateTime, (void *) &time, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("DateTime", EDGE_NODEID_DATETIME, (void *) &time, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
@@ -2048,7 +1951,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
 
     printf("\n[%d] Variable node with SByte variant: \n", ++index);
     Edge_SByte sbyte = 2;
-    item = createVariableNodeItem("SByte", SByte, (void *) &sbyte, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("SByte", EDGE_NODEID_SBYTE, (void *) &sbyte, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
@@ -2056,7 +1959,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
 
     printf("\n[%d] Variable node with GUID variant: \n", ++index);
     Edge_Guid guid ={ 1, 0, 1, { 0, 0, 0, 0, 1, 1, 1, 1 } };
-    item = createVariableNodeItem("Guid", Guid, (void *) &guid, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("Guid", EDGE_NODEID_GUID, (void *) &guid, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
@@ -2069,7 +1972,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
         Edge_String str = EdgeStringAlloc("qualifiedName");
         qn_value->namespaceIndex = 2;
         qn_value->name = str;
-        item = createVariableNodeItem("QualifiedName", QualifiedName, (void *) qn_value,
+        item = createVariableNodeItem("QualifiedName", EDGE_NODEID_QUALIFIEDNAME, (void *) qn_value,
                 VARIABLE_NODE, 100);
         VERIFY_NON_NULL_NR(item);
         createNode(DEFAULT_NAMESPACE_VALUE, item);
@@ -2089,7 +1992,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     node->identifierType = INTEGER;
     node->identifier.numeric = EDGE_NODEID_ROOTFOLDER;
 
-    item = createVariableNodeItem("NodeId1", NodeId, node, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("NodeId1", EDGE_NODEID_NODEID, node, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
@@ -2102,7 +2005,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     node->identifierType = STRING;
     node->identifier.string = EdgeStringAlloc("StringNodeId");
 
-    item = createVariableNodeItem("NodeId2", NodeId, node, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("NodeId2", EDGE_NODEID_NODEID, node, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
@@ -2116,7 +2019,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     node->identifierType = BYTESTRING;
     node->identifier.byteString = EdgeStringAlloc("ByteStringNodeId");
 
-    item = createVariableNodeItem("NodeId3", NodeId, node, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("NodeId3", EDGE_NODEID_NODEID, node, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
@@ -2130,7 +2033,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     node->identifierType = UUID;
     node->identifier.guid = guid;
 
-    item = createVariableNodeItem("NodeId4", NodeId, node, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("NodeId4", EDGE_NODEID_NODEID, node, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
@@ -2161,7 +2064,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
             dataArray[3][strlen("pqrst")] = '\0';
             strncpy(dataArray[4], "uvwxyz", strlen("uvwxyz"));
             dataArray[4][strlen("uvwxyz")] = '\0';
-            item = createVariableNodeItem("ByteStringArray", ByteString, (void *) dataArray,
+            item = createVariableNodeItem("ByteStringArray", EDGE_NODEID_BYTESTRING, (void *) dataArray,
                     VARIABLE_NODE, 100);
             VERIFY_NON_NULL_NR(item);
             item->nodeType = ARRAY_NODE;
@@ -2196,7 +2099,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
         arr[2] = true;
         arr[3] = false;
         arr[4] = true;
-        item = createVariableNodeItem("BoolArray", Boolean, (void *) arr, VARIABLE_NODE, 100);
+        item = createVariableNodeItem("BoolArray", EDGE_NODEID_BOOLEAN, (void *) arr, VARIABLE_NODE, 100);
         VERIFY_NON_NULL_NR(item);
         item->nodeType = ARRAY_NODE;
         item->arrayLength = 5;
@@ -2213,7 +2116,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     printf("\n[%d] Array node with dateTime variant: \n", ++index);
     UA_DateTime time_now = UA_DateTime_now();
     UA_DateTime timeArr[2] = {time_now, time_now-1000};
-    item = createVariableNodeItem("DateTimeArray", DateTime, (void *) timeArr, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("DateTimeArray", EDGE_NODEID_DATETIME, (void *) timeArr, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     item->nodeType = ARRAY_NODE;
     item->arrayLength = 2;
@@ -2223,7 +2126,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
 
     printf("\n[%d] Array node with XML ELEMENT variant: \n", ++index);
     Edge_XmlElement xmlValueArr[2] = { {2, (uint8_t *)"ab"}, {3, (uint8_t *)"abc"} };
-    item = createVariableNodeItem("XmlElementArray", XmlElement, (void *) xmlValueArr, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("XmlElementArray", EDGE_NODEID_XMLELEMENT, (void *) xmlValueArr, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     item->nodeType = ARRAY_NODE;
     item->arrayLength = 2;
@@ -2241,7 +2144,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     nodeArr[1].identifierType = STRING;
     nodeArr[1].identifier.string = EdgeStringAlloc("StringNodeId");
 
-    item = createVariableNodeItem("NodeIdArray", NodeId, nodeArr, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("NodeIdArray", EDGE_NODEID_NODEID, nodeArr, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     item->nodeType = ARRAY_NODE;
     item->arrayLength = 2;
@@ -2251,7 +2154,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
 
     printf("\n[%d] Array node with qualified name variant: \n", ++index);
     Edge_QualifiedName qnValueArr[2] = { {2, {5, (uint8_t *)"qn100"} }, {2, {6, (uint8_t *)"qn1000"}} };
-    item = createVariableNodeItem("QualifiedNameArray", QualifiedName, (void *) qnValueArr,
+    item = createVariableNodeItem("QualifiedNameArray", EDGE_NODEID_QUALIFIEDNAME, (void *) qnValueArr,
             VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     item->nodeType = ARRAY_NODE;
@@ -2263,7 +2166,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     printf("\n[%d] Variable node with localized text variant: \n", ++index);
     Edge_LocalizedText ltValueArr[2] = { { {7, (uint8_t *)"localeA"}, {5, (uint8_t *)"textA"}},
             {{7, (uint8_t *)"localeB"}, {5, (uint8_t *)"textB"}} };
-    item = createVariableNodeItem("LocalizedTextArray", LocalizedText, (void *) ltValueArr,
+    item = createVariableNodeItem("LocalizedTextArray", EDGE_NODEID_LOCALIZEDTEXT, (void *) ltValueArr,
             VARIABLE_NODE, 100);
     item->nodeType = ARRAY_NODE;
     item->arrayLength = 2;
@@ -2281,7 +2184,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
         sbData[2] = 120;
         sbData[3] = 122;
         sbData[4] = 127;
-        item = createVariableNodeItem("SByteArray", SByte, (void *) sbData, VARIABLE_NODE, 100);
+        item = createVariableNodeItem("SByteArray", EDGE_NODEID_SBYTE, (void *) sbData, VARIABLE_NODE, 100);
         VERIFY_NON_NULL_NR(item);
         item->nodeType = ARRAY_NODE;
         item->arrayLength = 5;
@@ -2306,7 +2209,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
         intData[4] = 55;
         intData[5] = 66;
         intData[6] = 77;
-        item = createVariableNodeItem("Int32Array", Int32, (void *) intData, VARIABLE_NODE, 100);
+        item = createVariableNodeItem("Int32Array", EDGE_NODEID_INT32, (void *) intData, VARIABLE_NODE, 100);
         VERIFY_NON_NULL_NR(item);
         item->nodeType = ARRAY_NODE;
         item->arrayLength = 7;
@@ -2327,7 +2230,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     int64Data[2] = 33333;
     int64Data[3] = 44444;
     int64Data[4] = 55555;
-    item = createVariableNodeItem("Int64Array", Int64, (void *) int64Data, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("Int64Array", EDGE_NODEID_INT64, (void *) int64Data, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     item->nodeType = ARRAY_NODE;
     item->arrayLength = 5;
@@ -2337,7 +2240,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
 
     printf("\n[%d] Array node with UInt16 values: \n", ++index);
     uint16_t uint16Data[3] = {1000, 2000, 3000};
-    item = createVariableNodeItem("UInt16Array", UInt16, (void *) uint16Data, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("UInt16Array", EDGE_NODEID_UINT16, (void *) uint16Data, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     item->nodeType = ARRAY_NODE;
     item->arrayLength = 3;
@@ -2347,7 +2250,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
 
     printf("\n[%d] Array node with Int16 values: \n", ++index);
     int16_t int16Data[3] = {-1000, 0, 1000};
-    item = createVariableNodeItem("Int16Array", Int16, (void *) int16Data, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("Int16Array", EDGE_NODEID_INT16, (void *) int16Data, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     item->nodeType = ARRAY_NODE;
     item->arrayLength = 3;
@@ -2357,7 +2260,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
 
     printf("\n[%d] Array node with UInt32 values: \n", ++index);
     uint32_t uint32Data[3] = {1, 500000000, 1000000000};
-    item = createVariableNodeItem("UInt32Array", UInt32, (void *) uint32Data, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("UInt32Array", EDGE_NODEID_UINT32, (void *) uint32Data, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     item->nodeType = ARRAY_NODE;
     item->arrayLength = 3;
@@ -2367,7 +2270,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
 
     printf("\n[%d] Array node with UInt64 values: \n", ++index);
     uint64_t uint64Data[3] = {1, 50000000000000, 1000000000000000000};
-    item = createVariableNodeItem("UInt64Array", UInt64, (void *) uint64Data, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("UInt64Array", EDGE_NODEID_UINT64, (void *) uint64Data, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     item->nodeType = ARRAY_NODE;
     item->arrayLength = 3;
@@ -2384,7 +2287,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
         data[2] = 30.2;
         data[3] = 40.2;
         data[4] = 50.2;
-        item = createVariableNodeItem("DoubleArray", Double, (void *) data, VARIABLE_NODE, 100);
+        item = createVariableNodeItem("DoubleArray", EDGE_NODEID_DOUBLE, (void *) data, VARIABLE_NODE, 100);
         VERIFY_NON_NULL_NR(item);
         item->nodeType = ARRAY_NODE;
         item->arrayLength = 5;
@@ -2400,7 +2303,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
 
     printf("\n[%d] Array node with double values: \n", ++index);
     double dblArr[5] = {10.2, 20.2, 30.2, 40.2, 50.2};
-    item = createVariableNodeItem("FloatArray", Float, (void *) dblArr, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("FloatArray", EDGE_NODEID_FLOAT, (void *) dblArr, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     item->nodeType = ARRAY_NODE;
     item->arrayLength = 5;
@@ -2432,7 +2335,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
             strncpy(data1[4], "elephant", strlen("elephant"));
             data1[4][strlen("elephant")] = '\0';
 
-            item = createVariableNodeItem("CharArray", String, (void *) data1, VARIABLE_NODE, 100);
+            item = createVariableNodeItem("CharArray", EDGE_NODEID_STRING, (void *) data1, VARIABLE_NODE, 100);
             VERIFY_NON_NULL_NR(item);
             item->nodeType = ARRAY_NODE;
             item->arrayLength = 5;
@@ -2465,7 +2368,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
         b_arrvalue[2] = 0x33;
         b_arrvalue[3] = 0x44;
         b_arrvalue[4] = 0x55;
-        item = createVariableNodeItem("ByteArray", Byte, (void *) b_arrvalue, VARIABLE_NODE, 100);
+        item = createVariableNodeItem("ByteArray", EDGE_NODEID_BYTE, (void *) b_arrvalue, VARIABLE_NODE, 100);
         VERIFY_NON_NULL_NR(item);
         item->arrayLength = 5;
         item->nodeType = ARRAY_NODE;
@@ -2484,7 +2387,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
         { 1, 0, 1, { 0, 0, 0, 0, 1, 1, 1, 1 } },
         { 2, 0, 2, { 0, 0, 0, 0, 2, 2, 2, 2 } }
     };
-    item = createVariableNodeItem("GuidArray", Guid, (void *) guidArr, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("GuidArray", EDGE_NODEID_GUID, (void *) guidArr, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     item->nodeType = ARRAY_NODE;
     item->arrayLength = 2;
@@ -2654,7 +2557,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     printf("\n[%d] Variable Type Node with Double Variable Type \n", ++index);
     double d[2] =
     { 10.2, 20.2 };
-    item = createVariableNodeItem("DoubleVariableType", Double, (void *) d, VARIABLE_TYPE_NODE, 100);
+    item = createVariableNodeItem("DoubleVariableType", EDGE_NODEID_DOUBLE, (void *) d, VARIABLE_TYPE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     item->arrayLength = 2;
     createNode(DEFAULT_NAMESPACE_VALUE, item);
@@ -2742,7 +2645,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     for (int idx = 0; idx < method->num_inpArgs; idx++)
     {
         method->inpArg[idx] = (EdgeArgument *) EdgeMalloc(sizeof(EdgeArgument));
-        method->inpArg[idx]->argType = Double;
+        method->inpArg[idx]->argType = EDGE_NODEID_DOUBLE;
         method->inpArg[idx]->valType = SCALAR;
     }
 
@@ -2751,7 +2654,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     for (int idx = 0; idx < method->num_outArgs; idx++)
     {
         method->outArg[idx] = (EdgeArgument *) EdgeMalloc(sizeof(EdgeArgument));
-        method->outArg[idx]->argType = Double;
+        method->outArg[idx]->argType = EDGE_NODEID_DOUBLE;
         method->outArg[idx]->valType = SCALAR;
     }
     EdgeResult result = createMethodNode(DEFAULT_NAMESPACE_VALUE, methodNodeItem, method);
@@ -2771,12 +2674,12 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     method1->num_inpArgs = 2;
     method1->inpArg = (EdgeArgument **) malloc(sizeof(EdgeArgument *) * method1->num_inpArgs);
     method1->inpArg[0] = (EdgeArgument *) EdgeMalloc(sizeof(EdgeArgument));
-    method1->inpArg[0]->argType = Int32;
+    method1->inpArg[0]->argType = EDGE_NODEID_INT32;
     method1->inpArg[0]->valType = ARRAY_1D;
     method1->inpArg[0]->arrayLength = 5;
 
     method1->inpArg[1] = (EdgeArgument *) EdgeMalloc(sizeof(EdgeArgument));
-    method1->inpArg[1]->argType = Int32;
+    method1->inpArg[1]->argType = EDGE_NODEID_INT32;
     method1->inpArg[1]->valType = SCALAR;
 
     method1->num_outArgs = 1;
@@ -2784,7 +2687,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     for (int idx = 0; idx < method1->num_outArgs; idx++)
     {
         method1->outArg[idx] = (EdgeArgument *) EdgeMalloc(sizeof(EdgeArgument));
-        method1->outArg[idx]->argType = Int32;
+        method1->outArg[idx]->argType = EDGE_NODEID_INT32;
         method1->outArg[idx]->valType = ARRAY_1D;
         method1->outArg[idx]->arrayLength = 5;
     }
@@ -2804,7 +2707,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     method2->num_inpArgs = 1;
     method2->inpArg = (EdgeArgument **) malloc(sizeof(EdgeArgument *) * method2->num_inpArgs);
     method2->inpArg[0] = (EdgeArgument *) EdgeMalloc(sizeof(EdgeArgument));
-    method2->inpArg[0]->argType = String;
+    method2->inpArg[0]->argType = EDGE_NODEID_STRING;
     method2->inpArg[0]->valType = ARRAY_1D;
     method2->inpArg[0]->arrayLength = 5;
 
@@ -2813,7 +2716,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     for (int idx = 0; idx < method2->num_outArgs; idx++)
     {
         method2->outArg[idx] = (EdgeArgument *) EdgeMalloc(sizeof(EdgeArgument));
-        method2->outArg[idx]->argType = String;
+        method2->outArg[idx]->argType = EDGE_NODEID_STRING;
         method2->outArg[idx]->valType = ARRAY_1D;
         method2->outArg[idx]->arrayLength = 5;
     }
@@ -2848,7 +2751,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
         printf("Error :: EdgeMalloc failed for method method3->inpArg[0]  in Test create Nodes\n");
         return;
     }
-    method3->inpArg[0]->argType = String;
+    method3->inpArg[0]->argType = EDGE_NODEID_STRING;
     method3->inpArg[0]->valType = SCALAR;
 
     method3->num_outArgs = 1;
@@ -2856,7 +2759,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     for (int idx = 0; idx < method3->num_outArgs; idx++)
     {
         method3->outArg[idx] = (EdgeArgument *) EdgeMalloc(sizeof(EdgeArgument));
-        method3->outArg[idx]->argType = String;
+        method3->outArg[idx]->argType = EDGE_NODEID_STRING;
         method3->outArg[idx]->valType = SCALAR;
         method3->outArg[idx]->arrayLength = 0;
     }
@@ -3605,26 +3508,6 @@ TEST_F(OPC_clientTests , ClientBrowseGroup_P)
     destroyEdgeMessage(msg);
 
     browseNodes();
-
-    stop_client();
-    EXPECT_EQ(startClientFlag, false);
-}
-
-TEST_F(OPC_clientTests , ClientBrowseNext_P)
-{
-    EXPECT_EQ(startClientFlag, false);
-
-    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_GET_ENDPOINTS);
-    EXPECT_EQ(NULL != msg, true);
-
-    EdgeResult res = getEndpointInfo(msg);
-    EXPECT_EQ(res.code, STATUS_OK);
-
-    EXPECT_EQ(startClientFlag, true);
-
-    destroyEdgeMessage(msg);
-
-    browse_next();
 
     stop_client();
     EXPECT_EQ(startClientFlag, false);
