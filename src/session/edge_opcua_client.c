@@ -80,6 +80,7 @@ static keyValue getSessionClient(char *endpoint)
 {
     VERIFY_NON_NULL_MSG(sessionClientMap, "sessionClientMap is NULL\n", NULL);
 
+    printf("Endpoint : %s\n", endpoint);
     char *ep = NULL;
     getAddressPort(endpoint, &ep);
     VERIFY_NON_NULL_MSG(ep, "NULL EP received in getSessionClient \n", NULL);
@@ -164,7 +165,7 @@ bool connect_client(char *endpoint)
     UA_Client *m_client = NULL;
     char *m_endpoint = NULL;
 
-    EDGE_LOG_V(TAG, "endpoint :: %s\n", endpoint);
+    printf("connect endpoint :: %s\n", endpoint);
     if (NULL != getSessionClient(endpoint))
     {
         EDGE_LOG(TAG, "client already connected.\n");
