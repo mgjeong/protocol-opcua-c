@@ -491,7 +491,10 @@ static void monitored_msg_cb (EdgeMessage *data)
             }
             else
             {
-                if (data->responses[idx]->type == EDGE_NODEID_INT16)
+                if (data->responses[idx]->type == EDGE_NODEID_BOOLEAN)
+                    printf("[%d]\n",
+                           *((int *)data->responses[idx]->message->value));
+                else if (data->responses[idx]->type == EDGE_NODEID_INT16)
                     printf("[%d]\n",
                            *((int *)data->responses[idx]->message->value));
                 else if (data->responses[idx]->type == EDGE_NODEID_BYTE)
