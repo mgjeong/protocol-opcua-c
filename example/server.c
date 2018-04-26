@@ -1454,6 +1454,13 @@ static void testCreateNodes()
     printf("\n|------------[Added] %s\n", item->browseName);
     deleteNodeItem(item);
 
+    bool val = true;
+    item = createVariableNodeItem("robot_status", EDGE_NODEID_BOOLEAN, (void *)&val, VARIABLE_NODE, 100);
+    VERIFY_NON_NULL_NR(item);
+    createNode(DEFAULT_NAMESPACE_VALUE, item);
+    printf("\n|------------[Added] %s\n", item->browseName);
+    deleteNodeItem(item);
+
     item = createVariableNodeItem("robot_id", EDGE_NODEID_STRING, "A31FR-23214-ASFF", VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
@@ -1511,6 +1518,24 @@ static void testCreateNodes()
         reference->sourcePath = "GTC_robot";
         reference->targetNamespace = (char *) DEFAULT_NAMESPACE_VALUE;
         reference->targetPath = "robot_id";
+        /* default reference ID : Organizes */
+        addReference(reference);
+
+        EdgeFree(reference);
+    }
+    else
+    {
+        printf("Error :: EdgeMalloc failed for EdgeReference in Test create Nodes\n");
+    }
+
+    reference = (EdgeReference *) EdgeCalloc(1, sizeof(EdgeReference));
+    if (IS_NOT_NULL(reference))
+    {
+        reference->forward = true;
+        reference->sourceNamespace = (char *) DEFAULT_NAMESPACE_VALUE;
+        reference->sourcePath = "GTC_robot";
+        reference->targetNamespace = (char *) DEFAULT_NAMESPACE_VALUE;
+        reference->targetPath = "robot_status";
         /* default reference ID : Organizes */
         addReference(reference);
 
