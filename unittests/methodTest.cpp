@@ -144,6 +144,25 @@ void testMethodWithoutEndpoint()
     ASSERT_EQ(result.code, STATUS_PARAM_INVALID);
 }
 
+void testMethodWithoutCommand()
+{
+    /* Invalid command */
+    EdgeMessage *msg = createEdgeMessage(NULL, 1, CMD_INVALID);
+    ASSERT_EQ(NULL != msg, false);
+
+    double input = 16.0;
+    EdgeResult ret = insertEdgeMethodParameter(&msg, "{2;S;v=0}square(x)", 1, EDGE_NODEID_DOUBLE, SCALAR, (void *) &input, NULL, 0);
+    ASSERT_EQ(ret.code, STATUS_PARAM_INVALID);
+    destroyEdgeMessage(msg);
+
+    /* Wrong Command (READ instead of METHOD) */
+    msg = createEdgeMessage(NULL, 1, CMD_READ);
+    ASSERT_EQ(NULL != msg, false);
+    ret = insertEdgeMethodParameter(&msg, "{2;S;v=0}square(x)", 1, EDGE_NODEID_DOUBLE, SCALAR, (void *) &input, NULL, 0);
+    ASSERT_EQ(ret.code, STATUS_PARAM_INVALID);
+    destroyEdgeMessage(msg);
+}
+
 void testMethodWithoutValueAlias(char *endpointUri)
 {
     EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_METHOD);

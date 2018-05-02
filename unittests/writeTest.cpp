@@ -159,6 +159,25 @@ void testWrite_P4(char *endpointUri)
     sleep(1);
 }
 
+void testWriteWithoutCommand()
+{
+    /* Invalid command type */
+    EdgeMessage *msg = createEdgeAttributeMessage(NULL, 1, CMD_INVALID);
+    ASSERT_EQ(NULL!=msg, false);
+    char *value = (char*) malloc(sizeof(char) * 10);
+    strcpy(value, "test_str");
+    EdgeResult result = insertWriteAccessNode(&msg, node_arr[0], value, 1);
+    destroyEdgeMessage(msg);
+    ASSERT_EQ(result.code, STATUS_PARAM_INVALID);
+
+    /* Wrong Command type (READ instead of WRITE )*/
+    msg = createEdgeAttributeMessage(NULL, 1, CMD_READ);
+    ASSERT_EQ(NULL!=msg, false);
+    result = insertWriteAccessNode(&msg, node_arr[0], value, 1);
+    destroyEdgeMessage(msg);
+    ASSERT_EQ(result.code, STATUS_PARAM_INVALID);
+}
+
 void testWriteWithoutEndpoint()
 {
     EdgeMessage *msg = createEdgeAttributeMessage(NULL, 1, CMD_WRITE);
