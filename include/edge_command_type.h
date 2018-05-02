@@ -65,7 +65,10 @@ typedef enum
     CMD_METHOD = 10,
 
     /** Command to read sampling interval on server.*/
-    CMD_READ_SAMPLING_INTERVAL = 11
+    CMD_READ_SAMPLING_INTERVAL = 11,
+
+    /** Invalid command */
+    CMD_INVALID = 100
 } EdgeCommand;
 
 /** Read - String value.*/

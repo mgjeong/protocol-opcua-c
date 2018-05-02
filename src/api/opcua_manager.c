@@ -525,6 +525,11 @@ EdgeResult insertSubParameter(EdgeMessage **msg, const char* nodeName, EdgeNodeT
         result.code = STATUS_PARAM_INVALID;
         goto EXIT;
     }
+    if ((*msg)->command != CMD_SUB) {
+        EDGE_LOG(TAG, "Error : parameter is not valid");
+        result.code = STATUS_PARAM_INVALID;
+        goto EXIT;
+    }
 
     EdgeSubRequest* subReq = (EdgeSubRequest *) EdgeCalloc(1, sizeof(EdgeSubRequest));
     if (IS_NULL(subReq))
@@ -613,6 +618,8 @@ EdgeMessage* createEdgeSubMessage(const char *endpointUri, const char* nodeName,
     }
 
     msg->endpointInfo->endpointUri = copyString(endpointUri);
+    msg->command = CMD_SUB;
+    msg->message_id = EdgeGetRandom();
 
     if (Edge_Create_Sub == subType)
     {
@@ -641,10 +648,7 @@ EdgeMessage* createEdgeSubMessage(const char *endpointUri, const char* nodeName,
         {
             insertSubParameter(&msg, nodeName, subType, 0, 0, 0, 0, 0, false, 0, 0);
         }
-    }
-
-    msg->command = CMD_SUB;
-    msg->message_id = EdgeGetRandom();
+    }    
 
     return msg;
 }
@@ -741,6 +745,12 @@ EdgeResult insertReadAccessNode(EdgeMessage **msg, const char* nodeName)
         result.code = STATUS_PARAM_INVALID;
         goto EXIT;
     }
+    if ((*msg)->command != CMD_READ && (*msg)->command != CMD_READ_SAMPLING_INTERVAL)
+    {
+        EDGE_LOG(TAG, "Error : command is invalid");
+        result.code = STATUS_PARAM_INVALID;
+        goto EXIT;
+    }
 
     size_t index = (*msg)->requestLength;
 
@@ -772,6 +782,12 @@ EdgeResult insertWriteAccessNode(EdgeMessage **msg, const char* nodeName, void* 
     if (IS_NULL((*msg)) || IS_NULL(nodeName))
     {
         EDGE_LOG(TAG, "Error : parameter is not valid");
+        result.code = STATUS_PARAM_INVALID;
+        goto EXIT;
+    }
+    if ((*msg)->command != CMD_WRITE)
+    {
+        EDGE_LOG(TAG, "Error : command is invalid");
         result.code = STATUS_PARAM_INVALID;
         goto EXIT;
     }
@@ -838,6 +854,12 @@ EdgeResult insertEdgeMethodParameter(EdgeMessage **msg, const char* nodeName,
     if (IS_NULL((*msg)) || IS_NULL(nodeName))
     {
         EDGE_LOG(TAG, "Error : parameter is not valid");
+        result.code = STATUS_PARAM_INVALID;
+        goto EXIT;
+    }
+    if ((*msg)->command != CMD_METHOD)
+    {
+        EDGE_LOG(TAG, "Error : command is invalid");
         result.code = STATUS_PARAM_INVALID;
         goto EXIT;
     }
@@ -918,6 +940,12 @@ EdgeResult insertBrowseParameter(EdgeMessage **msg, EdgeNodeInfo* nodeInfo,
     if (IS_NULL((*msg)) || IS_NULL(nodeInfo))
     {
         EDGE_LOG(TAG, "Error : parameter is not valid");
+        result.code = STATUS_PARAM_INVALID;
+        goto EXIT;
+    }
+    if ((*msg)->command != CMD_BROWSE && (*msg)->command != CMD_BROWSE_VIEW)
+    {
+        EDGE_LOG(TAG, "Error : command is invalid");
         result.code = STATUS_PARAM_INVALID;
         goto EXIT;
     }

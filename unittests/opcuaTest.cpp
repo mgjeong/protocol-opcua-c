@@ -105,6 +105,7 @@ extern void testRead_P3(char *endpointUri);
 extern void testRead_P4(char *endpointUri);
 extern void testRead_P5(char *endpointUri);
 extern void testReadWithoutEndpoint();
+extern void testReadWithoutCommand();
 extern void testReadWithoutValueAlias(char *endpointUri);
 extern void testReadWithoutMessage();
 
@@ -112,6 +113,7 @@ extern void testWrite_P1(char *endpointUri);
 extern void testWrite_P2(char *endpointUri);
 extern void testWrite_P3(char *endpointUri);
 extern void testWrite_P4(char *endpointUri);
+extern void testWriteWithoutCommand();
 extern void testWriteWithoutEndpoint();
 extern void testWriteWithoutValueAlias(char *endpointUri);
 extern void testWriteWithoutMessage();
@@ -120,6 +122,7 @@ extern void testMethod_P1(char *endpointUri);
 extern void testMethod_P2(char *endpointUri);
 extern void testMethod_P3(char *endpointUri);
 extern void testMethod_P4(char *endpointUri);
+extern void testMethodWithoutCommand();
 extern void testMethodWithoutEndpoint();
 extern void testMethodWithoutValueAlias(char *endpointUri);
 extern void testMethodWithoutMessage();
@@ -127,6 +130,7 @@ extern void testMethodWithoutMessage();
 extern void testSubscription_P1(char *endpointUri);
 extern void testSubscription_P2(char *endpointUri);
 extern void testSubscription_P3(char *endpointUri);
+extern void testSubscriptionWithoutCommand(char *endpointUri);
 extern void testSubscriptionWithoutEndpoint();
 extern void testSubscriptionWithoutValueAlias(char *endpointUri);
 extern void testSubscriptionWithoutMessage();
@@ -809,6 +813,55 @@ static void deleteMessage(EdgeMessage *msg, EdgeEndPointInfo *ep)
 static void testFindServers()
 {
 
+}
+
+static void browseNodeWithoutCommand()
+{
+    /* Invalid command */
+    int  maxReferencesPerNode = 0;
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_INVALID);
+    EXPECT_EQ(NULL != msg, true);
+
+    EdgeNodeInfo* nodeInfo = createEdgeNodeInfoForNodeId(INTEGER, EDGE_NODEID_ROOTFOLDER,
+            SYSTEM_NAMESPACE_INDEX);
+    EdgeBrowseParameter param = {DIRECTION_FORWARD, maxReferencesPerNode};
+    EdgeResult result = insertBrowseParameter(&msg, nodeInfo, param);
+    ASSERT_EQ(result.code, STATUS_PARAM_INVALID);
+    browseNodeFlag = false;
+}
+
+static void browseNodeWithoutEndpoint()
+{
+    int  maxReferencesPerNode = 0;
+    EdgeMessage *msg = createEdgeMessage(NULL, 1, CMD_BROWSE);
+    EXPECT_EQ(NULL != msg, false);
+
+    EdgeNodeInfo* nodeInfo = createEdgeNodeInfoForNodeId(INTEGER, EDGE_NODEID_ROOTFOLDER,
+            SYSTEM_NAMESPACE_INDEX);
+    EdgeBrowseParameter param = {DIRECTION_FORWARD, maxReferencesPerNode};
+    insertBrowseParameter(&msg, nodeInfo, param);
+
+    EdgeResult result = sendRequest(msg);
+    destroyEdgeMessage(msg);
+    ASSERT_EQ(result.code, STATUS_PARAM_INVALID);
+}
+
+static void browseNodeWithoutValueAlias()
+{
+    int  maxReferencesPerNode = 0;
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_BROWSE);
+    EXPECT_EQ(NULL != msg, true);
+    EdgeBrowseParameter param = {DIRECTION_FORWARD, maxReferencesPerNode};
+    insertBrowseParameter(&msg, NULL, param);
+    EdgeResult result = sendRequest(msg);
+    destroyEdgeMessage(msg);
+    ASSERT_EQ(result.code, STATUS_PARAM_INVALID);
+}
+
+static void browseNodeWithoutMessage()
+{
+    EdgeResult result = sendRequest(NULL);
+    ASSERT_EQ(result.code, STATUS_PARAM_INVALID);
 }
 
 static void browseNode()
@@ -3333,6 +3386,28 @@ TEST_F(OPC_clientTests , ClientRead_N3)
     EXPECT_EQ(startClientFlag, false);
 }
 
+TEST_F(OPC_clientTests , ClientRead_N4)
+{
+    EXPECT_EQ(startClientFlag, false);
+
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_GET_ENDPOINTS);
+    EXPECT_EQ(NULL != msg, true);
+
+    EdgeResult res = getEndpointInfo(msg);
+    EXPECT_EQ(res.code, STATUS_OK);
+
+    EXPECT_EQ(startClientFlag, true);
+
+    destroyEdgeMessage(msg);
+
+    readNodeFlag = true;
+    testReadWithoutCommand();
+    readNodeFlag = false;
+
+    stop_client();
+    EXPECT_EQ(startClientFlag, false);
+}
+
 TEST_F(OPC_clientTests , ClientWrite_P1)
 {
     EXPECT_EQ(startClientFlag, false);
@@ -3473,6 +3548,26 @@ TEST_F(OPC_clientTests , ClientWrite_N3)
     EXPECT_EQ(startClientFlag, false);
 }
 
+TEST_F(OPC_clientTests , ClientWrite_N4)
+{
+    EXPECT_EQ(startClientFlag, false);
+
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_GET_ENDPOINTS);
+    EXPECT_EQ(NULL != msg, true);
+
+    EdgeResult res = getEndpointInfo(msg);
+    EXPECT_EQ(res.code, STATUS_OK);
+
+    EXPECT_EQ(startClientFlag, true);
+
+    destroyEdgeMessage(msg);
+
+    testWriteWithoutCommand();
+
+    stop_client();
+    EXPECT_EQ(startClientFlag, false);
+}
+
 TEST_F(OPC_clientTests , ClientBrowse_P)
 {
     EXPECT_EQ(startClientFlag, false);
@@ -3528,6 +3623,86 @@ TEST_F(OPC_clientTests , ClientBrowseViews_P)
     destroyEdgeMessage(msg);
 
     browseViews();
+
+    stop_client();
+    EXPECT_EQ(startClientFlag, false);
+}
+
+TEST_F(OPC_clientTests , ClientBrowse_N1)
+{
+    EXPECT_EQ(startClientFlag, false);
+
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_GET_ENDPOINTS);
+    EXPECT_EQ(NULL != msg, true);
+
+    EdgeResult res = getEndpointInfo(msg);
+    EXPECT_EQ(res.code, STATUS_OK);
+
+    EXPECT_EQ(startClientFlag, true);
+
+    destroyEdgeMessage(msg);
+
+    browseNodeWithoutEndpoint();
+
+    stop_client();
+    EXPECT_EQ(startClientFlag, false);
+}
+
+TEST_F(OPC_clientTests , ClientBrowse_N2)
+{
+    EXPECT_EQ(startClientFlag, false);
+
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_GET_ENDPOINTS);
+    EXPECT_EQ(NULL != msg, true);
+
+    EdgeResult res = getEndpointInfo(msg);
+    EXPECT_EQ(res.code, STATUS_OK);
+
+    EXPECT_EQ(startClientFlag, true);
+
+    destroyEdgeMessage(msg);
+
+    browseNodeWithoutCommand();
+
+    stop_client();
+    EXPECT_EQ(startClientFlag, false);
+}
+
+TEST_F(OPC_clientTests , ClientBrowse_N3)
+{
+    EXPECT_EQ(startClientFlag, false);
+
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_GET_ENDPOINTS);
+    EXPECT_EQ(NULL != msg, true);
+
+    EdgeResult res = getEndpointInfo(msg);
+    EXPECT_EQ(res.code, STATUS_OK);
+
+    EXPECT_EQ(startClientFlag, true);
+
+    destroyEdgeMessage(msg);
+
+    browseNodeWithoutValueAlias();
+
+    stop_client();
+    EXPECT_EQ(startClientFlag, false);
+}
+
+TEST_F(OPC_clientTests , ClientBrowse_N4)
+{
+    EXPECT_EQ(startClientFlag, false);
+
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_GET_ENDPOINTS);
+    EXPECT_EQ(NULL != msg, true);
+
+    EdgeResult res = getEndpointInfo(msg);
+    EXPECT_EQ(res.code, STATUS_OK);
+
+    EXPECT_EQ(startClientFlag, true);
+
+    destroyEdgeMessage(msg);
+
+    browseNodeWithoutMessage();
 
     stop_client();
     EXPECT_EQ(startClientFlag, false);
@@ -3666,6 +3841,25 @@ TEST_F(OPC_clientTests , ClientMethodCall_N3)
     EXPECT_EQ(startClientFlag, false);
 }
 
+TEST_F(OPC_clientTests , ClientMethodCall_N4)
+{
+    EXPECT_EQ(startClientFlag, false);
+
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_GET_ENDPOINTS);
+    EXPECT_EQ(NULL != msg, true);
+    EdgeResult res = getEndpointInfo(msg);
+    EXPECT_EQ(res.code, STATUS_OK);
+    EXPECT_EQ(startClientFlag, true);
+    destroyEdgeMessage(msg);
+
+    methodCallFlag = true;
+    testMethodWithoutCommand();
+    methodCallFlag = false;
+
+    stop_client();
+    EXPECT_EQ(startClientFlag, false);
+}
+
 TEST_F(OPC_clientTests , ClientSubscribe_P1)
 {
     EXPECT_EQ(startClientFlag, false);
@@ -3768,6 +3962,23 @@ TEST_F(OPC_clientTests , ClientSubscribe_N3)
     EXPECT_EQ(startClientFlag, false);
 }
 
+TEST_F(OPC_clientTests , ClientSubscribe_N4)
+{
+    EXPECT_EQ(startClientFlag, false);
+
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_GET_ENDPOINTS);
+    EXPECT_EQ(NULL != msg, true);
+    EdgeResult res = getEndpointInfo(msg);
+    EXPECT_EQ(res.code, STATUS_OK);
+    EXPECT_EQ(startClientFlag, true);
+    destroyEdgeMessage(msg);
+
+    testSubscriptionWithoutCommand(endpointUri);
+
+    stop_client();
+    EXPECT_EQ(startClientFlag, false);
+}
+
 TEST_F(OPC_clientTests , ClientShowNodeList_P)
 {
     showNodeList();
@@ -3783,8 +3994,8 @@ TEST_F(OPC_clientTests , destroy_N)
     destroyEdgeArgument(NULL);
     destroyEdgeMethodRequestParams(NULL);
     destroyEdgeNodeInfo(NULL);
-    destroyEdgeContinuationPoint(NULL);
-    destroyEdgeContinuationPointList(NULL);
+    //destroyEdgeContinuationPoint(NULL);
+    //destroyEdgeContinuationPointList(NULL);
     destroyEdgeEndpointInfo(NULL);
     destroyEdgeRequest(NULL);
     destroyEdgeResponse(NULL);

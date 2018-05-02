@@ -140,6 +140,24 @@ void testRead_P5(char *endpointUri)
     sleep(1);
 }
 
+void testReadWithoutCommand()
+{
+    int num_requests  = 1;
+    // Invalid command
+    EdgeMessage *msg = createEdgeAttributeMessage(NULL, num_requests, CMD_INVALID);
+    ASSERT_EQ(NULL != msg, false);
+    EdgeResult result = insertReadAccessNode(&msg, node_arr[0]);
+    destroyEdgeMessage(msg);
+    ASSERT_EQ(result.code, STATUS_PARAM_INVALID);
+
+    // Wrong command type
+    msg = createEdgeAttributeMessage(NULL, num_requests, CMD_INVALID);
+    ASSERT_EQ(NULL != msg, false);
+    result = insertReadAccessNode(&msg, node_arr[0]);
+    destroyEdgeMessage(msg);
+    ASSERT_EQ(result.code, STATUS_PARAM_INVALID);
+}
+
 void testReadWithoutEndpoint()
 {
     int num_requests  = 1;
