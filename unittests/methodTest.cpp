@@ -168,11 +168,28 @@ void testMethodWithoutValueAlias(char *endpointUri)
     EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_METHOD);
     ASSERT_EQ(NULL != msg, true);
 
+    /* Without SCALAR param */
     double input = 16.0;
     EdgeResult ret = insertEdgeMethodParameter(&msg, NULL, 1, EDGE_NODEID_DOUBLE, SCALAR, (void *) &input, NULL, 0);
     ASSERT_EQ(ret.code, STATUS_PARAM_INVALID);
     EdgeResult result = sendRequest(msg);
     ASSERT_EQ(result.code, STATUS_PARAM_INVALID);
+}
+
+void testMethodWithoutParam()
+{
+    /* Invalid command */
+    EdgeMessage *msg = createEdgeMessage(NULL, 1, CMD_METHOD);
+    ASSERT_EQ(NULL != msg, false);
+    EdgeResult ret = insertEdgeMethodParameter(&msg, "{2;S;v=0}square(x)", 1, EDGE_NODEID_DOUBLE, SCALAR, (void *) NULL, NULL, 0);
+    ASSERT_EQ(ret.code, STATUS_PARAM_INVALID);
+    destroyEdgeMessage(msg);
+
+    msg = createEdgeMessage(NULL, 1, CMD_METHOD);
+    ASSERT_EQ(NULL != msg, false);
+    ret = insertEdgeMethodParameter(&msg, "{2;S;v=0}incrementInc32Array(x,delta)", 2, EDGE_NODEID_INT32, ARRAY_1D, (void *) NULL, NULL, 0);
+    ASSERT_EQ(ret.code, STATUS_PARAM_INVALID);
+    destroyEdgeMessage(msg);
 }
 
 void testMethodWithoutMessage()

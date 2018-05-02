@@ -123,6 +123,7 @@ extern void testMethod_P2(char *endpointUri);
 extern void testMethod_P3(char *endpointUri);
 extern void testMethod_P4(char *endpointUri);
 extern void testMethodWithoutCommand();
+extern void testMethodWithoutParam();
 extern void testMethodWithoutEndpoint();
 extern void testMethodWithoutValueAlias(char *endpointUri);
 extern void testMethodWithoutMessage();
@@ -134,6 +135,7 @@ extern void testSubscriptionWithoutCommand(char *endpointUri);
 extern void testSubscriptionWithoutEndpoint();
 extern void testSubscriptionWithoutValueAlias(char *endpointUri);
 extern void testSubscriptionWithoutMessage();
+extern void testSubscriptionWithoutSubReq(char *endpointUri);
 
 extern "C"
 {
@@ -861,6 +863,17 @@ static void browseNodeWithoutValueAlias()
 static void browseNodeWithoutMessage()
 {
     EdgeResult result = sendRequest(NULL);
+    ASSERT_EQ(result.code, STATUS_PARAM_INVALID);
+}
+
+static void browseNodeWithoutBrowseParam()
+{
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_BROWSE);
+    EXPECT_EQ(NULL != msg, true);
+    /*InsertBrowseParameter is not called */
+    /* request is sent without browse params */
+    EdgeResult result = sendRequest(msg);
+    destroyEdgeMessage(msg);
     ASSERT_EQ(result.code, STATUS_PARAM_INVALID);
 }
 
@@ -3708,6 +3721,26 @@ TEST_F(OPC_clientTests , ClientBrowse_N4)
     EXPECT_EQ(startClientFlag, false);
 }
 
+TEST_F(OPC_clientTests , ClientBrowse_N5)
+{
+    EXPECT_EQ(startClientFlag, false);
+
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_GET_ENDPOINTS);
+    EXPECT_EQ(NULL != msg, true);
+
+    EdgeResult res = getEndpointInfo(msg);
+    EXPECT_EQ(res.code, STATUS_OK);
+
+    EXPECT_EQ(startClientFlag, true);
+
+    destroyEdgeMessage(msg);
+
+    browseNodeWithoutBrowseParam();
+
+    stop_client();
+    EXPECT_EQ(startClientFlag, false);
+}
+
 TEST_F(OPC_clientTests , ClientMethodCall_P1)
 {
     EXPECT_EQ(startClientFlag, false);
@@ -3860,6 +3893,25 @@ TEST_F(OPC_clientTests , ClientMethodCall_N4)
     EXPECT_EQ(startClientFlag, false);
 }
 
+TEST_F(OPC_clientTests , ClientMethodCall_N5)
+{
+    EXPECT_EQ(startClientFlag, false);
+
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_GET_ENDPOINTS);
+    EXPECT_EQ(NULL != msg, true);
+    EdgeResult res = getEndpointInfo(msg);
+    EXPECT_EQ(res.code, STATUS_OK);
+    EXPECT_EQ(startClientFlag, true);
+    destroyEdgeMessage(msg);
+
+    methodCallFlag = true;
+    testMethodWithoutParam();
+    methodCallFlag = false;
+
+    stop_client();
+    EXPECT_EQ(startClientFlag, false);
+}
+
 TEST_F(OPC_clientTests , ClientSubscribe_P1)
 {
     EXPECT_EQ(startClientFlag, false);
@@ -3974,6 +4026,23 @@ TEST_F(OPC_clientTests , ClientSubscribe_N4)
     destroyEdgeMessage(msg);
 
     testSubscriptionWithoutCommand(endpointUri);
+
+    stop_client();
+    EXPECT_EQ(startClientFlag, false);
+}
+
+TEST_F(OPC_clientTests , ClientSubscribe_N5)
+{
+    EXPECT_EQ(startClientFlag, false);
+
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_GET_ENDPOINTS);
+    EXPECT_EQ(NULL != msg, true);
+    EdgeResult res = getEndpointInfo(msg);
+    EXPECT_EQ(res.code, STATUS_OK);
+    EXPECT_EQ(startClientFlag, true);
+    destroyEdgeMessage(msg);
+
+    testSubscriptionWithoutSubReq(endpointUri);
 
     stop_client();
     EXPECT_EQ(startClientFlag, false);
