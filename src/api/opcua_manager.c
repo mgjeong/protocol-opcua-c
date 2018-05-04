@@ -648,7 +648,7 @@ EdgeMessage* createEdgeSubMessage(const char *endpointUri, const char* nodeName,
         {
             insertSubParameter(&msg, nodeName, subType, 0, 0, 0, 0, 0, false, 0, 0);
         }
-    }    
+    }
 
     return msg;
 }
@@ -858,6 +858,14 @@ EdgeResult insertEdgeMethodParameter(EdgeMessage **msg, const char* nodeName,
         goto EXIT;
     }
     if ((*msg)->command != CMD_METHOD)
+    {
+        EDGE_LOG(TAG, "Error : command is invalid");
+        result.code = STATUS_PARAM_INVALID;
+        goto EXIT;
+    }
+    if (inputParameterSize > 0 &&
+            ((argType == SCALAR && scalarValue == NULL) ||
+             (argType == ARRAY_1D && arrayData == NULL)))
     {
         EDGE_LOG(TAG, "Error : command is invalid");
         result.code = STATUS_PARAM_INVALID;

@@ -192,13 +192,9 @@ void testSubscriptionWithoutCommand(char *endpointUri)
     EXPECT_EQ(NULL!=msg, true);
     /* Invalid command */
     msg->command = CMD_INVALID;
-    printf("1\n");
     double samplingInterval = 100.0;
-    printf("2\n");
     int keepalivetime = (1 > (int) (ceil(10000.0 / 0.0))) ? 1 : (int) ceil(10000.0 / 0.0);
-    printf("Invalid command\n");
     EdgeResult ret = insertSubParameter(&msg, node_arr[0], Edge_Create_Sub, samplingInterval, 0.0, keepalivetime, 10000, 1, true, 0, 50);
-    printf("end\n");
     ASSERT_EQ(ret.code, STATUS_PARAM_INVALID);
     //destroyEdgeMessage (msg);
 }
@@ -239,4 +235,16 @@ void testSubscriptionWithoutMessage()
 {
     EdgeResult result = sendRequest(NULL);
     ASSERT_EQ(result.code, STATUS_PARAM_INVALID);
+}
+
+void testSubscriptionWithoutSubReq(char *endpointUri)
+{
+    /* Create Subscription */
+    EdgeMessage* msg = createEdgeSubMessage(endpointUri, "{2;S;v=12}CharArray", 6, Edge_Create_Sub);
+    EXPECT_EQ(NULL!=msg, true);
+
+    /* Send subscription request with SubMsg */
+    EdgeResult result = sendRequest(msg);
+    EXPECT_EQ(result.code, STATUS_PARAM_INVALID);
+    destroyEdgeMessage (msg);
 }
