@@ -281,8 +281,14 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attri
     readRequest.nodesToRead = rv;
     /* Number of nodes to read */
     readRequest.nodesToReadSize = reqLen;
+
     /* Max age */
-    readRequest.maxAge = 2000;
+    #ifdef CTT_ENABLED
+        readRequest.maxAge = 2000;
+    #else
+        readRequest.maxAge = 0;
+    #endif
+
     /* Timestamp information requested from server */
     readRequest.timestampsToReturn = UA_TIMESTAMPSTORETURN_BOTH;
 
