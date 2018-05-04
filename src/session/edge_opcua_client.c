@@ -38,6 +38,7 @@
 #include <stdio.h>
 #include <open62541.h>
 #include <inttypes.h>
+#include <regex.h>
 
 #define TAG "session_client"
 
@@ -158,15 +159,49 @@ EdgeResult executeSubscriptionInServer(EdgeMessage *msg)
     return executeSub((UA_Client*) getSessionClient(msg->endpointInfo->endpointUri), msg);
 }
 
+bool checkEndpointURI(char *endpoint) {
+    regex_t regex;
+    bool result = false;
+
+    if (regcomp(&regex, CHECKING_ENDPOINT_URI_PATTERN, REG_EXTENDED)) {
+        EDGE_LOG(TAG, "Error in compiling regex\n");
+        return result;
+    }
+
+    int retRegex = regexec(&regex, endpoint, 0, NULL, 0);
+    if(REG_NOERROR == retRegex) {
+        EDGE_LOG(TAG, "Endpoint URI has port number\n");
+        result = true;
+    } else if(REG_NOMATCH == retRegex) {
+        EDGE_LOG(TAG, "Endpoint URI has no port number");
+    } else {
+        EDGE_LOG(TAG, "Error in regex\n");
+    }
+
+    regfree(&regex);
+    return result;
+}
+
 bool connect_client(char *endpoint)
 {
     UA_StatusCode retVal;
     UA_ClientConfig config = UA_ClientConfig_default;
     UA_Client *m_client = NULL;
-    char *m_endpoint = NULL;
+    char *m_port = NULL;
+    char *m_endpoint = (char*) EdgeMalloc(strlen(endpoint));
+    strncpy(m_endpoint, endpoint, strlen(endpoint));
 
     printf("connect endpoint :: %s\n", endpoint);
-    if (NULL != getSessionClient(endpoint))
+
+    if(!checkEndpointURI(m_endpoint)) {
+        const char *defaultPort = ":4840";
+        m_endpoint = (char*) EdgeRealloc(m_endpoint, strlen(m_endpoint) + strlen(defaultPort));
+        strncat(m_endpoint, defaultPort, strlen(defaultPort));
+
+        EDGE_LOG_V(TAG, "modified endpoint uri : %s\n", m_endpoint);
+    }
+
+    if (NULL != getSessionClient(m_endpoint))
     {
         EDGE_LOG(TAG, "client already connected.\n");
         return false;
@@ -175,10 +210,10 @@ bool connect_client(char *endpoint)
     m_client = UA_Client_new(config);
     VERIFY_NON_NULL_MSG(m_client, "NULL CLIENT received in connect_client\n", false);
 
-    retVal = UA_Client_connect(m_client, endpoint);
+    retVal = UA_Client_connect(m_client, m_endpoint);
     /* Connect with User name and Password */
-    //retVal = UA_Client_connect_username(m_client, endpoint, "user2", "password1");
-    //retVal = UA_Client_connect_username(m_client, endpoint, "user1", "password");
+    //retVal = UA_Client_connect_username(m_client, m_endpoint, "user2", "password1");
+    //retVal = UA_Client_connect_username(m_client, m_endpoint, "user1", "password");
     if (retVal != UA_STATUSCODE_GOOD)
     {
         EDGE_LOG_V(TAG, "\n [CLIENT] Unable to connect 0x%08x!\n", retVal);
@@ -187,19 +222,19 @@ bool connect_client(char *endpoint)
     }
 
     EDGE_LOG(TAG, "\n [CLIENT] Client connection successful \n");
-    getAddressPort(endpoint, &m_endpoint);
+    getAddressPort(m_endpoint, &m_port);
 
     // Add the client to session map
     if (NULL == sessionClientMap)
     {
         sessionClientMap = createMap();
     }
-    insertMapElement(sessionClientMap, (keyValue) m_endpoint, (keyValue) m_client);
+    insertMapElement(sessionClientMap, (keyValue) m_port, (keyValue) m_client);
     clientCount++;
 
     EdgeEndPointInfo *ep = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
     VERIFY_NON_NULL_MSG(ep, "EdgeCalloc FAILED for EdgeEndPointInfo\n", false);
-    ep->endpointUri = endpoint;
+    ep->endpointUri = m_endpoint;
     g_statusCallback(ep, STATUS_CLIENT_STARTED);
     EdgeFree(ep);
 
