@@ -94,6 +94,12 @@ env.AppendUnique(CPPPATH= [
 
 env.AppendUnique(LIBS= ['pthread', 'rt'])
 
+ctt = ARGUMENTS.get('CTT')
+if ARGUMENTS.get('CTT', False) in [
+            'y', 'yes', 'true', 't', '1', 'on', True
+    ]:
+	env.AppendUnique(CCFLAGS= ['-DCTT_ENABLED'])
+
 debug = ARGUMENTS.get('DEBUG')
 if ARGUMENTS.get('DEBUG', False) in [
             'y', 'yes', 'true', 't', '1', 'on', 'all', True
