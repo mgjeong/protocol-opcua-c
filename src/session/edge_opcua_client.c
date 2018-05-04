@@ -194,11 +194,11 @@ bool connect_client(char *endpoint)
     printf("connect endpoint :: %s\n", endpoint);
 
     if(!checkEndpointURI(m_endpoint)) {
-        const char *defaultPort = ":4840";
-        m_endpoint = (char*) EdgeRealloc(m_endpoint, strlen(m_endpoint) + strlen(defaultPort));
-        strncat(m_endpoint, defaultPort, strlen(defaultPort));
-
-        EDGE_LOG_V(TAG, "modified endpoint uri : %s\n", m_endpoint);
+//        const char *defaultPort = ":4840";
+//        m_endpoint = (char*) EdgeRealloc(m_endpoint, strlen(m_endpoint) + strlen(defaultPort));
+//        strncat(m_endpoint, defaultPort, strlen(defaultPort));
+//
+//        EDGE_LOG_V(TAG, "modified endpoint uri : %s\n", m_endpoint);
     }
 
     if (NULL != getSessionClient(m_endpoint))
