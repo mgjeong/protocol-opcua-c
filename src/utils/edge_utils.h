@@ -46,6 +46,8 @@ extern "C"
 
 #define GUID_LENGTH (36)
 
+#define CHECKING_ENDPOINT_URI_PATTERN ("^(opc)[.](tcp)[://]{3}[0-9.]{4,15}:[0-9]{1,5}$")
+
 /**
  * @brief Prints the current system time in "MM/DD HH:MM:SS.sss" format.
  * @remarks Works only if the stack is built in debug mode.
