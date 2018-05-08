@@ -188,17 +188,17 @@ bool connect_client(char *endpoint)
     UA_ClientConfig config = UA_ClientConfig_default;
     UA_Client *m_client = NULL;
     char *m_port = NULL;
-    char *m_endpoint = (char*) EdgeCalloc(strlen(endpoint)+1, sizeof(char));
+    char *m_endpoint = (char*) EdgeCalloc(strlen(endpoint) + 1, sizeof(char));
     strncpy(m_endpoint, endpoint, strlen(endpoint));
 
     printf("connect endpoint :: %s\n", endpoint);
 
     if(!checkEndpointURI(m_endpoint)) {
-//        const char *defaultPort = ":4840";
-//        m_endpoint = (char*) EdgeRealloc(m_endpoint, strlen(m_endpoint) + strlen(defaultPort));
-//        strncat(m_endpoint, defaultPort, strlen(defaultPort));
-//
-//        EDGE_LOG_V(TAG, "modified endpoint uri : %s\n", m_endpoint);
+       const char *defaultPort = ":4840";
+       m_endpoint = (char*) EdgeRealloc(m_endpoint, strlen(m_endpoint) + strlen(defaultPort) + 1);
+       strncat(m_endpoint, defaultPort, strlen(defaultPort));
+
+       EDGE_LOG_V(TAG, "modified endpoint uri : %s\n", m_endpoint);
     }
 
     if (NULL != getSessionClient(m_endpoint))
