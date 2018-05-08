@@ -188,7 +188,7 @@ bool connect_client(char *endpoint)
     UA_ClientConfig config = UA_ClientConfig_default;
     UA_Client *m_client = NULL;
     char *m_port = NULL;
-    char *m_endpoint = (char*) EdgeMalloc(strlen(endpoint));
+    char *m_endpoint = (char*) EdgeCalloc(strlen(endpoint)+1, sizeof(char));
     strncpy(m_endpoint, endpoint, strlen(endpoint));
 
     printf("connect endpoint :: %s\n", endpoint);
