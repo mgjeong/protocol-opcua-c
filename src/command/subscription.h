@@ -48,6 +48,27 @@ extern "C"
  */
 EdgeResult executeSub(UA_Client *client, const EdgeMessage *msg);
 
+/**
+ * @brief Acquires the lock on mutex for synchronizing requests.
+ * @remarks After acquiring the lock, it's mandatory to release the mutex.
+ * @return @c 0 on success.
+ */
+int acquireSubscriptionLockInternal();
+
+/**
+ * @brief Releases the lock on mutex used for synchronizing requests.
+ * @remarks Mutex should have been acquired before the invocation of this function.
+ * @return @c 0 on success.
+ */
+int releaseSubscriptionLockInternal();
+
+/**
+ * @brief Stops the running subscription thread for a particular server.
+ * @remarks It is assumed that all subscriptions(subscriptionList in clientSubscription) are unsubscribed.
+ * @param[in]  client Client Handle.
+ */
+void stopSubscriptionThread(UA_Client *client);
+
 #ifdef __cplusplus
 }
 #endif

@@ -343,13 +343,21 @@ EdgeResult sendRequest(EdgeMessage* msg)
 
 void onSendMessage(EdgeMessage* msg)
 {
+    int ret = acquireSubscriptionLock();
+    if(ret != 0)
+    {
+        EDGE_LOG_V(TAG, "Failed to lock the serialization mutex. "
+            "pthread_mutex_lock() returned (%d)\n.", ret);
+        exit(ret);
+    }
+
     if (CMD_START_SERVER == msg->command)
     {
         EDGE_LOG(TAG, "\n[Received command] :: START SERVER \n");
         if (b_serverInitialized)
         {
             printf("Server already initialised\n");
-            return;
+            goto EXIT;
         }
         EdgeResult result = start_server(msg->endpointInfo);
         if (result.code == STATUS_OK)
@@ -363,7 +371,7 @@ void onSendMessage(EdgeMessage* msg)
         bool result = connect_client(msg->endpointInfo->endpointUri);
         if (!result)
         {
-            return;
+            goto EXIT;
         }
     }
     else if (CMD_STOP_SERVER == msg->command)
@@ -406,6 +414,15 @@ void onSendMessage(EdgeMessage* msg)
     {
         EDGE_LOG(TAG, "\n[Received command] :: BROWSE \n");
         browseNodesInServer(msg);
+    }
+
+EXIT:
+    ret = releaseSubscriptionLock();
+    if(ret != 0)
+    {
+        EDGE_LOG_V(TAG, "Failed to unlock the serialization mutex. "
+            "pthread_mutex_unlock() returned (%d)\n.", ret);
+        exit(ret);
     }
 }
 

@@ -891,7 +891,7 @@ static void startClient(char *addr, int port, char *securityPolicyUri, char *end
     printf("\n" COLOR_YELLOW "------------------------------------------------------" COLOR_RESET
            "\n\n");
 
-    EdgeMessage *msg = createEdgeMessage(endpointUri, 0, CMD_START_CLIENT);
+    EdgeMessage *msg = createEdgeMessage(endpoint, 0, CMD_START_CLIENT);
     if(IS_NULL(msg))
     {
         printf("Error : Malloc failed for EdgeMessage in test Method\n");
