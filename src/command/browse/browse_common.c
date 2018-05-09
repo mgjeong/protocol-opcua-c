@@ -98,15 +98,6 @@ UA_NodeId *getNodeId(EdgeRequest *req)
     return node;
 }
 
-EdgeNodeInfo *getEndpoint(EdgeMessage *msg, int msgId)
-{
-    if (msg->type == SEND_REQUEST)
-    {
-        return msg->request->nodeInfo;
-    }
-    return msg->requests[msgId]->nodeInfo;
-}
-
 static bool checkStatusGood(UA_StatusCode status)
 {
     return (UA_STATUSCODE_GOOD == status) ? true : false;
@@ -472,46 +463,6 @@ unsigned char *convertNodeIdToString(UA_NodeId *nodeId)
     return browseName;
 }
 
-ViewNodeInfo_t *getNodeInfo(UA_NodeId *nodeId, UA_String *browseName)
-{
-    VERIFY_NON_NULL_MSG(nodeId, "NodeID parameter is NULL\n", NULL);
-    VERIFY_NON_NULL_MSG(browseName, "BrowseName  parameter is NULL\n", NULL);
-
-    ViewNodeInfo_t *nodeInfo = (ViewNodeInfo_t *)EdgeCalloc(1, sizeof(ViewNodeInfo_t));
-    VERIFY_NON_NULL_MSG(nodeInfo, "EdgeCalloc FAILED for ViewNodeInfo_t\n", NULL);
-
-    if(browseName->length > 0)
-    {
-        nodeInfo->browseName = convertUAStringToUnsignedChar(browseName);
-        if(IS_NULL(nodeInfo->browseName))
-        {
-            EDGE_LOG(TAG, "Failed to convert UA_String to unsigned char string.");
-            EdgeFree(nodeInfo);
-            return NULL;
-        }
-    }
-
-    nodeInfo->nodeId = (UA_NodeId *)EdgeCalloc(1, sizeof(UA_NodeId));
-    if(IS_NULL(nodeInfo->nodeId))
-    {
-        EDGE_LOG(TAG, "Memory allocation failed.");
-        EdgeFree(nodeInfo->browseName);
-        EdgeFree(nodeInfo);
-        return NULL;
-    }
-
-    if(UA_STATUSCODE_GOOD != UA_NodeId_copy(nodeId, nodeInfo->nodeId))
-    {
-        EDGE_LOG(TAG, "Failed to copy the node id.");
-        EdgeFree(nodeInfo->nodeId);
-        EdgeFree(nodeInfo->browseName);
-        EdgeFree(nodeInfo);
-        return NULL;
-    }
-
-    return nodeInfo;
-}
-
 // Ex1: If path1 = '/Objects', path2 = 'Server', then this function returns '/Objects/Server'.
 // Ex2: If path1 = '/', path2 = 'Server', then this function returns '/Server'.
 // Ex3: If path1 = '', path2 = 'Server', then this function returns 'Server'.
@@ -574,6 +525,7 @@ static uint16_t getMaxNodesToBrowse(UA_Client *client)
     }
     UA_Variant_delete(val);
 
+    /* Read Maximum nodes per browse supported by the server */
     UA_UInt32 maxNodesPerBrowse = 0; // Server's optional property.
     val = UA_Variant_new();
     retval = UA_Client_readValueAttribute(client,
@@ -587,11 +539,13 @@ static uint16_t getMaxNodesToBrowse(UA_Client *client)
     }
     UA_Variant_delete(val);
 
+    /* Choose the minimum of them */
     uint16_t minimum = maxBrowseContinuationPoints;
     if(maxNodesPerBrowse != 0 && maxNodesPerBrowse < minimum)
     {
         minimum = maxNodesPerBrowse;
     }
+
     return minimum;
 }
 
@@ -903,6 +857,7 @@ static bool makeBrowseRequest(UA_Client *client, BrowseItem **currentBrowseItems
     VERIFY_NON_NULL_MSG(bRes, "bRes param is NULL", false);
 
     // Form browse request.
+    int maxReferencesPerNode = 0;
     UA_BrowseDirection directionParam = UA_BROWSEDIRECTION_FORWARD;
     if(IS_NOT_NULL(msg->browseParam))
     {
@@ -915,6 +870,8 @@ static bool makeBrowseRequest(UA_Client *client, BrowseItem **currentBrowseItems
         {
             directionParam = UA_BROWSEDIRECTION_BOTH;
         }
+
+        maxReferencesPerNode = msg->browseParam->maxReferencesPerNode;
     }
 
     UA_BrowseDescription *nodesToBrowse = (UA_BrowseDescription *) UA_calloc(count,
@@ -926,7 +883,7 @@ static bool makeBrowseRequest(UA_Client *client, BrowseItem **currentBrowseItems
 
     UA_BrowseRequest bReq;
     UA_BrowseRequest_init(&bReq);
-    bReq.requestedMaxReferencesPerNode = 0; // Client has no restriction. It's up to the server's capability.
+    bReq.requestedMaxReferencesPerNode = maxReferencesPerNode;
     bReq.nodesToBrowseSize = count;
     bReq.nodesToBrowse = nodesToBrowse;
     for(uint32_t idx = 0; idx < count; ++idx)

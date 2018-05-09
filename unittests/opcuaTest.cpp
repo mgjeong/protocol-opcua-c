@@ -80,6 +80,7 @@ static bool startClientFlag = false;
 static bool readNodeFlag = true;
 static bool browseNodeFlag = false;
 static bool methodCallFlag = false;
+static bool errorCallFlag = false;
 
 char node_arr[46][30] =
 {
@@ -619,6 +620,7 @@ extern "C"
 
     static void error_msg_cb(EdgeMessage *data)
     {
+        errorCallFlag = true;
         PRINT_ARG("[error_msg_cb] EdgeStatusCode: ", data->result->code);
     }
     static void browse_msg_cb (EdgeMessage *data)
@@ -923,6 +925,26 @@ static void browseNodes()
     browseNodeFlag = false;
 }
 
+static void browseInvalidNode()
+{
+    int  maxReferencesPerNode = 0;
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_BROWSE);
+    EXPECT_EQ(NULL != msg, true);
+
+    EdgeNodeInfo* nodeInfo = createEdgeNodeInfo("{2;S;v=0}InvalidNodeXYZ");
+    EdgeBrowseParameter param = {DIRECTION_FORWARD, maxReferencesPerNode};
+    insertBrowseParameter(&msg, nodeInfo, param);
+
+    errorCallFlag = false;
+
+    sendRequest(msg);
+    destroyEdgeMessage(msg);
+    sleep(1);
+
+    /* Wait some time and check whether error callback is received */
+    EXPECT_EQ(errorCallFlag, true);
+}
+
 static void browseViews()
 {
     EdgeMessage *msg = createEdgeMessage(endpointUri, 0, CMD_BROWSE_VIEW);
@@ -935,7 +957,7 @@ static void browseViews()
 
 static void browse_next()
 {
-    int  maxReferencesPerNode = 5;
+    int  maxReferencesPerNode = 1;
     EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_BROWSE);
     EXPECT_EQ(NULL != msg, true);
 
@@ -3601,6 +3623,26 @@ TEST_F(OPC_clientTests , ClientBrowse_P)
     EXPECT_EQ(startClientFlag, false);
 }
 
+TEST_F(OPC_clientTests , ClientBrowseNext_P)
+{
+    EXPECT_EQ(startClientFlag, false);
+
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_GET_ENDPOINTS);
+    EXPECT_EQ(NULL != msg, true);
+
+    EdgeResult res = getEndpointInfo(msg);
+    EXPECT_EQ(res.code, STATUS_OK);
+
+    EXPECT_EQ(startClientFlag, true);
+
+    destroyEdgeMessage(msg);
+
+    browse_next();
+
+    stop_client();
+    EXPECT_EQ(startClientFlag, false);
+}
+
 TEST_F(OPC_clientTests , ClientBrowseGroup_P)
 {
     EXPECT_EQ(startClientFlag, false);
@@ -3736,6 +3778,26 @@ TEST_F(OPC_clientTests , ClientBrowse_N5)
     destroyEdgeMessage(msg);
 
     browseNodeWithoutBrowseParam();
+
+    stop_client();
+    EXPECT_EQ(startClientFlag, false);
+}
+
+TEST_F(OPC_clientTests , ClientBrowse_N6)
+{
+    EXPECT_EQ(startClientFlag, false);
+
+    EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_GET_ENDPOINTS);
+    EXPECT_EQ(NULL != msg, true);
+
+    EdgeResult res = getEndpointInfo(msg);
+    EXPECT_EQ(res.code, STATUS_OK);
+
+    EXPECT_EQ(startClientFlag, true);
+
+    destroyEdgeMessage(msg);
+
+    browseInvalidNode();
 
     stop_client();
     EXPECT_EQ(startClientFlag, false);
