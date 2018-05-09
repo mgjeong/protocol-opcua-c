@@ -140,7 +140,7 @@ static void *server_sample_loop(void *ptr)
             printf("Error :: EdgeMalloc failed for EdgeVersatility in Test Modify Nodes\n");
         }
 
-        usleep(100000);
+        usleep(25 * 1000);
         robot_data_idx++;
     }
     return NULL;
@@ -1461,7 +1461,7 @@ static void testCreateNodes()
     printf("\n|------------[Added] %s\n", item->browseName);
     deleteNodeItem(item);
 
-    item = createVariableNodeItem("robot_id", EDGE_NODEID_STRING, "A31FR-23214-ASFF", VARIABLE_NODE, 100);
+    item = createVariableNodeItem("robot_id", EDGE_NODEID_STRING, "A31FR-23214-ASFF", VARIABLE_NODE, 25);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
@@ -1473,7 +1473,7 @@ static void testCreateNodes()
         posArray[0] = 123;
         posArray[1] = 34;
         posArray[2] = 20;
-        item = createVariableNodeItem("robot_position", EDGE_NODEID_INT32, (void *) posArray, VARIABLE_NODE, 100);
+        item = createVariableNodeItem("robot_position", EDGE_NODEID_INT32, (void *) posArray, VARIABLE_NODE, 25);
         VERIFY_NON_NULL_NR(item);
         item->nodeType = ARRAY_NODE;
         item->arrayLength = 3;
