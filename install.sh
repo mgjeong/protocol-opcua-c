@@ -19,7 +19,7 @@
 
 USR_LIB_DIR=/usr/local/lib
 USR_INC_DIR=/usr/local/include
-KEYWORD_OPCUA_C=opcua-c
+KEYWORD_OPCUA_C=protocol-opcua-c
 
 # COPY shared library to /usr/local/lib
 sudo cp -f ./build/libopcua-adapter.so $USR_LIB_DIR
