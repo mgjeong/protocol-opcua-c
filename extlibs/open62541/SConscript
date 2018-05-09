@@ -90,9 +90,11 @@ if not os.path.exists(os.path.join(lib_dir, '.git')):
 # Prepare open62541 library
 # Reset the library to a specific patch till which opc ua wrapper layer is verified. 
 ############################################################################################
-patch = '2be85c43813f7bb0c8fd420b93ab469427ccb4cf'
-print 'Resetting master branch to patch: %s' % patch
-command = 'cd %s && git reset --hard %s' % (lib_dir, patch)
+#patch = '2be85c43813f7bb0c8fd420b93ab469427ccb4cf'
+#print 'Resetting master branch to patch: %s' % patch
+#command = 'cd %s && git reset --hard %s' % (lib_dir, patch)
+tag = '0.3-rc1'
+command = 'cd %s && git checkout %s' % (lib_dir, tag)
 result = os.system(command)
 if result != 0:
 	print 'Reset failed.'

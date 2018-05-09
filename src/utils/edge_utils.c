@@ -39,7 +39,7 @@ void logCurrentTimeStamp()
 
     char buffer[15];
     strftime(buffer, sizeof(buffer), "%m/%d %H:%M:%S", localtime(&curTime.tv_sec));
-    EDGE_LOG_V(TAG, "Current time: %s.%03d\n", buffer, (int)(curTime.tv_usec / 1000));
+    EDGE_LOG_V(TAG, "Current time: %s.%06d\n", buffer, (int)(curTime.tv_usec));
 #endif
 }
 
