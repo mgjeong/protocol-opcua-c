@@ -31,6 +31,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <regex.h>
 
 #define TAG "opcua_manager"
 
@@ -251,6 +252,29 @@ char *copyString(const char *str)
     return cloneString(str);
 }
 
+bool checkEndpointURI(char *endpoint) {
+    regex_t regex;
+    bool result = false;
+
+    if (regcomp(&regex, CHECKING_ENDPOINT_URI_PATTERN, REG_EXTENDED)) {
+        EDGE_LOG(TAG, "Error in compiling regex\n");
+        return result;
+    }
+
+    int retRegex = regexec(&regex, endpoint, 0, NULL, 0);
+    if(REG_NOERROR == retRegex) {
+        EDGE_LOG(TAG, "Endpoint URI has port number\n");
+        result = true;
+    } else if(REG_NOMATCH == retRegex) {
+        EDGE_LOG(TAG, "Endpoint URI has no port number");
+    } else {
+        EDGE_LOG(TAG, "Error in regex\n");
+    }
+
+    regfree(&regex);
+    return result;
+}
+
 static EdgeResult checkParameterValid(EdgeMessage *msg)
 {
     EdgeResult result;
@@ -258,6 +282,18 @@ static EdgeResult checkParameterValid(EdgeMessage *msg)
     VERIFY_NON_NULL_MSG(msg, "NULL param EdgeMessage in checkParameterValid\n", result);
     VERIFY_NON_NULL_MSG(msg->endpointInfo, "EdgeMessage endpoint NULL in checkParameterValid\n", result);
     VERIFY_NON_NULL_MSG(msg->endpointInfo->endpointUri, "EndpointURI NULL in checkParameterValid\n", result);
+
+    if(!checkEndpointURI(msg->endpointInfo->endpointUri)) {
+        char *m_endpoint = (char*) EdgeCalloc(strlen(msg->endpointInfo->endpointUri) + 1, sizeof(char));
+        strncpy(m_endpoint, msg->endpointInfo->endpointUri, strlen(msg->endpointInfo->endpointUri));
+
+        const char *defaultPort = ":4840";
+        m_endpoint = (char*) EdgeRealloc(m_endpoint, strlen(m_endpoint) + strlen(defaultPort) + 1);
+        strncat(m_endpoint, defaultPort, strlen(defaultPort));
+
+        EDGE_LOG_V(TAG, "modified endpoint uri : %s\n", m_endpoint);
+        msg->endpointInfo->endpointUri = m_endpoint;
+    }
 
     if (IS_NOT_NULL(msg->request) && IS_NULL(msg->request->nodeInfo))
     {
