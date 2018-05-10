@@ -31,6 +31,7 @@
 
 #include "opcua_common.h"
 #include "command_adapter.h"
+#include <open62541.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -144,16 +145,16 @@ void registerClientCallback(response_cb_t resCallback, status_cb_t statusCallbac
 /**
  * @brief Acquires the lock on mutex for synchronizing publish with other requests.
  * @remarks After acquiring the lock, it's mandatory to release the mutex.
- * @return @c 0 on success.
+ * @param[in]  client Client Handle.
  */
-int acquireSubscriptionLock();
+void acquireSubscriptionLock(UA_Client *client);
 
 /**
  * @brief Releases the lock on mutex used for synchronizing publish with other requests.
  * @remarks Mutex should have been acquired before the invocation of this function.
- * @return @c 0 on success.
+ * @param[in]  client Client Handle.
  */
-int releaseSubscriptionLock();
+void releaseSubscriptionLock(UA_Client *client);
 
 #ifdef __cplusplus
 }

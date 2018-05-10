@@ -61,6 +61,8 @@ typedef struct clientSubscription
     int subscriptionCount;
     /* Subscription thread */
     pthread_t subscription_thread;
+    /* Mutex for serialization */
+    pthread_mutex_t serializeMutex;
     /* flag to determine to execution of subscription thread */
     bool subscription_thread_running;
     /* Subscription list */
@@ -76,8 +78,6 @@ typedef struct client_valueAlias
 } client_valueAlias;
 
 static edgeMap *clientSubMap  = NULL;
-
-pthread_mutex_t serializeMutex = PTHREAD_MUTEX_INITIALIZER;
 
 /**
  * @brief validateMonitoringId - Function that checks whether monitoredItem id
@@ -495,7 +495,7 @@ static void *subscription_thread_handler(void *ptr)
         // }
 
         // Acquire lock on the mutex to serialize the publish request with other requests.
-        int ret = pthread_mutex_lock(&serializeMutex);
+        int ret = pthread_mutex_lock(&clientSub->serializeMutex);
         if(ret != 0)
         {
             EDGE_LOG_V(TAG, "Failed to lock the serialization mutex. "
@@ -507,7 +507,7 @@ static void *subscription_thread_handler(void *ptr)
         UA_Client_runAsync(client, EDGE_UA_MINIMUM_PUBLISHING_TIME);
 
         // Release mutex.
-        ret = pthread_mutex_unlock(&serializeMutex);
+        ret = pthread_mutex_unlock(&clientSub->serializeMutex);
         if(ret != 0)
         {
             EDGE_LOG_V(TAG, "Failed to unlock the serialization mutex. "
@@ -718,6 +718,7 @@ static UA_StatusCode createSub(UA_Client *client, const EdgeMessage *msg)
             }
             clientSub->subscriptionCount = 0;
             clientSub->subscriptionList = NULL;
+            clientSub->serializeMutex = (pthread_mutex_t) PTHREAD_MUTEX_INITIALIZER;
         }
 
         if (IS_NULL(clientSub->subscriptionList))
@@ -1148,19 +1149,34 @@ EdgeResult executeSub(UA_Client *client, const EdgeMessage *msg)
     return result;
 }
 
-int acquireSubscriptionLockInternal()
+int acquireSubscriptionLockInternal(UA_Client *clientHandle)
 {
-    return pthread_mutex_lock(&serializeMutex);
+    VERIFY_NON_NULL_MSG(clientHandle, "NULL client handle", 0);
+
+    clientSubscription *clientSub = (clientSubscription*) get_subscription_list(clientHandle);
+    VERIFY_NON_NULL_MSG(clientSub, "Client subscription object not found", 0);
+
+    return pthread_mutex_lock(&clientSub->serializeMutex);
 }
 
-int releaseSubscriptionLockInternal()
+int releaseSubscriptionLockInternal(UA_Client *clientHandle)
 {
-    return pthread_mutex_unlock(&serializeMutex);
+    VERIFY_NON_NULL_MSG(clientHandle, "NULL client handle", 0);
+
+    clientSubscription *clientSub = (clientSubscription*) get_subscription_list(clientHandle);
+    VERIFY_NON_NULL_MSG(clientSub, "Client subscription object not found", 0);
+
+    return pthread_mutex_unlock(&clientSub->serializeMutex);
 }
 
 void stopSubscriptionThread(UA_Client *client)
 {
-    int ret = pthread_mutex_lock(&serializeMutex);
+    VERIFY_NON_NULL_NR_MSG(client, "NULL client handle");
+
+    clientSubscription *clientSub = (clientSubscription*) get_subscription_list(client);
+    VERIFY_NON_NULL_NR_MSG(clientSub, "Client subscription object not found");
+
+    int ret = pthread_mutex_lock(&clientSub->serializeMutex);
     if(ret != 0)
     {
         EDGE_LOG_V(TAG, "Failed to lock the serialization mutex. "
@@ -1168,15 +1184,14 @@ void stopSubscriptionThread(UA_Client *client)
         exit(ret);
     }
 
-    clientSubscription *clientSub = (clientSubscription*) get_subscription_list(client);
-    if(clientSub && clientSub->subscription_thread_running)
+    if(clientSub->subscription_thread_running)
     {
         clientSub->subscriptionCount = 0;
         clientSub->subscription_thread_running = false;
         pthread_join(clientSub->subscription_thread, NULL);
     }
 
-    ret = pthread_mutex_unlock(&serializeMutex);
+    ret = pthread_mutex_unlock(&clientSub->serializeMutex);
     if(ret != 0)
     {
         EDGE_LOG_V(TAG, "Failed to unlock the serialization mutex. "
