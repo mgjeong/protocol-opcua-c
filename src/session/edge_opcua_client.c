@@ -38,7 +38,6 @@
 #include <stdio.h>
 #include <open62541.h>
 #include <inttypes.h>
-#include <regex.h>
 
 #define TAG "session_client"
 
@@ -159,29 +158,6 @@ EdgeResult executeSubscriptionInServer(EdgeMessage *msg)
     return executeSub((UA_Client*) getSessionClient(msg->endpointInfo->endpointUri), msg);
 }
 
-bool checkEndpointURI(char *endpoint) {
-    regex_t regex;
-    bool result = false;
-
-    if (regcomp(&regex, CHECKING_ENDPOINT_URI_PATTERN, REG_EXTENDED)) {
-        EDGE_LOG(TAG, "Error in compiling regex\n");
-        return result;
-    }
-
-    int retRegex = regexec(&regex, endpoint, 0, NULL, 0);
-    if(REG_NOERROR == retRegex) {
-        EDGE_LOG(TAG, "Endpoint URI has port number\n");
-        result = true;
-    } else if(REG_NOMATCH == retRegex) {
-        EDGE_LOG(TAG, "Endpoint URI has no port number");
-    } else {
-        EDGE_LOG(TAG, "Error in regex\n");
-    }
-
-    regfree(&regex);
-    return result;
-}
-
 bool connect_client(char *endpoint)
 {
     UA_StatusCode retVal;
@@ -192,14 +168,6 @@ bool connect_client(char *endpoint)
     strncpy(m_endpoint, endpoint, strlen(endpoint));
 
     printf("connect endpoint :: %s\n", endpoint);
-
-    if(!checkEndpointURI(m_endpoint)) {
-       const char *defaultPort = ":4840";
-       m_endpoint = (char*) EdgeRealloc(m_endpoint, strlen(m_endpoint) + strlen(defaultPort) + 1);
-       strncat(m_endpoint, defaultPort, strlen(defaultPort));
-
-       EDGE_LOG_V(TAG, "modified endpoint uri : %s\n", m_endpoint);
-    }
 
     if (NULL != getSessionClient(m_endpoint))
     {
