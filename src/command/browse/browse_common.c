@@ -263,7 +263,7 @@ static bool checkContinuationPoint(uint32_t msgId, UA_BrowseResult *browseResult
     VERIFY_NON_NULL_MSG(browseResult, "browseResult param is NULL", false);
     VERIFY_NON_NULL_MSG(srcNodeId, "srcNodeId param is NULL", false);
 
-    bool retVal = true;
+    bool retVal = false;
     /*if(browseResult.continuationPoint.length <= 0)
      {
      EDGE_LOG(TAG, "Error: " CONTINUATIONPOINT_EMPTY);
@@ -274,32 +274,36 @@ static bool checkContinuationPoint(uint32_t msgId, UA_BrowseResult *browseResult
     {
         EDGE_LOG(TAG, "Error: " CONTINUATIONPOINT_LONG);
         invokeErrorCb(msgId, srcNodeId, STATUS_ERROR, CONTINUATIONPOINT_LONG);
-        retVal = false;
     }
     else if (browseResult->continuationPoint.length > 0
             && (browseResult->referencesSize <= 0 || !browseResult->references))
     {
         EDGE_LOG(TAG, "Error: " STATUS_VIEW_REFERENCE_DATA_INVALID_VALUE);
         invokeErrorCb(msgId, srcNodeId, STATUS_ERROR, STATUS_VIEW_REFERENCE_DATA_INVALID_VALUE);
-        retVal = false;
+    }
+    else
+    {
+        retVal = true;
     }
     return retVal;
 }
 
 static bool checkBrowseName(uint32_t msgId, UA_String browseName, EdgeNodeId *srcNodeId)
 {
-    bool retVal = true;
+    bool retVal = false;
     if (browseName.length <= 0 || NULL == browseName.data)
     {
         EDGE_LOG(TAG, "Error: " BROWSENAME_EMPTY);
         invokeErrorCb(msgId, srcNodeId, STATUS_ERROR, BROWSENAME_EMPTY);
-        retVal = false;
     }
     else if (browseName.length >= 1000)
     {
         EDGE_LOG(TAG, "Error: " BROWSENAME_LONG);
         invokeErrorCb(msgId, srcNodeId, STATUS_ERROR, BROWSENAME_LONG);
-        retVal = false;
+    }
+    else
+    {
+        retVal = true;
     }
 
     return retVal;
@@ -307,37 +311,41 @@ static bool checkBrowseName(uint32_t msgId, UA_String browseName, EdgeNodeId *sr
 
 static bool checkNodeClass(uint32_t msgId, UA_NodeClass nodeClass, EdgeNodeId *srcNodeId)
 {
-    bool retVal = true;
+    bool retVal = false;
     if (false == isNodeClassValid(nodeClass))
     {
         EDGE_LOG(TAG, "Error: " NODECLASS_INVALID);
         invokeErrorCb(msgId, srcNodeId, STATUS_ERROR, NODECLASS_INVALID);
-        retVal = false;
     }
     else if (UA_NODECLASS_UNSPECIFIED != BROWSE_NODECLASS_MASK &&
         (nodeClass & BROWSE_NODECLASS_MASK) == 0)
     {
         EDGE_LOG(TAG, "Error: " STATUS_VIEW_NOTINCLUDE_NODECLASS_VALUE);
         invokeErrorCb(msgId, srcNodeId, STATUS_ERROR, STATUS_VIEW_NOTINCLUDE_NODECLASS_VALUE);
-        retVal = false;
+    }
+    else
+    {
+        retVal = true;
     }
     return retVal;
 }
 
 static bool checkDisplayName(uint32_t msgId, UA_String displayName, EdgeNodeId *srcNodeId)
 {
-    bool retVal = true;
+    bool retVal = false;
     if (displayName.length <= 0 || NULL == displayName.data)
     {
         EDGE_LOG(TAG, "Error: " DISPLAYNAME_EMPTY);
         invokeErrorCb(msgId, srcNodeId, STATUS_ERROR, DISPLAYNAME_EMPTY);
-        retVal = false;
     }
     else if (displayName.length >= 1000)
     {
         EDGE_LOG(TAG, "Error: " DISPLAYNAME_LONG);
         invokeErrorCb(msgId, srcNodeId, STATUS_ERROR, DISPLAYNAME_LONG);
-        retVal = false;
+    }
+    else
+    {
+        retVal = true;
     }
 
     return retVal;
@@ -345,43 +353,51 @@ static bool checkDisplayName(uint32_t msgId, UA_String displayName, EdgeNodeId *
 
 static bool checkNodeId(uint32_t msgId, UA_ExpandedNodeId nodeId, EdgeNodeId *srcNodeId)
 {
-    bool retVal = true;
+    bool retVal = false;
     if (UA_NodeId_isNull(&nodeId.nodeId))
     {
         EDGE_LOG(TAG, "Error: " NODEID_NULL);
         invokeErrorCb(msgId, srcNodeId, STATUS_ERROR, NODEID_NULL);
-        retVal = false;
     }
     else if (nodeId.serverIndex != 0)
     {
         EDGE_LOG(TAG, "Error: " NODEID_SERVERINDEX);
         invokeErrorCb(msgId, srcNodeId, STATUS_ERROR, NODEID_SERVERINDEX);
-        retVal = false;
+    }
+    else
+    {
+        retVal = true;
     }
     return retVal;
 }
 
 static bool checkReferenceTypeId(uint32_t msgId, UA_NodeId nodeId, EdgeNodeId *srcNodeId)
 {
-    bool retVal = true;
+    bool retVal = false;
     if (UA_NodeId_isNull(&nodeId))
     {
         EDGE_LOG(TAG, "Error: " REFERENCETYPEID_NULL);
         invokeErrorCb(msgId, srcNodeId, STATUS_ERROR, REFERENCETYPEID_NULL);
-        retVal = false;
+    }
+    else
+    {
+        retVal = true;
     }
     return retVal;
 }
 
 static bool checkTypeDefinition(uint32_t msgId, UA_ReferenceDescription *ref, EdgeNodeId *srcNodeId)
 {
-    bool retVal = true;
+    bool retVal = false;
     if ((ref->nodeClass == UA_NODECLASS_OBJECT || ref->nodeClass == UA_NODECLASS_VARIABLE)
             && UA_NodeId_isNull(&ref->typeDefinition.nodeId))
     {
         EDGE_LOG(TAG, "Error: " TYPEDEFINITIONNODEID_NULL);
         invokeErrorCb(msgId, srcNodeId, STATUS_ERROR, TYPEDEFINITIONNODEID_NULL);
-        retVal = false;
+    }
+    else
+    {
+        retVal = true;
     }
     return retVal;
 }

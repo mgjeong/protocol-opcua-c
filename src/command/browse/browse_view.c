@@ -30,7 +30,7 @@
  * Static function to create an EdgeRequest with 'UA_NS0ID_VIEWSFOLDER' as node id.
  * Created EdgeRequest object can be used to browse all the views under 'UA_NS0ID_VIEWSFOLDER'.
  */
-EdgeRequest *getEdgeRequestForBrowseView()
+static EdgeRequest *getEdgeRequestForBrowseView()
 {
     EdgeNodeInfo *nodeInfo = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
     VERIFY_NON_NULL_MSG(nodeInfo, "EdgeCalloc FAILED for nodeinfo\n", NULL);

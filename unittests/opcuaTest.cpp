@@ -33,6 +33,7 @@ extern "C"
 #include "edge_malloc.h"
 #include "open62541.h"
 #include "test_common.h"
+#include "browse.h"
 }
 
 #define TAG "TC"
@@ -3801,6 +3802,59 @@ TEST_F(OPC_clientTests , ClientBrowse_N6)
 
     stop_client();
     EXPECT_EQ(startClientFlag, false);
+}
+
+TEST_F(OPC_clientTests , ClientBrowse_N7)
+{
+    errorCallFlag = false;
+
+    EdgeMessage msg;
+    executeBrowse(NULL, &msg); // No client handle
+    sleep(1);
+
+    /* Wait some time and check whether error callback is received */
+    EXPECT_EQ(errorCallFlag, true);
+}
+
+TEST_F(OPC_clientTests , ClientBrowse_N8)
+{
+    errorCallFlag = false;
+
+    UA_Client *client;
+    executeBrowse(client, NULL); // No msg
+    sleep(1);
+
+    /* Wait some time and check whether error callback is received */
+    EXPECT_EQ(errorCallFlag, true);
+}
+
+TEST_F(OPC_clientTests , ClientBrowse_N9)
+{
+    errorCallFlag = false;
+
+    UA_Client *client;
+    EdgeMessage msg;
+    msg.type = REPORT;
+    executeBrowse(client, &msg); // Incorrect message type
+    sleep(1);
+
+    /* Wait some time and check whether error callback is received */
+    EXPECT_EQ(errorCallFlag, true);
+}
+
+TEST_F(OPC_clientTests , ClientBrowse_N10)
+{
+    errorCallFlag = false;
+
+    UA_Client *client;
+    EdgeMessage msg;
+    msg.type = SEND_REQUEST;
+    msg.command = CMD_METHOD;
+    executeBrowse(client, &msg); // Incorrect command
+    sleep(1);
+
+    /* Wait some time and check whether error callback is received */
+    EXPECT_EQ(errorCallFlag, true);
 }
 
 TEST_F(OPC_clientTests , ClientMethodCall_P1)
