@@ -418,6 +418,7 @@ void stop_server(EdgeEndPointInfo *epInfo)
     UA_ServerConfig_delete(m_serverConfig);
     EDGE_LOG(TAG, "\n ========= [SERVER] Server Stopped ============= \n");
 
+    namespaceMap = NULL;
     g_statusCallback(epInfo, STATUS_STOP_SERVER);
 }
 
