@@ -32,6 +32,7 @@ extern "C"
 #include "edge_list.h"
 #include "edge_map.h"
 #include "uqueue.h"
+#include "uarraylist.h"
 #include "test_common.h"
 }
 
@@ -234,6 +235,7 @@ TEST_F(OPC_util , getEdgeNodeIdType_P)
     ASSERT_EQ(getEdgeNodeIdType('S'), STRING);
     ASSERT_EQ(getEdgeNodeIdType('B'), BYTESTRING);
     ASSERT_EQ(getEdgeNodeIdType('G'), UUID);
+    ASSERT_EQ(getEdgeNodeIdType('X'), INTEGER); // Random invalid value.
 }
 
 TEST_F(OPC_util , getCharacterNodeIdType_P)
@@ -242,6 +244,7 @@ TEST_F(OPC_util , getCharacterNodeIdType_P)
     ASSERT_EQ(getCharacterNodeIdType(UA_NODEIDTYPE_STRING), 'S');
     ASSERT_EQ(getCharacterNodeIdType(UA_NODEIDTYPE_BYTESTRING), 'B');
     ASSERT_EQ(getCharacterNodeIdType(UA_NODEIDTYPE_GUID), 'G');
+    ASSERT_EQ(getCharacterNodeIdType(21165), '\0'); // Random invalid value.
 }
 
 TEST_F(OPC_util , get_size_P)
@@ -445,6 +448,217 @@ TEST_F(OPC_util , createQueue_P)
     ASSERT_EQ(queue != NULL, true);
 
     EdgeFree(queue);
+}
+
+TEST_F(OPC_util , getListSize_P)
+{
+    List *head = NULL;
+    int dummyData = 10;
+    ASSERT_TRUE(addListNode(&head, &dummyData));
+    ASSERT_EQ(getListSize(head), 1);
+    EdgeFree(head);
+}
+
+TEST_F(OPC_util , getListSize_N)
+{
+    ASSERT_EQ(getListSize(NULL), 0);
+}
+
+TEST_F(OPC_util , convertToEdgeApplicationType_P)
+{
+    ASSERT_EQ(convertToEdgeApplicationType(UA_APPLICATIONTYPE_SERVER), EDGE_APPLICATIONTYPE_SERVER);
+    ASSERT_EQ(convertToEdgeApplicationType(UA_APPLICATIONTYPE_CLIENT), EDGE_APPLICATIONTYPE_CLIENT);
+    ASSERT_EQ(convertToEdgeApplicationType(UA_APPLICATIONTYPE_CLIENTANDSERVER), EDGE_APPLICATIONTYPE_CLIENTANDSERVER);
+    ASSERT_EQ(convertToEdgeApplicationType(UA_APPLICATIONTYPE_DISCOVERYSERVER), EDGE_APPLICATIONTYPE_DISCOVERYSERVER);
+}
+
+TEST_F(OPC_util , getEdgeNodeIdByteString_P)
+{
+    uint16_t namespaceIdx = 0;
+    const char *str = "Node1";
+    UA_NodeId node = UA_NODEID_BYTESTRING_ALLOC(namespaceIdx, str);
+
+    EdgeNodeId *edgeNode = getEdgeNodeId(&node);
+    ASSERT_TRUE(edgeNode != NULL);
+    ASSERT_TRUE(edgeNode->nameSpace == namespaceIdx);
+    ASSERT_TRUE(edgeNode->type == BYTESTRING);
+    ASSERT_TRUE(edgeNode->nodeId != NULL);
+    ASSERT_TRUE(strcmp(edgeNode->nodeId, str) == 0);
+
+    freeEdgeNodeId(edgeNode);
+    EdgeFree(node.identifier.byteString.data);
+}
+
+TEST_F(OPC_util , getEdgeNodeIdGuid_P)
+{
+    uint16_t namespaceIdx = 0;
+    UA_Guid guid = { 1, 0, 1, { 0, 0, 0, 0, 1, 1, 1, 1 } };
+    const char *str = "00000001-0000-0001-0000-000001010101";
+    UA_NodeId node = UA_NODEID_GUID(namespaceIdx, guid);
+
+    EdgeNodeId *edgeNode = getEdgeNodeId(&node);
+    ASSERT_TRUE(edgeNode != NULL);
+    ASSERT_TRUE(edgeNode->nameSpace == namespaceIdx);
+    ASSERT_TRUE(edgeNode->type == UUID);
+    ASSERT_TRUE(edgeNode->nodeId != NULL);
+    ASSERT_TRUE(strcmp(edgeNode->nodeId, str) == 0);
+
+    freeEdgeNodeId(edgeNode);
+}
+
+TEST_F(OPC_util , cloneNodeIdByteString_P)
+{
+    uint16_t namespaceIdx = 0;
+    const char *str = "Node1";
+    UA_NodeId node = UA_NODEID_BYTESTRING_ALLOC(namespaceIdx, str);
+    UA_NodeId *clone = cloneNodeId(&node);
+
+    ASSERT_TRUE(clone != NULL);
+    ASSERT_TRUE(clone->namespaceIndex == namespaceIdx);
+    ASSERT_TRUE(clone->identifierType == UA_NODEIDTYPE_BYTESTRING);
+    ASSERT_TRUE(clone->identifier.byteString.data != NULL);
+    ASSERT_TRUE(strncmp((const char *)clone->identifier.byteString.data, str, strlen(str)) == 0);
+
+    UA_NodeId_delete(clone);
+    EdgeFree(node.identifier.byteString.data);
+}
+
+TEST_F(OPC_util , cloneNodeIdGuid_P)
+{
+    uint16_t namespaceIdx = 0;
+    UA_Guid guid = { 1, 0, 1, { 0, 0, 0, 0, 1, 1, 1, 1 } };
+    UA_NodeId node = UA_NODEID_GUID(namespaceIdx, guid);
+    UA_NodeId *clone = cloneNodeId(&node);
+
+    ASSERT_TRUE(clone != NULL);
+    ASSERT_TRUE(clone->namespaceIndex == namespaceIdx);
+    ASSERT_TRUE(clone->identifierType == UA_NODEIDTYPE_GUID);
+    ASSERT_TRUE(UA_Guid_equal(&clone->identifier.guid, &guid));
+
+    UA_NodeId_delete(clone);
+}
+
+// uarraylist.c - Adding unit tests for missed out cases.
+TEST_F(OPC_util , u_arraylist_add_N)
+{
+    int dummyData = 100;
+    ASSERT_FALSE(u_arraylist_add(NULL, &dummyData));
+}
+
+TEST_F(OPC_util , u_arraylist_length_N)
+{
+    ASSERT_EQ(u_arraylist_length(NULL), 0);
+}
+
+TEST_F(OPC_util , u_arraylist_contains_N)
+{
+    ASSERT_FALSE(u_arraylist_contains(NULL, NULL));
+}
+
+TEST_F(OPC_util , u_arraylist_reserve_P)
+{
+    u_arraylist_t  *list = u_arraylist_create(); // List's initial capacity is 1
+    bool ret = u_arraylist_reserve(list, 2); // Increasing the capacity.
+    ASSERT_TRUE(ret);
+    u_arraylist_free(&list);
+}
+
+TEST_F(OPC_util , u_arraylist_shrink_to_fit_P)
+{
+    u_arraylist_t  *list = u_arraylist_create(); // List's initial capacity is 1
+    ASSERT_TRUE(u_arraylist_reserve(list, 2)); // Increasing the capacity.
+
+    int dummyData = 100;
+    ASSERT_TRUE(u_arraylist_add(list, &dummyData)); // Adding an item to increase the length
+    ASSERT_TRUE(u_arraylist_length(list) == 1);
+    u_arraylist_shrink_to_fit(NULL); // No action
+    u_arraylist_shrink_to_fit(list); // Decreases the capacity by 1.
+    ASSERT_TRUE(u_arraylist_length(list) == 1);
+    ASSERT_TRUE(u_arraylist_remove(list, 0) != NULL);
+
+    u_arraylist_free(&list);
+}
+
+TEST_F(OPC_util , u_arraylist_get_N)
+{
+    u_arraylist_t  *list = u_arraylist_create();
+    ASSERT_TRUE(u_arraylist_get(NULL, 0) == NULL);
+    ASSERT_TRUE(u_arraylist_get(list, 0) == NULL);
+    u_arraylist_free(&list);
+}
+
+TEST_F(OPC_util , u_arraylist_get_index_P)
+{
+    u_arraylist_t  *list = u_arraylist_create(); // List's initial capacity is 1
+
+    int dummyData = 100;
+    ASSERT_TRUE(u_arraylist_add(list, &dummyData)); // Adding an item to increase the length
+    ASSERT_TRUE(u_arraylist_length(list) == 1);
+    uint32_t index = 0;
+    ASSERT_TRUE(u_arraylist_get_index(list, &dummyData, &index));
+    ASSERT_TRUE(index == 0);
+    u_arraylist_free(&list);
+}
+
+TEST_F(OPC_util , u_arraylist_get_index_N)
+{
+    u_arraylist_t  *list = u_arraylist_create();
+    int dummyData = 100;
+    uint32_t index = 0;
+    ASSERT_FALSE(u_arraylist_get_index(NULL, &dummyData, &index));
+    ASSERT_FALSE(u_arraylist_get_index(list, NULL, &index));
+    ASSERT_FALSE(u_arraylist_get_index(list, &dummyData, &index));
+    u_arraylist_free(&list);
+}
+
+TEST_F(OPC_util , u_arraylist_destroy_P)
+{
+    u_arraylist_destroy(NULL);
+    u_arraylist_t  *list = u_arraylist_create();
+    int *dummyData = (int *)EdgeMalloc(sizeof(int));
+    ASSERT_TRUE(u_arraylist_add(list, dummyData)); // Adding an item to increase the length
+    ASSERT_TRUE(u_arraylist_length(list) == 1);
+    u_arraylist_destroy(list);
+}
+
+// uqueue.c - Adding unit tests for missed out cases.
+TEST_F(OPC_util , u_queue_add_element_N)
+{
+    u_queue_t queue;
+    u_queue_message_t msg;
+    ASSERT_EQ(u_queue_add_element(NULL, &msg), CA_STATUS_FAILED); // Queue is NULL
+    ASSERT_EQ(u_queue_add_element(&queue, NULL), CA_STATUS_FAILED); // Msg is NULL
+}
+
+TEST_F(OPC_util , u_queue_get_element_N)
+{
+    u_queue_t queue = {NULL, 0};
+    ASSERT_EQ(u_queue_get_element(NULL), (void *)NULL); // Queue is NULL
+    ASSERT_EQ(u_queue_get_element(&queue), (void *)NULL); // Element is NULL
+}
+
+TEST_F(OPC_util , u_queue_remove_element_N)
+{
+    u_queue_t queue = {NULL, 0};
+    ASSERT_EQ(u_queue_remove_element(NULL), CA_STATUS_FAILED); // Queue is NULL
+    ASSERT_EQ(u_queue_remove_element(&queue), CA_STATUS_OK); // Element is NULL
+}
+
+TEST_F(OPC_util , u_queue_get_size_N)
+{
+    ASSERT_EQ(u_queue_get_size(NULL), 0); // Queue is NULL
+}
+
+TEST_F(OPC_util , u_queue_reset_N)
+{
+    ASSERT_EQ(u_queue_reset(NULL), CA_STATUS_FAILED); // Queue is NULL
+}
+
+TEST_F(OPC_util , u_queue_get_head_N)
+{
+    u_queue_t queue = {NULL, 0};
+    ASSERT_EQ(u_queue_get_head(NULL), (void *)NULL); // Queue is NULL
+    ASSERT_EQ(u_queue_get_head(&queue), (void *)NULL); // Element is NULL
 }
 
 /*

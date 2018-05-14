@@ -38,7 +38,7 @@ createBuildDir = 'mkdir -p ' + buildDir
 env.do__(createBuildDir )
 
 
-env['CPPPATH'] = [incPath, '../extlibs/open62541/open62541', gtestIncDir, '../src/utils', '../src/queue']
+env['CPPPATH'] = [incPath, '../extlibs/open62541/open62541', gtestIncDir, '../src/utils', '../src/queue', '../src/command/browse']
 print env['CPPPATH']
 
 env.PrependUnique(CCFLAGS=['-g', '-Wno-write-strings'])
@@ -52,12 +52,15 @@ env.VariantDir(variant_dir = buildDir, src_dir = '.', duplicate = 0)
 #env.Program(target = [buildDir + 'server'], source = [buildDir + 'serverTest.c'])
 
 env.Program(target = 'test', source = [
-					buildDir + 'opcuaTest.cpp',
-                                        buildDir +  'utilTests.cpp',
+                                        buildDir + 'opcuaTest.cpp',
+                                        buildDir + 'utilTests.cpp',
                                         buildDir + 'readTest.cpp',
                                         buildDir + 'writeTest.cpp',
                                         buildDir + 'methodTest.cpp',
-                                        buildDir + 'subscriptionTest.cpp'
+                                        buildDir + 'subscriptionTest.cpp',
+                                        buildDir + 'uqueue_test.cpp',
+                                        buildDir + 'uarraylist_test.cpp',
+                                        buildDir + 'octhread_tests.cpp'
 					])
 #env.Program('test', ['opcuaTest.cpp', 'utilTests.cpp'])
 

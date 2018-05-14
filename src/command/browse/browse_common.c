@@ -98,15 +98,6 @@ UA_NodeId *getNodeId(EdgeRequest *req)
     return node;
 }
 
-EdgeNodeInfo *getEndpoint(EdgeMessage *msg, int msgId)
-{
-    if (msg->type == SEND_REQUEST)
-    {
-        return msg->request->nodeInfo;
-    }
-    return msg->requests[msgId]->nodeInfo;
-}
-
 static bool checkStatusGood(UA_StatusCode status)
 {
     return (UA_STATUSCODE_GOOD == status) ? true : false;
@@ -272,7 +263,7 @@ static bool checkContinuationPoint(uint32_t msgId, UA_BrowseResult *browseResult
     VERIFY_NON_NULL_MSG(browseResult, "browseResult param is NULL", false);
     VERIFY_NON_NULL_MSG(srcNodeId, "srcNodeId param is NULL", false);
 
-    bool retVal = true;
+    bool retVal = false;
     /*if(browseResult.continuationPoint.length <= 0)
      {
      EDGE_LOG(TAG, "Error: " CONTINUATIONPOINT_EMPTY);
@@ -283,32 +274,36 @@ static bool checkContinuationPoint(uint32_t msgId, UA_BrowseResult *browseResult
     {
         EDGE_LOG(TAG, "Error: " CONTINUATIONPOINT_LONG);
         invokeErrorCb(msgId, srcNodeId, STATUS_ERROR, CONTINUATIONPOINT_LONG);
-        retVal = false;
     }
     else if (browseResult->continuationPoint.length > 0
             && (browseResult->referencesSize <= 0 || !browseResult->references))
     {
         EDGE_LOG(TAG, "Error: " STATUS_VIEW_REFERENCE_DATA_INVALID_VALUE);
         invokeErrorCb(msgId, srcNodeId, STATUS_ERROR, STATUS_VIEW_REFERENCE_DATA_INVALID_VALUE);
-        retVal = false;
+    }
+    else
+    {
+        retVal = true;
     }
     return retVal;
 }
 
 static bool checkBrowseName(uint32_t msgId, UA_String browseName, EdgeNodeId *srcNodeId)
 {
-    bool retVal = true;
+    bool retVal = false;
     if (browseName.length <= 0 || NULL == browseName.data)
     {
         EDGE_LOG(TAG, "Error: " BROWSENAME_EMPTY);
         invokeErrorCb(msgId, srcNodeId, STATUS_ERROR, BROWSENAME_EMPTY);
-        retVal = false;
     }
     else if (browseName.length >= 1000)
     {
         EDGE_LOG(TAG, "Error: " BROWSENAME_LONG);
         invokeErrorCb(msgId, srcNodeId, STATUS_ERROR, BROWSENAME_LONG);
-        retVal = false;
+    }
+    else
+    {
+        retVal = true;
     }
 
     return retVal;
@@ -316,37 +311,41 @@ static bool checkBrowseName(uint32_t msgId, UA_String browseName, EdgeNodeId *sr
 
 static bool checkNodeClass(uint32_t msgId, UA_NodeClass nodeClass, EdgeNodeId *srcNodeId)
 {
-    bool retVal = true;
+    bool retVal = false;
     if (false == isNodeClassValid(nodeClass))
     {
         EDGE_LOG(TAG, "Error: " NODECLASS_INVALID);
         invokeErrorCb(msgId, srcNodeId, STATUS_ERROR, NODECLASS_INVALID);
-        retVal = false;
     }
     else if (UA_NODECLASS_UNSPECIFIED != BROWSE_NODECLASS_MASK &&
         (nodeClass & BROWSE_NODECLASS_MASK) == 0)
     {
         EDGE_LOG(TAG, "Error: " STATUS_VIEW_NOTINCLUDE_NODECLASS_VALUE);
         invokeErrorCb(msgId, srcNodeId, STATUS_ERROR, STATUS_VIEW_NOTINCLUDE_NODECLASS_VALUE);
-        retVal = false;
+    }
+    else
+    {
+        retVal = true;
     }
     return retVal;
 }
 
 static bool checkDisplayName(uint32_t msgId, UA_String displayName, EdgeNodeId *srcNodeId)
 {
-    bool retVal = true;
+    bool retVal = false;
     if (displayName.length <= 0 || NULL == displayName.data)
     {
         EDGE_LOG(TAG, "Error: " DISPLAYNAME_EMPTY);
         invokeErrorCb(msgId, srcNodeId, STATUS_ERROR, DISPLAYNAME_EMPTY);
-        retVal = false;
     }
     else if (displayName.length >= 1000)
     {
         EDGE_LOG(TAG, "Error: " DISPLAYNAME_LONG);
         invokeErrorCb(msgId, srcNodeId, STATUS_ERROR, DISPLAYNAME_LONG);
-        retVal = false;
+    }
+    else
+    {
+        retVal = true;
     }
 
     return retVal;
@@ -354,43 +353,51 @@ static bool checkDisplayName(uint32_t msgId, UA_String displayName, EdgeNodeId *
 
 static bool checkNodeId(uint32_t msgId, UA_ExpandedNodeId nodeId, EdgeNodeId *srcNodeId)
 {
-    bool retVal = true;
+    bool retVal = false;
     if (UA_NodeId_isNull(&nodeId.nodeId))
     {
         EDGE_LOG(TAG, "Error: " NODEID_NULL);
         invokeErrorCb(msgId, srcNodeId, STATUS_ERROR, NODEID_NULL);
-        retVal = false;
     }
     else if (nodeId.serverIndex != 0)
     {
         EDGE_LOG(TAG, "Error: " NODEID_SERVERINDEX);
         invokeErrorCb(msgId, srcNodeId, STATUS_ERROR, NODEID_SERVERINDEX);
-        retVal = false;
+    }
+    else
+    {
+        retVal = true;
     }
     return retVal;
 }
 
 static bool checkReferenceTypeId(uint32_t msgId, UA_NodeId nodeId, EdgeNodeId *srcNodeId)
 {
-    bool retVal = true;
+    bool retVal = false;
     if (UA_NodeId_isNull(&nodeId))
     {
         EDGE_LOG(TAG, "Error: " REFERENCETYPEID_NULL);
         invokeErrorCb(msgId, srcNodeId, STATUS_ERROR, REFERENCETYPEID_NULL);
-        retVal = false;
+    }
+    else
+    {
+        retVal = true;
     }
     return retVal;
 }
 
 static bool checkTypeDefinition(uint32_t msgId, UA_ReferenceDescription *ref, EdgeNodeId *srcNodeId)
 {
-    bool retVal = true;
+    bool retVal = false;
     if ((ref->nodeClass == UA_NODECLASS_OBJECT || ref->nodeClass == UA_NODECLASS_VARIABLE)
             && UA_NodeId_isNull(&ref->typeDefinition.nodeId))
     {
         EDGE_LOG(TAG, "Error: " TYPEDEFINITIONNODEID_NULL);
         invokeErrorCb(msgId, srcNodeId, STATUS_ERROR, TYPEDEFINITIONNODEID_NULL);
-        retVal = false;
+    }
+    else
+    {
+        retVal = true;
     }
     return retVal;
 }
@@ -472,46 +479,6 @@ unsigned char *convertNodeIdToString(UA_NodeId *nodeId)
     return browseName;
 }
 
-ViewNodeInfo_t *getNodeInfo(UA_NodeId *nodeId, UA_String *browseName)
-{
-    VERIFY_NON_NULL_MSG(nodeId, "NodeID parameter is NULL\n", NULL);
-    VERIFY_NON_NULL_MSG(browseName, "BrowseName  parameter is NULL\n", NULL);
-
-    ViewNodeInfo_t *nodeInfo = (ViewNodeInfo_t *)EdgeCalloc(1, sizeof(ViewNodeInfo_t));
-    VERIFY_NON_NULL_MSG(nodeInfo, "EdgeCalloc FAILED for ViewNodeInfo_t\n", NULL);
-
-    if(browseName->length > 0)
-    {
-        nodeInfo->browseName = convertUAStringToUnsignedChar(browseName);
-        if(IS_NULL(nodeInfo->browseName))
-        {
-            EDGE_LOG(TAG, "Failed to convert UA_String to unsigned char string.");
-            EdgeFree(nodeInfo);
-            return NULL;
-        }
-    }
-
-    nodeInfo->nodeId = (UA_NodeId *)EdgeCalloc(1, sizeof(UA_NodeId));
-    if(IS_NULL(nodeInfo->nodeId))
-    {
-        EDGE_LOG(TAG, "Memory allocation failed.");
-        EdgeFree(nodeInfo->browseName);
-        EdgeFree(nodeInfo);
-        return NULL;
-    }
-
-    if(UA_STATUSCODE_GOOD != UA_NodeId_copy(nodeId, nodeInfo->nodeId))
-    {
-        EDGE_LOG(TAG, "Failed to copy the node id.");
-        EdgeFree(nodeInfo->nodeId);
-        EdgeFree(nodeInfo->browseName);
-        EdgeFree(nodeInfo);
-        return NULL;
-    }
-
-    return nodeInfo;
-}
-
 // Ex1: If path1 = '/Objects', path2 = 'Server', then this function returns '/Objects/Server'.
 // Ex2: If path1 = '/', path2 = 'Server', then this function returns '/Server'.
 // Ex3: If path1 = '', path2 = 'Server', then this function returns 'Server'.
@@ -574,6 +541,7 @@ static uint16_t getMaxNodesToBrowse(UA_Client *client)
     }
     UA_Variant_delete(val);
 
+    /* Read Maximum nodes per browse supported by the server */
     UA_UInt32 maxNodesPerBrowse = 0; // Server's optional property.
     val = UA_Variant_new();
     retval = UA_Client_readValueAttribute(client,
@@ -587,11 +555,13 @@ static uint16_t getMaxNodesToBrowse(UA_Client *client)
     }
     UA_Variant_delete(val);
 
+    /* Choose the minimum of them */
     uint16_t minimum = maxBrowseContinuationPoints;
     if(maxNodesPerBrowse != 0 && maxNodesPerBrowse < minimum)
     {
         minimum = maxNodesPerBrowse;
     }
+
     return minimum;
 }
 
@@ -903,6 +873,7 @@ static bool makeBrowseRequest(UA_Client *client, BrowseItem **currentBrowseItems
     VERIFY_NON_NULL_MSG(bRes, "bRes param is NULL", false);
 
     // Form browse request.
+    int maxReferencesPerNode = 0;
     UA_BrowseDirection directionParam = UA_BROWSEDIRECTION_FORWARD;
     if(IS_NOT_NULL(msg->browseParam))
     {
@@ -915,6 +886,8 @@ static bool makeBrowseRequest(UA_Client *client, BrowseItem **currentBrowseItems
         {
             directionParam = UA_BROWSEDIRECTION_BOTH;
         }
+
+        maxReferencesPerNode = msg->browseParam->maxReferencesPerNode;
     }
 
     UA_BrowseDescription *nodesToBrowse = (UA_BrowseDescription *) UA_calloc(count,
@@ -926,7 +899,7 @@ static bool makeBrowseRequest(UA_Client *client, BrowseItem **currentBrowseItems
 
     UA_BrowseRequest bReq;
     UA_BrowseRequest_init(&bReq);
-    bReq.requestedMaxReferencesPerNode = 0; // Client has no restriction. It's up to the server's capability.
+    bReq.requestedMaxReferencesPerNode = maxReferencesPerNode;
     bReq.nodesToBrowseSize = count;
     bReq.nodesToBrowse = nodesToBrowse;
     for(uint32_t idx = 0; idx < count; ++idx)
