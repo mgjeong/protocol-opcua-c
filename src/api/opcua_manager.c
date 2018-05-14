@@ -811,7 +811,7 @@ EdgeResult insertReadAccessNode(EdgeMessage **msg, const char* nodeName)
 }
 
 EdgeResult insertWriteAccessNode(EdgeMessage **msg, const char* nodeName, void* value,
-        size_t valueLen)
+        size_t valueCount)
 {
     EdgeResult result;
     result.code = STATUS_OK;
@@ -828,7 +828,7 @@ EdgeResult insertWriteAccessNode(EdgeMessage **msg, const char* nodeName, void* 
         goto EXIT;
     }
 
-    if(IS_NULL(value) && valueLen != 0)
+    if(IS_NULL(value) && valueCount != 0)
     {
         EDGE_LOG_V(TAG, "Error : Value length is %zu but value pointer is NULL.", valueLen);
         result.code = STATUS_PARAM_INVALID;
@@ -864,10 +864,10 @@ EdgeResult insertWriteAccessNode(EdgeMessage **msg, const char* nodeName, void* 
     }
     varient->value = value;
     varient->arrayLength = 0;
-    if (valueLen > 1)
+    if (valueCount > 1)
     {
         varient->isArray = true;
-        varient->arrayLength = valueLen;
+        varient->arrayLength = valueCount;
     }
     else
     {
