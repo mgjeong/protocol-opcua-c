@@ -47,11 +47,22 @@ static CAQueueingThread_t g_receiveThread;
 static response_cb_t g_responseCallback = NULL;
 static send_cb_t g_sendCallback = NULL;
 
+static pthread_mutex_t g_queueingThreadMutex = PTHREAD_MUTEX_INITIALIZER;
+static bool g_queueingThreadInitialized = false;
+
 static void handleMessage(EdgeMessage *data);
 static void destroyData(void *data, uint32_t size);
 
 void delete_queue()
 {
+    int ret = pthread_mutex_lock(&g_queueingThreadMutex);
+    if(ret != 0)
+    {
+        EDGE_LOG_V(TAG, "Failed to lock the queueing thread mutex. "
+            "pthread_mutex_lock() returned (%d)\n.", ret);
+        exit(ret);
+    }
+
     // stop thread
     // delete thread data
     if (NULL != g_sendThread.threadMutex)
@@ -75,6 +86,16 @@ void delete_queue()
 
     CAQueueingThreadDestroy(&g_sendThread);
     CAQueueingThreadDestroy(&g_receiveThread);
+
+    g_queueingThreadInitialized = false;
+
+    ret = pthread_mutex_unlock(&g_queueingThreadMutex);
+    if(ret != 0)
+    {
+        EDGE_LOG_V(TAG, "Failed to unlock the queueing thread mutex. "
+            "pthread_mutex_unlock() returned (%d)\n.", ret);
+        exit(ret);
+    }
 }
 
 static void sendQ_run(void *ptr)
@@ -116,13 +137,27 @@ static void handleMessage(EdgeMessage *data)
     }
 }
 
-void registerMQCallback(response_cb_t resCallback, send_cb_t sendCallback)
+void init_queue()
 {
+    int ret = pthread_mutex_lock(&g_queueingThreadMutex);
+    if(ret != 0)
+    {
+        EDGE_LOG_V(TAG, "Failed to lock the queueing thread mutex. "
+            "pthread_mutex_lock() returned (%d)\n.", ret);
+        exit(ret);
+    }
+
+    if(g_queueingThreadInitialized)
+    {
+        EDGE_LOG(TAG, "Queuing thread initialized already.");
+        goto EXIT;
+    }
+
     CAResult_t res = ca_thread_pool_init(MAX_THREAD_POOL_SIZE, &g_threadPoolHandle);
     if (CA_STATUS_OK != res)
     {
         EDGE_LOG(TAG, "thread pool initialize error.");
-        return;
+        goto EXIT;
     }
 
     // send thread initialize
@@ -130,14 +165,14 @@ void registerMQCallback(response_cb_t resCallback, send_cb_t sendCallback)
     if (CA_STATUS_OK != res)
     {
         EDGE_LOG(TAG, "Failed to Initialize send queue thread");
-        return;
+        goto EXIT;
     }
 
     res = CAQueueingThreadStart(&g_sendThread);
     if (CA_STATUS_OK != res)
     {
         EDGE_LOG(TAG, "thread start error(send thread).");
-        return;
+        goto EXIT;
     }
 
     // receive thread initialize
@@ -145,16 +180,31 @@ void registerMQCallback(response_cb_t resCallback, send_cb_t sendCallback)
     if (CA_STATUS_OK != res)
     {
         EDGE_LOG(TAG, "Failed to Initialize receive queue thread");
-        return;
+        goto EXIT;
     }
 
     res = CAQueueingThreadStart(&g_receiveThread);
     if (CA_STATUS_OK != res)
     {
         EDGE_LOG(TAG, "thread start error(receive thread).");
-        return;
+        goto EXIT;
     }
 
+    g_queueingThreadInitialized = true;
+
+EXIT:
+    ret = pthread_mutex_unlock(&g_queueingThreadMutex);
+    if(ret != 0)
+    {
+        EDGE_LOG_V(TAG, "Failed to unlock the queueing thread mutex. "
+            "pthread_mutex_unlock() returned (%d)\n.", ret);
+        exit(ret);
+    }
+}
+
+void registerMQCallback(response_cb_t resCallback, send_cb_t sendCallback)
+{
+    init_queue();
     g_responseCallback = resCallback;
     g_sendCallback = sendCallback;
 }

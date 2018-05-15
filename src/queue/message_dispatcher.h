@@ -51,9 +51,15 @@ bool add_to_recvQ(EdgeMessage *msg);
 bool add_to_sendQ(EdgeMessage *msg);
 
 /**
- * @brief Deletes and destroys the send and receiver queue
+ * @brief Deletes and destroys the send and receiver queue.
  */
 void delete_queue();
+
+/**
+ * @brief Initializes the send and receiver queue.
+ * @remarks This request will be ignored if initialization is completed already.
+ */
+void init_queue();
 
 /**
  * @brief Registers the callback for response and message handling

@@ -365,6 +365,9 @@ static EdgeResult checkParameterValid(EdgeMessage *msg)
 
 EdgeResult sendRequest(EdgeMessage* msg)
 {
+    // Initializes the queueing thread if it is not initialized yet.
+    init_queue();
+
     EdgeResult result = checkParameterValid(msg);
     if (result.code == STATUS_OK)
     {
