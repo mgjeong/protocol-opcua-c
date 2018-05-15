@@ -49,7 +49,7 @@ char *cloneString(const char *str)
     size_t len = strlen(str);
     char *clone = (char *) EdgeMalloc(len + 1);
     VERIFY_NON_NULL_MSG(clone, "EdgeMalloc FAILED for cloneString\n", NULL);
-    strncpy(clone, str, len+1);
+    strncpy(clone, str, len);
     return clone;
 }
 
