@@ -614,7 +614,7 @@ static void status_stop_cb (EdgeEndPointInfo *epInfo, EdgeStatusCode status)
         }
         if (0 == endpointCount)
         {
-            stopFlag = true;
+//            stopFlag = true;
         }
     }
 }
@@ -1766,6 +1766,10 @@ int main()
 
             //startFlag = true;
             print_menu();
+        }
+        else if (!strcmp(command, "stop"))
+        {
+            stopClient();
         }
         else if (!strcmp(command, "read"))
         {

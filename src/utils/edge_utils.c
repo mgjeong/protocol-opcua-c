@@ -46,10 +46,9 @@ void logCurrentTimeStamp()
 char *cloneString(const char *str)
 {
     VERIFY_NON_NULL_MSG(str, "NULL str param in clonseString\n", NULL);
-    size_t len = strlen(str);
-    char *clone = (char *) EdgeMalloc(len + 1);
+    char *clone = (char *) EdgeMalloc(strlen(str) + 1);
     VERIFY_NON_NULL_MSG(clone, "EdgeMalloc FAILED for cloneString\n", NULL);
-    strncpy(clone, str, len+1);
+    strcpy(clone, str);
     return clone;
 }
 
