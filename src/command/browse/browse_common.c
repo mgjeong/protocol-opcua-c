@@ -633,7 +633,7 @@ static void destroyBrowseItems(BrowseItem **items, uint32_t size)
     {
         for(uint32_t i = 0; i < size; ++i)
         {
-            destroyBrowseItemMembers(items[i]);
+            destroyBrowseItem(items[i]);
         }
     }
 }
@@ -1029,7 +1029,7 @@ static bool validateReference(UA_ReferenceDescription *reference,
 
     // Checking whether the browse name of the reference is there or not in the browse path.
     unsigned char *pathCopy = cloneData(srcBrowseItem->browsePath,
-            strlen((char *)srcBrowseItem->browsePath));
+            strlen((char *)srcBrowseItem->browsePath)+1);
     if(hasCycle(pathCopy, &reference->browseName.name))
     {
         EDGE_LOG(TAG, "Found this node in the current browse path. Ignoring this node to avoid cycle.");
@@ -1191,18 +1191,18 @@ static bool browseNextNodes(UA_Client *client, EdgeMessage *msg,
         VERIFY_NON_NULL_MSG(viewList, "viewList param is NULL", false);
     }
 
-    bool done = false;
-    UA_ByteString *cp = continuationPoint;
+    bool done = false, deleteCP = false;
+    UA_ByteString cp = *continuationPoint;
     do
     {
         // Form BrowseNext request and perform BrowseNext and verify the result status.
         UA_BrowseNextResponse bRes;
-        if(!makeBrowseNextRequest(client, msg, srcNodeId, cp, &bRes))
+        if(!makeBrowseNextRequest(client, msg, srcNodeId, &cp, &bRes))
         {
             EDGE_LOG(TAG, "Failed to make a BrowseNext request.");
             invokeErrorCb(msg->message_id, srcNodeId, STATUS_ERROR, "Failed to make a browse request.");
-            if(cp != continuationPoint)
-                EdgeFree(cp->data);
+            if(deleteCP)
+                EdgeFree(cp.data);
             return false;
         }
 
@@ -1211,31 +1211,28 @@ static bool browseNextNodes(UA_Client *client, EdgeMessage *msg,
             EDGE_LOG(TAG, "Failed to handle the BrowseNext result.");
             UA_BrowseNextResponse_deleteMembers(&bRes);
             invokeErrorCb(msg->message_id, srcNodeId, STATUS_ERROR, "Failed to handle the BrowseNext result.");
-            if(cp != continuationPoint)
-                EdgeFree(cp->data);
+            if(deleteCP)
+                EdgeFree(cp.data);
             return false;
         }
 
-        if(cp != continuationPoint)
-            EdgeFree(cp->data);
+        if(deleteCP)
+            EdgeFree(cp.data);
 
         // If there is a continuation point in this browse result, call BrowseNext again.
         if(bRes.results[0].continuationPoint.length > 0)
         {
-            // Create a copy of the continuation point.
-            UA_ByteString newCp;
-            newCp.length = bRes.results[0].continuationPoint.length;
-            newCp.data = (UA_Byte *) convertUAStringToUnsignedChar(&bRes.results[0].continuationPoint);
-            if(IS_NULL(newCp.data))
+            // Copy the continuation point.
+            cp.length = bRes.results[0].continuationPoint.length;
+            cp.data = (UA_Byte *) convertUAStringToUnsignedChar(&bRes.results[0].continuationPoint);
+            if(IS_NULL(cp.data))
             {
                 EDGE_LOG(TAG, "Failed to convert the continuation point.");
                 UA_BrowseNextResponse_deleteMembers(&bRes);
                 invokeErrorCb(msg->message_id, srcNodeId, STATUS_ERROR, "Failed to convert the continuation point.");
-                if(cp != continuationPoint)
-                    EdgeFree(cp->data);
                 return false;
             }
-            *cp = newCp;
+            deleteCP = true;
         }
         else
         {
