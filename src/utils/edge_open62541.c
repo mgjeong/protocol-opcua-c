@@ -746,16 +746,38 @@ UA_NodeId *cloneNodeId(UA_NodeId *nodeId)
             *clone = UA_NODEID_NUMERIC(nodeId->namespaceIndex, nodeId->identifier.numeric);
             break;
         case UA_NODEIDTYPE_STRING:
-            *clone = UA_NODEID_STRING_ALLOC(nodeId->namespaceIndex, (char *)nodeId->identifier.string.data);
+            clone->namespaceIndex = nodeId->namespaceIndex;
+            clone->identifierType = UA_NODEIDTYPE_STRING;
+            clone->identifier.string.length = nodeId->identifier.string.length;
+            clone->identifier.string.data = (UA_Byte *) EdgeMalloc(clone->identifier.string.length);
+            if(IS_NULL(clone->identifier.string.data))
+            {
+                EDGE_LOG(TAG, "Memory allocation failed.");
+                goto ERROR;
+            }
+            memcpy(clone->identifier.string.data, nodeId->identifier.string.data, nodeId->identifier.string.length);
             break;
         case UA_NODEIDTYPE_GUID:
             *clone = UA_NODEID_GUID(nodeId->namespaceIndex, nodeId->identifier.guid);
             break;
         case UA_NODEIDTYPE_BYTESTRING:
-            *clone = UA_NODEID_BYTESTRING_ALLOC(nodeId->namespaceIndex, (char *)nodeId->identifier.byteString.data);
+            clone->namespaceIndex = nodeId->namespaceIndex;
+            clone->identifierType = UA_NODEIDTYPE_BYTESTRING;
+            clone->identifier.byteString.length = nodeId->identifier.byteString.length;
+            clone->identifier.byteString.data = (UA_Byte *) EdgeMalloc(clone->identifier.byteString.length);
+            if(IS_NULL(clone->identifier.byteString.data))
+            {
+                EDGE_LOG(TAG, "Memory allocation failed.");
+                goto ERROR;
+            }
+            memcpy(clone->identifier.byteString.data, nodeId->identifier.byteString.data, nodeId->identifier.byteString.length);
             break;
     }
     return clone;
+
+ERROR:
+    UA_NodeId_delete(clone);
+    return NULL;
 }
 
 void logNodeId(UA_NodeId id)

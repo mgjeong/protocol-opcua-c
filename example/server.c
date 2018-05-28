@@ -314,25 +314,17 @@ static void testCreateNodes()
     }
 
     printf("\n[%d] Variable node with localized text variant: \n", ++index);
-    Edge_LocalizedText *lt_value = (Edge_LocalizedText *) EdgeMalloc(sizeof(Edge_LocalizedText));
-    if (IS_NOT_NULL(lt_value))
-    {
-        lt_value->locale = EdgeStringAlloc("COUNTRY");
-        lt_value->text = EdgeStringAlloc("INDIA");
-        item = createVariableNodeItem("LocalizedText", EDGE_NODEID_LOCALIZEDTEXT, (void *) lt_value,
-                VARIABLE_NODE, 100);
-        VERIFY_NON_NULL_NR(item);
-        createNode(DEFAULT_NAMESPACE_VALUE, item);
-        printf("\n|------------[Added] %s\n", item->browseName);
-        EdgeFree(lt_value->locale.data);
-        EdgeFree(lt_value->text.data);
-        EdgeFree(lt_value);
-        deleteNodeItem(item);
-    }
-    else
-    {
-        printf("Error :: EdgeMalloc failed for Edge_LocalizedText in Test create Nodes\n");
-    }
+    char *locale = "COUNTRY", *text = "INDIA";
+    Edge_LocalizedText lt_value = {
+        { strlen(locale), (uint8_t *)locale },
+        { strlen(text), (uint8_t *)text }
+    };
+    item = createVariableNodeItem("LocalizedText", EDGE_NODEID_LOCALIZEDTEXT, (void *) &lt_value,
+            VARIABLE_NODE, 100);
+    VERIFY_NON_NULL_NR(item);
+    createNode(DEFAULT_NAMESPACE_VALUE, item);
+    printf("\n|------------[Added] %s\n", item->browseName);
+    deleteNodeItem(item);
 
     printf("\n[%d] Variable node with byte string variant: \n", ++index);
     item = createVariableNodeItem("ByteString", EDGE_NODEID_BYTESTRING, (void *) "samsung", VARIABLE_NODE, 100);
@@ -491,12 +483,12 @@ static void testCreateNodes()
     }
 
     printf("\n[%d] Variable node with NODEID variant: \n", ++index);
-    Edge_NodeId *node =  (Edge_NodeId *) EdgeMalloc(sizeof(Edge_NodeId));
-    node->namespaceIndex = DEFAULT_NAMESPACE_INDEX;
-    node->identifierType = INTEGER;
-    node->identifier.numeric = EDGE_NODEID_ROOTFOLDER;
+    Edge_NodeId node;
+    node.namespaceIndex = DEFAULT_NAMESPACE_INDEX;
+    node.identifierType = INTEGER;
+    node.identifier.numeric = EDGE_NODEID_ROOTFOLDER;
 
-    item = createVariableNodeItem("NodeId", EDGE_NODEID_NODEID, node, VARIABLE_NODE, 100);
+    item = createVariableNodeItem("NodeId", EDGE_NODEID_NODEID, &node, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added] %s\n", item->browseName);
@@ -824,7 +816,7 @@ static void testCreateNodes()
     deleteNodeItem(item);
 
     printf("\n[%d] Array node with XML ELEMENT variant: \n", ++index);
-    Edge_XmlElement xmlValueArr[6] = { 
+    Edge_XmlElement xmlValueArr[6] = {
         {2, (uint8_t *)"ab"},
         {3, (uint8_t *)"abc"},
         {2, (uint8_t *)"st"},
@@ -882,7 +874,7 @@ static void testCreateNodes()
     deleteNodeItem(item);
 
     printf("\n[%d] Variable node with localized text variant: \n", ++index);
-    Edge_LocalizedText ltValueArr[7] = { 
+    Edge_LocalizedText ltValueArr[7] = {
         { {7, (uint8_t *)"localeA"}, {5, (uint8_t *)"textA"} },
         { {7, (uint8_t *)"localeB"}, {5, (uint8_t *)"textB"} },
         { {7, (uint8_t *)"localeC"}, {5, (uint8_t *)"textC"} },
@@ -1139,7 +1131,7 @@ static void testCreateNodes()
     /******************* Method Node *********************/
     printf(COLOR_GREEN"\n[Create Method Node]\n"COLOR_RESET);
     printf("\n[%d] Method Node with square_root \n", ++index);
-    EdgeNodeItem *methodNodeItem = (EdgeNodeItem *) EdgeMalloc(sizeof(EdgeNodeItem));
+    EdgeNodeItem *methodNodeItem = (EdgeNodeItem *) EdgeCalloc(1, sizeof(EdgeNodeItem));
     VERIFY_NON_NULL_NR(methodNodeItem);
     methodNodeItem->browseName = "sqrt(x)";
     methodNodeItem->sourceNodeId = NULL;
@@ -1235,7 +1227,7 @@ static void testCreateNodes()
     EdgeFree(methodNodeItem);
 
     printf("\n[%d] Method Node with incrementInc32Array \n", ++index);
-    EdgeNodeItem *methodNodeItem1 = (EdgeNodeItem *) EdgeMalloc(sizeof(EdgeNodeItem));
+    EdgeNodeItem *methodNodeItem1 = (EdgeNodeItem *) EdgeCalloc(1, sizeof(EdgeNodeItem));
     VERIFY_NON_NULL_NR(methodNodeItem1);
     methodNodeItem1->browseName = "incrementInc32Array(x,delta)";
     methodNodeItem1->sourceNodeId = NULL;
@@ -1331,7 +1323,7 @@ static void testCreateNodes()
     EdgeFree(methodNodeItem1);
 
     printf("\n[%d] Method Node with noArgMethod \n", ++index);
-    EdgeNodeItem *methodNodeItem2 = (EdgeNodeItem *) EdgeMalloc(sizeof(EdgeNodeItem));
+    EdgeNodeItem *methodNodeItem2 = (EdgeNodeItem *) EdgeCalloc(1, sizeof(EdgeNodeItem));
     VERIFY_NON_NULL_NR(methodNodeItem2);
     methodNodeItem2->browseName = "shutdown()";
     methodNodeItem2->sourceNodeId = NULL;
@@ -1358,7 +1350,7 @@ static void testCreateNodes()
     EdgeFree(methodNodeItem2);
 
     printf("\n[%d] Method Node with inArgMethod \n", ++index);
-    EdgeNodeItem *methodNodeItem3 = (EdgeNodeItem *) EdgeMalloc(sizeof(EdgeNodeItem));
+    EdgeNodeItem *methodNodeItem3 = (EdgeNodeItem *) EdgeCalloc(1, sizeof(EdgeNodeItem));
     VERIFY_NON_NULL_NR(methodNodeItem3);
     methodNodeItem3->browseName = "move_start_point";
     methodNodeItem3->sourceNodeId = NULL;
@@ -1403,7 +1395,7 @@ static void testCreateNodes()
     EdgeFree(methodNodeItem3);
 
     printf("\n[%d] Method Node with outArgMethod \n", ++index);
-    EdgeNodeItem *methodNodeItem4 = (EdgeNodeItem *) EdgeMalloc(sizeof(EdgeNodeItem));
+    EdgeNodeItem *methodNodeItem4 = (EdgeNodeItem *) EdgeCalloc(1, sizeof(EdgeNodeItem));
     VERIFY_NON_NULL_NR(methodNodeItem4);
     methodNodeItem4->browseName = "version()";
     methodNodeItem4->sourceNodeId = NULL;

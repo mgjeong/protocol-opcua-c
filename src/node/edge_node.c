@@ -117,10 +117,10 @@ static void addVariableNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeI
         UA_LocalizedText val;
         val.locale.length = lt->locale.length;
         val.locale.data = (uint8_t*)EdgeCalloc(val.locale.length, sizeof(uint8_t));
-        UA_String_copy((UA_String*)&lt->locale, &val.locale);
+        memcpy(val.locale.data, lt->locale.data, lt->locale.length);
         val.text.length = lt->text.length;
         val.text.data = (uint8_t*)EdgeCalloc(val.text.length, sizeof(uint8_t));
-        UA_String_copy((UA_String*)&lt->text, &val.text);
+        memcpy(val.text.data, lt->text.data, lt->text.length);
         UA_Variant_setScalarCopy(&attr.value, &val, &UA_TYPES[type]);
         EdgeFree(val.locale.data);
         EdgeFree(val.text.data);

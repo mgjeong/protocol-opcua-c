@@ -190,6 +190,7 @@ bool connect_client(char *endpoint)
     if (NULL != getSessionClient(m_endpoint))
     {
         EDGE_LOG(TAG, "client already connected.\n");
+        EdgeFree(m_endpoint);
         return false;
     }
 
@@ -204,6 +205,7 @@ bool connect_client(char *endpoint)
     {
         EDGE_LOG_V(TAG, "\n [CLIENT] Unable to connect 0x%08x!\n", retVal);
         UA_Client_delete(m_client);
+        EdgeFree(m_endpoint);
         return false;
     }
 
@@ -222,6 +224,7 @@ bool connect_client(char *endpoint)
     VERIFY_NON_NULL_MSG(ep, "EdgeCalloc FAILED for EdgeEndPointInfo\n", false);
     ep->endpointUri = m_endpoint;
     g_statusCallback(ep, STATUS_CLIENT_STARTED);
+    EdgeFree(m_endpoint);
     EdgeFree(ep);
 
     return true;

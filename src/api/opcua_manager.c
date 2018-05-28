@@ -776,8 +776,7 @@ EdgeMessage* createEdgeMessage(const char *endpointUri, size_t requestSize, Edge
 
 EdgeResult insertReadAccessNode(EdgeMessage **msg, const char* nodeName)
 {
-    EdgeResult result;
-    result.code = STATUS_OK;
+    EdgeResult result = { STATUS_OK };
     if (IS_NULL((*msg)) || IS_NULL(nodeName))
     {
         EDGE_LOG(TAG, "Error : parameter is not valid");
@@ -792,7 +791,6 @@ EdgeResult insertReadAccessNode(EdgeMessage **msg, const char* nodeName)
     }
 
     size_t index = (*msg)->requestLength;
-
     (*msg)->requests[index] = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
     if (IS_NULL((*msg)->requests[index]))
     {
@@ -833,7 +831,7 @@ EdgeResult insertWriteAccessNode(EdgeMessage **msg, const char* nodeName, void* 
 
     if(IS_NULL(value) && valueCount != 0)
     {
-        EDGE_LOG_V(TAG, "Error : Value length is %zu but value pointer is NULL.", valueLen);
+        EDGE_LOG_V(TAG, "Error : Value length is %zu but value pointer is NULL.", valueCount);
         result.code = STATUS_PARAM_INVALID;
         goto EXIT;
     }

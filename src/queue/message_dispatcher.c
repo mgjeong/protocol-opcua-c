@@ -204,7 +204,6 @@ EXIT:
 
 void registerMQCallback(response_cb_t resCallback, send_cb_t sendCallback)
 {
-    init_queue();
     g_responseCallback = resCallback;
     g_sendCallback = sendCallback;
 }

@@ -175,7 +175,7 @@ ERROR:
     EdgeFree(ns->rootNodeBrowseName);
     EdgeFree(ns->rootNodeDisplayName);
     EdgeFree(ns);
-	result.code = STATUS_ERROR;
+    result.code = STATUS_ERROR;
     return result;
 }
 
