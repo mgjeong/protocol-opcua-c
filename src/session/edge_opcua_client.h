@@ -142,20 +142,6 @@ EdgeResult executeSubscriptionInServer(EdgeMessage *msg);
  */
 void registerClientCallback(response_cb_t resCallback, status_cb_t statusCallback, discovery_cb_t discoveryCallback);
 
-/**
- * @brief Acquires the lock on mutex for synchronizing publish with other requests.
- * @remarks After acquiring the lock, it's mandatory to release the mutex.
- * @param[in]  client Client Handle.
- */
-void acquireSubscriptionLock(UA_Client *client);
-
-/**
- * @brief Releases the lock on mutex used for synchronizing publish with other requests.
- * @remarks Mutex should have been acquired before the invocation of this function.
- * @param[in]  client Client Handle.
- */
-void releaseSubscriptionLock(UA_Client *client);
-
 #ifdef __cplusplus
 }
 #endif
