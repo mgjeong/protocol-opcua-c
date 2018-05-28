@@ -43,7 +43,7 @@ if architecture == 'arm' :
 
 def do__(self, arg):
 	Execute(arg)
-	print "\n"    
+	print "\n"
 
 ######################################################################
 # Build Open62541 library
@@ -80,9 +80,11 @@ else:
 createBuildDir = 'mkdir -p ' + buildDir
 env.do__(createBuildDir )
 
+open62541LibVersion = '_0.2'
+
 env.AppendUnique(CPPPATH= [
 		incPath,
-		extPath + '/open62541/open62541',
+		extPath + '/open62541/open62541' + open62541LibVersion,
 		srcPath + '/command',
 		srcPath + '/command/browse',
 		srcPath + '/node',
@@ -113,7 +115,7 @@ if ARGUMENTS.get('DEBUG', False) in [
 
 src = [
 		buildDir + srcPath + '/api/opcua_manager.c',
-		buildDir + extPath + '/open62541/open62541/open62541.c',
+		buildDir + extPath + '/open62541/open62541' + open62541LibVersion + '/open62541.c',
 		buildDir + srcPath + '/command/browse/browse.c',
 		buildDir + srcPath + '/command/browse/browse_common.c',
 		buildDir + srcPath + '/command/browse/browse_view.c',

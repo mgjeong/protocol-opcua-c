@@ -27,9 +27,10 @@ import os
 
 lib_env = Environment()
 src_dir = lib_env.GetLaunchDir()
-lib_dir = os.path.join(src_dir, 'extlibs', 'open62541', 'open62541')
+lib_version          = '_0.2'
+lib_dir = os.path.join(src_dir, 'extlibs', 'open62541', 'open62541' + lib_version)
 
-if GetOption('clean'):	
+if GetOption('clean'):
 #	if os.path.exists(lib_dir):
 #		print "Deleting open62541 folder which is inside extlibs/open62541."
 #		result = os.system('rm -rf %s' %lib_dir)
@@ -40,9 +41,9 @@ if GetOption('clean'):
 ######################################################################
 # Download open62541 library
 ######################################################################
-lib_repo_url         = 'https://github.com/open62541/open62541.git'
+lib_repo_url         = 'https://github.com/open62541/open62541.git ' + 'open62541' + lib_version
 lib_checkout_command = 'git clone ' + lib_repo_url
-lib_path             = 'extlibs/open62541/open62541'
+lib_path             = 'extlibs/open62541/open62541' + lib_version
 
 auto_download_dependent_libs = False
 if ARGUMENTS.get('AUTO_DOWNLOAD_DEP_LIBS', False) in [
@@ -53,7 +54,7 @@ if ARGUMENTS.get('AUTO_DOWNLOAD_DEP_LIBS', False) in [
 print "Automatic download: %s\n" % auto_download_dependent_libs
 
 if not os.path.exists(lib_dir):
-	if auto_download_dependent_libs:		
+	if auto_download_dependent_libs:
 		result = os.system(lib_checkout_command)
 		if result != 0:
 			print "Open62541 library download is failed."
@@ -78,9 +79,9 @@ if os.path.exists(lib_src_file_path) and os.path.exists(lib_hdr_file_path):
 
 if not os.path.exists(os.path.join(lib_dir, '.git')):
 	print ".git folder doesn't exist at %s. Library might not have been cloned properly." % lib_dir
-	command = 'rm -rf ' + lib_dir	
+	command = 'rm -rf ' + lib_dir
 	result = os.system(command)
-	if result != 0:		
+	if result != 0:
 		print "Unable to deleted open62541 folder which is under extlibs/open62541. Manually delete it and run scons again. It will freshly clone the library."
 	else:
 		print "Deleted open62541 folder under extlibs/open62541. Rebuild again."
@@ -88,7 +89,7 @@ if not os.path.exists(os.path.join(lib_dir, '.git')):
 
 ############################################################################################
 # Prepare open62541 library
-# Reset the library to a specific patch till which opc ua wrapper layer is verified. 
+# Reset the library to a specific patch till which opc ua wrapper layer is verified.
 ############################################################################################
 patch = '2be85c43813f7bb0c8fd420b93ab469427ccb4cf'
 print 'Resetting master branch to patch: %s' % patch

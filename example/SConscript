@@ -1,6 +1,6 @@
 #******************************************************************
 #
-# Copyright 2017 Samsung Electronics All Rights Reserved. 
+# Copyright 2017 Samsung Electronics All Rights Reserved.
 #
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 #
@@ -27,6 +27,7 @@ example_env = env.Clone()
 outDir = 'out'
 srcPath = '../src/'
 incPath = '../include/'
+open62541LibVersion = '_0.2'
 
 #example_env.Execute('rm -rf ' + outDir)
 example_env.Execute('mkdir -p ' + outDir)
@@ -39,7 +40,7 @@ example_env.Execute('mkdir -p ' + outDir)
 example_env['CCFLAGS'] = ['-fvisibility=hidden', '-fPIC',  '-Wall', '-Werror', '-std=gnu99', '-g']
 
 example_env['CPPPATH'] = [incPath,
-			'../extlibs/open62541/open62541/',
+			'../extlibs/open62541/open62541' + open62541LibVersion,
 			srcPath + '/command',
 			srcPath + '/node',
 			#srcPath + '/queue',
