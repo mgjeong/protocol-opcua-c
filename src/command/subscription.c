@@ -258,8 +258,9 @@ static void monitoredItemHandler(UA_Client *client, UA_UInt32 monId, UA_DataValu
 
     if(value->hasServerTimestamp)
     {
-       resultMsg->serverTime.tv_sec = (value->serverTimestamp) / 1000000;
-       resultMsg->serverTime.tv_usec = (value->serverTimestamp) % 1000000;
+        value->serverTimestamp -= UA_DATETIME_UNIX_EPOCH;
+        resultMsg->serverTime.tv_sec = (value->serverTimestamp ) / UA_DATETIME_SEC;
+        resultMsg->serverTime.tv_usec = (value->serverTimestamp - (resultMsg->serverTime.tv_sec * UA_DATETIME_SEC)) / UA_DATETIME_USEC;
     }
     else
     {
