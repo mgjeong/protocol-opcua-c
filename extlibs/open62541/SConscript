@@ -95,7 +95,7 @@ print 'Resetting master branch to patch: %s' % patch
 command = 'cd %s && git reset --hard %s' % (lib_dir, patch)
 #tag = '0.3-rc1'
 #command = 'cd %s && git checkout %s' % (lib_dir, tag)
-#result = os.system(command)
+result = os.system(command)
 if result != 0:
 	print 'Reset failed.'
 	Exit(1)
