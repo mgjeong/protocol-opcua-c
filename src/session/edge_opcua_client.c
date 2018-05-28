@@ -135,44 +135,34 @@ void setSupportedApplicationTypes(uint8_t supportedTypes)
 EdgeResult readNodesFromServer(EdgeMessage *msg)
 {
     UA_Client *clientHandle = (UA_Client*) getSessionClient(msg->endpointInfo->endpointUri);
-    acquireSubscriptionLock(clientHandle);
     EdgeResult ret = executeRead(clientHandle, msg);
-    releaseSubscriptionLock(clientHandle);
     return ret;
 }
 
 EdgeResult writeNodesInServer(EdgeMessage *msg)
 {
     UA_Client *clientHandle = (UA_Client*) getSessionClient(msg->endpointInfo->endpointUri);
-    acquireSubscriptionLock(clientHandle);
     EdgeResult ret = executeWrite(clientHandle, msg);
-    releaseSubscriptionLock(clientHandle);
     return ret;
 }
 
 void browseNodesInServer(EdgeMessage *msg)
 {
     UA_Client *clientHandle = (UA_Client*) getSessionClient(msg->endpointInfo->endpointUri);
-    acquireSubscriptionLock(clientHandle);
     executeBrowse(clientHandle, msg);
-    releaseSubscriptionLock(clientHandle);
 }
 
 EdgeResult callMethodInServer(EdgeMessage *msg)
 {
     UA_Client *clientHandle = (UA_Client*) getSessionClient(msg->endpointInfo->endpointUri);
-    acquireSubscriptionLock(clientHandle);
     EdgeResult ret = executeMethod(clientHandle, msg);
-    releaseSubscriptionLock(clientHandle);
     return ret;
 }
 
 EdgeResult executeSubscriptionInServer(EdgeMessage *msg)
 {
     UA_Client *clientHandle = (UA_Client*) getSessionClient(msg->endpointInfo->endpointUri);
-    acquireSubscriptionLock(clientHandle);
     EdgeResult ret = executeSub(clientHandle, msg);
-    releaseSubscriptionLock(clientHandle);
     return ret;
 }
 
@@ -244,7 +234,6 @@ void disconnect_client(EdgeEndPointInfo *epInfo)
         if (session->value)
         {
             UA_Client *m_client = (UA_Client*) session->value;
-            stopSubscriptionThread(m_client);
             UA_Client_delete(m_client);
             m_client = NULL;
         }
@@ -274,28 +263,6 @@ EdgeResult client_findServers(const char *endpointUri, size_t serverUrisSize,
 EdgeResult client_getEndpoints(char *endpointUri)
 {
     return getEndpointsInternal(endpointUri);
-}
-
-void acquireSubscriptionLock(UA_Client *clientHandle)
-{
-    int ret = acquireSubscriptionLockInternal(clientHandle);
-    if(ret != 0)
-    {
-        EDGE_LOG_V(TAG, "Failed to lock the serialization mutex. "
-            "pthread_mutex_lock() returned (%d)\n.", ret);
-        exit(ret);
-    }
-}
-
-void releaseSubscriptionLock(UA_Client *clientHandle)
-{
-    int ret = releaseSubscriptionLockInternal(clientHandle);
-    if(ret != 0)
-    {
-        EDGE_LOG_V(TAG, "Failed to unlock the serialization mutex. "
-            "pthread_mutex_unlock() returned (%d)\n.", ret);
-        exit(ret);
-    }
 }
 
 void registerClientCallback(response_cb_t resCallback, status_cb_t statusCallback, discovery_cb_t discoveryCallback)
