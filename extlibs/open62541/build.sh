@@ -1,8 +1,14 @@
-#!/bin/sh
+#!/bin/bash
 # open62541 build script
 
 # Get into the open62541 library
-cd open62541
+versionName="0.2"
+
+if [ -d "open62541" ]; then
+    rm -rf open62541
+fi
+
+cd "open62541_$versionName"
 
 # If build directory for libwebsockets library exists, then remove it.
 build_dir="$PWD/build"
@@ -26,7 +32,7 @@ cp open62541.c ../../
 
 cd ../../
 
-rm -rf open62541
-mkdir open62541
+rm -rf "open62541_$versionName"
+mkdir "open62541_$versionName"
 
-mv open62541.h open62541.c open62541
+mv open62541.h open62541.c "open62541_$versionName"
