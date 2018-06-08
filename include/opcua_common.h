@@ -240,7 +240,7 @@ typedef struct EdgeEndpointConfig
     char *bindAddress;
 
     /**< Port.*/
-    uint16_t bindPort;
+    uint32_t bindPort;
 } EdgeEndpointConfig;
 
 /**
