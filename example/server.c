@@ -207,7 +207,7 @@ static void init()
     configure(config);
 }
 
-static void startServer(int port)
+static void startServer(unsigned int port)
 {
     EdgeEndpointConfig *endpointConfig = (EdgeEndpointConfig *) EdgeCalloc(1,
             sizeof(EdgeEndpointConfig));
@@ -219,7 +219,7 @@ static void startServer(int port)
 
     printf(COLOR_GREEN "[Endpoint Configuration]\n" COLOR_RESET);
     printf("\nBind Address : %s", endpointConfig->bindAddress);
-    printf("\nBind Port : %d\n", endpointConfig->bindPort);
+    printf("\nBind Port : %u\n", endpointConfig->bindPort);
 
     EdgeApplicationConfig *appConfig = (EdgeApplicationConfig *) EdgeCalloc(1,
             sizeof(EdgeApplicationConfig));
@@ -1869,14 +1869,14 @@ int main()
                     "\n" COLOR_YELLOW " ------------------------------------------------------" COLOR_RESET
                     "\n\n");
 
-            int port;
+            unsigned int port = 0;
             printf("[input port] : ");
-            scanf("%d", &port);
+            scanf("%u", &port);
 
             strncpy(ipAddress, DEFAULT_HOST_NAME, strlen(DEFAULT_HOST_NAME));
             ipAddress[strlen(DEFAULT_HOST_NAME)] = '\0';
 
-            snprintf(endpointUri, sizeof(endpointUri), "opc:tcp://%s:%d/edge-opc-server",
+            snprintf(endpointUri, sizeof(endpointUri), "opc:tcp://%s:%u/edge-opc-server",
                     ipAddress, port);
 
             epInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
