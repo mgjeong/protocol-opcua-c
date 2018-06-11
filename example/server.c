@@ -218,8 +218,8 @@ static void startServer(unsigned int port)
     //endpointConfig->requestTimeout = 60000;
 
     printf(COLOR_GREEN "[Endpoint Configuration]\n" COLOR_RESET);
-    printf("\nBind Address : %s", endpointConfig->bindAddress);
-    printf("\nBind Port : %u\n", endpointConfig->bindPort);
+    printf("\nAddress : %s", endpointConfig->bindAddress);
+    printf("\nPort : %u\n", endpointConfig->bindPort);
 
     EdgeApplicationConfig *appConfig = (EdgeApplicationConfig *) EdgeCalloc(1,
             sizeof(EdgeApplicationConfig));
@@ -243,7 +243,10 @@ static void startServer(unsigned int port)
     epInfo->appConfig = appConfig;
     epInfo->securityPolicyUri = NULL;
 
-    createServer(epInfo);
+    EdgeResult ret = createServer(epInfo);
+    if (STATUS_OK != ret.code) {
+        printf("Start has failed\n");
+    }
 }
 
 static void stopServer()
