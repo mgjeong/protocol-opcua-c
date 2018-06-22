@@ -112,18 +112,19 @@ EdgeResult createServer(EdgeEndPointInfo *epInfo)
 {
     EDGE_LOG(TAG, "[Received command] :: Server start.");
     EdgeResult result;
-    if (IS_NULL(epInfo))
+    if (IS_NULL(epInfo) || IS_NULL(epInfo->endpointConfig))
     {
         result.code = STATUS_PARAM_INVALID;
         return result;
     }
+
     if (epInfo->endpointConfig->bindPort < 1 || epInfo->endpointConfig->bindPort > 65535)
     {
         // Invalid port number
         result.code = STATUS_PARAM_INVALID;
         return result;
     }
-		
+
     if (b_serverInitialized)
     {
         // Server can be initialized only once.
