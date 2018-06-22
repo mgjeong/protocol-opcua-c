@@ -87,20 +87,15 @@ static edgeMap *clientSubMap  = NULL;
  */
 static bool validateMonitoringId(edgeMap *list, UA_UInt32 subId, UA_UInt32 monId)
 {
-    if (list)
+    VERIFY_NON_NULL_MSG(list, "", true);
+    edgeMapNode *temp = list->head;
+    while (temp != NULL)
     {
-        edgeMapNode *temp = list->head;
-        while (temp != NULL)
-        {
-            subscriptionInfo *subInfo = (subscriptionInfo *) temp->value;
-
-            if (subInfo->subId == subId && subInfo->monId == monId)
-                return false;
-
-            temp = temp->next;
-        }
+        subscriptionInfo *subInfo = (subscriptionInfo *) temp->value;
+        if (subInfo->subId == subId && subInfo->monId == monId)
+            return false;
+        temp = temp->next;
     }
-
     return true;
 }
 
@@ -112,18 +107,14 @@ static bool validateMonitoringId(edgeMap *list, UA_UInt32 subId, UA_UInt32 monId
  */
 static bool hasSubscriptionId(edgeMap *list, UA_UInt32 subId)
 {
-    if (list)
+    VERIFY_NON_NULL_MSG(list, "", false);
+    edgeMapNode *temp = list->head;
+    while (temp != NULL)
     {
-        edgeMapNode *temp = list->head;
-        while (temp != NULL)
-        {
-            subscriptionInfo *subInfo = (subscriptionInfo *)temp->value;
-
-            if (subInfo->subId == subId)
-                return true;
-
-            temp = temp->next;
-        }
+        subscriptionInfo *subInfo = (subscriptionInfo *)temp->value;
+        if (subInfo->subId == subId)
+            return true;
+        temp = temp->next;
     }
     return false;
 }
@@ -135,19 +126,17 @@ static bool hasSubscriptionId(edgeMap *list, UA_UInt32 subId)
  */
 static void* get_subscription_list(UA_Client *client)
 {
-    if (clientSubMap)
+    VERIFY_NON_NULL_MSG(clientSubMap, "", NULL);
+    edgeMapNode *temp = clientSubMap->head;
+    while (NULL != temp)
     {
-        edgeMapNode *temp = clientSubMap->head;
-        while (NULL != temp)
+        if (temp->key == client)
         {
-            if (temp->key == client)
-            {
-                // client valid
-                // get all subscription information
-                return temp->value;
-            }
-            temp = temp->next;
+            // client valid
+            // get all subscription information
+            return temp->value;
         }
+        temp = temp->next;
     }
     return NULL;
 }
@@ -160,17 +149,15 @@ static void* get_subscription_list(UA_Client *client)
  */
 static keyValue getSubInfo(edgeMap* list, const char *valueAlias)
 {
-    if(IS_NOT_NULL(list))
+    VERIFY_NON_NULL_MSG(list, "", NULL);
+    edgeMapNode *temp = list->head;
+    while (temp != NULL)
     {
-        edgeMapNode *temp = list->head;
-        while (temp != NULL)
+        if (!strcmp(temp->key, valueAlias))
         {
-            if (!strcmp(temp->key, valueAlias))
-            {
-                return temp->value;
-            }
-            temp = temp->next;
+            return temp->value;
         }
+        temp = temp->next;
     }
     return NULL;
 }
@@ -348,10 +335,7 @@ static void monitoredItemHandler(UA_Client *client, UA_UInt32 monId, UA_DataValu
                 EDGE_LOG(TAG, "Error : Malloc failed for Guid SCALAR value in Read Group\n");
                 goto ERROR;
             }
-
-            snprintf((char *)response->message->value, GUID_LENGTH + 1, "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x",
-                    str.data1, str.data2, str.data3, str.data4[0], str.data4[1], str.data4[2],
-                    str.data4[3], str.data4[4], str.data4[5], str.data4[6], str.data4[7]);
+            convertGuidToString(str, (char **) (&(response->message->value)));
             EDGE_LOG_V(TAG, "%s\n", (char *) response->message->value);
         }
         else
@@ -430,11 +414,7 @@ static void monitoredItemHandler(UA_Client *client, UA_UInt32 monId, UA_DataValu
                     EDGE_LOG_V(TAG, "Error : Malloc failed for Guid Array value %d in Read Group\n", i);
                     goto ERROR;
                 }
-
-                snprintf(values[i], GUID_LENGTH + 1, "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x",
-                        str[i].data1, str[i].data2, str[i].data3, str[i].data4[0], str[i].data4[1], str[i].data4[2],
-                        str[i].data4[3], str[i].data4[4], str[i].data4[5], str[i].data4[6], str[i].data4[7]);
-
+                convertGuidToString(str[i], &(values[i]));
                 EDGE_LOG_V(TAG, "%s\n", values[i]);
             }
         }
