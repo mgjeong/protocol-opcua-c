@@ -107,6 +107,13 @@ UA_ApplicationType convertEdgeApplicationType(EdgeApplicationType appType)
     return uaAppType;
 }
 
+void convertGuidToString(UA_Guid guid, char **out)
+{
+    snprintf(*out, GUID_LENGTH + 1, "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x",
+            guid.data1, guid.data2, guid.data3, guid.data4[0], guid.data4[1], guid.data4[2],
+            guid.data4[3], guid.data4[4], guid.data4[5], guid.data4[6], guid.data4[7]);
+}
+
 Edge_NodeId *convertToEdgeNodeIdType(UA_NodeId *nodeId)
 {
     VERIFY_NON_NULL_MSG(nodeId, "Node ID param is NULL in convertToEdgeNodeIdType\n", NULL);
@@ -185,10 +192,7 @@ EdgeNodeId *getEdgeNodeId(UA_NodeId *node)
                 edgeNodeId = NULL;
                 break;
             }
-
-            snprintf(value, GUID_LENGTH + 1, "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x",
-                    guid.data1, guid.data2, guid.data3, guid.data4[0], guid.data4[1], guid.data4[2],
-                    guid.data4[3], guid.data4[4], guid.data4[5], guid.data4[6], guid.data4[7]);
+            convertGuidToString(guid, &value);
             edgeNodeId->nodeId = value;
             break;
         default:
