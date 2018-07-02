@@ -111,16 +111,20 @@ EdgeResult createMethodNode(const char *namespaceUri, EdgeNodeItem *item, EdgeMe
 EdgeResult createServer(EdgeEndPointInfo *epInfo)
 {
     EDGE_LOG(TAG, "[Received command] :: Server start.");
+
     EdgeResult result = {STATUS_PARAM_INVALID };
     VERIFY_NON_NULL_MSG(epInfo, "", result);
+    VERIFY_NON_NULL_MSG(epInfo->endpointConfig, "", result);
+  
     if (epInfo->endpointConfig->bindPort < 1 || epInfo->endpointConfig->bindPort > 65535)
     {
         // Invalid port number
         return result;
     }
-		
+
     result.code = STATUS_ALREADY_INIT;
     VERIFY_NON_NULL_MSG(!b_serverInitialized, "Server already initialized.\n", result);
+
     result = start_server(epInfo);
     if (result.code == STATUS_OK)
     {
