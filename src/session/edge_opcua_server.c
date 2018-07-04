@@ -338,6 +338,12 @@ EdgeResult start_server(EdgeEndPointInfo *epInfo)
     duration.max = 3600.0 * 1000.0;
     m_serverConfig->publishingIntervalLimits = duration;
 
+    UA_UInt32Range range;
+
+    range.min = 0;
+    range.max = 100;
+    m_serverConfig->keepAliveCountLimits = range;
+
     //    UA_ByteString_deleteMembers(&certificate);
     m_server = UA_Server_new(m_serverConfig);
 
