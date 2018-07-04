@@ -33,6 +33,7 @@
 #define GUID_LENGTH (36)
 #define ERROR_DESC_LENGTH (100)
 
+#ifdef CTT_ENABLED
 UA_Int64 DateTime_toUnixTime(UA_DateTime date)
 {
     return (date - UA_DATETIME_UNIX_EPOCH) / UA_DATETIME_MSEC;
@@ -143,6 +144,47 @@ static bool checkInvalidTime(UA_DateTime serverTime, UA_DateTime sourceTime, int
 }
 
 /**
+ * @brief checkValidation - Validates the read response
+ * @param value - Read response value
+ * @param msg - Edge Message
+ * @param stamp - TimestampsToReturn parameter in read request
+ * @param maxAge - Max Age
+ * @return value on success, NULL on error
+ */
+static void *checkValidation(UA_DataValue *value, const EdgeMessage *msg, UA_TimestampsToReturn stamp,
+        double maxAge)
+{
+    /* Error check for invalid timestamp returned by server */
+    if (!checkInvalidTime(value->serverTimestamp, value->sourceTimestamp, 86400000, stamp))
+    {
+        // Error message handling
+        sendErrorResponse(msg, "Invalid Time");
+        return NULL;
+    }
+
+    /* Error check of status code returned by server */
+    if (UA_STATUSCODE_GOOD != value->status)
+    {
+        // Error message handling
+        sendErrorResponse(msg, "Error status code from server");
+        return NULL;
+    }
+
+    /* Error check for array value response */
+    if (!UA_Variant_isScalar(&(value->value)))
+    {
+        if (value->value.arrayLength == 0)
+        {
+            // Error message handling
+            sendErrorResponse(msg, "Invalid array length in read response");
+            return NULL;
+        }
+    }
+    return value;
+}
+#endif // CTT_ENABLED
+
+/**
  * @brief convertToEdgeLocalizedText - Util function to handle LocalizedText read response
  * @param lt - Localized text to be handled
  * @return Edge_LocalizedText*
@@ -208,46 +250,6 @@ static Edge_QualifiedName *convertToEdgeQualifiedName(UA_QualifiedName *qn)
 }
 
 /**
- * @brief checkValidation - Validates the read response
- * @param value - Read response value
- * @param msg - Edge Message
- * @param stamp - TimestampsToReturn parameter in read request
- * @param maxAge - Max Age
- * @return value on success, NULL on error
- */
-static void *checkValidation(UA_DataValue *value, const EdgeMessage *msg, UA_TimestampsToReturn stamp,
-        double maxAge)
-{
-    /* Error check for invalid timestamp returned by server */
-    if (!checkInvalidTime(value->serverTimestamp, value->sourceTimestamp, 86400000, stamp))
-    {
-        // Error message handling
-        sendErrorResponse(msg, "Invalid Time");
-        return NULL;
-    }
-
-    /* Error check of status code returned by server */
-    if (UA_STATUSCODE_GOOD != value->status)
-    {
-        // Error message handling
-        sendErrorResponse(msg, "Error status code from server");
-        return NULL;
-    }
-
-    /* Error check for array value response */
-    if (!UA_Variant_isScalar(&(value->value)))
-    {
-        if (value->value.arrayLength == 0)
-        {
-            // Error message handling
-            sendErrorResponse(msg, "Invalid array length in read response");
-            return NULL;
-        }
-    }
-    return value;
-}
-
-/**
  * @brief readGroup - Executes read operation of single/group nodes
  * @param client - Client handle
  * @param msg - Request edge message
@@ -268,7 +270,8 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attri
 
     for (size_t i = 0; i < reqLen; i++)
     {
-        EDGE_LOG_V(TAG, "[READGROUP] Node to read :: %s\n", msg->requests[i]->nodeInfo->valueAlias);
+        EDGE_LOG_V(TAG, "[READGROUP] Node to read :: %s [ns : %d]\n", msg->requests[i]->nodeInfo->valueAlias,
+                msg->requests[i]->nodeInfo->nodeId->nameSpace);
         UA_ReadValueId_init(&rv[i]);
         rv[i].attributeId = attributeId;
         rv[i].nodeId = UA_NODEID_STRING_ALLOC(msg->requests[i]->nodeInfo->nodeId->nameSpace,
@@ -306,6 +309,7 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attri
         goto EXIT;
     }
 
+#ifdef CTT_ENABLED
     if (readResponse.results[0].status == UA_STATUSCODE_GOOD)
     {
         if(UA_ATTRIBUTEID_VALUE == attributeId) {
@@ -373,6 +377,7 @@ static void readGroup(UA_Client *client, const EdgeMessage *msg, UA_UInt32 attri
             }
         }
     }
+#endif // CTT_ENABLED
 
     resultMsg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
     if(IS_NULL(resultMsg))

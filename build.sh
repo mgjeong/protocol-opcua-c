@@ -18,7 +18,37 @@
 #!/bin/sh
 echo "Start edge opcua build"
 
-scons -c
-scons TARGET_ARCH=linux TEST=1 AUTO_DOWNLOAD_DEP_LIBS=1
+process_cmd_args() {
+    while [ "$#" -gt 0  ]; do
+            case "$1" in
+            --build_mode=*)
+                build_mode="${1#*=}";
+                echo -e "Build mode = $build_mode"
+                shift 1;
+                ;;
+            -*)
+                echo "unknown option: $1" >&2;
+                usage; exit 1
+                ;;
+            *)
+                echo "unknown option: $1" >&2;
+                usage; exit 1
+                ;;
+        esac
+    done
+}
+process_cmd_args "$@"
+
+if [ "$build_mode" == debug -o "$build_mode" == DEBUG ]
+    then
+    echo "Build with DEBUG mode"
+    scons -c
+    scons TARGET_ARCH=linux TEST=1 AUTO_DOWNLOAD_DEP_LIBS=1 DEBUG=1
+else
+    echo "Build with RELEASE mode"
+    scons -c
+    scons TARGET_ARCH=linux TEST=1 AUTO_DOWNLOAD_DEP_LIBS=1
+fi
+
 
 echo "End of edge opcua build"
