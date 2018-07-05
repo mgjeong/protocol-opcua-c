@@ -55,12 +55,7 @@ static status_cb_t g_statusCallback = NULL;
 
 void printNode(void *visitorContext, const UA_Node *node)
 {
-    if (node == NULL)
-    {
-        EDGE_LOG(TAG, "UA_Node is null\n");
-        return;
-    }
-
+    VERIFY_NON_NULL_NR_MSG(node, "UA_Node is null\n");
     UA_NodeId nodeId = node->nodeId;
     UA_QualifiedName browseNameUA = node->browseName;
     char *type = NULL;
@@ -97,17 +92,15 @@ void printNodeListInServer()
 
 static void* getNamespaceIndex(const char *namespaceUri)
 {
-    if (namespaceMap)
+    VERIFY_NON_NULL_MSG(namespaceMap, "", NULL);
+    edgeMapNode *temp = namespaceMap->head;
+    while (temp != NULL)
     {
-        edgeMapNode *temp = namespaceMap->head;
-        while (temp != NULL)
-        {
-            char *uri = (char*) temp->key;
-            if (!strcmp(uri, namespaceUri))
-                return temp->value;
+        char *uri = (char*) temp->key;
+        if (!strcmp(uri, namespaceUri))
+            return temp->value;
 
-            temp = temp->next;
-        }
+        temp = temp->next;
     }
     return NULL;
 }
@@ -115,13 +108,12 @@ static void* getNamespaceIndex(const char *namespaceUri)
 EdgeResult createNamespaceInServer(const char *namespaceUri, const char *rootNodeIdentifier,
 		const char *rootNodeBrowseName,	const char *rootNodeDisplayName)
 {
-    EdgeResult result;
-    result.code = STATUS_OK;
-    if (!namespaceUri || !rootNodeIdentifier || !rootNodeBrowseName || !rootNodeDisplayName)
-    {
-        result.code = STATUS_PARAM_INVALID;
-        return result;
-    }
+    EdgeResult result = { STATUS_PARAM_INVALID };
+    VERIFY_NON_NULL_MSG(namespaceUri, "", result);
+    VERIFY_NON_NULL_MSG(rootNodeIdentifier, "", result);
+    VERIFY_NON_NULL_MSG(rootNodeBrowseName, "", result);
+    VERIFY_NON_NULL_MSG(rootNodeDisplayName, "", result);
+
     if (namespaceType != URI_TYPE && namespaceType != DEFAULT_TYPE)
     {
         result.code = STATUS_ERROR;
@@ -135,6 +127,7 @@ EdgeResult createNamespaceInServer(const char *namespaceUri, const char *rootNod
         return result;
     }
 
+    result.code = STATUS_OK;
     uint16_t idx = UA_Server_addNamespace(m_server, namespaceUri);
     EDGE_LOG_V(TAG, "[SERVER] Namespace with Index Created:: [%d]\n", idx);
 
@@ -181,87 +174,63 @@ ERROR:
 
 EdgeResult addNodesInServer(const char *namespaceUri, EdgeNodeItem *item)
 {
-    EdgeResult result;
-    if (!namespaceUri || !item)
-    {
-        result.code = STATUS_PARAM_INVALID;
-        return result;
-    }
+    EdgeResult result = { STATUS_PARAM_INVALID};
+    VERIFY_NON_NULL_MSG(namespaceUri, "", result);
+    VERIFY_NON_NULL_MSG(item, "", result);
     result.code = STATUS_ERROR;
     EdgeNamespace *ns = (EdgeNamespace*) getNamespaceIndex(namespaceUri);
-    if (ns)
-    {
-        result = addNodes(m_server, ns->ns_index, item);
-    }
+    VERIFY_NON_NULL_MSG(ns, "", result);
+    result = addNodes(m_server, ns->ns_index, item);
     return result;
 }
 
 EdgeResult modifyNodeInServer(const char *namespaceUri, const char *nodeUri, EdgeVersatility *value)
 {
-    EdgeResult result;
-    if (!namespaceUri || !nodeUri || !value)
-    {
-        result.code = STATUS_PARAM_INVALID;
-        return result;
-    }
+    EdgeResult result = { STATUS_PARAM_INVALID};
+    VERIFY_NON_NULL_MSG(namespaceUri, "", result);
+    VERIFY_NON_NULL_MSG(nodeUri, "", result);
+    VERIFY_NON_NULL_MSG(value, "", result);
     result.code = STATUS_ERROR;
     EdgeNamespace *ns = (EdgeNamespace*) getNamespaceIndex(namespaceUri);
-    if (ns)
-    {
-        result = modifyNode(m_server, ns->ns_index, nodeUri, value);
-    }
+    VERIFY_NON_NULL_MSG(ns, "", result);
+    result = modifyNode(m_server, ns->ns_index, nodeUri, value);
     return result;
 }
 
 EdgeResult addReferenceInServer(EdgeReference *reference)
 {
-    EdgeResult result;
-    if (!reference)
-    {
-        result.code = STATUS_PARAM_INVALID;
-        return result;
-    }
-    if (!reference->sourceNamespace || !reference->targetNamespace)
-    {
-        result.code = STATUS_PARAM_INVALID;
-        return result;
-    }
+    EdgeResult result = { STATUS_PARAM_INVALID};
+    VERIFY_NON_NULL_MSG(reference, "", result);
+    VERIFY_NON_NULL_MSG(reference->sourceNamespace, "", result);
+    VERIFY_NON_NULL_MSG(reference->targetNamespace, "", result);
     result.code = STATUS_ERROR;
     EdgeNamespace *src_ns = (EdgeNamespace*) getNamespaceIndex(reference->sourceNamespace);
+    VERIFY_NON_NULL_MSG(src_ns, "", result);
     EdgeNamespace *target_ns = (EdgeNamespace*) getNamespaceIndex(reference->targetNamespace);
-    if (src_ns && target_ns)
-    {
-        result = addReferences(m_server, reference, src_ns->ns_index, target_ns->ns_index);
-    }
+    VERIFY_NON_NULL_MSG(target_ns, "", result);
+    result = addReferences(m_server, reference, src_ns->ns_index, target_ns->ns_index);
     return result;
 }
 
 EdgeResult addMethodNodeInServer(const char *namespaceUri, EdgeNodeItem *item, EdgeMethod *method)
 {
-    EdgeResult result;
-    if (!namespaceUri || !item || !method)
-    {
-        result.code = STATUS_PARAM_INVALID;
-        return result;
-    }
+    EdgeResult result = { STATUS_PARAM_INVALID};
+    VERIFY_NON_NULL_MSG(namespaceUri, "", result);
+    VERIFY_NON_NULL_MSG(item, "", result);
+    VERIFY_NON_NULL_MSG(method, "", result);
     result.code = STATUS_ERROR;
     EdgeNamespace *ns = (EdgeNamespace*) getNamespaceIndex(namespaceUri);
-    if (ns)
-    {
-        result = addMethodNode(m_server, ns->ns_index, item, method);
-    }
+    VERIFY_NON_NULL_MSG(ns, "", result);
+    result = addMethodNode(m_server, ns->ns_index, item, method);
     return result;
 }
 
 EdgeNodeItem* createVariableNodeItemImpl(const char* name, int type, void* data,
         EdgeIdentifier nodeType, double minimumInterval)
 {
-    if (!name)
-    {
-        return NULL;
-    }
+    VERIFY_NON_NULL_MSG(name, "", NULL);
     EdgeNodeItem* item = (EdgeNodeItem *) EdgeCalloc(1, sizeof(EdgeNodeItem));
-    //VERIFY_NON_NULL_RET(item);
+    VERIFY_NON_NULL_MSG(item, "Memory allocation failed\n", NULL);
     item->accessLevel = READ_WRITE;
     item->userAccessLevel = READ_WRITE;
     item->writeMask = 0;
@@ -278,18 +247,9 @@ EdgeNodeItem* createVariableNodeItemImpl(const char* name, int type, void* data,
 
 EdgeNodeItem* createNodeItemImpl(const char* name, EdgeIdentifier nodeType, EdgeNodeId *sourceNodeId)
 {
-    if (!name)
-    {
-        return NULL;
-    }
+    VERIFY_NON_NULL_MSG(name, "", NULL);
     EdgeNodeItem* item = (EdgeNodeItem *) EdgeCalloc(1, sizeof(EdgeNodeItem));
-    if(IS_NULL(item))
-    {
-        EDGE_LOG(TAG, "Memory allocation failed.");
-        return NULL;
-    }
-
-    //VERIFY_NON_NULL_RET(item);
+    VERIFY_NON_NULL_MSG(item, "Memory allocation failed\n", NULL);
     item->accessLevel = READ_WRITE;
     item->userAccessLevel = READ_WRITE;
     item->writeMask = 0;
@@ -323,15 +283,12 @@ static void *server_loop(void *ptr)
 
 EdgeResult start_server(EdgeEndPointInfo *epInfo)
 {
-    EdgeResult result;
+    EdgeResult result = { STATUS_PARAM_INVALID };
+    VERIFY_NON_NULL_MSG(epInfo, "", result);
+    VERIFY_NON_NULL_MSG(epInfo->endpointConfig, "", result);
+    VERIFY_NON_NULL_MSG(epInfo->appConfig, "", result);
+
     result.code = STATUS_OK;
-
-    if (!epInfo || !epInfo->endpointConfig || !epInfo->appConfig)
-    {
-        result.code = STATUS_PARAM_INVALID;
-        return result;
-    }
-
     EdgeEndpointConfig *epConfig = epInfo->endpointConfig;
     EdgeApplicationConfig *appConfig = epInfo->appConfig;
 
@@ -381,6 +338,12 @@ EdgeResult start_server(EdgeEndPointInfo *epInfo)
     duration.max = 3600.0 * 1000.0;
     m_serverConfig->publishingIntervalLimits = duration;
 
+    UA_UInt32Range range;
+
+    range.min = 0;
+    range.max = 100;
+    m_serverConfig->keepAliveCountLimits = range;
+
     //    UA_ByteString_deleteMembers(&certificate);
     m_server = UA_Server_new(m_serverConfig);
 
@@ -406,7 +369,6 @@ EdgeResult start_server(EdgeEndPointInfo *epInfo)
         result.code = STATUS_OK;
         return result;
     }
-
 }
 
 void stop_server(EdgeEndPointInfo *epInfo)

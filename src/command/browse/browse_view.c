@@ -23,51 +23,24 @@
 #include "edge_list.h"
 #include "edge_malloc.h"
 #include "edge_open62541.h"
+#include "opcua_manager.h"
 
 #define TAG "browse_view"
 
-/**
- * Static function to create an EdgeRequest with 'UA_NS0ID_VIEWSFOLDER' as node id.
- * Created EdgeRequest object can be used to browse all the views under 'UA_NS0ID_VIEWSFOLDER'.
- */
-static EdgeRequest *getEdgeRequestForBrowseView()
-{
-    EdgeNodeInfo *nodeInfo = (EdgeNodeInfo *) EdgeCalloc(1, sizeof(EdgeNodeInfo));
-    VERIFY_NON_NULL_MSG(nodeInfo, "EdgeCalloc FAILED for nodeinfo\n", NULL);
-
-    nodeInfo->nodeId = (EdgeNodeId *) EdgeCalloc(1, sizeof(EdgeNodeId));
-    if(IS_NULL(nodeInfo->nodeId))
-    {
-        EDGE_LOG(TAG, "Memory allocation failed.");
-        EdgeFree(nodeInfo);
-        return NULL;
-    }
-    nodeInfo->nodeId->type = INTEGER;
-    nodeInfo->nodeId->integerNodeId = UA_NS0ID_VIEWSFOLDER;
-    nodeInfo->nodeId->nameSpace = SYSTEM_NAMESPACE_INDEX;
-
-    EdgeRequest *request = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
-    if(IS_NULL(request))
-    {
-        EDGE_LOG(TAG, "Memory allocation failed.");
-        EdgeFree(nodeInfo->nodeId);
-        EdgeFree(nodeInfo);
-        return NULL;
-    }
-    request->nodeInfo = nodeInfo;
-    return request;
-}
-
 void browseView(UA_Client *client, EdgeMessage *msg)
 {
-    // Updates the given edge message object and reverts them at the end.
-    msg->request = getEdgeRequestForBrowseView();
+    EdgeNodeInfo *nodeInfo = createEdgeNodeInfoForNodeId(INTEGER, UA_NS0ID_VIEWSFOLDER, SYSTEM_NAMESPACE_INDEX);
+    VERIFY_NON_NULL_NR_MSG(nodeInfo, "EdgeCalloc FAILED for nodeinfo\n");
+    msg->request = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
     if(IS_NULL(msg->request))
     {
-        EDGE_LOG(TAG, "Failed to form a request for browsing views.");
+        EDGE_LOG(TAG, "Memory allocation failed.");
         invokeErrorCb(msg->message_id, NULL, STATUS_ERROR, "Failed to form a request for browsing views.");
-        return;
+        EdgeFree(nodeInfo->nodeId);
+        EdgeFree(nodeInfo);
+        return ;
     }
+    msg->request->nodeInfo = nodeInfo;
 
     msg->browseParam = (EdgeBrowseParameter *)EdgeCalloc(1, sizeof(EdgeBrowseParameter));
     if(IS_NULL(msg->browseParam))

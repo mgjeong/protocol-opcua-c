@@ -195,11 +195,7 @@ EdgeResult executeMethod(UA_Client *client, const EdgeMessage *msg)
                         EDGE_LOG(TAG, "Error : Malloc failed for Guid SCALAR value in Read Group");
                         goto EXIT;
                     }
-
-                    snprintf(value, GUID_LENGTH + 1, "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x",
-                            str.data1, str.data2, str.data3, str.data4[0], str.data4[1], str.data4[2],
-                            str.data4[3], str.data4[4], str.data4[5], str.data4[6], str.data4[7]);
-
+                    convertGuidToString(str, &value);
                     versatility->value = (void *) value;
                     EDGE_LOG_V(TAG, "%s\n", value);
                 }
@@ -264,11 +260,7 @@ EdgeResult executeMethod(UA_Client *client, const EdgeMessage *msg)
                             EDGE_LOG_V(TAG, "Error : Malloc failed for Guid Array value %d in Read Group\n", i);
                             goto EXIT;
                         }
-
-                        snprintf(values[j], GUID_LENGTH + 1, "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x",
-                                str[j].data1, str[j].data2, str[j].data3, str[j].data4[0], str[j].data4[1], str[j].data4[2],
-                                str[j].data4[3], str[j].data4[4], str[j].data4[5], str[j].data4[6], str[j].data4[7]);
-
+                        convertGuidToString(str[j], &(values[j]));
                         EDGE_LOG_V(TAG, "%s\n", values[j]);
                     }
                 }

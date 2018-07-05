@@ -109,25 +109,6 @@ void destroyUAStringArray(UA_String *uaStr, size_t uaStrSize);
 bool isApplicationTypeSupported(UA_ApplicationType appType);
 
 /**
- * @brief Checks whether the given server URI is present in the given array of acceptable server URIs.
- * @param[in]  rcvdServerUri Received server URI which needs to be checked.
- * @param[in]  serverUrisSize Size of the array of acceptable server URIs.
- * @param[in]  serverUris Array of acceptable server URIs.
- * @return @c True if the given server uri is present in the given array of acceptable server uris, @c False otherwise.
- */
-bool isReceivedServerUriValid(UA_String *rcvdServerUri, size_t serverUrisSize, unsigned char **serverUris);
-
-/**
- * @brief Checks whether the given locale is present in the given array of acceptable locales.
- * @param[in]  rcvdLocale Received locale which needs to be checked.
- * @param[in]  localeIdsSize Size of the array of acceptable locales.
- * @param[in]  localeIds Array of acceptable locales.
- * @return @c True if the given locale is present in the given array of acceptable locales, @c False otherwise.
- */
-bool isReceivedApplicationNameLocaleValid(UA_String *rcvdLocale,
-    size_t localeIdsSize, unsigned char **localeIds);
-
-/**
  * @brief Checks whether the given IPv4 is valid.
  * @param[in]  ipv4Address IPv4 address.
  * @return @c True if the given IPv4 address is valid, @c False otherwise.

@@ -98,11 +98,6 @@ UA_NodeId *getNodeId(EdgeRequest *req)
     return node;
 }
 
-static bool checkStatusGood(UA_StatusCode status)
-{
-    return (UA_STATUSCODE_GOOD == status) ? true : false;
-}
-
 void invokeErrorCb(uint32_t srcMsgId, EdgeNodeId *srcNodeId,
         EdgeStatusCode edgeResult, const char *versatileValue)
 {
@@ -843,7 +838,7 @@ static bool makeBrowseNextRequest(UA_Client *client, EdgeMessage *msg,
     }
 
     UA_StatusCode status = bRes->results[0].statusCode;
-    if (false == checkStatusGood(status))
+    if (UA_STATUSCODE_GOOD != status)
     {
         const char *statusStr = UA_StatusCode_name(status);
         EDGE_LOG_V(TAG, "Error in BrowseNext :: 0x%08x(%s)\n", status, UA_StatusCode_name(status));
@@ -1305,7 +1300,7 @@ static bool browseNodesHelper(UA_Client *client, EdgeMessage *msg, u_queue_t *br
 
             // Check the status code of result and keep track of unknown NodeId cases.
             UA_StatusCode status = bRes.results[res_idx].statusCode;
-            if (checkStatusGood(status) == false)
+            if (UA_STATUSCODE_GOOD != status)
             {
                 if (UA_STATUSCODE_BADNODEIDUNKNOWN == status)
                     nodeIdUnknownCount++;
