@@ -44,7 +44,7 @@ process_cmd_args() {
 }
 process_cmd_args "$@"
 
-if [ "$enable_sub_queue" == true]
+if [ "$enable_sub_queue" == true -o "$enable_sub_queue" == TRUE ]
     then
     sub_queue_option="SUB_QUEUE=1"
 else

@@ -31,7 +31,12 @@
 
 #include "opcua_common.h"
 #include "command_adapter.h"
+
+#ifdef ENABLE_SUB_QUEUE
 #include "edge_utils.h"
+#include "edge_map.h"
+#endif
+
 #include <open62541.h>
 
 #ifdef __cplusplus
