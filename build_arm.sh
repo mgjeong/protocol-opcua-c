@@ -15,7 +15,7 @@
 #
 ###############################################################################
 
-#!/bin/sh
+#!/bin/bash
 echo "Start edge opcua build"
 
 process_cmd_args() {
