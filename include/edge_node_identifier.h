@@ -44,6 +44,9 @@ typedef enum
     Edge_Modify_Sub = 10033,
     Edge_Delete_Sub = 10034,
     Edge_Republish_Sub = 10035,
+    #ifdef ENABLE_SUB_QUEUE
+    Edge_Publish_Sub = 10036,
+    #endif
 
     Edge_Connection_Status = 10040,
     Edge_Endpoints = 10050

@@ -31,6 +31,7 @@
 
 #include "opcua_common.h"
 #include "command_adapter.h"
+#include "edge_utils.h"
 #include <open62541.h>
 
 #ifdef __cplusplus
@@ -141,6 +142,10 @@ EdgeResult executeSubscriptionInServer(EdgeMessage *msg);
  * @param[in]  discoveryCallback Discovery callback
  */
 void registerClientCallback(response_cb_t resCallback, status_cb_t statusCallback, discovery_cb_t discoveryCallback);
+
+#ifdef ENABLE_SUB_QUEUE
+keyValue getSessionClient(char *endpoint);
+#endif
 
 #ifdef __cplusplus
 }

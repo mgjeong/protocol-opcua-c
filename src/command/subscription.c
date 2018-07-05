@@ -36,7 +36,7 @@
 #define TAG "subscription"
 
 #define EDGE_UA_SUBSCRIPTION_ITEM_SIZE (20)
-#define EDGE_UA_MINIMUM_PUBLISHING_TIME (25)
+#define EDGE_UA_MINIMUM_PUBLISHING_TIME (1000)
 #define DEFAULT_RETRANSMIT_SEQUENCENUM (2)
 #define GUID_LENGTH (36)
 
@@ -206,11 +206,12 @@ static edgeMapNode *removeSubFromMap(edgeMap *list, const char *valueAlias)
     return NULL;
 }
 
-
+#ifndef ENABLE_SUB_QUEUE
 void sendPublishRequest(UA_Client *client)
 {
     UA_Client_Subscriptions_manuallySendPublishRequest(client);
 }
+#endif
 
 /**
  * @brief monitoredItemHandler - Callback function for getting DATACHANGE notifications for subscribed nodes
@@ -472,7 +473,13 @@ static void monitoredItemHandler(UA_Client *client, UA_UInt32 monId, UA_DataValu
 static void *subscription_thread_handler(void *ptr)
 {
     EDGE_LOG(TAG, ">>>>>>>>>>>>>>>>>> subscription thread created <<<<<<<<<<<<<<<<<<<<");
+    #ifndef ENABLE_SUB_QUEUE
     UA_Client *client = (UA_Client *) ptr;
+    #else
+    char *uri = (char *) ptr;
+    UA_Client *client = (UA_Client *) getSessionClient(uri);
+    #endif
+
     clientSubscription *clientSub = NULL;
     clientSub = (clientSubscription*) get_subscription_list(client);
     VERIFY_NON_NULL_MSG(clientSub, "NULL client subscription in subscription_thread_handler\n", NULL);
@@ -482,7 +489,23 @@ static void *subscription_thread_handler(void *ptr)
     {
         /* Manually send publish request to server every
          * (EDGE_UA_MINIMUM_PUBLISHING_TIME * 1000) ms */
+
+        #ifndef ENABLE_SUB_QUEUE
         sendPublishRequest(client);
+        #else
+        EdgeMessage *publishMsg = (EdgeMessage *)EdgeCalloc(1, sizeof(EdgeMessage));
+        publishMsg->type = SEND_REQUEST;
+        publishMsg->command = CMD_SUB;
+        publishMsg->endpointInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
+        publishMsg->endpointInfo->endpointUri = cloneString(uri);
+        publishMsg->message_id = EdgeGetRandom();
+        publishMsg->request = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
+        publishMsg->request->subMsg = (EdgeSubRequest *) EdgeCalloc(1, sizeof(EdgeSubRequest));
+        publishMsg->request->subMsg->subType = Edge_Publish_Sub;
+
+        add_to_sendQ(publishMsg);
+        #endif
+
         usleep(EDGE_UA_MINIMUM_PUBLISHING_TIME * 1000);
     }
 
@@ -736,8 +759,13 @@ static UA_StatusCode createSub(UA_Client *client, const EdgeMessage *msg)
     if (0 == clientSub->subscriptionCount)
     {
         /* initiate thread for manually sending publish request. */
+        #ifndef ENABLE_SUB_QUEUE
         pthread_create(&(clientSub->subscription_thread), NULL, &subscription_thread_handler,
             (void *) client);
+        #else
+        pthread_create(&(clientSub->subscription_thread), NULL, &subscription_thread_handler,
+            (void *) uri);
+        #endif
     }
     clientSub->subscriptionCount++;
 
@@ -1102,6 +1130,12 @@ EdgeResult executeSub(UA_Client *client, const EdgeMessage *msg)
         /* Republish */
         retVal = rePublish(client, msg);
     }
+    #ifdef ENABLE_SUB_QUEUE
+    else if (subReq->subType == Edge_Publish_Sub)
+    {
+        UA_Client_Subscriptions_manuallySendPublishRequest(client);
+    }
+    #endif
 
     if (retVal == UA_STATUSCODE_GOOD)
     {
