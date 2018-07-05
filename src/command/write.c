@@ -285,15 +285,9 @@ static void writeGroup(UA_Client *client, const EdgeMessage *msg)
 EdgeResult executeWrite(UA_Client *client, const EdgeMessage *msg)
 {
     EdgeResult result;
-    if (!client)
-    {
-        EDGE_LOG(TAG, "Client handle Invalid\n");
-        result.code = STATUS_ERROR;
-        return result;
-    }
-
+    result.code = STATUS_ERROR;
+    VERIFY_NON_NULL_MSG(client, "Client param is NULL in execute WRITE\n", result);
     writeGroup(client, msg);
-
     result.code = STATUS_OK;
     return result;
 }

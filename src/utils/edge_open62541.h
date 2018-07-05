@@ -67,6 +67,13 @@ EdgeApplicationType convertToEdgeApplicationType(UA_ApplicationType appType);
 UA_ApplicationType convertEdgeApplicationType(EdgeApplicationType appType);
 
 /**
+ * @brief Converts UA_Guid to string.
+ * @param[in]  guid UA_Guid.
+ * @param[out]  out output guid string.
+ */
+void convertGuidToString(UA_Guid guid, char **out);
+
+/**
  * @brief Converts UA_NodeId to Edge_NodeId.
  * @remarks Allocated memory should be freed by the caller.
  * String and ByteString type NodeIds are NULL terminated.

@@ -111,26 +111,20 @@ EdgeResult createMethodNode(const char *namespaceUri, EdgeNodeItem *item, EdgeMe
 EdgeResult createServer(EdgeEndPointInfo *epInfo)
 {
     EDGE_LOG(TAG, "[Received command] :: Server start.");
-    EdgeResult result;
-    if (IS_NULL(epInfo))
-    {
-        result.code = STATUS_PARAM_INVALID;
-        return result;
-    }
+
+    EdgeResult result = {STATUS_PARAM_INVALID };
+    VERIFY_NON_NULL_MSG(epInfo, "", result);
+    VERIFY_NON_NULL_MSG(epInfo->endpointConfig, "", result);
+  
     if (epInfo->endpointConfig->bindPort < 1 || epInfo->endpointConfig->bindPort > 65535)
     {
         // Invalid port number
-        result.code = STATUS_PARAM_INVALID;
         return result;
     }
-		
-    if (b_serverInitialized)
-    {
-        // Server can be initialized only once.
-        EDGE_LOG(TAG, "Server already initialized.");
-        result.code = STATUS_ALREADY_INIT;
-        return result;
-    }
+
+    result.code = STATUS_ALREADY_INIT;
+    VERIFY_NON_NULL_MSG(!b_serverInitialized, "Server already initialized.\n", result);
+
     result = start_server(epInfo);
     if (result.code == STATUS_OK)
     {
@@ -142,23 +136,17 @@ EdgeResult createServer(EdgeEndPointInfo *epInfo)
 void closeServer(EdgeEndPointInfo *epInfo)
 {
     VERIFY_NON_NULL_NR_MSG(epInfo, "NULL param epINfo in closeServer\n");
-    if (b_serverInitialized)
-    {
-        stop_server(epInfo);
-        b_serverInitialized = false;
-    }
+    VERIFY_NON_NULL_NR_MSG(!b_serverInitialized, "Server already initialized.\n");
+    stop_server(epInfo);
+    b_serverInitialized = false;
 }
 
 EdgeResult getEndpointInfo(EdgeMessage *msg)
 {
     EdgeResult ret;
-    ret.code = STATUS_OK;
-    if (NULL == msg || NULL == msg->endpointInfo)
-    {
-        ret.code = STATUS_PARAM_INVALID;
-        return ret;
-    }
-
+    ret.code = STATUS_PARAM_INVALID;
+    VERIFY_NON_NULL_MSG(msg, "msg is null\n", ret);
+    VERIFY_NON_NULL_MSG(msg->endpointInfo, "msg endpointInfo is null\n", ret);
     EDGE_LOG_V(TAG, "[Received command] :: Get endpoint info for [%s].\n", msg->endpointInfo->endpointUri);
     return client_getEndpoints(msg->endpointInfo->endpointUri);
 }
@@ -392,11 +380,7 @@ void onSendMessage(EdgeMessage* msg)
     if (CMD_START_SERVER == msg->command)
     {
         EDGE_LOG(TAG, "\n[Received command] :: START SERVER \n");
-        if (b_serverInitialized)
-        {
-            printf("Server already initialised\n");
-            return;
-        }
+        VERIFY_NON_NULL_NR_MSG(!b_serverInitialized, "Server already initialized\n");
         EdgeResult result = start_server(msg->endpointInfo);
         if (result.code == STATUS_OK)
         {
@@ -407,10 +391,7 @@ void onSendMessage(EdgeMessage* msg)
     {
         EDGE_LOG(TAG, "\n[Received command] :: START CLIENT \n");
         bool result = connect_client(msg->endpointInfo->endpointUri);
-        if (!result)
-        {
-            return;
-        }
+        VERIFY_NON_NULL_NR_MSG(!result, "");
     }
     else if (CMD_STOP_SERVER == msg->command)
     {
@@ -564,27 +545,21 @@ EdgeResult insertSubParameter(EdgeMessage **msg, const char* nodeName, EdgeNodeT
         uint32_t queueSize)
 {
     EdgeResult result;
-    result.code = STATUS_OK;
-    if (IS_NULL((*msg)) || IS_NULL(nodeName))
-    {
-        EDGE_LOG(TAG, "Error : parameter is not valid");
-        result.code = STATUS_PARAM_INVALID;
-        goto EXIT;
-    }
+    result.code = STATUS_PARAM_INVALID;
+    VERIFY_NON_NULL_MSG((*msg), "Error : Malloc failed for subReq\n", result);
+    VERIFY_NON_NULL_MSG(nodeName, "Error : Malloc failed for subReq\n", result);
+
     if ((*msg)->command != CMD_SUB) {
         EDGE_LOG(TAG, "Error : parameter is not valid");
         result.code = STATUS_PARAM_INVALID;
-        goto EXIT;
+        return result;
     }
 
+    result.code = STATUS_ERROR;
     EdgeSubRequest* subReq = (EdgeSubRequest *) EdgeCalloc(1, sizeof(EdgeSubRequest));
-    if (IS_NULL(subReq))
-    {
-        EDGE_LOG(TAG, "Error : Malloc failed for subReq");
-        result.code = STATUS_ERROR;
-        goto EXIT;
-    }
+    VERIFY_NON_NULL_MSG(subReq, "Error : Malloc failed for subReq\n", result);
 
+    result.code = STATUS_OK;
     if (Edge_Create_Sub == subType || Edge_Modify_Sub == subType)
     {
         subReq->subType = subType;
@@ -606,45 +581,29 @@ EdgeResult insertSubParameter(EdgeMessage **msg, const char* nodeName, EdgeNodeT
     {
         size_t index = (*msg)->requestLength;
 
+        result.code = STATUS_ERROR;
         (*msg)->requests[index] = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
-        if (IS_NULL((*msg)->requests[index]))
-        {
-            EDGE_LOG(TAG, "Error : EdgeMalloc failed for requests");
-            result.code = STATUS_ERROR;
-            goto EXIT;
-        }
+        VERIFY_NON_NULL_MSG((*msg)->requests[index], "Error : Malloc failed for requests", result);
 
         (*msg)->requests[index]->nodeInfo = createEdgeNodeInfo(nodeName);
-        if (IS_NULL((*msg)->requests[index]->nodeInfo))
-        {
-            EDGE_LOG(TAG, "Error : Malloc failed for nodeInfo subReq");
-            result.code = STATUS_ERROR;
-            goto EXIT;
-        }
+        VERIFY_NON_NULL_MSG((*msg)->requests[index]->nodeInfo, "Error : Malloc failed for nodeinfo subreq", result);
         (*msg)->requests[index]->subMsg = subReq;
         (*msg)->requestLength = ++index;
     }
     else if (Edge_Modify_Sub == subType || Edge_Delete_Sub == subType
             || Edge_Republish_Sub == subType)
     {
-        if (NULL == (*msg)->request)
-        {
-            EDGE_LOG(TAG, "Error : Malloc failed for request");
-            result.code = STATUS_ERROR;
-            goto EXIT;
-        }
+        result.code = STATUS_ERROR;
+        VERIFY_NON_NULL_MSG((*msg)->request, "Error : Malloc failed for request\n", result);
 
         (*msg)->request->nodeInfo = createEdgeNodeInfo(nodeName);
-        if (IS_NULL((*msg)->request->nodeInfo))
-        {
-            EDGE_LOG(TAG, "Error : Malloc failed for nodeInfo modify");
-            goto EXIT;
-        }
+        VERIFY_NON_NULL_MSG((*msg)->request->nodeInfo, "Error : Malloc failed for nodeinfo modify", result);
         (*msg)->request->subMsg = subReq;
         (*msg)->requestLength = 1;
     }
 
-    EXIT: return result;
+    result.code = STATUS_OK;
+    return result;
 }
 
 EdgeMessage* createEdgeSubMessage(const char *endpointUri, const char* nodeName, size_t requestSize,
@@ -783,39 +742,28 @@ EdgeMessage* createEdgeMessage(const char *endpointUri, size_t requestSize, Edge
 
 EdgeResult insertReadAccessNode(EdgeMessage **msg, const char* nodeName)
 {
-    EdgeResult result = { STATUS_OK };
-    if (IS_NULL((*msg)) || IS_NULL(nodeName))
-    {
-        EDGE_LOG(TAG, "Error : parameter is not valid");
-        result.code = STATUS_PARAM_INVALID;
-        goto EXIT;
-    }
+    EdgeResult result = { STATUS_PARAM_INVALID };
+    VERIFY_NON_NULL_MSG((*msg), "Error : msg is null", result);
+    VERIFY_NON_NULL_MSG(nodeName, "Error : nodename is null", result);
+
     if ((*msg)->command != CMD_READ && (*msg)->command != CMD_READ_SAMPLING_INTERVAL)
     {
         EDGE_LOG(TAG, "Error : command is invalid");
         result.code = STATUS_PARAM_INVALID;
-        goto EXIT;
+        return result;
     }
 
+    result.code = STATUS_ERROR;
     size_t index = (*msg)->requestLength;
     (*msg)->requests[index] = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
-    if (IS_NULL((*msg)->requests[index]))
-    {
-        EDGE_LOG(TAG, "Error : EdgeMalloc failed for requests");
-        result.code = STATUS_ERROR;
-        goto EXIT;
-    }
+    VERIFY_NON_NULL_MSG((*msg)->requests[index], "Error : Malloc failed for requests", result);
 
     (*msg)->requests[index]->nodeInfo = createEdgeNodeInfo(nodeName);
-    if (IS_NULL((*msg)->requests[index]->nodeInfo))
-    {
-        EDGE_LOG(TAG, "Error : Malloc failed for nodeInfo");
-        result.code = STATUS_ERROR;
-        goto EXIT;
-    }
+    VERIFY_NON_NULL_MSG((*msg)->requests[index]->nodeInfo, "Error : Malloc failed for nodeinfo", result);
     (*msg)->requestLength = ++index;
 
-    EXIT: return result;
+    result.code = STATUS_OK;
+    return result;
 }
 
 EdgeResult insertWriteAccessNode(EdgeMessage **msg, const char* nodeName, void* value,
@@ -829,46 +777,32 @@ EdgeResult insertWriteAccessNodeWithValueType(EdgeMessage **msg, const char* nod
         size_t valueCount, int valueType)
 {
     EDGE_LOG(TAG, "insertWriteAccessNodeWithValueType");
-    EdgeResult result;
-    result.code = STATUS_OK;
-    if (IS_NULL((*msg)) || IS_NULL(nodeName))
-    {
-        EDGE_LOG(TAG, "Error : parameter is not valid");
-        result.code = STATUS_PARAM_INVALID;
-        goto EXIT;
-    }
+    EdgeResult result = { STATUS_PARAM_INVALID };
+    VERIFY_NON_NULL_MSG((*msg), "Error : msg is null", result);
+    VERIFY_NON_NULL_MSG(nodeName, "Error : nodename is null", result);
+
     if ((*msg)->command != CMD_WRITE)
     {
         EDGE_LOG(TAG, "Error : command is invalid");
         result.code = STATUS_PARAM_INVALID;
-        goto EXIT;
+        return result;
     }
 
     if(IS_NULL(value) && valueCount != 0)
     {
         EDGE_LOG_V(TAG, "Error : Value length is %zu but value pointer is NULL.", valueCount);
         result.code = STATUS_PARAM_INVALID;
-        goto EXIT;
+        return result;
     }
 
+    result.code = STATUS_ERROR;
     size_t index = (*msg)->requestLength;
-
     (*msg)->requests[index] = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
-    if (IS_NULL((*msg)->requests[index]))
-    {
-        EDGE_LOG(TAG, "Error : EdgeMalloc failed for requests");
-        result.code = STATUS_ERROR;
-        goto EXIT;
-    }
+    VERIFY_NON_NULL_MSG((*msg)->requests[index], "Error : Malloc failed for requests", result);
 
     (*msg)->requests[index]->nodeInfo = createEdgeNodeInfo(nodeName);
-    if (IS_NULL((*msg)->requests[index]->nodeInfo))
-    {
-        EDGE_LOG(TAG, "Error : Malloc failed for nodeInfo");
-        result.code = STATUS_ERROR;
-        goto EXIT;
-    }
-
+    VERIFY_NON_NULL_MSG((*msg)->requests[index]->nodeInfo, "Error : Malloc failed for nodeinfo", result);
+  
     if (valueType <= 0)
     {
         EDGE_LOG(TAG, "valueType will be set by nodeName");
@@ -878,14 +812,8 @@ EdgeResult insertWriteAccessNodeWithValueType(EdgeMessage **msg, const char* nod
         (*msg)->requests[index]->type = valueType;
     }
 
-
     EdgeVersatility* varient = (EdgeVersatility*) malloc(sizeof(EdgeVersatility));
-    if (IS_NULL(varient))
-    {
-        EDGE_LOG(TAG, "Error : EdgeMalloc failed for varient");
-        result.code = STATUS_ERROR;
-        goto EXIT;
-    }
+    VERIFY_NON_NULL_MSG(varient, "Error : Malloc failed for Versatility", result);
     varient->value = value;
     varient->arrayLength = 0;
     if (valueCount > 1)
@@ -898,10 +826,10 @@ EdgeResult insertWriteAccessNodeWithValueType(EdgeMessage **msg, const char* nod
         varient->isArray = false;
     }
     (*msg)->requests[index]->value = varient;
-
     (*msg)->requestLength = ++index;
 
-    EXIT: return result;
+    result.code = STATUS_OK;
+    return result;
 }
 
 EdgeResult insertEdgeMethodParameter(EdgeMessage **msg, const char* nodeName,
@@ -909,19 +837,15 @@ EdgeResult insertEdgeMethodParameter(EdgeMessage **msg, const char* nodeName,
         void *scalarValue, void *arrayData, size_t arrayLength)
 {
     EdgeResult result;
-    result.code = STATUS_OK;
+    result.code = STATUS_PARAM_INVALID;
+    VERIFY_NON_NULL_MSG((*msg), "Error : msg is null", result);
+    VERIFY_NON_NULL_MSG(nodeName, "Error : nodeName is null", result);
 
-    if (IS_NULL((*msg)) || IS_NULL(nodeName))
-    {
-        EDGE_LOG(TAG, "Error : parameter is not valid");
-        result.code = STATUS_PARAM_INVALID;
-        goto EXIT;
-    }
     if ((*msg)->command != CMD_METHOD)
     {
         EDGE_LOG(TAG, "Error : command is invalid");
         result.code = STATUS_PARAM_INVALID;
-        goto EXIT;
+        return result;
     }
     if (inputParameterSize > 0 &&
             ((argType == SCALAR && scalarValue == NULL) ||
@@ -929,7 +853,7 @@ EdgeResult insertEdgeMethodParameter(EdgeMessage **msg, const char* nodeName,
     {
         EDGE_LOG(TAG, "Error : command is invalid");
         result.code = STATUS_PARAM_INVALID;
-        goto EXIT;
+        return result;
     }
 
     EdgeRequest *request = NULL;
@@ -941,9 +865,10 @@ EdgeResult insertEdgeMethodParameter(EdgeMessage **msg, const char* nodeName,
     else
     {
         result.code = STATUS_NOT_SUPPORT;
-        goto EXIT;
+        return result;
     }
 
+    result.code = STATUS_ERROR;
     if (NULL == request->nodeInfo)
     {
         request->nodeInfo = createEdgeNodeInfo(nodeName);
@@ -953,17 +878,13 @@ EdgeResult insertEdgeMethodParameter(EdgeMessage **msg, const char* nodeName,
     {
         request->methodParams = (EdgeMethodRequestParams *) EdgeCalloc(1,
                 sizeof(EdgeMethodRequestParams));
-        if (IS_NULL(request->methodParams))
-        {
-            EDGE_LOG(TAG, "Error : EdgeMalloc failed for methodParams");
-            result.code = STATUS_ERROR;
-            goto EXIT;
-        }
+        VERIFY_NON_NULL_MSG(request->methodParams, "Error : Malloc failed for methodParams", result);
     }
 
     if (0 == inputParameterSize)
     {
         request->methodParams->num_inpArgs = 0;
+        result.code = STATUS_OK;
         return result;
     }
 
@@ -971,23 +892,13 @@ EdgeResult insertEdgeMethodParameter(EdgeMessage **msg, const char* nodeName,
     {
         request->methodParams->inpArg = (EdgeArgument **) EdgeCalloc(inputParameterSize,
                 sizeof(EdgeArgument *));
-        if (IS_NULL(request->methodParams->inpArg))
-        {
-            printf("Error : Malloc failed for methodParams->inpArg");
-            result.code = STATUS_ERROR;
-            goto EXIT;
-        }
+        VERIFY_NON_NULL_MSG(request->methodParams->inpArg, "Error : Malloc failed for methodParams->inpArg", result);
     }
     size_t num_inpArgs = request->methodParams->num_inpArgs;
 
     request->methodParams->inpArg[num_inpArgs] = (EdgeArgument *) EdgeCalloc(1,
             sizeof(EdgeArgument));
-    if (IS_NULL(request->methodParams->inpArg[num_inpArgs]))
-    {
-        printf("Error : Malloc failed for methodParams->inpArg[X]");
-        result.code = STATUS_ERROR;
-        goto EXIT;
-    }
+    VERIFY_NON_NULL_MSG(request->methodParams->inpArg[num_inpArgs], "Error : Malloc failed for methodParams->inpArg[X]", result);
 
     request->methodParams->inpArg[num_inpArgs]->argType = argType;
     request->methodParams->inpArg[num_inpArgs]->valType = valType;
@@ -996,51 +907,40 @@ EdgeResult insertEdgeMethodParameter(EdgeMessage **msg, const char* nodeName,
     request->methodParams->inpArg[num_inpArgs]->arrayLength = arrayLength;
 
     request->methodParams->num_inpArgs = ++num_inpArgs;
-    EXIT: return result;
+
+    result.code = STATUS_OK;
+    return result;
 }
 
 EdgeResult insertBrowseParameter(EdgeMessage **msg, EdgeNodeInfo* nodeInfo,
         EdgeBrowseParameter parameter)
 {
     EdgeResult result;
-    result.code = STATUS_OK;
+    result.code = STATUS_PARAM_INVALID;
+    VERIFY_NON_NULL_MSG((*msg), "Error : msg is null", result);
+    VERIFY_NON_NULL_MSG(nodeInfo, "Error : nodeInfo is null", result);
 
-    if (IS_NULL((*msg)) || IS_NULL(nodeInfo))
-    {
-        EDGE_LOG(TAG, "Error : parameter is not valid");
-        result.code = STATUS_PARAM_INVALID;
-        goto EXIT;
-    }
     if ((*msg)->command != CMD_BROWSE && (*msg)->command != CMD_BROWSE_VIEW)
     {
         EDGE_LOG(TAG, "Error : command is invalid");
         result.code = STATUS_PARAM_INVALID;
-        goto EXIT;
+        return result;
     }
 
+    result.code = STATUS_ERROR;
     if (SEND_REQUESTS == (*msg)->type)
     {
         size_t index = (*msg)->requestLength;
 
         (*msg)->requests[index] = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
-        if (IS_NULL((*msg)->requests[index]))
-        {
-            EDGE_LOG(TAG, "Error : EdgeMalloc failed for requests");
-            result.code = STATUS_ERROR;
-            goto EXIT;
-        }
+        VERIFY_NON_NULL_MSG((*msg)->requests[index], "Error : EdgeMalloc failed for requests", result);
 
         (*msg)->requests[index]->nodeInfo = nodeInfo;
         (*msg)->requestLength = ++index;
     }
     else
     {
-        if (NULL == (*msg)->request)
-        {
-            EDGE_LOG(TAG, "Error : Malloc failed for request");
-            result.code = STATUS_ERROR;
-            goto EXIT;
-        }
+        VERIFY_NON_NULL_MSG((*msg)->request, "Error : EdgeMalloc failed for request", result);
 
         (*msg)->request->nodeInfo = nodeInfo;
         (*msg)->requestLength = 1;
@@ -1059,12 +959,13 @@ EdgeResult insertBrowseParameter(EdgeMessage **msg, EdgeNodeInfo* nodeInfo,
                 (*msg)->requests[index] = NULL;
             }
             result.code = STATUS_ERROR;
-            goto EXIT;
+            return result;
         }
     }
     (*msg)->browseParam->direction = parameter.direction;
     (*msg)->browseParam->maxReferencesPerNode = parameter.maxReferencesPerNode;
 
-    EXIT: return result;
+    result.code = STATUS_OK;
+    return result;
 }
 

@@ -79,7 +79,7 @@ EdgeApplicationConfig *convertToEdgeApplicationConfig(UA_ApplicationDescription 
     if (!appConfig)
     {
         EDGE_LOG(TAG, "Memory allocation failed for appConfig.");
-        goto ERROR;
+        return NULL;
     }
 
     if (appDesc->applicationUri.length > 0)
@@ -88,7 +88,8 @@ EdgeApplicationConfig *convertToEdgeApplicationConfig(UA_ApplicationDescription 
         if (!appConfig->applicationUri)
         {
             EDGE_LOG(TAG, "Memory allocation failed for for appConfig applicationUri.");
-            goto ERROR;
+            freeEdgeApplicationConfig(appConfig);
+            return NULL;
         }
     }
 
@@ -98,7 +99,8 @@ EdgeApplicationConfig *convertToEdgeApplicationConfig(UA_ApplicationDescription 
         if (!appConfig->productUri)
         {
             EDGE_LOG(TAG, "Memory allocation failed for appConfig productUri.");
-            goto ERROR;
+            freeEdgeApplicationConfig(appConfig);
+            return NULL;
         }
     }
 
@@ -108,7 +110,8 @@ EdgeApplicationConfig *convertToEdgeApplicationConfig(UA_ApplicationDescription 
         if (!appConfig->applicationName)
         {
             EDGE_LOG(TAG, "Memory allocation failed for appConfig applicationName.");
-            goto ERROR;
+            freeEdgeApplicationConfig(appConfig);
+            return NULL;
         }
     }
 
@@ -118,7 +121,8 @@ EdgeApplicationConfig *convertToEdgeApplicationConfig(UA_ApplicationDescription 
         if (!appConfig->gatewayServerUri)
         {
             EDGE_LOG(TAG, "Memory allocation failed for appConfig gatewayServerUri.");
-            goto ERROR;
+            freeEdgeApplicationConfig(appConfig);
+            return NULL;
         }
     }
 
@@ -128,7 +132,8 @@ EdgeApplicationConfig *convertToEdgeApplicationConfig(UA_ApplicationDescription 
         if (!appConfig->discoveryProfileUri)
         {
             EDGE_LOG(TAG, "Memory allocation failed for appConfig discoveryProfileUri.");
-            goto ERROR;
+            freeEdgeApplicationConfig(appConfig);
+            return NULL;
         }
     }
 
@@ -138,7 +143,8 @@ EdgeApplicationConfig *convertToEdgeApplicationConfig(UA_ApplicationDescription 
     if (!appConfig->discoveryUrls)
     {
         EDGE_LOG(TAG, "Memory allocation failed for appConfig discoveryUrls.");
-        goto ERROR;
+        freeEdgeApplicationConfig(appConfig);
+        return NULL;
     }
 
     for (int i = 0; i < appDesc->discoveryUrlsSize; ++i)
@@ -149,17 +155,12 @@ EdgeApplicationConfig *convertToEdgeApplicationConfig(UA_ApplicationDescription 
             if (!appConfig->discoveryUrls[i])
             {
                 EDGE_LOG(TAG, "Memory allocation failed for appConfig discoveryUrls.");
-                goto ERROR;
+                freeEdgeApplicationConfig(appConfig);
+                return NULL;
             }
         }
     }
-
     return appConfig;
-
-    ERROR:
-    // Deallocate memory.
-    freeEdgeApplicationConfig(appConfig);
-    return NULL;
 }
 
 EdgeEndPointInfo *convertToEdgeEndpointInfo(UA_EndpointDescription *endpoint)
@@ -170,7 +171,7 @@ EdgeEndPointInfo *convertToEdgeEndpointInfo(UA_EndpointDescription *endpoint)
     if (!epInfo)
     {
         EDGE_LOG(TAG, "EdgeCalloc :: Memory allocation failed for epInfo.");
-        goto ERROR;
+        return NULL;
     }
 
     if (endpoint->endpointUrl.length > 0)
@@ -179,7 +180,8 @@ EdgeEndPointInfo *convertToEdgeEndpointInfo(UA_EndpointDescription *endpoint)
         if (!epInfo->endpointUri)
         {
             EDGE_LOG(TAG, "Memory allocation failed for endpoint->endpointUrl.length.");
-            goto ERROR;
+            freeEdgeEndpointInfo(epInfo);
+            return NULL;
         }
     }
 
@@ -189,7 +191,8 @@ EdgeEndPointInfo *convertToEdgeEndpointInfo(UA_EndpointDescription *endpoint)
         if (!epInfo->securityPolicyUri)
         {
             EDGE_LOG(TAG, "Memory allocation failed for endpoint->securityPolicyUri.length.");
-            goto ERROR;
+            freeEdgeEndpointInfo(epInfo);
+            return NULL;
         }
     }
 
@@ -199,7 +202,8 @@ EdgeEndPointInfo *convertToEdgeEndpointInfo(UA_EndpointDescription *endpoint)
         if (!epInfo->transportProfileUri)
         {
             EDGE_LOG(TAG, "Memory allocation failed for endpoint->transportProfileUri.length.");
-            goto ERROR;
+            freeEdgeEndpointInfo(epInfo);
+            return NULL;
         }
     }
 
@@ -209,15 +213,10 @@ EdgeEndPointInfo *convertToEdgeEndpointInfo(UA_EndpointDescription *endpoint)
     if (!epInfo->appConfig)
     {
         EDGE_LOG(TAG, "Memory allocation failed for epInfo->appConfig.");
-        goto ERROR;
+        freeEdgeEndpointInfo(epInfo);
+        return NULL;
     }
-
     return epInfo;
-
-    ERROR:
-    // Deallocate memory
-    freeEdgeEndpointInfo(epInfo);
-    return NULL;
 }
 
 bool convertUnsignedCharStringToUAString(const unsigned char *str, UA_String *uaStr)
@@ -283,7 +282,8 @@ bool convertUnsignedCharStringsToUAStrings(size_t strArrSize,
 
 void destroyUAStringArrayContents(UA_String *uaStr, size_t uaStrSize)
 {
-    if(IS_NULL(uaStr) || 0 == uaStrSize)
+    VERIFY_NON_NULL_NR_MSG(uaStr, "uaStr is null\n");
+    if(0 == uaStrSize)
     {
         return;
     }
@@ -296,11 +296,7 @@ void destroyUAStringArrayContents(UA_String *uaStr, size_t uaStrSize)
 
 void destroyUAStringArray(UA_String *uaStr, size_t uaStrSize)
 {
-    if(IS_NULL(uaStr))
-    {
-        return;
-    }
-
+    VERIFY_NON_NULL_NR_MSG(uaStr, "uaStr is null\n");
     if(uaStrSize > 0)
     {
         destroyUAStringArrayContents(uaStr, uaStrSize);
@@ -338,28 +334,19 @@ bool isApplicationTypeSupported(UA_ApplicationType appType)
     return supported;
 }
 
-// Behaviour is undefined if any of the parameters are NULL.
-bool isReceivedServerUriValid(UA_String *rcvdServerUri, size_t serverUrisSize, unsigned char **serverUris)
+/**
+ * @brief Checks whether the given server URI/locale is present in the given array of acceptable server URIs/ locales.
+ * @param[in]  rcvd Received server URI/locale which needs to be checked.
+ * @param[in]  size Size of the array of acceptable server URIs / locales.
+ * @param[in]  list Array of acceptable server URIs / locales.
+ * @return @c True if the given server uri / locale is present in the given array of acceptable server uris / locales, @c False otherwise.
+ */
+static bool isPresentInList(UA_String *rcvd, size_t size, unsigned char **list)
 {
-    for(size_t i = 0; i < serverUrisSize; ++i)
+    for(size_t i = 0; i < size; ++i)
     {
-        if(0 == memcmp(serverUris[i], rcvdServerUri->data, rcvdServerUri->length) &&
-                '\0' == serverUris[i][rcvdServerUri->length])
-        {
-            return true;
-        }
-    }
-    return false;
-}
-
-// Behaviour is undefined if any of the parameters are NULL.
-bool isReceivedApplicationNameLocaleValid(UA_String *rcvdLocale,
-    size_t localeIdsSize, unsigned char **localeIds)
-{
-    for(size_t i = 0; i < localeIdsSize; ++i)
-    {
-        if(0 == memcmp(localeIds[i], rcvdLocale->data, rcvdLocale->length) &&
-                '\0' == localeIds[i][rcvdLocale->length])
+        if(0 == memcmp(list[i], rcvd->data, rcvd->length) &&
+                '\0' == list[i][rcvd->length])
         {
             return true;
         }
@@ -459,7 +446,7 @@ bool isServerAppDescriptionValid(UA_ApplicationDescription *regServer, size_t se
     // Check whether the received application uri matches with the requested list of serverUris.
     if(serverUrisSize > 0)
     {
-        if(!isReceivedServerUriValid(&regServer->applicationUri, serverUrisSize, serverUris))
+        if(!isPresentInList(&regServer->applicationUri, serverUrisSize, serverUris))
         {
             EDGE_LOG(TAG, "Application URI doesn't match with the requested list of serverUris.");
             return false;
@@ -477,7 +464,7 @@ bool isServerAppDescriptionValid(UA_ApplicationDescription *regServer, size_t se
             return false;
         }
 
-        if(!isReceivedApplicationNameLocaleValid(&regServer->applicationName.locale, localeIdsSize, localeIds))
+        if(!isPresentInList(&regServer->applicationName.locale, localeIdsSize, localeIds))
         {
             EDGE_LOG(TAG, "Locale of Application Name doesn't match with the requested list of locales.");
             return false;
