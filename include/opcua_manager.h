@@ -408,7 +408,8 @@ EXPORT EdgeResult insertReadAccessNode(EdgeMessage **msg, const char* nodeName);
  * @brief Insert Write Access to the EdgeMessage request data
  * @param[in]  msg EdgeMessage request
  * @param[in]  nodeName Node name
- * @param[out]  msg EdgeMessage request
+ * @param[in]  value value
+ * @param[in]  value length valueLen
  * @return @c EdgeResult code is 0 on success, otherwise an error value
  * @retval #STATUS_OK Successful
  * @retval #STATUS_PARAM_INVALID Invalid parameter
@@ -416,6 +417,21 @@ EXPORT EdgeResult insertReadAccessNode(EdgeMessage **msg, const char* nodeName);
  */
 EXPORT EdgeResult insertWriteAccessNode(EdgeMessage **msg, const char* nodeName,
         void* value, size_t valueLen);
+
+/**
+ * @brief Insert Write Access to the EdgeMessage request data
+ * @param[in]  msg EdgeMessage request
+ * @param[in]  nodeName Node name
+ * @param[in]  value value
+ * @param[in]  value length valueLen
+ * @param[in]  value type valueType
+ * @return @c EdgeResult code is 0 on success, otherwise an error value
+ * @retval #STATUS_OK Successful
+ * @retval #STATUS_PARAM_INVALID Invalid parameter
+ * @retval #STATUS_ERROR Operation failed
+ */
+EXPORT EdgeResult insertWriteAccessNodeWithValueType(EdgeMessage **msg, const char* nodeName, void* value,
+        size_t valueCount, int valueType);
 
 /**
  * @brief Insert method parameters to the EdgeMessage request

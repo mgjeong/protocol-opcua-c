@@ -821,6 +821,14 @@ EdgeResult insertReadAccessNode(EdgeMessage **msg, const char* nodeName)
 EdgeResult insertWriteAccessNode(EdgeMessage **msg, const char* nodeName, void* value,
         size_t valueCount)
 {
+    EDGE_LOG(TAG, "insertWriteAccessNode");
+    return insertWriteAccessNodeWithValueType(msg, nodeName, value, valueCount, 0);
+}
+
+EdgeResult insertWriteAccessNodeWithValueType(EdgeMessage **msg, const char* nodeName, void* value,
+        size_t valueCount, int valueType)
+{
+    EDGE_LOG(TAG, "insertWriteAccessNodeWithValueType");
     EdgeResult result;
     result.code = STATUS_OK;
     if (IS_NULL((*msg)) || IS_NULL(nodeName))
@@ -861,7 +869,15 @@ EdgeResult insertWriteAccessNode(EdgeMessage **msg, const char* nodeName, void* 
         goto EXIT;
     }
 
-    (*msg)->requests[index]->type = getValueType(nodeName);
+    if (valueType <= 0)
+    {
+        EDGE_LOG(TAG, "valueType will be set by nodeName");
+        (*msg)->requests[index]->type = getValueType(nodeName);
+    } else {
+        EDGE_LOG_V(TAG, "valueType is %d", valueType);
+        (*msg)->requests[index]->type = valueType;
+    }
+
 
     EdgeVersatility* varient = (EdgeVersatility*) malloc(sizeof(EdgeVersatility));
     if (IS_NULL(varient))
