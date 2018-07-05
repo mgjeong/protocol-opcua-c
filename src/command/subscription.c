@@ -763,6 +763,7 @@ static UA_StatusCode createSub(UA_Client *client, const EdgeMessage *msg)
         pthread_create(&(clientSub->subscription_thread), NULL, &subscription_thread_handler,
             (void *) client);
         #else
+        char *uri = cloneString(msg->endpointInfo->endpointUri);
         pthread_create(&(clientSub->subscription_thread), NULL, &subscription_thread_handler,
             (void *) uri);
         #endif
