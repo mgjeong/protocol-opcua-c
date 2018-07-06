@@ -26,11 +26,6 @@ process_cmd_args() {
                 echo -e "Build mode = $build_mode"
                 shift 1;
                 ;;
-            --enable_sub_queue=*)
-                enable_sub_queue="${1#*=}";
-                echo -e "Build mode = $enable_sub_queue"
-                shift 1;
-                ;;
             -*)
                 echo "unknown option: $1" >&2;
                 usage; exit 1
@@ -44,22 +39,15 @@ process_cmd_args() {
 }
 process_cmd_args "$@"
 
-if [ "$enable_sub_queue" == true -o "$enable_sub_queue" == TRUE ]
-    then
-    sub_queue_option="SUB_QUEUE=1"
-else
-    sub_queue_option=""
-fi
-
 if [ "$build_mode" == debug -o "$build_mode" == DEBUG ]
     then
     echo "Build with DEBUG mode"
     scons -c
-    scons TARGET_ARCH=arm TEST=1 AUTO_DOWNLOAD_DEP_LIBS=1 DEBUG=1 $sub_queue_option
+    scons TARGET_ARCH=arm TEST=1 AUTO_DOWNLOAD_DEP_LIBS=1 DEBUG=1 SUB_QUEUE=1
 else
     echo "Build with RELEASE mode"
     scons -c
-    scons TARGET_ARCH=arm TEST=1 AUTO_DOWNLOAD_DEP_LIBS=1 $sub_queue_option
+    scons TARGET_ARCH=arm TEST=1 AUTO_DOWNLOAD_DEP_LIBS=1 SUB_QUEUE=1
 fi
 
 echo "End of edge opcua build"
