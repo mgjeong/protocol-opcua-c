@@ -75,7 +75,11 @@ static void getAddressPort(char *endpoint, char **out)
     }
 }
 
+#ifndef ENABLE_SUB_QUEUE
 static keyValue getSessionClient(char *endpoint)
+#else
+keyValue getSessionClient(char *endpoint)
+#endif
 {
     VERIFY_NON_NULL_MSG(sessionClientMap, "sessionClientMap is NULL\n", NULL);
 

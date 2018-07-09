@@ -109,6 +109,12 @@ if ARGUMENTS.get('DEBUG', False) in [
     env.AppendUnique(CPPDEFINES= ['DEBUG'])
     env.AppendUnique(CCFLAGS= ['-g'])
 
+subQueue = ARGUMENTS.get('SUB_QUEUE')
+if ARGUMENTS.get('SUB_QUEUE', False) in [
+            'y', 'yes', 'true', 't', '1', 'on', 'all', True
+    ]:
+    env.AppendUnique(CCFLAGS= ['-DENABLE_SUB_QUEUE'])
+
 ######################################################################
 # Source files and Targets
 ######################################################################

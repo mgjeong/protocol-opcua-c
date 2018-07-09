@@ -769,9 +769,18 @@ EdgeResult insertReadAccessNode(EdgeMessage **msg, const char* nodeName)
 EdgeResult insertWriteAccessNode(EdgeMessage **msg, const char* nodeName, void* value,
         size_t valueCount)
 {
+    EDGE_LOG(TAG, "insertWriteAccessNode");
+    return insertWriteAccessNodeWithValueType(msg, nodeName, value, valueCount, 0);
+}
+
+EdgeResult insertWriteAccessNodeWithValueType(EdgeMessage **msg, const char* nodeName, void* value,
+        size_t valueCount, int valueType)
+{
+    EDGE_LOG(TAG, "insertWriteAccessNodeWithValueType");
     EdgeResult result = { STATUS_PARAM_INVALID };
     VERIFY_NON_NULL_MSG((*msg), "Error : msg is null", result);
     VERIFY_NON_NULL_MSG(nodeName, "Error : nodename is null", result);
+
     if ((*msg)->command != CMD_WRITE)
     {
         EDGE_LOG(TAG, "Error : command is invalid");
@@ -793,7 +802,15 @@ EdgeResult insertWriteAccessNode(EdgeMessage **msg, const char* nodeName, void* 
 
     (*msg)->requests[index]->nodeInfo = createEdgeNodeInfo(nodeName);
     VERIFY_NON_NULL_MSG((*msg)->requests[index]->nodeInfo, "Error : Malloc failed for nodeinfo", result);
-    (*msg)->requests[index]->type = getValueType(nodeName);
+  
+    if (valueType <= 0)
+    {
+        EDGE_LOG(TAG, "valueType will be set by nodeName");
+        (*msg)->requests[index]->type = getValueType(nodeName);
+    } else {
+        EDGE_LOG_V(TAG, "valueType is %d", valueType);
+        (*msg)->requests[index]->type = valueType;
+    }
 
     EdgeVersatility* varient = (EdgeVersatility*) malloc(sizeof(EdgeVersatility));
     VERIFY_NON_NULL_MSG(varient, "Error : Malloc failed for Versatility", result);
