@@ -48,8 +48,7 @@ then
     exit 1
 else
     echo "Install python-six..."
-    pip uninstall six
-    pip install --trusted-host files.pythonhosted.org --trusted-host pypi.org six
+    pip install --trusted-host files.pythonhosted.org --trusted-host pypi.org --upgrade --ignore-installed six
 fi
 
 if [ "$build_mode" == debug -o "$build_mode" == DEBUG ]
