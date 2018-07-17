@@ -48,6 +48,8 @@ then
     exit 1
 else
     echo "Install python-six..."
+    unset http_proxy
+    unset https_proxy
     pip install --trusted-host files.pythonhosted.org --trusted-host pypi.org --upgrade --ignore-installed six
 fi
 
