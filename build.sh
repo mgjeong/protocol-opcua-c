@@ -48,9 +48,8 @@ then
     exit 1
 else
     echo "Install python-six..."
-    unset http_proxy
-    unset https_proxy
     pip install --trusted-host files.pythonhosted.org --trusted-host pypi.org --upgrade --ignore-installed six
+    export PYTHONPATH=$PYTHONPATH:/usr/local/lib/python2.7/dist-packages
 fi
 
 if [ "$build_mode" == debug -o "$build_mode" == DEBUG ]
