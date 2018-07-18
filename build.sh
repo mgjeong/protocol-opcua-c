@@ -48,9 +48,12 @@ then
     exit 1
 else
     echo "Install python-six..."
+    pip --version
+    python --version
     pip install --trusted-host files.pythonhosted.org --trusted-host pypi.org urllib3 --upgrade
     pip install --trusted-host files.pythonhosted.org --trusted-host pypi.org --upgrade --ignore-installed six
     export PATH=$PATH:/usr/local/bin
+    six --version
     #export PYTHONPATH=$PYTHONPATH:/usr/local/lib/python3.5/dist-packages
 fi
 
