@@ -49,7 +49,8 @@ then
 else
     echo "Install python-six..."
     pip install --trusted-host files.pythonhosted.org --trusted-host pypi.org --upgrade --ignore-installed six
-    export PYTHONPATH=$PYTHONPATH:/usr/local/lib/python3.5/dist-packages
+    pip install --trusted-host files.pythonhosted.org --trusted-host pypi.org --upgrade urllib3 
+    #export PYTHONPATH=$PYTHONPATH:/usr/local/lib/python3.5/dist-packages
 fi
 
 if [ "$build_mode" == debug -o "$build_mode" == DEBUG ]
