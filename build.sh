@@ -49,7 +49,7 @@ then
 else
     echo "Install python-six..."
     pip install --trusted-host files.pythonhosted.org --trusted-host pypi.org --upgrade --ignore-installed six
-    pip install --trusted-host files.pythonhosted.org --trusted-host pypi.org --upgrade urllib3 
+    pip install urllib3 --upgrade
     #export PYTHONPATH=$PYTHONPATH:/usr/local/lib/python3.5/dist-packages
 fi
 
