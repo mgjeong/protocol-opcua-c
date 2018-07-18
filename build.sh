@@ -53,7 +53,7 @@ else
     pip install --trusted-host files.pythonhosted.org --trusted-host pypi.org urllib3 --upgrade
     /usr/bin/python -m pip install --trusted-host files.pythonhosted.org --trusted-host pypi.org --upgrade --ignore-installed six
     export PATH=$PATH:/usr/local/bin
-    six --version
+    python six --version
     #export PYTHONPATH=$PYTHONPATH:/usr/local/lib/python3.5/dist-packages
 fi
 
