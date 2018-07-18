@@ -48,15 +48,16 @@ then
     exit 1
 else
     echo "Install python-six..."
+    
     # get python version
-    pip --version
-    python --version
-    which python
-    ls -l /usr/bin/python
+    # pip --version
+    # python --version
+    # which python
+    # ls -l /usr/bin/python
     
     # install pip2.7
-    #unset http_proxy
-    #unset https_proxy
+    unset http_proxy
+    unset https_proxy
     curl -O https://bootstrap.pypa.io/get-pip.py
     python get-pip.py
     
