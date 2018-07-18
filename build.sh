@@ -58,7 +58,7 @@ else
     unset http_proxy
     unset https_proxy
     curl -O https://bootstrap.pypa.io/get-pip.py
-    python27 get-pip.py
+    python get-pip.py
     
     #pip install --trusted-host files.pythonhosted.org --trusted-host pypi.org urllib3 --upgrade
     pip2.7 install --trusted-host files.pythonhosted.org --trusted-host pypi.org --upgrade --ignore-installed six
