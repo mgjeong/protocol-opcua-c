@@ -51,7 +51,7 @@ else
     pip --version
     python --version
     pip install --trusted-host files.pythonhosted.org --trusted-host pypi.org urllib3 --upgrade
-    pip2.7 install --trusted-host files.pythonhosted.org --trusted-host pypi.org --upgrade --ignore-installed six
+    /usr/bin/python -m pip install --trusted-host files.pythonhosted.org --trusted-host pypi.org --upgrade --ignore-installed six
     export PATH=$PATH:/usr/local/bin
     six --version
     #export PYTHONPATH=$PYTHONPATH:/usr/local/lib/python3.5/dist-packages
