@@ -56,6 +56,7 @@ else
     ls -l /usr/bin/python
     
     # install pip2.7
+    
     # unset http_proxy
     # unset https_proxy
     # curl -O https://bootstrap.pypa.io/get-pip.py
