@@ -50,10 +50,10 @@ else
     echo "Install python-six..."
     
     # get python version
-    # pip --version
-    # python --version
-    # which python
-    # ls -l /usr/bin/python
+    pip --version
+    python --version
+    which python
+    ls -l /usr/bin/python
     
     # install pip2.7
     # unset http_proxy
