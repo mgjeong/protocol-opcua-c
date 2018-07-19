@@ -56,13 +56,13 @@ else
     # ls -l /usr/bin/python
     
     # install pip2.7
-    unset http_proxy
-    unset https_proxy
-    curl -O https://bootstrap.pypa.io/get-pip.py
-    python get-pip.py
+    # unset http_proxy
+    # unset https_proxy
+    # curl -O https://bootstrap.pypa.io/get-pip.py
+    # python get-pip.py
     
     #pip install --trusted-host files.pythonhosted.org --trusted-host pypi.org urllib3 --upgrade
-    pip2.7 install --trusted-host files.pythonhosted.org --trusted-host pypi.org --upgrade --ignore-installed six
+    pip install --trusted-host files.pythonhosted.org --trusted-host pypi.org --upgrade --ignore-installed six
     #/usr/bin/python -m pip install --trusted-host files.pythonhosted.org --trusted-host pypi.org --upgrade --ignore-installed six
     #export PATH=$PATH:/usr/local/bin
     #export PYTHONPATH=$PYTHONPATH:/usr/local/lib/python3.5/dist-packages
