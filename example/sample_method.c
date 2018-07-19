@@ -63,6 +63,12 @@ void test_method_sqrt(int inpSize, void **input, int outSize, void **output)
 {
     double *inp = (double *) input[0];
     double *sq_root = (double *) EdgeMalloc(sizeof(double));
+    if (sq_root == NULL)
+    {
+        printf("allocation has failed");
+        return;
+    }
+
     *sq_root = sqrt(*inp);
     output[0] = (void *) sq_root;
     printf(COLOR_GREEN "\n[sqrt(%.2f) method called] :: %.2f\n" COLOR_RESET, *inp, *sq_root);
@@ -77,6 +83,12 @@ void test_method_increment_int32Array(int inpSize, void **input, int outSize, vo
             inputArray[0], inputArray[1], inputArray[2], inputArray[3], inputArray[4], *delta);
 
     int32_t *outputArray = (int32_t *) EdgeMalloc(sizeof(int32_t) * 5);
+    if (outputArray == NULL)
+    {
+        printf("allocation has failed");
+        return;
+    }
+
     for (int i = 0; i < 5; i++)
     {
         outputArray[i] = inputArray[i] + *delta;
