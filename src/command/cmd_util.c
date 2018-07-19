@@ -139,6 +139,12 @@ void sendErrorResponse(const EdgeMessage *msg, char *err_desc)
     for (int i = 0; i < resultMsg->responseLength; i++)
     {
         resultMsg->responses[i] = (EdgeResponse*) EdgeCalloc(1, sizeof(EdgeResponse));
+        if(IS_NULL(resultMsg->responses[i]))
+        {
+            EDGE_LOG(TAG, "Error : Allocation has failed\n");
+            goto EXIT;
+        }
+
         resultMsg->responses[i]->message = (EdgeVersatility *) EdgeCalloc(1, sizeof(EdgeVersatility));
         if(IS_NULL(resultMsg->responses[i]->message))
         {
