@@ -39,16 +39,37 @@ process_cmd_args() {
 }
 process_cmd_args "$@"
 
+pip_dir=$(command -v pip)
+
+if [ $pip_dir == "" ]
+then
+    echo "Please install python-pip"
+    echo "## curl -O https://bootstrap.pypa.io/get-pip.py"
+    echo "## python get-pip.py"
+    echo "Build failed"
+    exit 1
+else
+    echo "Install python-six..."
+    pip install --trusted-host files.pythonhosted.org --trusted-host pypi.org --upgrade --ignore-installed six
+fi
+
 if [ "$build_mode" == debug -o "$build_mode" == DEBUG ]
     then
     echo "Build with DEBUG mode"
     scons -c
     scons TARGET_ARCH=linux TEST=1 AUTO_DOWNLOAD_DEP_LIBS=1 DEBUG=1
+    if [ $? -ne 0 ]; then
+        echo -e "Build failed"
+        exit 1
+    fi
 else
     echo "Build with RELEASE mode"
     scons -c
     scons TARGET_ARCH=linux TEST=1 AUTO_DOWNLOAD_DEP_LIBS=1
+    if [ $? -ne 0 ]; then
+        echo -e "Build failed"
+        exit 1
+    fi
 fi
-
 
 echo "End of edge opcua build"
