@@ -878,7 +878,7 @@ static void testGetEndpoints(const char *endpointUri)
     EdgeResult res = getEndpointInfo(msg);
     if(res.code != STATUS_OK)
     {
-        printf("getEndpointInfo() failed. Status Code: %d\n", res.code);
+        printf("getEndpoint - Status Code: %d\n", res.code);
     }
 
     destroyEdgeMessage(msg);
