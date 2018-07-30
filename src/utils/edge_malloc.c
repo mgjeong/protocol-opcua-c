@@ -28,23 +28,14 @@
 
 void *EdgeMalloc(size_t size)
 {
-    if (0 == size)
-    {
-        // Invalid size.
-        return NULL;
-    }
-
+    COND_CHECK((0 == size), NULL);
     return malloc(size);
 }
 
 void *EdgeCalloc(size_t num, size_t size)
 {
-    if (0 == size || 0 == num)
-    {
-        // Invalid size/number of bytes.
-        return NULL;
-    }
-
+    COND_CHECK((0 == size), NULL);
+    COND_CHECK((0 == num), NULL);
     return calloc(num, size);
 }
 
@@ -64,10 +55,8 @@ void *EdgeRealloc(void* ptr, size_t size)
 
 void EdgeFree(void *ptr)
 {
-    if (NULL != ptr)
-    {
-        free(ptr);
-    }
+    VERIFY_NON_NULL_NR_MSG(ptr, "ptr is NULL\n");
+    free(ptr);
 }
 
 Edge_String EdgeStringAlloc(char const src[])

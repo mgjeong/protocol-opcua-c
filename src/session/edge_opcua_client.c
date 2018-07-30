@@ -54,11 +54,7 @@ static void getAddressPort(char *endpoint, char **out)
     UA_String endpointUrlString = UA_STRING((char *) (uintptr_t) endpoint);
 
     UA_StatusCode parse_retval = UA_parseEndpointUrl(&endpointUrlString, &hostName, &port, &path);
-    if (parse_retval != UA_STATUSCODE_GOOD)
-    {
-        EDGE_LOG(TAG, "Server URL is invalid. Unable to get endpoints\n");
-        return;
-    }
+    COND_CHECK_NR_MSG((parse_retval != UA_STATUSCODE_GOOD), "Server URL is invalid. Unable to get endpoints\n");
 
     char address[MAX_ADDRESS_SIZE];
     strncpy(address, (char*) hostName.data, hostName.length);

@@ -312,24 +312,15 @@ bool isApplicationTypeSupported(UA_ApplicationType appType)
         return false;
     }
 
-    bool supported = false;
-    switch(appType)
-    {
-        case UA_APPLICATIONTYPE_SERVER:
-            supported = (supportedApplicationTypes & EDGE_APPLICATIONTYPE_SERVER) ? true: false;
-            break;
-        case UA_APPLICATIONTYPE_CLIENT:
-            supported = (supportedApplicationTypes & EDGE_APPLICATIONTYPE_CLIENT) ? true: false;
-            break;
-        case UA_APPLICATIONTYPE_CLIENTANDSERVER:
-            supported = (supportedApplicationTypes & EDGE_APPLICATIONTYPE_CLIENTANDSERVER) ? true: false;
-            break;
-        case UA_APPLICATIONTYPE_DISCOVERYSERVER:
-            supported = (supportedApplicationTypes & EDGE_APPLICATIONTYPE_DISCOVERYSERVER) ? true: false;
-            break;
-        default:
-            break;
-    }
+    bool supported = false;   
+    if(appType==UA_APPLICATIONTYPE_SERVER)
+        supported = (supportedApplicationTypes & EDGE_APPLICATIONTYPE_SERVER) ? true: false;
+    else if(appType==UA_APPLICATIONTYPE_CLIENT)
+        supported = (supportedApplicationTypes & EDGE_APPLICATIONTYPE_CLIENT) ? true: false;
+    else if(UA_APPLICATIONTYPE_CLIENTANDSERVER)
+        supported = (supportedApplicationTypes & EDGE_APPLICATIONTYPE_CLIENTANDSERVER) ? true: false;
+    else if(appType==UA_APPLICATIONTYPE_DISCOVERYSERVER)
+        supported = (supportedApplicationTypes & EDGE_APPLICATIONTYPE_DISCOVERYSERVER) ? true: false;
 
     return supported;
 }

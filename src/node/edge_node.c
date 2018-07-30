@@ -42,6 +42,20 @@ static void getDisplayInfo(const EdgeNodeItem *item, char* displayInfo) {
     }
 }
 
+static UA_Byte getAccessLevel(int level)
+{
+    UA_Byte access_lvl = UA_ACCESSLEVELMASK_READ | UA_ACCESSLEVELMASK_WRITE;
+    if (level == READ)
+    {
+        access_lvl = UA_ACCESSLEVELMASK_READ;
+    }
+    else if (level == WRITE)
+    {
+        access_lvl = UA_ACCESSLEVELMASK_WRITE;
+    }
+    return access_lvl;
+}
+
 /**
  * @brief addVariableNode - Add variable node to server
  * @param server - server handle
@@ -64,33 +78,8 @@ static void addVariableNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeI
     attr.minimumSamplingInterval = minimumSamplingInterval;
     EDGE_LOG_V(TAG, "[%s] sampling interval : %lf\n", item->browseName, attr.minimumSamplingInterval);
 
-
-    if (accessLevel == READ)
-    {
-        attr.accessLevel = UA_ACCESSLEVELMASK_READ;
-    }
-    else if (accessLevel == WRITE)
-    {
-        attr.accessLevel = UA_ACCESSLEVELMASK_WRITE;
-    }
-    else
-    {
-        attr.accessLevel = UA_ACCESSLEVELMASK_READ | UA_ACCESSLEVELMASK_WRITE;
-    }
-
-    if (userAccessLevel == READ)
-    {
-        attr.userAccessLevel = UA_ACCESSLEVELMASK_READ;
-    }
-    else if (userAccessLevel == WRITE)
-    {
-        attr.userAccessLevel = UA_ACCESSLEVELMASK_WRITE;
-    }
-    else
-    {
-        attr.userAccessLevel = UA_ACCESSLEVELMASK_READ | UA_ACCESSLEVELMASK_WRITE;
-    }
-
+    attr.accessLevel = getAccessLevel(accessLevel);
+    attr.userAccessLevel = getAccessLevel(userAccessLevel);
     attr.dataType = UA_TYPES[(int) id - 1].typeId;
     attr.valueRank = -1;
 
@@ -177,34 +166,9 @@ static void addArrayNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem
     int userAccessLevel = item->userAccessLevel;
     double minimumSamplingInterval = item->minimumSamplingInterval;
 
-    if (accessLevel == READ)
-    {
-        attr.accessLevel = UA_ACCESSLEVELMASK_READ;
-    }
-    else if (accessLevel == WRITE)
-    {
-        attr.accessLevel = UA_ACCESSLEVELMASK_WRITE;
-    }
-    else if (accessLevel == READ_WRITE)
-    {
-        attr.accessLevel = UA_ACCESSLEVELMASK_READ | UA_ACCESSLEVELMASK_WRITE;
-    }
-
-    if (userAccessLevel == READ)
-    {
-        attr.userAccessLevel = UA_ACCESSLEVELMASK_READ;
-    }
-    else if (userAccessLevel == WRITE)
-    {
-        attr.userAccessLevel = UA_ACCESSLEVELMASK_WRITE;
-    }
-    else if (userAccessLevel == READ_WRITE)
-    {
-        attr.userAccessLevel = UA_ACCESSLEVELMASK_READ | UA_ACCESSLEVELMASK_WRITE;
-    }
-
+    attr.accessLevel = getAccessLevel(accessLevel);
+    attr.userAccessLevel = getAccessLevel(userAccessLevel);
     attr.valueRank = 0;
-
     attr.minimumSamplingInterval = minimumSamplingInterval;
     EDGE_LOG_V(TAG, "[%s] sampling interval : %lf\n", item->browseName, item->minimumSamplingInterval);
 
@@ -583,10 +547,8 @@ static keyValue getMethodMapElement(const edgeMap *map, keyValue key)
 
 static void destroyInputArgs(void **inp, size_t inputSize, const UA_Variant *input)
 {
-    if(IS_NULL(inp) || IS_NULL(input))
-    {
-        return;
-    }
+    VERIFY_NON_NULL_NR_MSG(inp, "");
+    VERIFY_NON_NULL_NR_MSG(input, "");
 
     for (size_t i = 0; i < inputSize; i++)
     {
@@ -617,159 +579,148 @@ static UA_StatusCode methodCallback(UA_Server *server, const UA_NodeId *sessionI
 {
     char *key = (char *) methodId->identifier.string.data;
     keyValue value = getMethodMapElement(methodNodeMap, (keyValue) key);
-    if (value != NULL)
+    VERIFY_NON_NULL_MSG(value, "", UA_STATUSCODE_BADMETHODINVALID);
+
+    EdgeMethod *method = (EdgeMethod *) value;
+    method_func method_to_call = (method_func) (method->method_fn);
+
+    void **inp = NULL;
+    if (inputSize > 0)
     {
-        EdgeMethod *method = (EdgeMethod *) value;
-        method_func method_to_call = (method_func) (method->method_fn);
-
-        void **inp = NULL;
-        if (inputSize > 0)
+        inp = EdgeCalloc(inputSize, sizeof(void *));
+        VERIFY_NON_NULL_MSG(inp, "EdgeCalloc FAILED for inp in methodCallback\n", STATUS_ERROR);
+        for (size_t i = 0; i < inputSize; i++)
         {
-            inp = EdgeCalloc(inputSize, sizeof(void *));
-            VERIFY_NON_NULL_MSG(inp, "EdgeCalloc FAILED for inp in methodCallback\n", STATUS_ERROR);
-            for (size_t i = 0; i < inputSize; i++)
+            if (input[i].type == &UA_TYPES[UA_TYPES_STRING])
             {
-                if (input[i].type == &UA_TYPES[UA_TYPES_STRING])
+                if (input[i].arrayLength == 0)
                 {
-                    if (input[i].arrayLength == 0)
+                    /* Scalar string value */
+                    UA_String *str = ((UA_String*) input[i].data);
+                    char *values = (char*) EdgeMalloc(sizeof(char) * (str->length+1));
+                    if(IS_NULL(values))
                     {
-                        /* Scalar string value */
-                        UA_String *str = ((UA_String*) input[i].data);
-                        char *values = (char*) EdgeMalloc(sizeof(char) * (str->length+1));
-                        if(IS_NULL(values))
-                        {
-                            destroyInputArgs(inp, i, input);
-                            return STATUS_ERROR;
-                        }
-                        strncpy(values, (char *) str->data, str->length);
-                        values[str->length] = '\0';
-                        inp[i] = (void*) values;
+                        destroyInputArgs(inp, i, input);
+                        return STATUS_ERROR;
                     }
-                    else
-                    {
-                        UA_String* str = ((UA_String*) input[i].data);
-                        char **values = (char**) EdgeCalloc(input[i].arrayLength, sizeof(char*));
-                        if(IS_NULL(values))
-                        {
-                            destroyInputArgs(inp, i, input);
-                            return STATUS_ERROR;
-                        }
-
-                        for (size_t j = 0; j < input[i].arrayLength; j++)
-                        {
-                            values[j] = (char *) EdgeMalloc(str[j].length+1);
-                            if(IS_NULL(values[j]))
-                            {
-                                destroyInputArgs(inp, i, input);
-                                for(size_t k = 0; k < j; ++k)
-                                {
-                                    EdgeFree(values[j]);
-                                }
-                                EdgeFree(values);
-                                return STATUS_ERROR;
-                            }
-                            strncpy(values[j], (char *) str[j].data, str[j].length);
-                            values[j][str[j].length] = '\0';
-                        }
-                        inp[i] = (void*) values;
-                    }
+                    strncpy(values, (char *) str->data, str->length);
+                    values[str->length] = '\0';
+                    inp[i] = (void*) values;
                 }
                 else
                 {
-                    inp[i] = input[i].data;
-                }
-            }
-        }
-
-        void **out = NULL;
-        if (outputSize > 0)
-        {
-            out = EdgeCalloc(outputSize, sizeof(void *));
-            if(IS_NULL(out))
-            {
-                EDGE_LOG(TAG, "ERROR : out in methodCallback Malloc FAILED\n");
-                destroyInputArgs(inp, inputSize, input);
-                return STATUS_ERROR;
-            }
-        }
-
-        method_to_call(inputSize, inp, outputSize, out);
-
-        destroyInputArgs(inp, inputSize, input);
-
-        for (size_t idx = 0; idx < outputSize; idx++)
-        {
-            if (out[idx] != NULL)
-            {
-                int type = (int) method->outArg[idx]->argType - 1;
-                if (method->outArg[idx]->valType == SCALAR)
-                {
-                    // Scalar copy
-                    if (type == UA_TYPES_STRING)
+                    UA_String* str = ((UA_String*) input[i].data);
+                    char **values = (char**) EdgeCalloc(input[i].arrayLength, sizeof(char*));
+                    if(IS_NULL(values))
                     {
-                        UA_String val = UA_STRING_ALLOC((char * ) *out);
-                        UA_Variant_setScalarCopy(&output[idx], &val, &UA_TYPES[type]);
-                        UA_String_deleteMembers(&val);
-                        EdgeFree(val.data);
+                        destroyInputArgs(inp, i, input);
+                        return STATUS_ERROR;
                     }
-                    else
+
+                    for (size_t j = 0; j < input[i].arrayLength; j++)
                     {
-                        UA_Variant *variant = &output[idx];
-                        UA_Variant_setScalarCopy(variant, out[idx], &UA_TYPES[type]);
-                    }
-                }
-                else if (method->outArg[idx]->valType == ARRAY_1D)
-                {
-                    // Array copy
-                    if (type == UA_TYPES_STRING)
-                    {
-                        char **data = (char **) out[idx];
-                        UA_String *array = (UA_String *) UA_Array_new(
-                                method->outArg[idx]->arrayLength, &UA_TYPES[type]);
-                        for (size_t idx1 = 0; idx1 < method->outArg[idx]->arrayLength; idx1++)
+                        values[j] = (char *) EdgeMalloc(str[j].length+1);
+                        if(IS_NULL(values[j]))
                         {
-                            array[idx1] = UA_STRING_ALLOC(data[idx1]);
+                            destroyInputArgs(inp, i, input);
+                            for(size_t k = 0; k < j; ++k)
+                            {
+                                EdgeFree(values[j]);
+                            }
+                            EdgeFree(values);
+                            return STATUS_ERROR;
                         }
-                        UA_Variant *variant = &output[idx];
-                        UA_Variant_setArrayCopy(variant, array, method->outArg[idx]->arrayLength,
-                                &UA_TYPES[type]);
-                        for (size_t idx1 = 0; idx1 < method->outArg[idx]->arrayLength; idx1++)
-                        {
-                            UA_String_deleteMembers(&array[idx1]);
-                        }
-                        UA_Array_delete(array, method->outArg[idx]->arrayLength, &UA_TYPES[type]);
+                        strncpy(values[j], (char *) str[j].data, str[j].length);
+                        values[j][str[j].length] = '\0';
                     }
-                    else
-                    {
-                        UA_Variant *variant = &output[idx];
-                        UA_Variant_setArrayCopy(variant, out[idx], method->outArg[idx]->arrayLength,
-                                &UA_TYPES[type]);
-                    }
+                    inp[i] = (void*) values;
                 }
-                EdgeFree(out[idx]);
+            }
+            else
+            {
+                inp[i] = input[i].data;
             }
         }
-        EdgeFree(out);
-        return UA_STATUSCODE_GOOD;
     }
-    else
+
+    void **out = NULL;
+    if (outputSize > 0)
     {
-        return UA_STATUSCODE_BADMETHODINVALID;
+        out = EdgeCalloc(outputSize, sizeof(void *));
+        if(IS_NULL(out))
+        {
+            EDGE_LOG(TAG, "ERROR : out in methodCallback Malloc FAILED\n");
+            destroyInputArgs(inp, inputSize, input);
+            return STATUS_ERROR;
+        }
     }
+
+    method_to_call(inputSize, inp, outputSize, out);
+
+    destroyInputArgs(inp, inputSize, input);
+
+    for (size_t idx = 0; idx < outputSize; idx++)
+    {
+        if (out[idx] != NULL)
+        {
+            int type = (int) method->outArg[idx]->argType - 1;
+            if (method->outArg[idx]->valType == SCALAR)
+            {
+                // Scalar copy
+                if (type == UA_TYPES_STRING)
+                {
+                    UA_String val = UA_STRING_ALLOC((char * ) *out);
+                    UA_Variant_setScalarCopy(&output[idx], &val, &UA_TYPES[type]);
+                    UA_String_deleteMembers(&val);
+                    EdgeFree(val.data);
+                }
+                else
+                {
+                    UA_Variant *variant = &output[idx];
+                    UA_Variant_setScalarCopy(variant, out[idx], &UA_TYPES[type]);
+                }
+            }
+            else if (method->outArg[idx]->valType == ARRAY_1D)
+            {
+                // Array copy
+                if (type == UA_TYPES_STRING)
+                {
+                    char **data = (char **) out[idx];
+                    UA_String *array = (UA_String *) UA_Array_new(
+                            method->outArg[idx]->arrayLength, &UA_TYPES[type]);
+                    for (size_t idx1 = 0; idx1 < method->outArg[idx]->arrayLength; idx1++)
+                    {
+                        array[idx1] = UA_STRING_ALLOC(data[idx1]);
+                    }
+                    UA_Variant *variant = &output[idx];
+                    UA_Variant_setArrayCopy(variant, array, method->outArg[idx]->arrayLength,
+                            &UA_TYPES[type]);
+                    for (size_t idx1 = 0; idx1 < method->outArg[idx]->arrayLength; idx1++)
+                    {
+                        UA_String_deleteMembers(&array[idx1]);
+                    }
+                    UA_Array_delete(array, method->outArg[idx]->arrayLength, &UA_TYPES[type]);
+                }
+                else
+                {
+                    UA_Variant *variant = &output[idx];
+                    UA_Variant_setArrayCopy(variant, out[idx], method->outArg[idx]->arrayLength,
+                            &UA_TYPES[type]);
+                }
+            }
+            EdgeFree(out[idx]);
+        }
+    }
+    EdgeFree(out);
+    return UA_STATUSCODE_GOOD;
 }
 
 /****************************** Member functions ***********************************/
 
 EdgeResult addNodes(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem *item)
 {
-    EdgeResult result;
-    result.code = STATUS_OK;
-
-    if (item == NULL)
-    {
-        result.code = STATUS_PARAM_INVALID;
-        return result;
-    }
+    EdgeResult result = { STATUS_PARAM_INVALID };
+    VERIFY_NON_NULL_MSG(item, "", result);
 
     if (item->nodeType == ARRAY_NODE)
     {
@@ -804,6 +755,7 @@ EdgeResult addNodes(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem *ite
         addVariableNode(server, nsIndex, item);
     }
 
+    result.code = STATUS_OK;
     return result;
 }
 
