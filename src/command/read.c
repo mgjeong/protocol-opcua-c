@@ -49,8 +49,7 @@ UA_Int64 DateTime_toUnixTime(UA_DateTime date)
 static bool checkMaxAge(UA_DateTime timestamp, UA_DateTime now, double maxAge)
 {
     /* Server timestamp is greater than current time */
-    if (timestamp > now)
-        return false;
+    COND_CHECK((timestamp > now), false);
 
     int64_t second = DateTime_toUnixTime(now);
     int64_t first = DateTime_toUnixTime(timestamp);
@@ -82,7 +81,6 @@ static bool compareNumber(int64_t number1, int64_t number2)
 static bool checkInvalidTime(UA_DateTime serverTime, UA_DateTime sourceTime, int validMilliSec,
         UA_TimestampsToReturn stamp)
 {
-    bool ret = true;
     UA_DateTime now = UA_DateTime_now();
     int64_t now_time = UA_DateTime_toUnixTime(now);
     int64_t server_time = UA_DateTime_toUnixTime(serverTime);
@@ -91,56 +89,32 @@ static bool checkInvalidTime(UA_DateTime serverTime, UA_DateTime sourceTime, int
     if (UA_TIMESTAMPSTORETURN_BOTH == stamp)
     {
         /* Both server and source timestamps requested */
-        if ((0 == server_time) || (0 == source_time))
-        {
-            /* Either source or server timestamp is invalid */
-            EDGE_LOG(TAG, "Invalid timestamp\n\n");
-            ret = false;
-        }
+        COND_CHECK_MSG((server_time == 0), "Invalid server timestamp\n", false);
+        COND_CHECK_MSG((source_time == 0), "Invalid source timestamp\n", false);
 
-        // compare number
-        if (compareNumber(now_time - server_time, validMilliSec) ||
-                compareNumber(now_time - source_time, validMilliSec) ||
-                compareNumber(server_time, now_time) ||
-                compareNumber(source_time, now_time))
-        {
-            ret = false;
-        }
+        COND_CHECK_MSG((compareNumber(now_time - server_time, validMilliSec)), "", false);
+        COND_CHECK_MSG((compareNumber(now_time - source_time, validMilliSec)), "", false);
+        COND_CHECK_MSG((compareNumber(server_time, now_time)), "", false);
+        COND_CHECK_MSG((compareNumber(source_time, now_time)), "", false);
     }
     else if (UA_TIMESTAMPSTORETURN_SOURCE == stamp)
     {
         /* Only source timestamp requested from server */
-        if (0 == source_time)
-        {
-            EDGE_LOG(TAG, "invalid source timestamp\n\n");
-            return false;
-        }
+        COND_CHECK_MSG((source_time == 0), "Invalid source timestamp\n", false);
 
-        // compare number
-        if (compareNumber(now_time - source_time, validMilliSec) ||
-                compareNumber(source_time, now_time))
-        {
-            ret = false;
-        }
+        COND_CHECK_MSG((compareNumber(now_time - source_time, validMilliSec)), "", false);
+        COND_CHECK_MSG((compareNumber(source_time, now_time)), "", false);
     }
     else if (UA_TIMESTAMPSTORETURN_SERVER == stamp)
     {
         /* Only server timestamp requested from server */
-        if (0 == server_time)
-        {
-            EDGE_LOG(TAG, "invalid server timestamp\n\n");
-            return false;
-        }
+        COND_CHECK_MSG((server_time == 0), "Invalid server timestamp\n", false);
 
-        // compare number
-        if (compareNumber(now_time - server_time, validMilliSec) ||
-                compareNumber(server_time, now_time))
-        {
-            ret = false;
-        }
+        COND_CHECK_MSG((compareNumber(now_time - server_time, validMilliSec)), "", false);
+        COND_CHECK_MSG((compareNumber(server_time, now_time)), "", false);
     }
 
-    return ret;
+    return true;
 }
 
 /**
@@ -193,11 +167,7 @@ static Edge_LocalizedText *convertToEdgeLocalizedText(UA_LocalizedText *lt)
 {
     VERIFY_NON_NULL_MSG(lt, "Input parameter(lt) is NULL", NULL);
     Edge_LocalizedText *value = (Edge_LocalizedText *) EdgeCalloc(1, sizeof(Edge_LocalizedText));
-    if(IS_NULL(value))
-    {
-        EDGE_LOG(TAG, "Memory allocation failed.");
-        return NULL;
-    }
+    VERIFY_NON_NULL_MSG(value, "Memory allocation failed.", NULL);
 
     Edge_String *edgeStr = convertToEdgeString(&lt->locale);
     if(IS_NULL(edgeStr))
@@ -231,11 +201,8 @@ static Edge_QualifiedName *convertToEdgeQualifiedName(UA_QualifiedName *qn)
 {
     VERIFY_NON_NULL_MSG(qn, "Input parameter(qn) is NULL", NULL);
     Edge_QualifiedName *value = (Edge_QualifiedName *) EdgeCalloc(1, sizeof(Edge_QualifiedName));
-    if(IS_NULL(value))
-    {
-        EDGE_LOG(TAG, "Memory allocation failed.");
-        return NULL;
-    }
+    VERIFY_NON_NULL_MSG(value, "Memory allocation failed.", NULL);
+
     value->namespaceIndex = qn->namespaceIndex;
     Edge_String *edgeStr = convertToEdgeString(&qn->name);
     if(IS_NULL(edgeStr))

@@ -111,20 +111,13 @@ EdgeResult createMethodNode(const char *namespaceUri, EdgeNodeItem *item, EdgeMe
 EdgeResult createServer(EdgeEndPointInfo *epInfo)
 {
     EDGE_LOG(TAG, "[Received command] :: Server start.");
-
     EdgeResult result = {STATUS_PARAM_INVALID };
     VERIFY_NON_NULL_MSG(epInfo, "", result);
-    VERIFY_NON_NULL_MSG(epInfo->endpointConfig, "", result);
-  
-    if (epInfo->endpointConfig->bindPort < 1 || epInfo->endpointConfig->bindPort > 65535)
-    {
-        // Invalid port number
-        return result;
-    }
-
+    COND_CHECK((epInfo->endpointConfig->bindPort < 1), result);
+    COND_CHECK((epInfo->endpointConfig->bindPort > 65535), result);
+		
     result.code = STATUS_ALREADY_INIT;
     VERIFY_NON_NULL_MSG(!b_serverInitialized, "Server already initialized.\n", result);
-
     result = start_server(epInfo);
     if (result.code == STATUS_OK)
     {
@@ -320,15 +313,12 @@ static EdgeResult checkParameterValid(EdgeMessage *msg)
     if ((msg->type == SEND_REQUEST && IS_NULL(msg->request))
              || (msg->type == SEND_REQUESTS  && IS_NULL(msg->requests)))
     {
-        if (msg->command == CMD_READ
-                || msg->command == CMD_WRITE
-                || msg->command == CMD_BROWSE
-                || msg->command == CMD_METHOD
-                || msg->command == CMD_SUB
-                || msg->command == CMD_READ_SAMPLING_INTERVAL)
-        {
-            return result;
-        }
+        COND_CHECK((msg->command == CMD_READ), result);
+        COND_CHECK((msg->command == CMD_WRITE), result);
+        COND_CHECK((msg->command == CMD_BROWSE), result);
+        COND_CHECK((msg->command == CMD_METHOD), result);
+        COND_CHECK((msg->command == CMD_SUB), result);
+        COND_CHECK((msg->command == CMD_READ_SAMPLING_INTERVAL), result);
     }
 
     if (msg->command == CMD_BROWSE)
@@ -440,24 +430,15 @@ void onResponseMessage(EdgeMessage *msg)
 {
     VERIFY_NON_NULL_NR_MSG(receivedMsgCb, "NULL receivedMsgCb in onResponseMessage\n");
     VERIFY_NON_NULL_NR_MSG(msg, "NULL Message param in onResponseMessage\n");
-
-    switch (msg->type)
-    {
-        case GENERAL_RESPONSE:
-            receivedMsgCb->resp_msg_cb(msg);
-            break;
-        case BROWSE_RESPONSE:
-            receivedMsgCb->browse_msg_cb(msg);
-            break;
-        case REPORT:
-            receivedMsgCb->monitored_msg_cb(msg);
-            break;
-        case ERROR:
-            receivedMsgCb->error_msg_cb(msg);
-            break;
-        default:
-            break;
-    }
+  
+    if(msg->type == GENERAL_RESPONSE)
+        receivedMsgCb->resp_msg_cb(msg);
+    if(msg->type == BROWSE_RESPONSE)
+        receivedMsgCb->browse_msg_cb(msg);
+    if(msg->type == REPORT)
+        receivedMsgCb->monitored_msg_cb(msg);
+    if(msg->type == ERROR)
+        receivedMsgCb->error_msg_cb(msg);
 }
 
 void onDiscoveryCallback(EdgeDevice *device)
@@ -549,11 +530,7 @@ EdgeResult insertSubParameter(EdgeMessage **msg, const char* nodeName, EdgeNodeT
     VERIFY_NON_NULL_MSG((*msg), "Error : Malloc failed for subReq\n", result);
     VERIFY_NON_NULL_MSG(nodeName, "Error : Malloc failed for subReq\n", result);
 
-    if ((*msg)->command != CMD_SUB) {
-        EDGE_LOG(TAG, "Error : parameter is not valid");
-        result.code = STATUS_PARAM_INVALID;
-        return result;
-    }
+    COND_CHECK_MSG(((*msg)->command != CMD_SUB), "Error: parameter is not valid", result);
 
     result.code = STATUS_ERROR;
     EdgeSubRequest* subReq = (EdgeSubRequest *) EdgeCalloc(1, sizeof(EdgeSubRequest));
@@ -780,13 +757,7 @@ EdgeResult insertWriteAccessNodeWithValueType(EdgeMessage **msg, const char* nod
     EdgeResult result = { STATUS_PARAM_INVALID };
     VERIFY_NON_NULL_MSG((*msg), "Error : msg is null", result);
     VERIFY_NON_NULL_MSG(nodeName, "Error : nodename is null", result);
-
-    if ((*msg)->command != CMD_WRITE)
-    {
-        EDGE_LOG(TAG, "Error : command is invalid");
-        result.code = STATUS_PARAM_INVALID;
-        return result;
-    }
+    COND_CHECK_MSG(((*msg)->command != CMD_WRITE), "Error: command is invalid", result);
 
     if(IS_NULL(value) && valueCount != 0)
     {
@@ -840,13 +811,8 @@ EdgeResult insertEdgeMethodParameter(EdgeMessage **msg, const char* nodeName,
     result.code = STATUS_PARAM_INVALID;
     VERIFY_NON_NULL_MSG((*msg), "Error : msg is null", result);
     VERIFY_NON_NULL_MSG(nodeName, "Error : nodeName is null", result);
+    COND_CHECK_MSG(((*msg)->command != CMD_METHOD), "Error: command is invalid", result);
 
-    if ((*msg)->command != CMD_METHOD)
-    {
-        EDGE_LOG(TAG, "Error : command is invalid");
-        result.code = STATUS_PARAM_INVALID;
-        return result;
-    }
     if (inputParameterSize > 0 &&
             ((argType == SCALAR && scalarValue == NULL) ||
              (argType == ARRAY_1D && arrayData == NULL)))

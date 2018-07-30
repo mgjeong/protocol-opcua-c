@@ -217,13 +217,7 @@ static void destroyData(void *data, uint32_t size)
     }
 
     EdgeMessage *msg = (EdgeMessage *) data;
-
-    if (NULL == msg)
-    {
-        EDGE_LOG(TAG, "msg is NULL");
-        return;
-    }
-
+    VERIFY_NON_NULL_NR_MSG(msg, "msg is NULL.");
     freeEdgeMessage(msg);
     EDGE_LOG(TAG, "destroyData OUT");
 }

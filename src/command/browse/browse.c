@@ -51,17 +51,17 @@ void executeBrowse(UA_Client *client, EdgeMessage *msg)
         return;
     }
 
-    switch(msg->command)
+    if(msg->command==CMD_BROWSE)
     {
-        case CMD_BROWSE:
-            browseNodes(client, msg);
-            break;
-        case CMD_BROWSE_VIEW:
-            browseView(client, msg);
-            break;
-        default:
-            EDGE_LOG(TAG, "Invalid command in message.");
-            invokeErrorCb(msg->message_id, NULL, STATUS_PARAM_INVALID, "Invalid command in message.");
-            break;
+        browseNodes(client, msg);
+    }
+    else if(msg->command==CMD_BROWSE_VIEW)
+    {
+        browseView(client, msg);
+    }
+    else
+    {
+        EDGE_LOG(TAG, "Invalid command in message.");
+        invokeErrorCb(msg->message_id, NULL, STATUS_PARAM_INVALID, "Invalid command in message.");
     }
 }

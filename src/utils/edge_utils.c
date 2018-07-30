@@ -54,10 +54,8 @@ char *cloneString(const char *str)
 
 void *cloneData(const void *src, int lenInbytes)
 {
-    if (!src || lenInbytes < 1)
-    {
-        return NULL;
-    }
+    VERIFY_NON_NULL_MSG(src, "", NULL);
+    COND_CHECK((lenInbytes < 1), NULL);
 
     void *cloned = EdgeMalloc(lenInbytes);
     VERIFY_NON_NULL_MSG(cloned, "EdgeMalloc failed for cloneData\n", NULL);
@@ -566,24 +564,14 @@ EdgeNodeInfo *cloneEdgeNodeInfo(EdgeNodeInfo *nodeInfo)
 EdgeNodeIdType getEdgeNodeIdType(char type)
 {
     EdgeNodeIdType edgeNodeType = INTEGER;
-    switch (type)
-    {
-        case 'N':
-            edgeNodeType = INTEGER;
-            break;
-        case 'S':
-            edgeNodeType = STRING;
-            break;
-        case 'B':
-            edgeNodeType = BYTESTRING;
-            break;
-        case 'G':
-            edgeNodeType = UUID;
-            break;
-        default:
-            // Default block is empty because of the assignment statement
-            // before switch block which treats INTEGER as a default type.
-            break;
-    }
+    if(type=='N')
+        edgeNodeType = INTEGER;
+    else if(type=='S')
+        edgeNodeType = STRING;
+    else if(type=='B')
+        edgeNodeType = BYTESTRING;
+    else if(type=='G')
+        edgeNodeType = UUID;
+    
     return edgeNodeType;
 }

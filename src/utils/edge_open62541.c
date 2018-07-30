@@ -26,10 +26,8 @@
 
 char *convertUAStringToString(UA_String *uaStr)
 {
-    if (!uaStr || uaStr->length <= 0)
-    {
-        return NULL;
-    }
+    VERIFY_NON_NULL_MSG(uaStr, "", NULL);
+    COND_CHECK((uaStr->length <= 0), NULL);
 
     char *str = (char *) EdgeMalloc(uaStr->length + 1);
     VERIFY_NON_NULL_MSG(str, "EdgeMalloc FAILED for convert UA string to string\n", NULL);
@@ -58,52 +56,30 @@ Edge_String *convertToEdgeString(UA_String *uaStr)
 EdgeApplicationType convertToEdgeApplicationType(UA_ApplicationType appType)
 {
     // Setting SERVER as default application type.
-    EdgeApplicationType edgeAppType = EDGE_APPLICATIONTYPE_SERVER;
-    switch(appType)
-    {
-        case UA_APPLICATIONTYPE_SERVER:
-            edgeAppType = EDGE_APPLICATIONTYPE_SERVER;
-            break;
-        case UA_APPLICATIONTYPE_CLIENT:
-            edgeAppType = EDGE_APPLICATIONTYPE_CLIENT;
-            break;
-        case UA_APPLICATIONTYPE_CLIENTANDSERVER:
-            edgeAppType = EDGE_APPLICATIONTYPE_CLIENTANDSERVER;
-            break;
-        case UA_APPLICATIONTYPE_DISCOVERYSERVER:
-            edgeAppType = EDGE_APPLICATIONTYPE_DISCOVERYSERVER;
-            break;
-        default:
-            // Default case is empty because SERVER is set as default application type
-            // before switch block.
-            break;
-    }
+    EdgeApplicationType edgeAppType = EDGE_APPLICATIONTYPE_SERVER;    
+    if(appType==UA_APPLICATIONTYPE_SERVER)
+        edgeAppType = EDGE_APPLICATIONTYPE_SERVER;
+    if(appType==UA_APPLICATIONTYPE_CLIENT)
+        edgeAppType = EDGE_APPLICATIONTYPE_CLIENT;
+    if(appType==UA_APPLICATIONTYPE_CLIENTANDSERVER)
+        edgeAppType = EDGE_APPLICATIONTYPE_CLIENTANDSERVER;
+    if(appType==UA_APPLICATIONTYPE_DISCOVERYSERVER)
+        edgeAppType = EDGE_APPLICATIONTYPE_DISCOVERYSERVER;
     return edgeAppType;
 }
 
 UA_ApplicationType convertEdgeApplicationType(EdgeApplicationType appType)
 {
     // Setting SERVER as default application type.
-    UA_ApplicationType uaAppType = UA_APPLICATIONTYPE_SERVER;
-    switch(appType)
-    {
-        case EDGE_APPLICATIONTYPE_SERVER:
-            uaAppType = UA_APPLICATIONTYPE_SERVER;
-            break;
-        case EDGE_APPLICATIONTYPE_CLIENT:
-            uaAppType = UA_APPLICATIONTYPE_CLIENT;
-            break;
-        case EDGE_APPLICATIONTYPE_CLIENTANDSERVER:
-            uaAppType = UA_APPLICATIONTYPE_CLIENTANDSERVER;
-            break;
-        case EDGE_APPLICATIONTYPE_DISCOVERYSERVER:
-            uaAppType = UA_APPLICATIONTYPE_DISCOVERYSERVER;
-            break;
-        default:
-            // Default case is empty because SERVER is set as default application type
-            // before switch block.
-            break;
-    }
+    UA_ApplicationType uaAppType = UA_APPLICATIONTYPE_SERVER;    
+    if(appType==EDGE_APPLICATIONTYPE_SERVER)
+        uaAppType = UA_APPLICATIONTYPE_SERVER;
+    if(appType==EDGE_APPLICATIONTYPE_CLIENT)
+        uaAppType = UA_APPLICATIONTYPE_CLIENT;
+    if(appType==EDGE_APPLICATIONTYPE_CLIENTANDSERVER)
+        uaAppType = UA_APPLICATIONTYPE_CLIENTANDSERVER;
+    if(appType==EDGE_APPLICATIONTYPE_DISCOVERYSERVER)
+        uaAppType = UA_APPLICATIONTYPE_DISCOVERYSERVER;
     return uaAppType;
 }
 
@@ -167,37 +143,41 @@ EdgeNodeId *getEdgeNodeId(UA_NodeId *node)
     VERIFY_NON_NULL_MSG(edgeNodeId, "EdgeCalloc FAILED for edge node ID in getEdgeNodeId\n", NULL);
 
     edgeNodeId->nameSpace = node->namespaceIndex;
-    switch (node->identifierType)
+    
+    if(node->identifierType == UA_NODEIDTYPE_NUMERIC)
     {
-        case UA_NODEIDTYPE_NUMERIC:
-            edgeNodeId->type = INTEGER;
-            edgeNodeId->integerNodeId = node->identifier.numeric;
-            break;
-        case UA_NODEIDTYPE_STRING:
-            edgeNodeId->type = STRING;
-            edgeNodeId->nodeId = convertUAStringToString(&node->identifier.string);
-            break;
-        case UA_NODEIDTYPE_BYTESTRING:
-            edgeNodeId->type = BYTESTRING;
-            edgeNodeId->nodeId = convertUAStringToString(&node->identifier.string);
-            break;
-        case UA_NODEIDTYPE_GUID:
-            edgeNodeId->type = UUID;
-            UA_Guid guid = node->identifier.guid;
-            char *value = (char *) EdgeMalloc(GUID_LENGTH + 1);
-            if (IS_NULL(value))
-            {
-                EDGE_LOG(TAG, "Memory allocation failed.");
-                EdgeFree(edgeNodeId);
-                edgeNodeId = NULL;
-                break;
-            }
+        edgeNodeId->type = INTEGER;
+        edgeNodeId->integerNodeId = node->identifier.numeric;
+    }
+
+    if(node->identifierType == UA_NODEIDTYPE_STRING)
+    {
+        edgeNodeId->type = STRING;
+        edgeNodeId->nodeId = convertUAStringToString(&node->identifier.string);
+    }
+
+    if(node->identifierType == UA_NODEIDTYPE_BYTESTRING)
+    {
+        edgeNodeId->type = BYTESTRING;
+        edgeNodeId->nodeId = convertUAStringToString(&node->identifier.string);
+    }
+
+    if(node->identifierType == UA_NODEIDTYPE_GUID)
+    {
+        edgeNodeId->type = UUID;
+        UA_Guid guid = node->identifier.guid;
+        char *value = (char *) EdgeMalloc(GUID_LENGTH + 1);
+        if (IS_NULL(value))
+        {
+            EDGE_LOG(TAG, "Memory allocation failed.");
+            EdgeFree(edgeNodeId);
+            edgeNodeId = NULL;
+        }
+        else
+        {
             convertGuidToString(guid, &value);
             edgeNodeId->nodeId = value;
-            break;
-        default:
-            // All valid cases are handled above.
-            break;
+        }
     }
 
     return edgeNodeId;
@@ -715,27 +695,17 @@ char getCharacterNodeIdType(uint32_t type)
 {
     char nodeType;
     char nodeTypeArray[5] = { 'N', 'S', 'B', 'G', '\0' };
-    switch (type)
-    {
-        case UA_NODEIDTYPE_NUMERIC:
-            nodeType = nodeTypeArray[0];
-            break;
-        case UA_NODEIDTYPE_STRING:
-            nodeType = nodeTypeArray[1];
-            break;
-        case UA_NODEIDTYPE_BYTESTRING:
-            nodeType = nodeTypeArray[2];
-            break;
-        case UA_NODEIDTYPE_GUID:
-            nodeType = nodeTypeArray[3];
-            break;
-        default:
-            // Ideally, as all valid types are handled above, there is no need for a default case.
-            // Defined this for handling cases which comes with illegal types.
-            // This value indicates an error. Callers should handle it properly.
-            nodeType = nodeTypeArray[4];
-            break;
-    }
+    nodeType = nodeTypeArray[4];
+
+    if(type == UA_NODEIDTYPE_NUMERIC)
+        nodeType = nodeTypeArray[0];
+    if(type == UA_NODEIDTYPE_STRING)
+        nodeType = nodeTypeArray[1];
+    if(type == UA_NODEIDTYPE_BYTESTRING)
+        nodeType = nodeTypeArray[2];
+    if(type == UA_NODEIDTYPE_GUID)
+        nodeType = nodeTypeArray[3];
+    
     return nodeType;
 }
 

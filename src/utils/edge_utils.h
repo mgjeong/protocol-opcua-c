@@ -43,6 +43,11 @@ extern "C"
             msg); return (retVal); } }
 #define VERIFY_NON_NULL_NR_MSG(arg, msg) { if (!(arg)) { EDGE_LOG(TAG, \
             msg); return; } }
+#define COND_CHECK(arg, retVal) { if (arg) { return (retVal); } }
+#define COND_CHECK_MSG(arg, msg, retVal) { if (arg) { EDGE_LOG(TAG, \
+            msg); return (retVal); } }
+#define COND_CHECK_NR_MSG(arg, msg) { if (arg) { EDGE_LOG(TAG, \
+            msg); return; } }
 
 #define GUID_LENGTH (36)
 
