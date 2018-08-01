@@ -51,6 +51,24 @@ process_cmd_args() {
 }
 process_cmd_args "$@"
 
+pip_dir=$(command -v pip)
+pip_dir_has_six=$(pip list | grep six)
+
+if [ $pip_dir == "" ]
+then
+    echo "Please install python-pip"
+    echo "## curl -O https://bootstrap.pypa.io/get-pip.py"
+    echo "## python get-pip.py"
+    echo "Build failed"
+    exit 1
+elif [ "$pip_dir_has_six" == "" ]
+then
+    echo "Install python-six..."
+    pip install --trusted-host files.pythonhosted.org --trusted-host pypi.org --upgrade --ignore-installed six
+else
+    echo "Has python-six module..."
+fi
+
 if [ "$build_mode" == debug -o "$build_mode" == DEBUG ]
     then
     echo "Build with DEBUG mode"
