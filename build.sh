@@ -15,8 +15,14 @@
 #
 ###############################################################################
 
-#!/bin/sh
+#!/bin/bash
 echo "Start edge opcua build"
+
+usage() {
+    echo -e "${BLUE}Usage:${NO_COLOUR} ./build.sh <option>"
+    echo -e "${GREEN}Options:${NO_COLOUR}"
+    echo "  --build_mode=[release|debug(DEBUG)](default: release) :  Build opcua-aml library and samples in release or debug mode"
+}
 
 process_cmd_args() {
     while [ "$#" -gt 0  ]; do
@@ -25,6 +31,12 @@ process_cmd_args() {
                 build_mode="${1#*=}";
                 echo -e "Build mode = $build_mode"
                 shift 1;
+                ;;
+            -h)
+                usage; exit 0
+                ;;
+            --help)
+                usage; exit 0
                 ;;
             -*)
                 echo "unknown option: $1" >&2;
@@ -40,6 +52,7 @@ process_cmd_args() {
 process_cmd_args "$@"
 
 pip_dir=$(command -v pip)
+pip_dir_has_six=$(pip list | grep six)
 
 if [ $pip_dir == "" ]
 then
@@ -48,9 +61,12 @@ then
     echo "## python get-pip.py"
     echo "Build failed"
     exit 1
-else
+elif [ "$pip_dir_has_six" == "" ]
+then
     echo "Install python-six..."
     pip install --trusted-host files.pythonhosted.org --trusted-host pypi.org --upgrade --ignore-installed six
+else
+    echo "Has python-six module..."
 fi
 
 if [ "$build_mode" == debug -o "$build_mode" == DEBUG ]

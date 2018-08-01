@@ -15,8 +15,14 @@
 #
 ###############################################################################
 
-#!/bin/sh
+#!/bin/bash
 echo "Start edge opcua build"
+
+usage() {
+    echo -e "${BLUE}Usage:${NO_COLOUR} ./build.sh <option>"
+    echo -e "${GREEN}Options:${NO_COLOUR}"
+    echo "  --build_mode=[release|debug(DEBUG)](default: release) :  Build opcua-aml library and samples in release or debug mode"
+}
 
 process_cmd_args() {
     while [ "$#" -gt 0  ]; do
@@ -25,6 +31,12 @@ process_cmd_args() {
                 build_mode="${1#*=}";
                 echo -e "Build mode = $build_mode"
                 shift 1;
+                ;;
+            -h)
+                usage; exit 0
+                ;;
+            --help)
+                usage; exit 0
                 ;;
             -*)
                 echo "unknown option: $1" >&2;
@@ -49,6 +61,5 @@ else
     scons -c
     scons TEST=1 AUTO_DOWNLOAD_DEP_LIBS=1
 fi
-cp /usr/bin/qemu-aarch64-static .
 
 echo "End of edge opcua build"
