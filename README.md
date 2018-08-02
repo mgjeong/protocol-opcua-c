@@ -14,13 +14,27 @@ This provides opcua protocol stack library
   - [Where to download](https://cmake.org/download/)
   - [How to install](https://cmake.org/install/)
 
-## How to build  ##
+- SCons
+  - Version : 2.3.0 or above
+  - [How to install](http://scons.org/doc/2.3.0/HTML/scons-user/c95.html)
 
-#### 1. Command ####
+- pip
+   ```shell
+   $ curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+   $ python get-pip.py
+   ``` 
+
+## How to build  ##
 
 ```shell
 $ ./build.sh
+$ ./build_arm.sh  : for arm architecture
 ```
+
+##### Build Options #####
+- --build_mode = [release/debug] 
+
+  If you want to build to debug mode, then please make this option [debug/DEBUG]. Default value is [release].
 
 ##### Binaries #####
 - opcua protocol stack library : build/libopcua-adapter.so
