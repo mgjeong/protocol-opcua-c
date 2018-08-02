@@ -21,7 +21,7 @@ echo "Start edge opcua build"
 usage() {
     echo -e "${BLUE}Usage:${NO_COLOUR} ./build.sh <option>"
     echo -e "${GREEN}Options:${NO_COLOUR}"
-    echo "  --build_mode=[release|debug(DEBUG)](default: release) :  Build opcua-aml library and samples in release or debug mode"
+    echo "  --build_mode=[release|debug(DEBUG)](default: release) :  Build opcua library and samples in release or debug mode"
 }
 
 process_cmd_args() {
