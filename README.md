@@ -18,7 +18,11 @@ This provides opcua protocol stack library
   - Version : 2.3.0 or above
   - [How to install](http://scons.org/doc/2.3.0/HTML/scons-user/c95.html)
 
+- Python
+  - Version : 2.7.X
+
 - pip
+  - [How to install](https://pip.pypa.io/en/latest/installing/)
    ```shell
    $ curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
    $ python get-pip.py
