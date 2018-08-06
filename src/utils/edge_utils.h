@@ -53,6 +53,14 @@ extern "C"
 
 #define CHECKING_ENDPOINT_URI_PATTERN ("^(opc)[.]{1}(tcp:)[/]{2}[A-Za-z0-9.-]{1,30}:[0-9]{1,6}([A-Za-z0-9_/-]{0,100})$")
 
+#ifdef _WIN32
+/**
+ * @brief Gets the current time.(equivalent of gettimeofday() linux)
+ * @remarks 
+ */
+int getTimeofDay(struct timeval *tp, struct timezone *tzp);
+#endif
+
 /**
  * @brief Prints the current system time in "MM/DD HH:MM:SS.sss" format.
  * @remarks Works only if the stack is built in debug mode.

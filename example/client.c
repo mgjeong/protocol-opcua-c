@@ -25,11 +25,11 @@
 #include <inttypes.h>
 #include <signal.h>
 
-#include <sys/time.h>
 #include <time.h>
 
-#include <pthread.h>
+#ifndef _WIN32
 #include <unistd.h>
+#endif
 
 #include "opcua_manager.h"
 #include "opcua_common.h"
@@ -61,7 +61,7 @@ static bool stopFlag = false;
 
 static char endpointUri[MAX_CHAR_SIZE];
 static int endpointCount = 0;
-static bool connect = false;
+static bool bIsConnected = false;
 
 static uint8_t supportedApplicationTypes = EDGE_APPLICATIONTYPE_SERVER | EDGE_APPLICATIONTYPE_DISCOVERYSERVER |
     EDGE_APPLICATIONTYPE_CLIENTANDSERVER;
@@ -90,16 +90,16 @@ static void showNodeId(Edge_NodeId *id)
 
     switch (id->identifierType)
     {
-        case INTEGER:
+        case EDGE_INTEGER:
             printf("Numeric: %d\n", id->identifier.numeric);
             break;
-        case STRING:
+        case EDGE_STRING:
             printf("String: %s\n", (char *) id->identifier.string.data);
             break;
-        case BYTESTRING:
+        case EDGE_BYTESTRING:
             printf("ByteString: %s\n", (char *) id->identifier.byteString.data);
             break;
-        case UUID:
+        case EDGE_UUID:
             {
                 Edge_Guid val = id->identifier.guid;
                 char valueStr[37];
@@ -186,7 +186,8 @@ static void response_msg_cb (EdgeMessage *data)
                             /* Handle UEDGE_NODEID_INT32 output array */
                             for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                             {
-                                printf("%u  ", ((uint *) data->responses[idx]->message->value)[arrayIdx]);
+                            
+                                printf("%u  ", ((uint32_t *) data->responses[idx]->message->value)[arrayIdx]);
                             }
                         }
                         else if (data->responses[idx]->type == EDGE_NODEID_INT64)
@@ -202,7 +203,7 @@ static void response_msg_cb (EdgeMessage *data)
                             /* Handle UEDGE_NODEID_INT64 output array */
                             for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                             {
-                                printf("%lu  ", ((ulong *) data->responses[idx]->message->value)[arrayIdx]);
+                                printf("%" PRIu64 "  ", ((uint64_t *) data->responses[idx]->message->value)[arrayIdx]);
                             }
                         }
                         else if (data->responses[idx]->type == EDGE_NODEID_FLOAT)
@@ -358,8 +359,15 @@ static void monitored_msg_cb (EdgeMessage *data)
         struct timeval val;
         struct tm *lt;
 
-        val = data->serverTime;
-        lt = localtime(&val.tv_sec);
+        lt = data->serverTime;
+        #ifdef LINUX
+            localtime(&val.tv_sec);
+        #endif
+        #ifdef WINDOWS
+	  SYSTEMTIME ltime;	
+            GetLocalTime(&ltime);
+        #endif
+		
 
         printf("[Application response Callback] Monitored Item Response received\n");
         int len = data->responseLength;
@@ -367,8 +375,13 @@ static void monitored_msg_cb (EdgeMessage *data)
         for (idx = 0; idx < len; idx++)
         {
             printf("Msg id : [%" PRIu32 "] , [Node Name] : %s\n", data->message_id, data->responses[idx]->nodeInfo->valueAlias);
+	  #ifndef _WIN32
             printf("Monitored Time : [%d-%02d-%02d %02d:%02d:%02d.%06ld], resLength: %d, resIdx: %d\n",
                        lt->tm_year+1900, lt->tm_mon+1, lt->tm_mday, lt->tm_hour, lt->tm_min, lt->tm_sec, val.tv_usec, len, idx);
+	  #else
+                printf("Monitored Time : [%d-%02d-%02d %02d:%02d:%02d.%03ld], resLength: %d, resIdx: %d\n",
+                lt->tm_year+1900, lt->tm_mon+1, lt->tm_mday, lt->tm_hour, lt->tm_min, lt->tm_sec, (int)ltime.wMilliseconds, len, idx);
+	  #endif	  
             if (data->responses[idx]->message == NULL)
             {
                 printf("data->responses[%d]->message is NULL\n", idx);
@@ -432,7 +445,7 @@ static void monitored_msg_cb (EdgeMessage *data)
                     /* Handle UEDGE_NODEID_INT32 output array */
                     for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                     {
-                        printf("%u  ", ((uint *) data->responses[idx]->message->value)[arrayIdx]);
+                        printf("%u  ", ((uint32_t *) data->responses[idx]->message->value)[arrayIdx]);
                     }
                 }
                 else if (data->responses[idx]->type == EDGE_NODEID_INT64)
@@ -448,7 +461,7 @@ static void monitored_msg_cb (EdgeMessage *data)
                     /* Handle UEDGE_NODEID_INT64 output array */
                     for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                     {
-                        printf("%lu  ", ((ulong *) data->responses[idx]->message->value)[arrayIdx]);
+                        printf("%" PRIu64 "   ", ((uint64_t *) data->responses[idx]->message->value)[arrayIdx]);
                     }
                 }
                 else if (data->responses[idx]->type == EDGE_NODEID_FLOAT)
@@ -560,7 +573,7 @@ static void error_msg_cb (EdgeMessage *data)
             EdgeNodeId *nodeId = response->nodeInfo->nodeId;
             if (nodeId)
             {
-                if (nodeId->type == INTEGER)
+                if (nodeId->type == EDGE_INTEGER)
                     printf("Response[%d]->NodeId(Integer): %d\n", i, nodeId->integerNodeId);
                 else
                     printf("Response[%d]->NodeId(String): %s\n", i, nodeId->nodeId);
@@ -639,7 +652,7 @@ static void endpoint_found_cb (EdgeDevice *device)
             printf("[Application Callback] SecurityPolicyUri :: %s\n\n",
                    device->endpointsInfo[idx]->securityPolicyUri);
 
-            if(connect)
+            if(bIsConnected)
             {
                 startClient(device->address, device->port, device->endpointsInfo[idx]->securityPolicyUri, device->endpointsInfo[idx]->endpointUri);
             }
@@ -997,7 +1010,7 @@ static void testBrowse(char* endpointUri)
         return;
     }
 
-    EdgeNodeInfo* nodeInfo = createEdgeNodeInfoForNodeId(INTEGER, EDGE_NODEID_ROOTFOLDER, SYSTEM_NAMESPACE_INDEX);
+    EdgeNodeInfo* nodeInfo = createEdgeNodeInfoForNodeId(EDGE_INTEGER, EDGE_NODEID_ROOTFOLDER, SYSTEM_NAMESPACE_INDEX);
     EdgeBrowseParameter param = {DIRECTION_FORWARD, maxReferencesPerNode};
     insertBrowseParameter(&msg, nodeInfo, param);
     printf("\n\n" COLOR_YELLOW "********** Browse RootFolder node in system namespace **********"
@@ -1023,10 +1036,10 @@ static void testBrowses(char* endpointUri)
         return;
     }
 
-    EdgeNodeInfo* nodeInfo = createEdgeNodeInfoForNodeId(INTEGER, EDGE_NODEID_ROOTFOLDER, SYSTEM_NAMESPACE_INDEX);
+    EdgeNodeInfo* nodeInfo = createEdgeNodeInfoForNodeId(EDGE_INTEGER, EDGE_NODEID_ROOTFOLDER, SYSTEM_NAMESPACE_INDEX);
     EdgeBrowseParameter param = {DIRECTION_FORWARD, maxReferencesPerNode};
     insertBrowseParameter(&msg, nodeInfo, param);
-    nodeInfo = createEdgeNodeInfoForNodeId(INTEGER, EDGE_NODEID_OBJECTSFOLDER, SYSTEM_NAMESPACE_INDEX);
+    nodeInfo = createEdgeNodeInfoForNodeId(EDGE_INTEGER, EDGE_NODEID_OBJECTSFOLDER, SYSTEM_NAMESPACE_INDEX);
     insertBrowseParameter(&msg, nodeInfo, param);
     nodeInfo = createEdgeNodeInfo("{2;S;v=0}Object1");
     insertBrowseParameter(&msg, nodeInfo, param);
@@ -1052,7 +1065,12 @@ static void readHelper(int num_requests, char *ep)
 
     for (int i = 0; i < num_requests; i++)
     {
-        usleep(1000);
+        #ifndef _WIN32
+            usleep(1000);
+        #else
+	        Sleep(1);
+        #endif	
+
         printf("\nEnter the node #%d name to read :: ", (i + 1));
         scanf("%s", nodeName);
         insertReadAccessNode(&msg, nodeName);
@@ -1348,7 +1366,7 @@ static void testSub()
         double samplingInterval;
         printf("\nEnter number of sampling interval[millisecond] (minimum : 25ms) :: ");
         scanf("%lf", &samplingInterval);
-        int keepalivetime = (1 > (int) (ceil(10000.0 / 0.0))) ? 1 : (int) ceil(10000.0 / 0.0);
+        int keepalivetime = 1;	//(1 > (int) (ceil(10000.0 / 0.0))) ? 1 : (int) ceil(10000.0 / 0.0);
         insertSubParameter(&msg, nodeName, Edge_Create_Sub, samplingInterval, 0.0, keepalivetime, 10000, 1, true, 0, 50);
     }
 
@@ -1388,7 +1406,7 @@ static void testSubModify()
     double samplingInterval;
     printf("\nEnter number of sampling interval[millisecond] (minimum : 25ms) :: ");
     scanf("%lf", &samplingInterval);
-    int keepalivetime = (1 > (int) (ceil(10000.0 / 0.0))) ? 1 : (int) ceil(10000.0 / 0.0);
+    int keepalivetime = 1;	//(1 > (int) (ceil(10000.0 / 0.0))) ? 1 : (int) ceil(10000.0 / 0.0);
     insertSubParameter(&msg, nodeName, Edge_Modify_Sub, samplingInterval, 0.0, keepalivetime, 10000, 1, true, 0, 50);
 
     EdgeResult result = sendRequest(msg);
@@ -1673,14 +1691,18 @@ static void testRobotSub() {
 
     for (int i = 0; i < num_requests; i++)
     {
-        usleep(1000);
+        #ifndef _WIN32
+            usleep(1000);
+        #else
+            Sleep(1);
+        #endif
         printf("\nEnter the node #%d name to subscribe :: ", (i + 1));
         scanf("%s", nodeName);
 
         double samplingInterval;
         printf("\nEnter number of sampling interval[millisecond] (minimum : 25ms) :: ");
         scanf("%lf", &samplingInterval);
-        int keepalivetime = (1 > (int) (ceil(10000.0 / 0.0))) ? 1 : (int) ceil(10000.0 / 0.0);
+        int keepalivetime = 1; //(1 > (int) (ceil(10000.0 / 0.0))) ? 1 : (int) ceil(10000.0 / 0.0);
         insertSubParameter(&msg, nodeName, Edge_Create_Sub, samplingInterval, 0.0, keepalivetime, 10000, 1, true, 0, 50);
     }
 
@@ -1735,7 +1757,11 @@ int main()
 
     while (!stopFlag)
     {
-        usleep(1000);
+        #ifndef _WIN32
+            usleep(1000);
+        #else
+            Sleep(1);
+        #endif
         printf("\n\n[INPUT Command] : ");
         scanf("%s", command);
 
@@ -1753,7 +1779,7 @@ int main()
             printf("[Please input server endpoint uri (Ex: opc.tcp://hostname:port/path)]: ");
             scanf("%s", endpointUri);
 
-            connect = false;
+            bIsConnected = false;
             testGetEndpoints(endpointUri);
         }
         else if (!strcmp(command, "start"))
@@ -1761,7 +1787,7 @@ int main()
             printf("[Please input server endpoint uri (Ex: opc.tcp://hostname:port/path)] : ");
             scanf("%s", endpointUri);
 
-            connect = true;
+            bIsConnected = true;
             testGetEndpoints(endpointUri);
 
             //startFlag = true;

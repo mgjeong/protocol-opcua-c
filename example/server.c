@@ -25,8 +25,13 @@
 #include <signal.h>
 #include <inttypes.h>
 
+#ifndef _WIN32
 #include <pthread.h>
 #include <unistd.h>
+#else
+#include "pthread.h"
+#endif
+//#include <unistd.h>
 
 #include "opcua_manager.h"
 #include "opcua_common.h"
@@ -92,8 +97,7 @@ static int getRandom(int key)
 
 static void *server_sample_loop(void *ptr)
 {
-    char s_value[MAX_ENDPOINT_URI_SIZE] =
-    { };
+    char s_value[MAX_ENDPOINT_URI_SIZE] = {0, };
     char dataNum[1];
 
     while (b_running)
@@ -140,7 +144,11 @@ static void *server_sample_loop(void *ptr)
             printf("Error :: EdgeMalloc failed for EdgeVersatility in Test Modify Nodes\n");
         }
 
-        usleep(25 * 1000);
+        #ifndef _WIN32
+            usleep(25 *1000);
+        #else
+            Sleep(25);
+        #endif
         robot_data_idx++;
     }
     return NULL;
@@ -438,7 +446,11 @@ static void testCreateNodes()
 
     printf("\n[%d] Variable node with dateTime variant: \n", ++index);
     struct timeval tv;
-    gettimeofday(&tv, NULL);
+    #ifndef _WIN32
+        gettimeofday(&tv, NULL);
+    #else
+        getTimeofDay(&tv, NULL);
+    #endif
     Edge_DateTime time = (tv.tv_sec * DATETIME_SEC) + (tv.tv_usec * DATETIME_USEC) + DATETIME_UNIX_EPOCH;
     item = createVariableNodeItem("DateTime", EDGE_NODEID_DATETIME, (void *) &time, VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
@@ -488,7 +500,7 @@ static void testCreateNodes()
     printf("\n[%d] Variable node with NODEID variant: \n", ++index);
     Edge_NodeId node;
     node.namespaceIndex = DEFAULT_NAMESPACE_INDEX;
-    node.identifierType = INTEGER;
+    node.identifierType = EDGE_INTEGER;
     node.identifier.numeric = EDGE_NODEID_ROOTFOLDER;
 
     item = createVariableNodeItem("NodeId", EDGE_NODEID_NODEID, &node, VARIABLE_NODE, 100);
@@ -842,12 +854,12 @@ static void testCreateNodes()
         nodeArr[index].namespaceIndex = DEFAULT_NAMESPACE_INDEX;
         if(index %2 == 0)
         {
-            nodeArr[index].identifierType = INTEGER;
+            nodeArr[index].identifierType = EDGE_INTEGER;
             nodeArr[index].identifier.numeric = EDGE_NODEID_ROOTFOLDER;
         }
         else
         {
-            nodeArr[index].identifierType = STRING;
+            nodeArr[index].identifierType = EDGE_STRING;
             nodeArr[index].identifier.string = EdgeStringAlloc("StringNodeId");
         }
     }
@@ -1718,7 +1730,12 @@ static void testModifyNode()
             message->value = new_value;
             modifyVariableNode(DEFAULT_NAMESPACE_VALUE, name, message);
             EdgeFree(message);
-            usleep(1000 * 1000);
+
+            #ifndef _WIN32
+                usleep(1000 * 1000);
+            #else
+                Sleep(1000);
+            #endif
         }
         else
         {
@@ -1755,7 +1772,11 @@ static void testModifyNode()
                 message->value = new_value;
                 modifyVariableNode(DEFAULT_NAMESPACE_VALUE, name, message);
                 EdgeFree(message);
+                #ifndef _WIN32
                 usleep(1000 * 1000);
+            	#else
+                Sleep(1000);
+				#endif
             }
             else
             {
@@ -1777,7 +1798,11 @@ static void testModifyNode()
                 message->value = new_value;
                 modifyVariableNode(DEFAULT_NAMESPACE_VALUE, name, message);
                 EdgeFree(message);
+                #ifndef _WIN32
                 usleep(1000 * 1000);
+            	#else
+                Sleep(1000);
+				#endif
             }
             else
             {

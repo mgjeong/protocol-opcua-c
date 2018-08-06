@@ -165,13 +165,13 @@ static bool parseEndpoints(size_t endpointArraySize, UA_EndpointDescription *end
         if (!epInfo)
         {
             EDGE_LOG(TAG, "Memory allocation failed.");
-            goto ERROR;
+            goto ENDPOINT_ERROR;
         }
 
         if (!addListNode(endpointList, epInfo))
         {
             EDGE_LOG(TAG, "Failed to add endpoint in result list.");
-            goto ERROR;
+            goto ENDPOINT_ERROR;
         }
         ++(*count);
         epInfo = NULL;
@@ -179,7 +179,7 @@ static bool parseEndpoints(size_t endpointArraySize, UA_EndpointDescription *end
 
     return true;
 
-    ERROR:
+    ENDPOINT_ERROR:
     // Deallocate memory
     for (List *listPtr = *endpointList; listPtr; listPtr = listPtr->link)
     {

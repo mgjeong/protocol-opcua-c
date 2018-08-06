@@ -24,31 +24,42 @@ Import('env')
 # Examples build script
 ##
 example_env = env.Clone()
+architecture = ARGUMENTS.get('TARGET_ARCH')
 outDir = 'out'
 srcPath = '../src/'
 incPath = '../include/'
+extPath= '../extlibs/'
 open62541LibVersion = '_0.2'
 
 #example_env.Execute('rm -rf ' + outDir)
-example_env.Execute('mkdir -p ' + outDir)
+example_env.Execute('mkdir ' + outDir)
 
+if architecture == 'windows' :
+	example_env.AppendUnique(CPPDEFINES= ['HAVE_STRUCT_TIMESPEC', 'PTW32_BUILD_INLINED', 'PTW32_STATIC_LIB'])
 
 ######################################################################
 # Build flags
 ######################################################################
 
-example_env['CCFLAGS'] = ['-fvisibility=hidden', '-fPIC',  '-Wall', '-Werror', '-std=gnu99', '-g']
+if architecture == 'linux' :
+	example_env['CCFLAGS'] = ['-fvisibility=hidden', '-fPIC',  '-Wall', '-Werror', '-std=gnu99', '-g']
 
 example_env['CPPPATH'] = [incPath,
 			'../extlibs/open62541/open62541' + open62541LibVersion,
 			srcPath + '/command',
 			srcPath + '/node',
-			#srcPath + '/queue',
+			srcPath + '/queue',
 			srcPath + '/session',
 			srcPath + '/utils'
 ]
 
-example_env.AppendUnique(LIBS = ['rt', 'm', 'pthread', 'opcua-adapter'])
+if architecture == 'linux' :	
+	example_env.AppendUnique(LIBS = ['rt', 'm', 'pthread', 'opcua-adapter'])
+else :
+	example_env.AppendUnique(CPPPATH = ['../extlibs/pthread-win32/include/'])
+	example_env.AppendUnique(LIBS=File('../extlibs/pthread-win32/libs/x64/pthreadVC2.lib'))
+	example_env.AppendUnique(LIBS = ['opcua-adapter'])
+
 example_env.AppendUnique(LIBPATH=['../build'])
 example_env.AppendUnique(RPATH=['../../build'])
 
@@ -56,11 +67,11 @@ test = ARGUMENTS.get('TEST')
 if ARGUMENTS.get('TEST', False) in [
             'y', 'yes', 'true', 't', '1', 'on', 'all', True
     ]:
-    print "TEST IS ENABLED"
+    print ("TEST IS ENABLED")
     example_env.AppendUnique(CCFLAGS=['-fprofile-arcs', '-ftest-coverage'])
     example_env.AppendUnique(LINKFLAGS=['-lgcov', '--coverage'])
 else:
-    print "TEST IS DISABLED"
+    print ("TEST IS DISABLED")
 
 
 ######################################################################

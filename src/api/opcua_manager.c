@@ -31,7 +31,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#ifndef _WIN32
 #include <regex.h>
+#endif
 
 #define TAG "opcua_manager"
 
@@ -241,6 +243,7 @@ char *copyString(const char *str)
 }
 
 bool checkEndpointURI(char *endpoint) {
+#ifndef _WIN32
     regex_t regex;
     bool result = false;
 
@@ -261,6 +264,9 @@ bool checkEndpointURI(char *endpoint) {
 
     regfree(&regex);
     return result;
+#else
+    return true;
+#endif	
 }
 
 static EdgeResult checkParameterValid(EdgeMessage *msg)
@@ -437,7 +443,7 @@ void onResponseMessage(EdgeMessage *msg)
         receivedMsgCb->browse_msg_cb(msg);
     if(msg->type == REPORT)
         receivedMsgCb->monitored_msg_cb(msg);
-    if(msg->type == ERROR)
+    if(msg->type == ERROR_RESPONSE)
         receivedMsgCb->error_msg_cb(msg);
 }
 

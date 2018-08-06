@@ -35,7 +35,11 @@ extern "C"
 {
 #endif
 
+#ifndef _WIN32
 #define EXPORT __attribute__((visibility("default")))
+#else
+#define EXPORT
+#endif
 
 /**
  * Allocates a block of size bytes, returning a pointer to the beginning of

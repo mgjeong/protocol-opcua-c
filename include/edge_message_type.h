@@ -61,7 +61,7 @@ typedef enum
     SEND_REQUESTS = 31,
 
     /** Error message.*/
-    ERROR = 40
+    ERROR_RESPONSE = 40
 } EdgeMessageType;
 
 /** Server Info - Description.*/

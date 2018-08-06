@@ -20,8 +20,12 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#ifndef _WIN32
 #include <pthread.h>
 #include <unistd.h>
+#else
+#include "pthread.h"
+#endif
 
 #include "uqueue.h"
 #include "cacommon.h"
@@ -130,7 +134,7 @@ static void handleMessage(EdgeMessage *data)
         g_sendCallback(data);
     }
     else if (GENERAL_RESPONSE == data->type || BROWSE_RESPONSE == data->type || REPORT == data->type
-            || ERROR == data->type)
+            || ERROR_RESPONSE == data->type)
     {
         // Invoke callback to handle response.
         g_responseCallback(data);

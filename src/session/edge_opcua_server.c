@@ -27,7 +27,11 @@
 #include "edge_malloc.h"
 
 #include <stdio.h>
+#ifndef _WIN32
 #include <pthread.h>
+#else
+#include "pthread.h"
+#endif
 #include <open62541.h>
 
 #define TAG "session_server"
@@ -137,7 +141,7 @@ EdgeResult createNamespaceInServer(const char *namespaceUri, const char *rootNod
     if(IS_NULL(ns->rootNodeIdentifier))
     {
         EDGE_LOG(TAG, "Memory allocation failed.");
-        goto ERROR;
+        goto NAMESPACE_ERROR;
     }
     strncpy(ns->rootNodeIdentifier, rootNodeIdentifier, strlen(rootNodeIdentifier)+1);
 
@@ -145,7 +149,7 @@ EdgeResult createNamespaceInServer(const char *namespaceUri, const char *rootNod
     if(IS_NULL(ns->rootNodeBrowseName))
     {
         EDGE_LOG(TAG, "Memory allocation failed.");
-        goto ERROR;
+        goto NAMESPACE_ERROR;
     }
     strncpy(ns->rootNodeBrowseName, rootNodeBrowseName, strlen(rootNodeBrowseName)+1);
 
@@ -153,7 +157,7 @@ EdgeResult createNamespaceInServer(const char *namespaceUri, const char *rootNod
     if(IS_NULL(ns->rootNodeDisplayName))
     {
         EDGE_LOG(TAG, "Memory allocation failed.");
-        goto ERROR;
+        goto NAMESPACE_ERROR;
     }
     strncpy(ns->rootNodeDisplayName, rootNodeDisplayName, strlen(rootNodeDisplayName)+1);
 
@@ -162,7 +166,7 @@ EdgeResult createNamespaceInServer(const char *namespaceUri, const char *rootNod
     insertMapElement(namespaceMap, (keyValue) namespaceUri, (keyValue) ns);
     return result;
 
-ERROR:
+NAMESPACE_ERROR:
     // Deallocate memory.
     EdgeFree(ns->rootNodeIdentifier);
     EdgeFree(ns->rootNodeBrowseName);

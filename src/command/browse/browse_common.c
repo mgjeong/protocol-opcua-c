@@ -81,12 +81,12 @@ UA_NodeId *getNodeId(EdgeRequest *req)
 
     UA_NodeId *node = (UA_NodeId *) EdgeCalloc(1, sizeof(UA_NodeId));
     VERIFY_NON_NULL_MSG(node, "EdgeCalloc FAILED for UA Node Id\n", NULL);
-    if (req->nodeInfo->nodeId->type == INTEGER)
+    if (req->nodeInfo->nodeId->type == EDGE_INTEGER)
     {
         *node = UA_NODEID_NUMERIC(req->nodeInfo->nodeId->nameSpace,
                 req->nodeInfo->nodeId->integerNodeId);
     }
-    else if (req->nodeInfo->nodeId->type == STRING)
+    else if (req->nodeInfo->nodeId->type == EDGE_STRING)
     {
         *node = UA_NODEID_STRING_ALLOC(req->nodeInfo->nodeId->nameSpace,
                 req->nodeInfo->nodeId->nodeId);
@@ -117,7 +117,7 @@ void invokeErrorCb(uint32_t srcMsgId, EdgeNodeId *srcNodeId,
         goto EXIT;
     }
 
-    resultMsg->type = ERROR;
+    resultMsg->type = ERROR_RESPONSE;
     resultMsg->result = createEdgeResult(edgeResult);
     if (IS_NULL(resultMsg->result))
     {
@@ -186,21 +186,21 @@ static void invokeResponseCb(EdgeMessage *msg, int msgId, EdgeNodeId *srcNodeId,
     if (IS_NULL(resultMsg->endpointInfo))
     {
         EDGE_LOG(TAG, "Failed to clone the EdgeEndpointInfo.");
-        goto ERROR;
+        goto BROWSE_ERROR;
     }
 
     resultMsg->responses = (EdgeResponse **) EdgeCalloc (1, sizeof(EdgeResponse *));
     if (IS_NULL(resultMsg->responses))
     {
         EDGE_LOG(TAG, "Memory allocation failed.");
-        goto ERROR;
+        goto BROWSE_ERROR;
     }
     resultMsg->responseLength = 1;
     resultMsg->responses[0] = (EdgeResponse *) EdgeCalloc(1, sizeof(EdgeResponse));
     if (IS_NULL(resultMsg->responses[0]))
     {
         EDGE_LOG(TAG, "Memory allocation failed.");
-        goto ERROR;
+        goto BROWSE_ERROR;
     }
 
     if(IS_NOT_NULL(browsePath))
@@ -209,14 +209,14 @@ static void invokeResponseCb(EdgeMessage *msg, int msgId, EdgeNodeId *srcNodeId,
         if (IS_NULL(resultMsg->responses[0]->message))
         {
             EDGE_LOG(TAG, "Memory allocation failed.");
-            goto ERROR;
+            goto BROWSE_ERROR;
         }
         resultMsg->responses[0]->message->isArray = false;
         resultMsg->responses[0]->message->value = (unsigned char *)cloneData(browsePath, strlen((char *)browsePath)+1);
         if(IS_NULL(resultMsg->responses[0]->message->value))
         {
             EDGE_LOG(TAG, "Memory allocation failed.");
-            goto ERROR;
+            goto BROWSE_ERROR;
         }
     }
 
@@ -224,7 +224,7 @@ static void invokeResponseCb(EdgeMessage *msg, int msgId, EdgeNodeId *srcNodeId,
     if (IS_NULL(resultMsg->responses[0]->nodeInfo))
     {
         EDGE_LOG(TAG, "Memory allocation failed.");
-        goto ERROR;
+        goto BROWSE_ERROR;
     }
     resultMsg->responses[0]->nodeInfo->nodeId = cloneEdgeNodeId(srcNodeId);               //srcNodeId;
     resultMsg->responses[0]->nodeInfo->valueAlias = (char *)cloneData(valueAlias, strlen((char *)valueAlias)+1); //valueAlias;
@@ -233,13 +233,13 @@ static void invokeResponseCb(EdgeMessage *msg, int msgId, EdgeNodeId *srcNodeId,
     if (IS_NULL(resultMsg->browseResult))
     {
         EDGE_LOG(TAG, "Memory allocation failed.");
-        goto ERROR;
+        goto BROWSE_ERROR;
     }
     resultMsg->browseResult->browseName = cloneString(browseResult->browseName);
     if(IS_NULL(resultMsg->browseResult->browseName))
     {
         EDGE_LOG(TAG, "Memory allocation failed.");
-        goto ERROR;
+        goto BROWSE_ERROR;
     }
 
     resultMsg->browseResultLength = size;
@@ -247,7 +247,7 @@ static void invokeResponseCb(EdgeMessage *msg, int msgId, EdgeNodeId *srcNodeId,
     add_to_recvQ(resultMsg);
     return;
 
-ERROR:
+BROWSE_ERROR:
     // Deallocate memory.
     freeEdgeMessage(resultMsg);
 }

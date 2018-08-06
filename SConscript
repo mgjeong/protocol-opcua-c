@@ -43,12 +43,16 @@ if architecture == 'arm' :
 
 def do__(self, arg):
 	Execute(arg)
-	print "\n"
+	print ("\n")
+	
+if architecture == 'windows':
+	env.AppendUnique(CPPDEFINES= ['WINDOWS', 'HAVE_STRUCT_TIMESPEC', 'PTW32_BUILD_INLINED', 'PTW32_STATIC_LIB'])
 
 ######################################################################
 # Build Open62541 library
 ######################################################################
-SConscript('extlibs/open62541/SConscript')
+if architecture == 'linux':
+	SConscript('extlibs/open62541/SConscript')
 
 buildDir= 'build/'
 incPath= 'include/'
@@ -61,17 +65,18 @@ AddMethod(env, do__)
 # Build flags
 ######################################################################
 
-env.AppendUnique(CCFLAGS=['-fPIC',  '-Wall', '-Werror', '-std=gnu99'])
+if architecture == 'linux':
+	env.AppendUnique(CCFLAGS=['-fPIC',  '-Wall', '-Werror', '-std=gnu99'])
 
 test = ARGUMENTS.get('TEST')
 if ARGUMENTS.get('TEST', False) in [
             'y', 'yes', 'true', 't', '1', 'on', 'all', True
     ]:
-    print "TEST IS ENABLED"
+    print ("TEST IS ENABLED")
     env.AppendUnique(CCFLAGS=['-fvisibility=default', '-fprofile-arcs', '-ftest-coverage'])
     env.AppendUnique(LINKFLAGS=['-lgcov', '--coverage'])
 else:
-    print "TEST IS DISABLED"
+    print ("TEST IS DISABLED")
     env.AppendUnique(CCFLAGS=['-fvisibility=hidden'])
 
 #delBuildDir = 'rm -rf ' + buildDir
@@ -94,7 +99,12 @@ env.AppendUnique(CPPPATH= [
 		srcPath + '/utils'
 ])
 
-env.AppendUnique(LIBS= ['pthread', 'rt'])
+if architecture == 'windows':
+	env.AppendUnique(LIBS=File('#/extlibs/pthread-win32/libs/x64/pthreadVC2.lib'))
+	env.AppendUnique(LIBS=['wsock32', 'ws2_32'])
+	env.AppendUnique(CPPPATH= [extPath + '/pthread-win32/include'])
+else:
+	env.AppendUnique(LIBS= ['pthread', 'rt'])
 
 ctt = ARGUMENTS.get('CTT')
 if ARGUMENTS.get('CTT', False) in [
@@ -153,8 +163,9 @@ src = [
 env.VariantDir(variant_dir = (buildDir + '/' + srcPath), src_dir = 'src', duplicate = 0)
 env.VariantDir(variant_dir = (buildDir + '/' + extPath), src_dir = 'extlibs', duplicate = 0)
 
-env.SharedLibrary(target = (buildDir + '/' + 'opcua-adapter'), source = src)
-
+if architecture == 'linux':
+	env.SharedLibrary(target = (buildDir + '/' + 'opcua-adapter'), source = src)
+env.StaticLibrary(target = (buildDir + '/' + 'opcua-adapter'), source = src)
 Export('env')
 
 Return('env')

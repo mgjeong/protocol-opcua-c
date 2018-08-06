@@ -40,7 +40,7 @@ void sendErrorResponse(const EdgeMessage *msg, char *err_desc)
     EdgeMessage *resultMsg = (EdgeMessage *) EdgeCalloc(1, sizeof(EdgeMessage));
     VERIFY_NON_NULL_NR_MSG(resultMsg, "EdgeCalloc FAILED for EdgeMessage in sendErrorResponse\n");
     resultMsg->endpointInfo = cloneEdgeEndpointInfo(msg->endpointInfo);
-    resultMsg->type = ERROR;
+    resultMsg->type = ERROR_RESPONSE;
     resultMsg->responseLength = 1;
     resultMsg->message_id = msg->message_id;
 
