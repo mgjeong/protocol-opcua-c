@@ -73,7 +73,7 @@ if [ "$build_mode" == debug -o "$build_mode" == DEBUG ]
     then
     echo "Build with DEBUG mode"
     scons -c
-    scons TARGET_ARCH=linux TEST=1 AUTO_DOWNLOAD_DEP_LIBS=1 DEBUG=1
+    scons TARGET_ARCH=linux TEST=1 AUTO_DOWNLOAD_DEP_LIBS=1 DEBUG=1 SUB_QUEUE=1
     if [ $? -ne 0 ]; then
         echo -e "Build failed"
         exit 1
@@ -81,7 +81,7 @@ if [ "$build_mode" == debug -o "$build_mode" == DEBUG ]
 else
     echo "Build with RELEASE mode"
     scons -c
-    scons TARGET_ARCH=linux TEST=1 AUTO_DOWNLOAD_DEP_LIBS=1
+    scons TARGET_ARCH=linux TEST=1 AUTO_DOWNLOAD_DEP_LIBS=1 SUB_QUEUE=1
     if [ $? -ne 0 ]; then
         echo -e "Build failed"
         exit 1
