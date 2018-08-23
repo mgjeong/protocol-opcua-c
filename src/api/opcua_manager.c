@@ -113,6 +113,7 @@ EdgeResult createServer(EdgeEndPointInfo *epInfo)
     EDGE_LOG(TAG, "[Received command] :: Server start.");
     EdgeResult result = {STATUS_PARAM_INVALID };
     VERIFY_NON_NULL_MSG(epInfo, "", result);
+    VERIFY_NON_NULL_MSG(epInfo->endpointConfig, "", result);
     COND_CHECK((epInfo->endpointConfig->bindPort < 1), result);
     COND_CHECK((epInfo->endpointConfig->bindPort > 65535), result);
 		
@@ -129,7 +130,7 @@ EdgeResult createServer(EdgeEndPointInfo *epInfo)
 void closeServer(EdgeEndPointInfo *epInfo)
 {
     VERIFY_NON_NULL_NR_MSG(epInfo, "NULL param epINfo in closeServer\n");
-    VERIFY_NON_NULL_NR_MSG(!b_serverInitialized, "Server already initialized.\n");
+    COND_CHECK_NR_MSG((!b_serverInitialized), "No server initialized.\n");
     stop_server(epInfo);
     b_serverInitialized = false;
 }
