@@ -114,18 +114,8 @@ EdgeResult createNamespaceInServer(const char *namespaceUri, const char *rootNod
     VERIFY_NON_NULL_MSG(rootNodeBrowseName, "", result);
     VERIFY_NON_NULL_MSG(rootNodeDisplayName, "", result);
 
-    if (namespaceType != URI_TYPE && namespaceType != DEFAULT_TYPE)
-    {
-        result.code = STATUS_ERROR;
-        return result;
-    }
-
-    if (getNamespaceIndex(namespaceUri))
-    {
-        EDGE_LOG(TAG, "Namespace already added\n");
-        result.code = STATUS_PARAM_INVALID;
-        return result;
-    }
+    COND_CHECK((namespaceType != URI_TYPE && namespaceType != DEFAULT_TYPE), result);
+    COND_CHECK_MSG((getNamespaceIndex(namespaceUri)), "Namespace already added\n", result);
 
     result.code = STATUS_OK;
     uint16_t idx = UA_Server_addNamespace(m_server, namespaceUri);

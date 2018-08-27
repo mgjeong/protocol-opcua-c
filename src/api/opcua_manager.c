@@ -120,10 +120,8 @@ EdgeResult createServer(EdgeEndPointInfo *epInfo)
     result.code = STATUS_ALREADY_INIT;
     VERIFY_NON_NULL_MSG(!b_serverInitialized, "Server already initialized.\n", result);
     result = start_server(epInfo);
-    if (result.code == STATUS_OK)
-    {
-        b_serverInitialized = true;
-    }
+    COND_CHECK((result.code != STATUS_OK), result);
+    b_serverInitialized = true;
     return result;
 }
 
@@ -244,11 +242,8 @@ char *copyString(const char *str)
 bool checkEndpointURI(char *endpoint) {
     regex_t regex;
     bool result = false;
-
-    if (regcomp(&regex, CHECKING_ENDPOINT_URI_PATTERN, REG_EXTENDED)) {
-        EDGE_LOG(TAG, "Error in compiling regex\n");
-        return result;
-    }
+    int retComp = regcomp(&regex, CHECKING_ENDPOINT_URI_PATTERN, REG_EXTENDED);
+    COND_CHECK_MSG((retComp), "Error in compiling regex\n", result);
 
     int retRegex = regexec(&regex, endpoint, 0, NULL, 0);
     if(REG_NOERROR == retRegex) {
@@ -259,7 +254,6 @@ bool checkEndpointURI(char *endpoint) {
     } else {
         EDGE_LOG(TAG, "Error in regex\n");
     }
-
     regfree(&regex);
     return result;
 }
@@ -284,16 +278,14 @@ static EdgeResult checkParameterValid(EdgeMessage *msg)
         msg->endpointInfo->endpointUri = m_endpoint;
     }
 
-    if (IS_NOT_NULL(msg->request) && IS_NULL(msg->request->nodeInfo))
+    if (IS_NOT_NULL(msg->request))
     {
-        EDGE_LOG(TAG, "NodeInfo in EdgeRequest is NULL");
-        return result;
+        VERIFY_NON_NULL_MSG(msg->request->nodeInfo, "NodeInfo in EdgeRequest is NULL", result);
     }
 
-    if (IS_NOT_NULL(msg->requests) && 0 == msg->requestLength)
+    if (IS_NOT_NULL(msg->requests))
     {
-        EDGE_LOG(TAG, "Request Length is 0 but requests in EdgeMessage is not NULL.");
-        return result;
+        COND_CHECK_MSG((0 == msg->requestLength), "Request Length is 0 but requests in EdgeMessage is not NULL.", result);
     }
 
     if (IS_NOT_NULL(msg->requests))
@@ -355,14 +347,12 @@ EdgeResult sendRequest(EdgeMessage* msg)
     init_queue();
 
     EdgeResult result = checkParameterValid(msg);
-    if (result.code == STATUS_OK)
-    {
-        EdgeMessage *msgCopy = cloneEdgeMessage(msg);
-        result.code = STATUS_ERROR;
-        VERIFY_NON_NULL_MSG(msgCopy, "NULL messageCopy recevied in send request\n", result);
-        bool ret = add_to_sendQ(msgCopy);
-        result.code = (ret ? STATUS_OK : STATUS_ENQUEUE_ERROR);
-    }
+    COND_CHECK((result.code != STATUS_OK), result);
+    EdgeMessage *msgCopy = cloneEdgeMessage(msg);
+    result.code = STATUS_ERROR;
+    VERIFY_NON_NULL_MSG(msgCopy, "NULL messageCopy recevied in send request\n", result);
+    bool ret = add_to_sendQ(msgCopy);
+    result.code = (ret ? STATUS_OK : STATUS_ENQUEUE_ERROR);
     return result;
 }
 
@@ -538,9 +528,9 @@ EdgeResult insertSubParameter(EdgeMessage **msg, const char* nodeName, EdgeNodeT
     VERIFY_NON_NULL_MSG(subReq, "Error : Malloc failed for subReq\n", result);
 
     result.code = STATUS_OK;
+    subReq->subType = subType;
     if (Edge_Create_Sub == subType || Edge_Modify_Sub == subType)
     {
-        subReq->subType = subType;
         subReq->samplingInterval = samplingInterval;
         subReq->publishingInterval = publishingInterval;
         subReq->maxKeepAliveCount = maxKeepAliveCount;
@@ -549,10 +539,6 @@ EdgeResult insertSubParameter(EdgeMessage **msg, const char* nodeName, EdgeNodeT
         subReq->publishingEnabled = publishingEnabled;
         subReq->priority = priority;
         subReq->queueSize = queueSize;
-    }
-    else
-    {
-        subReq->subType = subType;
     }
 
     if (Edge_Create_Sub == subType)
@@ -724,12 +710,8 @@ EdgeResult insertReadAccessNode(EdgeMessage **msg, const char* nodeName)
     VERIFY_NON_NULL_MSG((*msg), "Error : msg is null", result);
     VERIFY_NON_NULL_MSG(nodeName, "Error : nodename is null", result);
 
-    if ((*msg)->command != CMD_READ && (*msg)->command != CMD_READ_SAMPLING_INTERVAL)
-    {
-        EDGE_LOG(TAG, "Error : command is invalid");
-        result.code = STATUS_PARAM_INVALID;
-        return result;
-    }
+    COND_CHECK_MSG(((*msg)->command != CMD_READ && (*msg)->command != CMD_READ_SAMPLING_INTERVAL),
+                   "Error: Invalid command", result);
 
     result.code = STATUS_ERROR;
     size_t index = (*msg)->requestLength;
@@ -814,13 +796,10 @@ EdgeResult insertEdgeMethodParameter(EdgeMessage **msg, const char* nodeName,
     VERIFY_NON_NULL_MSG(nodeName, "Error : nodeName is null", result);
     COND_CHECK_MSG(((*msg)->command != CMD_METHOD), "Error: command is invalid", result);
 
-    if (inputParameterSize > 0 &&
-            ((argType == SCALAR && scalarValue == NULL) ||
-             (argType == ARRAY_1D && arrayData == NULL)))
+    if (inputParameterSize > 0)
     {
-        EDGE_LOG(TAG, "Error : command is invalid");
-        result.code = STATUS_PARAM_INVALID;
-        return result;
+        COND_CHECK_MSG(((argType == SCALAR && scalarValue == NULL)), "Error: Invalid command", result);
+        COND_CHECK_MSG(((argType == ARRAY_1D && arrayData == NULL)), "Error: Invalid command", result);
     }
 
     EdgeRequest *request = NULL;
@@ -887,12 +866,8 @@ EdgeResult insertBrowseParameter(EdgeMessage **msg, EdgeNodeInfo* nodeInfo,
     VERIFY_NON_NULL_MSG((*msg), "Error : msg is null", result);
     VERIFY_NON_NULL_MSG(nodeInfo, "Error : nodeInfo is null", result);
 
-    if ((*msg)->command != CMD_BROWSE && (*msg)->command != CMD_BROWSE_VIEW)
-    {
-        EDGE_LOG(TAG, "Error : command is invalid");
-        result.code = STATUS_PARAM_INVALID;
-        return result;
-    }
+    COND_CHECK_MSG(((*msg)->command != CMD_BROWSE && (*msg)->command != CMD_BROWSE_VIEW),
+                   "Error: Invalid command", result);
 
     result.code = STATUS_ERROR;
     if (SEND_REQUESTS == (*msg)->type)
