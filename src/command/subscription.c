@@ -118,8 +118,7 @@ static bool hasSubscriptionId(edgeMap *list, UA_UInt32 subId)
     while (temp != NULL)
     {
         subscriptionInfo *subInfo = (subscriptionInfo *)temp->value;
-        if (subInfo->subId == subId)
-            return true;
+        COND_CHECK((subInfo->subId == subId), true);
         temp = temp->next;
     }
     return false;
@@ -136,12 +135,8 @@ static void* get_subscription_list(UA_Client *client)
     edgeMapNode *temp = clientSubMap->head;
     while (NULL != temp)
     {
-        if (temp->key == client)
-        {
-            // client valid
-            // get all subscription information
-            return temp->value;
-        }
+        // Check whether its valid client handle and return the subscription details for the client
+        COND_CHECK((temp->key == client), temp->value);
         temp = temp->next;
     }
     return NULL;
@@ -223,10 +218,7 @@ static void monitoredItemHandler(UA_Client *client, UA_UInt32 monId, UA_DataValu
         return;
     }
 
-    if(!value->hasValue)
-    {
-        return;
-    }
+    COND_CHECK_NR_MSG((!value->hasValue), "");
 
     EDGE_LOG_V(TAG, "Notification received. Value is present, monId :: %d\n", monId);
     logCurrentTimeStamp();
@@ -1124,14 +1116,8 @@ EdgeResult executeSub(UA_Client *client, const EdgeMessage *msg)
     }
     #endif
 
-    if (retVal == UA_STATUSCODE_GOOD)
-    {
-        result.code = STATUS_OK;
-    }
-    else
-    {
-        result.code = STATUS_ERROR;
-    }
+    COND_CHECK((retVal != UA_STATUSCODE_GOOD), result);
+    result.code = STATUS_OK;
 
     return result;
 }

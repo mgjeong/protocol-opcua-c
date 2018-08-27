@@ -33,20 +33,10 @@ EdgeResult findServersInternal(const char *endpointUri, size_t serverUrisSize,
     size_t *registeredServersSize, EdgeApplicationConfig **registeredServers)
 {
     EdgeResult res;
-    if(IS_NULL(endpointUri))
-    {
-        EDGE_LOG(TAG, "endpointUri is NULL.");
-        res.code = STATUS_PARAM_INVALID;
-        return res;
-    }
+    res.code = STATUS_PARAM_INVALID;
+    VERIFY_NON_NULL_MSG(endpointUri, "endpointUri is NULL.", res);
 
-    if(serverUrisSize > 0 && IS_NULL(serverUris))
-    {
-        EDGE_LOG(TAG, "serverUrisSize is > 0 but serverUris is NULL.");
-        res.code = STATUS_PARAM_INVALID;
-        return res;
-    }
-
+    COND_CHECK_MSG((serverUrisSize > 0 && IS_NULL(serverUris)), "serverUrisSize is > 0 but serverUris is NULL.", res);
     for(size_t i = 0; i < serverUrisSize; ++i)
     {
         if(IS_NULL(serverUris[i]))
@@ -57,13 +47,7 @@ EdgeResult findServersInternal(const char *endpointUri, size_t serverUrisSize,
         }
     }
 
-    if(localeIdsSize > 0 && IS_NULL(localeIds))
-    {
-        EDGE_LOG(TAG, "localeIdsSize is > 0 but localeIds is NULL.");
-        res.code = STATUS_PARAM_INVALID;
-        return res;
-    }
-
+    COND_CHECK_MSG((localeIdsSize > 0 && IS_NULL(localeIds)), "localeIdsSize is > 0 but localeIds is NULL.", res);
     for(size_t i = 0; i < localeIdsSize; ++i)
     {
         if(IS_NULL(localeIds[i]))
@@ -74,12 +58,8 @@ EdgeResult findServersInternal(const char *endpointUri, size_t serverUrisSize,
         }
     }
 
-    if(IS_NULL(registeredServersSize) || IS_NULL(registeredServers))
-    {
-        EDGE_LOG(TAG, "NULL registeredServersSize/registeredServers.");
-        res.code = STATUS_PARAM_INVALID;
-        return res;
-    }
+    VERIFY_NON_NULL_MSG(registeredServersSize, "registeredServersSize is NULL.", res);
+    VERIFY_NON_NULL_MSG(registeredServers, "registeredServers is NULL.", res);
 
     UA_String hostName = UA_STRING_NULL, path = UA_STRING_NULL;
     UA_UInt16 port = 0;

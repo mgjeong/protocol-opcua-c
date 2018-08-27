@@ -76,11 +76,7 @@ EdgeApplicationConfig *convertToEdgeApplicationConfig(UA_ApplicationDescription 
 
     EdgeApplicationConfig *appConfig = (EdgeApplicationConfig *) EdgeCalloc(1,
             sizeof(EdgeApplicationConfig));
-    if (!appConfig)
-    {
-        EDGE_LOG(TAG, "Memory allocation failed for appConfig.");
-        return NULL;
-    }
+    VERIFY_NON_NULL_MSG(appConfig, "Memory allocation failed for appConfig.", NULL);
 
     if (appDesc->applicationUri.length > 0)
     {
@@ -168,11 +164,7 @@ EdgeEndPointInfo *convertToEdgeEndpointInfo(UA_EndpointDescription *endpoint)
     VERIFY_NON_NULL_MSG(endpoint, "NULL UA_EndpointDescription parameter recevied\n", NULL);
 
     EdgeEndPointInfo *epInfo = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-    if (!epInfo)
-    {
-        EDGE_LOG(TAG, "EdgeCalloc :: Memory allocation failed for epInfo.");
-        return NULL;
-    }
+    VERIFY_NON_NULL_MSG(epInfo, "EdgeCalloc :: Memory allocation failed for epInfo.", NULL);
 
     if (endpoint->endpointUrl.length > 0)
     {
@@ -226,11 +218,7 @@ bool convertUnsignedCharStringToUAString(const unsigned char *str, UA_String *ua
 
     uaStr->length = strlen((const char *)str);
     uaStr->data = (UA_Byte *) EdgeMalloc(uaStr->length);
-    if(IS_NULL(uaStr->data))
-    {
-        EDGE_LOG(TAG, "Memory allocation failed");
-        return false;
-    }
+    VERIFY_NON_NULL_MSG(uaStr->data, "Memory allocation failed", false);
 
     for(int i = 0; i < uaStr->length; ++i)
     {
@@ -243,24 +231,12 @@ bool convertUnsignedCharStringToUAString(const unsigned char *str, UA_String *ua
 bool convertUnsignedCharStringsToUAStrings(size_t strArrSize,
     unsigned char **strArr, UA_String **uaStrArr)
 {
-    if(0 == strArrSize)
-    {
-        EDGE_LOG(TAG, "Size is 0. There is nothing to convert.");
-        return true;
-    }
-
-    if(IS_NULL(strArr) || IS_NULL(uaStrArr))
-    {
-        EDGE_LOG(TAG, "Invalid parameter(s).");
-        return false;
-    }
+    COND_CHECK_MSG((0 == strArrSize), "Size is 0. There is nothing to convert.", true);
+    VERIFY_NON_NULL_MSG(strArr, "Invalid parameter(s).", false);
+    VERIFY_NON_NULL_MSG(uaStrArr, "Invalid parameter(s).", false);
 
     UA_String *uaStrArrLocal = (UA_String *) EdgeCalloc(strArrSize, sizeof(UA_String));
-    if(IS_NULL(uaStrArrLocal))
-    {
-        EDGE_LOG(TAG, "Memory allocation failed.");
-        return false;
-    }
+    VERIFY_NON_NULL_MSG(uaStrArrLocal, "Memory allocation failed.", false);
 
     for(size_t i = 0; i < strArrSize; ++i)
     {
@@ -283,10 +259,7 @@ bool convertUnsignedCharStringsToUAStrings(size_t strArrSize,
 void destroyUAStringArrayContents(UA_String *uaStr, size_t uaStrSize)
 {
     VERIFY_NON_NULL_NR_MSG(uaStr, "uaStr is null\n");
-    if(0 == uaStrSize)
-    {
-        return;
-    }
+    COND_CHECK_NR_MSG((0 == uaStrSize), "");
 
     for(size_t i = 0; i < uaStrSize; ++i)
     {
@@ -306,11 +279,7 @@ void destroyUAStringArray(UA_String *uaStr, size_t uaStrSize)
 
 bool isApplicationTypeSupported(UA_ApplicationType appType)
 {
-    if(appType == __UA_APPLICATIONTYPE_FORCE32BIT)
-    {
-        EDGE_LOG(TAG, "Application type is invalid.");
-        return false;
-    }
+    COND_CHECK_MSG((appType == __UA_APPLICATIONTYPE_FORCE32BIT), "Application type is invalid.", false);
 
     bool supported = false;   
     if(appType==UA_APPLICATIONTYPE_SERVER)
@@ -336,11 +305,8 @@ static bool isPresentInList(UA_String *rcvd, size_t size, unsigned char **list)
 {
     for(size_t i = 0; i < size; ++i)
     {
-        if(0 == memcmp(list[i], rcvd->data, rcvd->length) &&
-                '\0' == list[i][rcvd->length])
-        {
-            return true;
-        }
+        COND_CHECK((0 == memcmp(list[i], rcvd->data, rcvd->length) &&
+                    '\0' == list[i][rcvd->length]), true);
     }
     return false;
 }
@@ -349,8 +315,7 @@ static bool isPresentInList(UA_String *rcvd, size_t size, unsigned char **list)
 bool isIPv4AddressValid(UA_String *ipv4Address)
 {
     size_t len = ipv4Address->length;
-    if(len < 7 || len > 15)
-        return false;
+    COND_CHECK((len < 7 || len > 15), false);
     unsigned int value = 0;
     unsigned int numOfDigitsInSegment = 0, numOfDots = 0;
     UA_Byte *data = ipv4Address->data;
@@ -358,10 +323,7 @@ bool isIPv4AddressValid(UA_String *ipv4Address)
     {
         if(data[i] == '.')
         {
-            if(numOfDigitsInSegment < 1 || numOfDigitsInSegment > 3 || value > 255)
-            {
-                return false;
-            }
+            COND_CHECK((numOfDigitsInSegment < 1 || numOfDigitsInSegment > 3 || value > 255), false);
             value = numOfDigitsInSegment = 0;
             numOfDots++;
         }
@@ -375,10 +337,7 @@ bool isIPv4AddressValid(UA_String *ipv4Address)
             numOfDigitsInSegment++;
         }
     }
-    if(numOfDots != 3 || numOfDigitsInSegment < 1 || numOfDigitsInSegment > 3 || value > 255)
-    {
-        return false;
-    }
+    COND_CHECK((numOfDots != 3 || numOfDigitsInSegment < 1 || numOfDigitsInSegment > 3 || value > 255), false);
 
     return true;
 }
@@ -387,18 +346,8 @@ bool isServerAppDescriptionValid(UA_ApplicationDescription *regServer, size_t se
     unsigned char **serverUris, size_t localeIdsSize, unsigned char **localeIds)
 {
     // Application Type and DiscoveryUrls check.
-    if(!isApplicationTypeSupported(regServer->applicationType))
-    {
-        EDGE_LOG(TAG, "Application type is not supported.");
-        return false;
-    }
-
-    // Application URI check.
-    if(0 == regServer->applicationUri.length)
-    {
-        EDGE_LOG(TAG, "Application URI is empty.");
-        return false;
-    }
+    COND_CHECK_MSG((!isApplicationTypeSupported(regServer->applicationType)), "Application type is not supported.", false);
+    COND_CHECK_MSG((0 == regServer->applicationUri.length), "Application URI is empty.", false);
 
     if(regServer->applicationUri.length < 5)
     {
@@ -417,31 +366,20 @@ bool isServerAppDescriptionValid(UA_ApplicationDescription *regServer, size_t se
             EDGE_LOG_V(TAG, "Application URI is invalid. Error Code: %s.\n", UA_StatusCode_name(parse_retval));
             return false;
         }
-        if(0 == hostName.length)
-        {
-            EDGE_LOG(TAG, "Hostname in application URI is empty.");
-            return false;
-        }
+        COND_CHECK_MSG((0 == hostName.length), "Hostname in application URI is empty.", false);
 
         // Validate IPv4 address
         if(hostName.data[0] != '[' && (hostName.data[0] == '1' || hostName.data[0] == '2'))
         {
-            if(!isIPv4AddressValid(&hostName))
-            {
-                EDGE_LOG(TAG, "IPv4 address in application URI is invalid.");
-                return false;
-            }
+            COND_CHECK_MSG((!isIPv4AddressValid(&hostName)), "IPv4 address in application URI is invalid.", false);
         }
     }
 
     // Check whether the received application uri matches with the requested list of serverUris.
     if(serverUrisSize > 0)
     {
-        if(!isPresentInList(&regServer->applicationUri, serverUrisSize, serverUris))
-        {
-            EDGE_LOG(TAG, "Application URI doesn't match with the requested list of serverUris.");
-            return false;
-        }
+        COND_CHECK_MSG((!isPresentInList(&regServer->applicationUri, serverUrisSize, serverUris)),
+                       "Application URI doesn't match with the requested list of serverUris.", false);
     }
 
     // For FindServers CTT TC ERR-012.
@@ -449,19 +387,11 @@ bool isServerAppDescriptionValid(UA_ApplicationDescription *regServer, size_t se
     // Check whether the received application name's locale matches with the requested list of locales.
     if(localeIdsSize > 0)
     {
-        if(0 == regServer->applicationName.locale.length)
-        {
-            EDGE_LOG(TAG, "Application Name's locale is empty.");
-            return false;
-        }
-
-        if(!isPresentInList(&regServer->applicationName.locale, localeIdsSize, localeIds))
-        {
-            EDGE_LOG(TAG, "Locale of Application Name doesn't match with the requested list of locales.");
-            return false;
-        }
+        COND_CHECK_MSG((0 == regServer->applicationName.locale.length),
+                       "Application Name's locale is empty.", false);
+        COND_CHECK_MSG((!isPresentInList(&regServer->applicationName.locale, localeIdsSize, localeIds)),
+                       "Locale of Application Name doesn't match with the requested list of locales.", false);
     }
-
     return true;
 }
 

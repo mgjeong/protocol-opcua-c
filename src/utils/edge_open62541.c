@@ -191,10 +191,7 @@ EdgeMethodRequestParams* cloneEdgeMethodRequestParams(EdgeMethodRequestParams *m
 
     clone->num_outArgs = methodParams->num_outArgs;
 
-    if(methodParams->num_inpArgs < 1)
-    {
-        return clone;
-    }
+    COND_CHECK((methodParams->num_inpArgs < 1), clone);
 
     clone->inpArg = (EdgeArgument**) EdgeCalloc(methodParams->num_inpArgs, sizeof(EdgeArgument*));
     if(IS_NULL(clone->inpArg))

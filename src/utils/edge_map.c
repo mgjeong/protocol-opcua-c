@@ -77,10 +77,7 @@ keyValue getMapElement(edgeMap *map, keyValue key)
 
     while (temp != NULL)
     {
-        if (temp->key == key)
-        {
-            return temp->value;
-        }
+        COND_CHECK((temp->key == key), temp->value);
         temp = temp->next;
     }
 

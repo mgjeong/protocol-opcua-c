@@ -451,14 +451,9 @@ EdgeResult addReferences(UA_Server *server, EdgeReference *reference, uint16_t s
 {
 
     EdgeResult result;
-    result.code = STATUS_OK;
+    result.code = STATUS_ERROR;
 
-    if (!server)
-    {
-        EDGE_LOG(TAG, "Server Handle invalid!! \n");
-        result.code = STATUS_ERROR;
-        return result;
-    }
+    COND_CHECK_MSG((!server), "Server Handle Invalid!! \n", result);
 
     if (!reference->referenceId)
     {
@@ -471,6 +466,7 @@ EdgeResult addReferences(UA_Server *server, EdgeReference *reference, uint16_t s
             UA_NODEID_NUMERIC(0, reference->referenceId), expanded_nodeId, reference->forward);
     if (status == UA_STATUSCODE_GOOD)
     {
+        result.code = STATUS_OK;
         EDGE_LOG(TAG, "+++ addReference success +++\n");
     }
     else
