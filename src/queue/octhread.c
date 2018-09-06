@@ -38,13 +38,17 @@
 
 #include "octhread.h"
 #include <string.h>
-#include <unistd.h>
-#include <time.h>
-#include <sys/time.h>
 #include <stdio.h>
 #include <errno.h>
 #include <assert.h>
+#ifndef _WIN32
 #include <pthread.h>
+#include <unistd.h>
+#include <sys/time.h>
+#else
+#include "pthread.h"
+#include <winsock2.h>
+#endif
 #include "edge_logger.h"
 #include "edge_malloc.h"
 #include "cacommon.h"
@@ -346,7 +350,11 @@ struct timespec oc_get_current_time()
     return ts;
 #else
     struct timeval tv;
-    gettimeofday(&tv, NULL);
+    #ifndef _WIN32
+        gettimeofday(&tv, NULL);
+    #else
+        getTimeofDay(&tv, NULL);		
+    #endif
     struct timespec ts;
     TIMEVAL_TO_TIMESPEC(&tv, &ts);
     return ts;

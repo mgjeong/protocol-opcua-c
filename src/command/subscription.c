@@ -29,9 +29,13 @@
 #include "message_dispatcher.h"
 #include "edge_opcua_client.h"
 
+#ifndef _WIN32
 #include <pthread.h>
 #include <unistd.h>
-#include <time.h>
+#else
+#include "pthread.h"
+#include <winsock2.h>
+#endif
 
 #define TAG "subscription"
 
@@ -239,19 +243,11 @@ static void monitoredItemHandler(UA_Client *client, UA_UInt32 monId, UA_DataValu
     if(IS_NULL(resultMsg->endpointInfo))
     {
         EDGE_LOG(TAG, "Error : EdgeCalloc failed for resultMsg.endpointInfo in monitor item handler\n");
-        goto ERROR;
+        goto SUBSCRIPTION_ERROR;
     }
 
-    if(value->hasServerTimestamp)
-    {
-        value->serverTimestamp -= UA_DATETIME_UNIX_EPOCH;
-        resultMsg->serverTime.tv_sec = (value->serverTimestamp ) / UA_DATETIME_SEC;
-        resultMsg->serverTime.tv_usec = (value->serverTimestamp - (resultMsg->serverTime.tv_sec * UA_DATETIME_SEC)) / UA_DATETIME_USEC;
-    }
-    else
-    {
-        gettimeofday(&(resultMsg->serverTime), NULL);
-    }
+    time_t now = time(0);
+    resultMsg->serverTime = localtime(&now);
 
     resultMsg->message_id = subInfo->msg->message_id;
     resultMsg->type = REPORT;
@@ -260,13 +256,13 @@ static void monitoredItemHandler(UA_Client *client, UA_UInt32 monId, UA_DataValu
     if(IS_NULL(resultMsg->responses))
     {
         EDGE_LOG(TAG, "Error : Malloc failed for resultMsg.responses in monitor item handler\n");
-        goto ERROR;
+        goto SUBSCRIPTION_ERROR;
     }
 
     resultMsg->responses[0] = (EdgeResponse *) EdgeCalloc(1, sizeof(EdgeResponse));
     if(IS_NULL(resultMsg->responses[0]))
     {
-        goto ERROR;
+        goto SUBSCRIPTION_ERROR;
     }
 
     EdgeResponse *response = resultMsg->responses[0];
@@ -274,13 +270,13 @@ static void monitoredItemHandler(UA_Client *client, UA_UInt32 monId, UA_DataValu
     if(IS_NULL(response->nodeInfo))
     {
         EDGE_LOG(TAG, "Error : Malloc failed for response->nodeInfo in monitor item handler\n");
-        goto ERROR;
+        goto SUBSCRIPTION_ERROR;
     }
     response->nodeInfo->valueAlias = (char *) EdgeMalloc(strlen(valueAlias) + 1);
     if(IS_NULL(response->nodeInfo->valueAlias))
     {
         EDGE_LOG(TAG, "Error : Malloc failed for response->nodeInfo->valueAlias in monitor item handler\n");
-        goto ERROR;
+        goto SUBSCRIPTION_ERROR;
     }
     strncpy(response->nodeInfo->valueAlias, valueAlias, strlen(valueAlias)+1);
 
@@ -288,7 +284,7 @@ static void monitoredItemHandler(UA_Client *client, UA_UInt32 monId, UA_DataValu
     if(IS_NULL(response->message))
     {
         EDGE_LOG(TAG, "Error : Malloc failed for versatility in monitor item handler\n");
-        goto ERROR;
+        goto SUBSCRIPTION_ERROR;
     }
 
     bool isScalar = UA_Variant_isScalar(&(value->value));
@@ -319,7 +315,7 @@ static void monitoredItemHandler(UA_Client *client, UA_UInt32 monId, UA_DataValu
             if(IS_NULL(response->message->value))
             {
                 EDGE_LOG(TAG, "Error : Malloc failed for String/ByteString SCALAR value in Read Group\n");
-                goto ERROR;
+                goto SUBSCRIPTION_ERROR;
             }
             strncpy(response->message->value, (char*) str.data, len);
             ((char*) response->message->value)[(int) len] = '\0';
@@ -332,7 +328,7 @@ static void monitoredItemHandler(UA_Client *client, UA_UInt32 monId, UA_DataValu
             if(IS_NULL(response->message->value))
             {
                 EDGE_LOG(TAG, "Error : Malloc failed for Guid SCALAR value in Read Group\n");
-                goto ERROR;
+                goto SUBSCRIPTION_ERROR;
             }
             convertGuidToString(str, (char **) (&(response->message->value)));
             EDGE_LOG_V(TAG, "%s\n", (char *) response->message->value);
@@ -355,7 +351,7 @@ static void monitoredItemHandler(UA_Client *client, UA_UInt32 monId, UA_DataValu
             if(IS_NULL(response->message->value))
             {
                 EDGE_LOG(TAG, "Error : Malloc failed for String Array values in Read Group\n");
-                goto ERROR;
+                goto SUBSCRIPTION_ERROR;
             }
             char **values = (char **) response->message->value;
             for (int i = 0; i < value->value.arrayLength; i++)
@@ -364,7 +360,7 @@ static void monitoredItemHandler(UA_Client *client, UA_UInt32 monId, UA_DataValu
                 if(IS_NULL(values[i]))
                 {
                     EDGE_LOG_V(TAG, "Error : Malloc failed for String Array value %d in Read Group\n", i);
-                    goto ERROR;
+                    goto SUBSCRIPTION_ERROR;
                 }
                 strncpy(values[i], (char *) str[i].data, str[i].length);
                 values[i][str[i].length] = '\0';
@@ -378,7 +374,7 @@ static void monitoredItemHandler(UA_Client *client, UA_UInt32 monId, UA_DataValu
             if(IS_NULL(response->message->value))
             {
                 EDGE_LOG(TAG, "Error : Malloc failed for ByteString Array value in Read Group\n");
-                goto ERROR;
+                goto SUBSCRIPTION_ERROR;
             }
             char **values = (char **) response->message->value;
             for (int i = 0; i < value->value.arrayLength; i++)
@@ -387,7 +383,7 @@ static void monitoredItemHandler(UA_Client *client, UA_UInt32 monId, UA_DataValu
                 if(IS_NULL(values[i]))
                 {
                     EDGE_LOG_V(TAG, "Error : Malloc failed for ByteString Array value %d in Read Group\n", i);
-                    goto ERROR;
+                    goto SUBSCRIPTION_ERROR;
                 }
                 strncpy(values[i], (char *) str[i].data, str[i].length);
                 values[i][str[i].length] = '\0';
@@ -401,7 +397,7 @@ static void monitoredItemHandler(UA_Client *client, UA_UInt32 monId, UA_DataValu
             if(IS_NULL(response->message->value))
             {
                 EDGE_LOG(TAG, "Error : Malloc failed for Guid Array values in Read Group\n");
-                goto ERROR;
+                goto SUBSCRIPTION_ERROR;
             }
 
             char **values = (char **) response->message->value;
@@ -411,7 +407,7 @@ static void monitoredItemHandler(UA_Client *client, UA_UInt32 monId, UA_DataValu
                 if(IS_NULL(values[i]))
                 {
                     EDGE_LOG_V(TAG, "Error : Malloc failed for Guid Array value %d in Read Group\n", i);
-                    goto ERROR;
+                    goto SUBSCRIPTION_ERROR;
                 }
                 convertGuidToString(str[i], &(values[i]));
                 EDGE_LOG_V(TAG, "%s\n", values[i]);
@@ -423,7 +419,7 @@ static void monitoredItemHandler(UA_Client *client, UA_UInt32 monId, UA_DataValu
             if(IS_NULL(value->value.type))
             {
                 EDGE_LOG(TAG, "Vaue type is NULL ERROR.");
-                goto ERROR;
+                goto SUBSCRIPTION_ERROR;
             }
 
             response->message->value = (void *) EdgeCalloc(response->message->arrayLength,
@@ -431,7 +427,7 @@ static void monitoredItemHandler(UA_Client *client, UA_UInt32 monId, UA_DataValu
             if(IS_NULL(response->message->value))
             {
                 EDGE_LOG(TAG, "Memory allocation failed for response->message->value.");
-                goto ERROR;
+                goto SUBSCRIPTION_ERROR;
             }
             memcpy(response->message->value, value->value.data,
                  value->value.type->memSize * response->message->arrayLength);
@@ -443,7 +439,7 @@ static void monitoredItemHandler(UA_Client *client, UA_UInt32 monId, UA_DataValu
 
     return;
 
-    ERROR:
+    SUBSCRIPTION_ERROR:
     /* Free memory */
     freeEdgeMessage(resultMsg);
 }
@@ -484,7 +480,11 @@ static void *subscription_thread_handler(void *ptr)
         add_to_sendQ(publishMsg);
         #endif
 
+		#ifndef _WIN32
         usleep(EDGE_UA_MINIMUM_PUBLISHING_TIME * 1000);
+		#else
+		Sleep(EDGE_UA_MINIMUM_PUBLISHING_TIME);
+		#endif
     }
 
     EDGE_LOG(TAG, ">>>>>>>>>>>>>>>>>> subscription thread destroyed <<<<<<<<<<<<<<<<<<<<");

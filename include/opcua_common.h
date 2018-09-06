@@ -31,7 +31,12 @@
 #include <string.h>
 #include <stddef.h>
 #include <stdio.h>
+#ifdef _WIN32
+#include <winsock2.h>
+#include <time.h>
+#else
 #include <sys/time.h>
+#endif
 #include <time.h>
 
 #include "edge_command_type.h"
@@ -503,7 +508,12 @@ typedef struct EdgeMessage
     uint32_t message_id;
 
     /**< Server Time Stamp **/
-    struct timeval serverTime;
+#ifndef _WIN32
+    struct tm *serverTime;
+#else
+    struct tm *serverTime;
+#endif
+
 } EdgeMessage;
 
 #ifdef __cplusplus

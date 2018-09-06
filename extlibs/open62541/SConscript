@@ -29,6 +29,7 @@ lib_env = Environment()
 src_dir = lib_env.GetLaunchDir()
 lib_version          = '_0.2'
 lib_dir = os.path.join(src_dir, 'extlibs', 'open62541', 'open62541' + lib_version)
+architecture = ARGUMENTS.get('TARGET_ARCH')
 
 if GetOption('clean'):
 #	if os.path.exists(lib_dir):
@@ -51,40 +52,40 @@ if ARGUMENTS.get('AUTO_DOWNLOAD_DEP_LIBS', False) in [
     ]:
     auto_download_dependent_libs = True
 
-print "Automatic download: %s\n" % auto_download_dependent_libs
+print ("Automatic download: %s\n" % auto_download_dependent_libs)
 
 if not os.path.exists(lib_dir):
 	if auto_download_dependent_libs:
 		result = os.system(lib_checkout_command)
 		if result != 0:
-			print "Open62541 library download is failed."
+			print ("Open62541 library download is failed.")
 			Exit(1)
-		print "Open62541 library download is successful."
+		print ("Open62541 library download is successful.")
 	else:
-		print '''
+		print ('''
 *********************************** Error: ****************************************
 * Please download open62541 library using the following command:
 *     $ %s\n
 * Other dependencies:
 *     Install CMake for building open62541.
 ***********************************************************************************
-''' % (lib_checkout_command + ' ' + lib_path)
+''' % (lib_checkout_command + ' ' + lib_path))
 		Exit(1)
 
 lib_src_file_path = os.path.join(lib_dir, 'open62541.c')
 lib_hdr_file_path = os.path.join(lib_dir, 'open62541.h')
 if os.path.exists(lib_src_file_path) and os.path.exists(lib_hdr_file_path):
-	print "library header and source files are present. Skipping clone and build."
+	print ("library header and source files are present. Skipping clone and build.")
 	Return('lib_env')
 
 if not os.path.exists(os.path.join(lib_dir, '.git')):
-	print ".git folder doesn't exist at %s. Library might not have been cloned properly." % lib_dir
-	command = 'rm -rf ' + lib_dir
+	print (".git folder doesn't exist at %s. Library might not have been cloned properly." % lib_dir)
+	command = 'rm -rf ' + lib_dir	
 	result = os.system(command)
-	if result != 0:
-		print "Unable to deleted open62541 folder which is under extlibs/open62541. Manually delete it and run scons again. It will freshly clone the library."
+	if result != 0:		
+		print ("Unable to deleted open62541 folder which is under extlibs/open62541. Manually delete it and run scons again. It will freshly clone the library.")
 	else:
-		print "Deleted open62541 folder under extlibs/open62541. Rebuild again."
+		print ("Deleted open62541 folder under extlibs/open62541. Rebuild again.")
 	Exit(1)
 
 ############################################################################################
@@ -92,20 +93,21 @@ if not os.path.exists(os.path.join(lib_dir, '.git')):
 # Reset the library to a specific patch till which opc ua wrapper layer is verified.
 ############################################################################################
 patch = '2be85c43813f7bb0c8fd420b93ab469427ccb4cf'
-print 'Resetting master branch to patch: %s' % patch
+print ('Resetting master branch to patch: %s' % patch)
 command = 'cd %s && git reset --hard %s' % (lib_dir, patch)
 #tag = '0.3-rc1'
 #command = 'cd %s && git checkout %s' % (lib_dir, tag)
 result = os.system(command)
 if result != 0:
-	print 'Reset failed.'
+	print ('Reset failed.')
 	Exit(1)
 
 ######################################################################
 # Build
 ######################################################################
-command = 'sh build.sh'
-result = os.system(command)
-if result != 0:
-	print 'open62541 library build failed'
-	Exit(1)
+if architecture == 'linux':
+	command = 'sh build.sh'
+	result = os.system(command)
+	if result != 0:
+		print ('open62541 library build failed')
+		Exit(1)

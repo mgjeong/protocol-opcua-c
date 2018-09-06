@@ -22,7 +22,9 @@
 
 #include <stdlib.h>
 #include <string.h>
+#ifndef _WIN32
 #include <sys/time.h>
+#endif
 #include <time.h>
 
 #include "edge_open62541.h"
@@ -31,11 +33,35 @@
 
 #define TAG "edge_utils"
 
+#ifdef _WIN32
+int getTimeofDay(struct timeval *tp, struct timezone *tzp)
+{
+    static const uint64_t EPOCH = ((uint64_t) 116444736000000000ULL);
+
+    SYSTEMTIME  system_time;
+    FILETIME    file_time;
+    uint64_t    time;
+
+    GetSystemTime( &system_time );
+    SystemTimeToFileTime( &system_time, &file_time );
+    time =  ((uint64_t)file_time.dwLowDateTime )      ;
+    time += ((uint64_t)file_time.dwHighDateTime) << 32;
+
+    tp->tv_sec  = (long) ((time - EPOCH) / 10000000L);
+    tp->tv_usec = (long) (system_time.wMilliseconds * 1000);
+    return 0;
+}
+#endif
+
 void logCurrentTimeStamp()
 {
 #if DEBUG
     struct timeval curTime;
-    gettimeofday(&curTime, NULL);
+    #ifndef _WIN32
+        gettimeofday(&curTime, NULL);
+    #else
+        getTimeofDay(&curTime, NULL);		
+    #endif
 
     char buffer[15];
     strftime(buffer, sizeof(buffer), "%m/%d %H:%M:%S", localtime(&curTime.tv_sec));
@@ -66,11 +92,11 @@ void *cloneData(const void *src, int lenInbytes)
 void freeEdgeNodeIdType(Edge_NodeId *id)
 {
     VERIFY_NON_NULL_NR_MSG(id, "Input param is NULL");
-    if(id->identifierType == STRING)
+    if(id->identifierType == EDGE_STRING)
     {
         EdgeFree(id->identifier.string.data);
     }
-    else if(id->identifierType == BYTESTRING)
+    else if(id->identifierType == EDGE_BYTESTRING)
     {
         EdgeFree(id->identifier.byteString.data);
     }
@@ -154,7 +180,7 @@ EdgeEndpointConfig *cloneEdgeEndpointConfig(EdgeEndpointConfig *config)
         clone->serverName = cloneString(config->serverName);
         if (!clone->serverName)
         {
-            goto ERROR;
+            goto CLONE_ERROR;
         }
     }
 
@@ -163,13 +189,13 @@ EdgeEndpointConfig *cloneEdgeEndpointConfig(EdgeEndpointConfig *config)
         clone->bindAddress = cloneString(config->bindAddress);
         if (!clone->bindAddress)
         {
-            goto ERROR;
+            goto CLONE_ERROR;
         }
     }
 
     return clone;
 
-    ERROR: freeEdgeEndpointConfig(clone);
+    CLONE_ERROR: freeEdgeEndpointConfig(clone);
     return NULL;
 }
 
@@ -186,7 +212,7 @@ EdgeApplicationConfig *cloneEdgeApplicationConfig(EdgeApplicationConfig *config)
         clone->applicationUri = cloneString(config->applicationUri);
         if (!clone->applicationUri)
         {
-            goto ERROR;
+            goto CLONE_ERROR;
         }
     }
 
@@ -195,7 +221,7 @@ EdgeApplicationConfig *cloneEdgeApplicationConfig(EdgeApplicationConfig *config)
         clone->productUri = cloneString(config->productUri);
         if (!clone->productUri)
         {
-            goto ERROR;
+            goto CLONE_ERROR;
         }
     }
 
@@ -204,7 +230,7 @@ EdgeApplicationConfig *cloneEdgeApplicationConfig(EdgeApplicationConfig *config)
         clone->applicationName = cloneString(config->applicationName);
         if (!clone->applicationName)
         {
-            goto ERROR;
+            goto CLONE_ERROR;
         }
     }
 
@@ -213,7 +239,7 @@ EdgeApplicationConfig *cloneEdgeApplicationConfig(EdgeApplicationConfig *config)
         clone->gatewayServerUri = cloneString(config->gatewayServerUri);
         if (!clone->gatewayServerUri)
         {
-            goto ERROR;
+            goto CLONE_ERROR;
         }
     }
 
@@ -222,7 +248,7 @@ EdgeApplicationConfig *cloneEdgeApplicationConfig(EdgeApplicationConfig *config)
         clone->discoveryProfileUri = cloneString(config->discoveryProfileUri);
         if (!clone->discoveryProfileUri)
         {
-            goto ERROR;
+            goto CLONE_ERROR;
         }
     }
 
@@ -230,7 +256,7 @@ EdgeApplicationConfig *cloneEdgeApplicationConfig(EdgeApplicationConfig *config)
     clone->discoveryUrls = (char **) EdgeCalloc(config->discoveryUrlsSize, sizeof(char *));
     if (!clone->discoveryUrls)
     {
-        goto ERROR;
+        goto CLONE_ERROR;
     }
 
     for (size_t i = 0; i < clone->discoveryUrlsSize; ++i)
@@ -240,14 +266,14 @@ EdgeApplicationConfig *cloneEdgeApplicationConfig(EdgeApplicationConfig *config)
             clone->discoveryUrls[i] = cloneString(config->discoveryUrls[i]);
             if (!clone->discoveryUrls[i])
             {
-                goto ERROR;
+                goto CLONE_ERROR;
             }
         }
     }
 
     return clone;
 
-    ERROR: freeEdgeApplicationConfig(clone);
+    CLONE_ERROR: freeEdgeApplicationConfig(clone);
     return NULL;
 }
 
@@ -275,7 +301,7 @@ EdgeEndPointInfo *cloneEdgeEndpointInfo(EdgeEndPointInfo *endpointInfo)
         clone->endpointUri = cloneString(endpointInfo->endpointUri);
         if (!clone->endpointUri)
         {
-            goto ERROR;
+            goto CLONE_ERROR;
         }
     }
 
@@ -284,7 +310,7 @@ EdgeEndPointInfo *cloneEdgeEndpointInfo(EdgeEndPointInfo *endpointInfo)
         clone->securityPolicyUri = cloneString(endpointInfo->securityPolicyUri);
         if (!clone->securityPolicyUri)
         {
-            goto ERROR;
+            goto CLONE_ERROR;
         }
     }
 
@@ -293,7 +319,7 @@ EdgeEndPointInfo *cloneEdgeEndpointInfo(EdgeEndPointInfo *endpointInfo)
         clone->transportProfileUri = cloneString(endpointInfo->transportProfileUri);
         if (!clone->transportProfileUri)
         {
-            goto ERROR;
+            goto CLONE_ERROR;
         }
     }
 
@@ -302,7 +328,7 @@ EdgeEndPointInfo *cloneEdgeEndpointInfo(EdgeEndPointInfo *endpointInfo)
         clone->endpointConfig = cloneEdgeEndpointConfig(endpointInfo->endpointConfig);
         if (!clone->endpointConfig)
         {
-            goto ERROR;
+            goto CLONE_ERROR;
         }
     }
 
@@ -311,13 +337,13 @@ EdgeEndPointInfo *cloneEdgeEndpointInfo(EdgeEndPointInfo *endpointInfo)
         clone->appConfig = cloneEdgeApplicationConfig(endpointInfo->appConfig);
         if (!clone->appConfig)
         {
-            goto ERROR;
+            goto CLONE_ERROR;
         }
     }
 
     return clone;
 
-    ERROR: freeEdgeEndpointInfo(clone);
+    CLONE_ERROR: freeEdgeEndpointInfo(clone);
     return NULL;
 }
 
@@ -563,15 +589,15 @@ EdgeNodeInfo *cloneEdgeNodeInfo(EdgeNodeInfo *nodeInfo)
 
 EdgeNodeIdType getEdgeNodeIdType(char type)
 {
-    EdgeNodeIdType edgeNodeType = INTEGER;
+    EdgeNodeIdType edgeNodeType = EDGE_INTEGER;
     if(type=='N')
-        edgeNodeType = INTEGER;
+        edgeNodeType = EDGE_INTEGER;
     else if(type=='S')
-        edgeNodeType = STRING;
+        edgeNodeType = EDGE_STRING;
     else if(type=='B')
-        edgeNodeType = BYTESTRING;
+        edgeNodeType = EDGE_BYTESTRING;
     else if(type=='G')
-        edgeNodeType = UUID;
+        edgeNodeType = EDGE_UUID;
     
     return edgeNodeType;
 }

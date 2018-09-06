@@ -146,25 +146,25 @@ EdgeNodeId *getEdgeNodeId(UA_NodeId *node)
     
     if(node->identifierType == UA_NODEIDTYPE_NUMERIC)
     {
-        edgeNodeId->type = INTEGER;
+        edgeNodeId->type = EDGE_INTEGER;
         edgeNodeId->integerNodeId = node->identifier.numeric;
     }
 
     if(node->identifierType == UA_NODEIDTYPE_STRING)
     {
-        edgeNodeId->type = STRING;
+        edgeNodeId->type = EDGE_STRING;
         edgeNodeId->nodeId = convertUAStringToString(&node->identifier.string);
     }
 
     if(node->identifierType == UA_NODEIDTYPE_BYTESTRING)
     {
-        edgeNodeId->type = BYTESTRING;
+        edgeNodeId->type = EDGE_BYTESTRING;
         edgeNodeId->nodeId = convertUAStringToString(&node->identifier.string);
     }
 
     if(node->identifierType == UA_NODEIDTYPE_GUID)
     {
-        edgeNodeId->type = UUID;
+        edgeNodeId->type = EDGE_UUID;
         UA_Guid guid = node->identifier.guid;
         char *value = (char *) EdgeMalloc(GUID_LENGTH + 1);
         if (IS_NULL(value))
@@ -197,7 +197,7 @@ EdgeMethodRequestParams* cloneEdgeMethodRequestParams(EdgeMethodRequestParams *m
     if(IS_NULL(clone->inpArg))
     {
         EDGE_LOG(TAG, "Memory allocation failed.");
-        goto ERROR;
+        goto CLONE_ERROR;
     }
 
     clone->num_inpArgs = methodParams->num_inpArgs;
@@ -207,7 +207,7 @@ EdgeMethodRequestParams* cloneEdgeMethodRequestParams(EdgeMethodRequestParams *m
         if(IS_NULL(clone->inpArg[i]))
         {
             EDGE_LOG(TAG, "Memory allocation failed.");
-            goto ERROR;
+            goto CLONE_ERROR;
         }
 
         clone->inpArg[i]->argType = methodParams->inpArg[i]->argType;
@@ -222,7 +222,7 @@ EdgeMethodRequestParams* cloneEdgeMethodRequestParams(EdgeMethodRequestParams *m
                 if(IS_NULL(clone->inpArg[i]->scalarValue))
                 {
                     EDGE_LOG(TAG, "Memory allocation failed.");
-                    goto ERROR;
+                    goto CLONE_ERROR;
                 }
             }
             else
@@ -232,7 +232,7 @@ EdgeMethodRequestParams* cloneEdgeMethodRequestParams(EdgeMethodRequestParams *m
                 if(IS_NULL(clone->inpArg[i]->scalarValue))
                 {
                     EDGE_LOG(TAG, "Memory allocation failed.");
-                    goto ERROR;
+                    goto CLONE_ERROR;
                 }
                 memcpy(clone->inpArg[i]->scalarValue, methodParams->inpArg[i]->scalarValue, size);
             }
@@ -246,7 +246,7 @@ EdgeMethodRequestParams* cloneEdgeMethodRequestParams(EdgeMethodRequestParams *m
                 if(IS_NULL(clone->inpArg[i]->arrayData))
                 {
                     EDGE_LOG(TAG, "Memory allocation failed.");
-                    goto ERROR;
+                    goto CLONE_ERROR;
                 }
                 char **srcVal = (char**) methodParams->inpArg[i]->arrayData;
                 char **dstVal = (char **) clone->inpArg[i]->arrayData;
@@ -257,7 +257,7 @@ EdgeMethodRequestParams* cloneEdgeMethodRequestParams(EdgeMethodRequestParams *m
                     if(IS_NULL(dstVal[j]))
                     {
                         EDGE_LOG(TAG, "Memory allocation failed.");
-                        goto ERROR;
+                        goto CLONE_ERROR;
                     }
                     strncpy(dstVal[j], srcVal[j], len+1);
                 }
@@ -269,7 +269,7 @@ EdgeMethodRequestParams* cloneEdgeMethodRequestParams(EdgeMethodRequestParams *m
                 if(IS_NULL(clone->inpArg[i]->arrayData))
                 {
                     EDGE_LOG(TAG, "Memory allocation failed.");
-                    goto ERROR;
+                    goto CLONE_ERROR;
                 }
                 memcpy(clone->inpArg[i]->arrayData, methodParams->inpArg[i]->arrayData,
                         get_size(methodParams->inpArg[i]->argType, false) * methodParams->inpArg[i]->arrayLength);
@@ -279,7 +279,7 @@ EdgeMethodRequestParams* cloneEdgeMethodRequestParams(EdgeMethodRequestParams *m
     }
     return clone;
 
-ERROR:
+CLONE_ERROR:
     freeEdgeMethodRequestParams(clone);
     return NULL;
 }
@@ -500,7 +500,7 @@ EdgeMessage* cloneEdgeMessage(EdgeMessage *msg)
         clone->endpointInfo = cloneEdgeEndpointInfo(msg->endpointInfo);
         if(IS_NULL(clone->endpointInfo))
         {
-            goto ERROR;
+            goto CLONE_ERROR;
         }
     }
 
@@ -512,7 +512,7 @@ EdgeMessage* cloneEdgeMessage(EdgeMessage *msg)
         clone->browseParam = (EdgeBrowseParameter *) EdgeCalloc(1, sizeof(EdgeBrowseParameter));
         if(IS_NULL(clone->browseParam))
         {
-            goto ERROR;
+            goto CLONE_ERROR;
         }
         clone->browseParam->direction = msg->browseParam->direction;
         clone->browseParam->maxReferencesPerNode = msg->browseParam->maxReferencesPerNode;
@@ -525,7 +525,7 @@ EdgeMessage* cloneEdgeMessage(EdgeMessage *msg)
             clone->request = (EdgeRequest*) EdgeCalloc(1, sizeof(EdgeRequest));
             if(IS_NULL(clone->request))
             {
-                goto ERROR;
+                goto CLONE_ERROR;
             }
 
             if (msg->request->nodeInfo)
@@ -533,7 +533,7 @@ EdgeMessage* cloneEdgeMessage(EdgeMessage *msg)
                 clone->request->nodeInfo = cloneEdgeNodeInfo(msg->request->nodeInfo);
                 if(IS_NULL(clone->request->nodeInfo))
                 {
-                    goto ERROR;
+                    goto CLONE_ERROR;
                 }
             }
 
@@ -542,7 +542,7 @@ EdgeMessage* cloneEdgeMessage(EdgeMessage *msg)
                 clone->request->subMsg = cloneSubRequest(msg->request->subMsg);
                 if(IS_NULL(clone->request->subMsg))
                 {
-                    goto ERROR;
+                    goto CLONE_ERROR;
                 }
             }
 
@@ -551,7 +551,7 @@ EdgeMessage* cloneEdgeMessage(EdgeMessage *msg)
                 clone->request->methodParams = cloneEdgeMethodRequestParams(msg->request->methodParams);
                 if(IS_NULL(clone->request->methodParams))
                 {
-                    goto ERROR;
+                    goto CLONE_ERROR;
                 }
             }
         }
@@ -562,7 +562,7 @@ EdgeMessage* cloneEdgeMessage(EdgeMessage *msg)
         clone->requests = (EdgeRequest**) EdgeCalloc(msg->requestLength, sizeof(EdgeRequest*));
         if(IS_NULL(clone->requests))
         {
-            goto ERROR;
+            goto CLONE_ERROR;
         }
 
         for (size_t i = 0; i < msg->requestLength; i++)
@@ -570,7 +570,7 @@ EdgeMessage* cloneEdgeMessage(EdgeMessage *msg)
             clone->requests[i] = (EdgeRequest*) EdgeCalloc(1, sizeof(EdgeRequest));
             if(IS_NULL(clone->requests[i]))
             {
-                goto ERROR;
+                goto CLONE_ERROR;
             }
 
             if (msg->requests[i]->nodeInfo)
@@ -578,7 +578,7 @@ EdgeMessage* cloneEdgeMessage(EdgeMessage *msg)
                 clone->requests[i]->nodeInfo = cloneEdgeNodeInfo(msg->requests[i]->nodeInfo);
                 if(IS_NULL(clone->requests[i]->nodeInfo))
                 {
-                    goto ERROR;
+                    goto CLONE_ERROR;
                 }
             }
 
@@ -592,7 +592,7 @@ EdgeMessage* cloneEdgeMessage(EdgeMessage *msg)
                     clone->requests[i]->value = (EdgeVersatility*) EdgeCalloc(1, sizeof(EdgeVersatility));
                     if(IS_NULL(clone->requests[i]->value))
                     {
-                        goto ERROR;
+                        goto CLONE_ERROR;
                     }
 
                     EdgeVersatility* cloneVersatility = (EdgeVersatility*) clone->requests[i]->value;
@@ -610,7 +610,7 @@ EdgeMessage* cloneEdgeMessage(EdgeMessage *msg)
                             cloneVersatility->value = (void *) EdgeCalloc(1, len+1);
                             if(IS_NULL(cloneVersatility->value))
                             {
-                                goto ERROR;
+                                goto CLONE_ERROR;
                             }
 
                             strncpy(cloneVersatility->value, (char*) srcVersatility->value, len+1);
@@ -620,7 +620,7 @@ EdgeMessage* cloneEdgeMessage(EdgeMessage *msg)
                             cloneVersatility->value = (void *) EdgeCalloc(1, size);
                             if(IS_NULL(cloneVersatility->value))
                             {
-                                goto ERROR;
+                                goto CLONE_ERROR;
                             }
                             memcpy(cloneVersatility->value, val, size);
                         }
@@ -639,7 +639,7 @@ EdgeMessage* cloneEdgeMessage(EdgeMessage *msg)
                             cloneVersatility->value = EdgeCalloc(srcVersatility->arrayLength, sizeof(char*));
                             if(IS_NULL(cloneVersatility->value))
                             {
-                                goto ERROR;
+                                goto CLONE_ERROR;
                             }
 
                             char **dstVal = (char **) cloneVersatility->value;
@@ -650,7 +650,7 @@ EdgeMessage* cloneEdgeMessage(EdgeMessage *msg)
                                 dstVal[j] = (char*) EdgeCalloc(1, sizeof(char) * (len+1));
                                 if(IS_NULL(dstVal[j]))
                                 {
-                                    goto ERROR;
+                                    goto CLONE_ERROR;
                                 }
                                 strncpy(dstVal[j], srcVal[j], len+1);
                             }
@@ -660,7 +660,7 @@ EdgeMessage* cloneEdgeMessage(EdgeMessage *msg)
                             cloneVersatility->value = EdgeCalloc(srcVersatility->arrayLength, size);
                             if(IS_NULL(cloneVersatility->value))
                             {
-                                goto ERROR;
+                                goto CLONE_ERROR;
                             }
                             memcpy(cloneVersatility->value, val, get_size(msg->requests[i]->type, true) * srcVersatility->arrayLength);
                         }
@@ -674,7 +674,7 @@ EdgeMessage* cloneEdgeMessage(EdgeMessage *msg)
                     clone->requests[i]->subMsg = cloneSubRequest(msg->requests[i]->subMsg);
                     if(IS_NULL(clone->requests[i]->subMsg))
                     {
-                        goto ERROR;
+                        goto CLONE_ERROR;
                     }
                 }
             }
@@ -683,7 +683,7 @@ EdgeMessage* cloneEdgeMessage(EdgeMessage *msg)
 
     return clone;
 
-ERROR:
+CLONE_ERROR:
     freeEdgeMessage(clone);
     return NULL;
 }
@@ -724,7 +724,7 @@ UA_NodeId *cloneNodeId(UA_NodeId *nodeId)
             if(IS_NULL(clone->identifier.string.data))
             {
                 EDGE_LOG(TAG, "Memory allocation failed.");
-                goto ERROR;
+                goto CLONE_ERROR;
             }
             memcpy(clone->identifier.string.data, nodeId->identifier.string.data, nodeId->identifier.string.length);
             break;
@@ -739,14 +739,14 @@ UA_NodeId *cloneNodeId(UA_NodeId *nodeId)
             if(IS_NULL(clone->identifier.byteString.data))
             {
                 EDGE_LOG(TAG, "Memory allocation failed.");
-                goto ERROR;
+                goto CLONE_ERROR;
             }
             memcpy(clone->identifier.byteString.data, nodeId->identifier.byteString.data, nodeId->identifier.byteString.length);
             break;
     }
     return clone;
 
-ERROR:
+CLONE_ERROR:
     UA_NodeId_delete(clone);
     return NULL;
 }

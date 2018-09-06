@@ -24,6 +24,10 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
+
 #include <stdio.h>
 #include <stdint.h>
 #include "edge_random.h"
@@ -35,7 +39,8 @@
 uint32_t EdgeGetRandom()
 {
     uint32_t result = 0;
-    int len = sizeof(result);
+	int len = sizeof(result);
+#ifndef _WIN32    
     FILE* urandom = fopen("/dev/urandom", "r");
     VERIFY_NON_NULL_MSG(urandom, "Failed to open /dev/urandom", 0);
 
@@ -47,5 +52,12 @@ uint32_t EdgeGetRandom()
         result = 0;
     }
     fclose(urandom);
+#else
+    //NTSTATUS status = BCryptGenRandom(NULL, (uint8_t*)&result, (ULONG) len, BCRYPT_USE_SYSTEM_PREFERRED_RNG);
+    //if (!BCRYPT_SUCCESS(status))
+    //{
+    //    EDGE_LOG_V(TAG, "BCryptGenRandom failed (%X)!", status);        
+    //}
+#endif
     return result;
 }

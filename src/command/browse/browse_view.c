@@ -29,7 +29,7 @@
 
 void browseView(UA_Client *client, EdgeMessage *msg)
 {
-    EdgeNodeInfo *nodeInfo = createEdgeNodeInfoForNodeId(INTEGER, UA_NS0ID_VIEWSFOLDER, SYSTEM_NAMESPACE_INDEX);
+    EdgeNodeInfo *nodeInfo = createEdgeNodeInfoForNodeId(EDGE_INTEGER, UA_NS0ID_VIEWSFOLDER, SYSTEM_NAMESPACE_INDEX);
     VERIFY_NON_NULL_NR_MSG(nodeInfo, "EdgeCalloc FAILED for nodeinfo\n");
     msg->request = (EdgeRequest *) EdgeCalloc(1, sizeof(EdgeRequest));
     if(IS_NULL(msg->request))

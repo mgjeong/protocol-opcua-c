@@ -35,7 +35,11 @@
 extern "C" {
 #endif
 
+#ifndef _WIN32
 #define EXPORT __attribute__((visibility("default")))
+#else
+#define EXPORT
+#endif
 
 typedef struct EdgeConfigure EdgeConfigure;
 typedef struct EdgeResult EdgeResult;
