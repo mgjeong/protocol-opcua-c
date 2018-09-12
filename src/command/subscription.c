@@ -246,8 +246,15 @@ static void monitoredItemHandler(UA_Client *client, UA_UInt32 monId, UA_DataValu
         goto SUBSCRIPTION_ERROR;
     }
 
-    time_t now = time(0);
-    resultMsg->serverTime = localtime(&now);
+    time_t rawtime;
+    time(&rawtime);
+    resultMsg->serverTime.timeInfo = localtime(&rawtime);
+
+#ifndef _WIN32
+    gettimeofday(&(resultMsg->serverTime.tv), NULL);
+#else
+    getTimeofDay(&(resultMsg->serverTime.tv), NULL);
+#endif
 
     resultMsg->message_id = subInfo->msg->message_id;
     resultMsg->type = REPORT;

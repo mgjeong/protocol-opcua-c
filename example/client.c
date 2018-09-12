@@ -356,18 +356,8 @@ static void monitored_msg_cb (EdgeMessage *data)
 {
     if (data->type == REPORT)
     {
-        struct timeval val;
-        struct tm *lt;
-
-        lt = data->serverTime;
-        #ifdef LINUX
-            localtime(&val.tv_sec);
-        #endif
-        #ifdef WINDOWS
-	  SYSTEMTIME ltime;	
-            GetLocalTime(&ltime);
-        #endif
-		
+        struct tm *lt = data->serverTime.timeInfo;
+        struct timeval val = data->serverTime.tv;
 
         printf("[Application response Callback] Monitored Item Response received\n");
         int len = data->responseLength;
@@ -375,13 +365,8 @@ static void monitored_msg_cb (EdgeMessage *data)
         for (idx = 0; idx < len; idx++)
         {
             printf("Msg id : [%" PRIu32 "] , [Node Name] : %s\n", data->message_id, data->responses[idx]->nodeInfo->valueAlias);
-	  #ifndef _WIN32
             printf("Monitored Time : [%d-%02d-%02d %02d:%02d:%02d.%06ld], resLength: %d, resIdx: %d\n",
                        lt->tm_year+1900, lt->tm_mon+1, lt->tm_mday, lt->tm_hour, lt->tm_min, lt->tm_sec, val.tv_usec, len, idx);
-	  #else
-                printf("Monitored Time : [%d-%02d-%02d %02d:%02d:%02d.%03ld], resLength: %d, resIdx: %d\n",
-                lt->tm_year+1900, lt->tm_mon+1, lt->tm_mday, lt->tm_hour, lt->tm_min, lt->tm_sec, (int)ltime.wMilliseconds, len, idx);
-	  #endif	  
             if (data->responses[idx]->message == NULL)
             {
                 printf("data->responses[%d]->message is NULL\n", idx);
