@@ -462,6 +462,12 @@ typedef struct EdgeResult
     EdgeStatusCode code;
 } EdgeResult;
 
+typedef struct EdgeTimeInfo
+{
+    struct tm *timeInfo;
+    struct timeval tv;
+} EdgeTimeInfo;
+
 /**
   * @brief Structure which represents the request and response data
   *
@@ -508,11 +514,7 @@ typedef struct EdgeMessage
     uint32_t message_id;
 
     /**< Server Time Stamp **/
-#ifndef _WIN32
-    struct tm *serverTime;
-#else
-    struct tm *serverTime;
-#endif
+    EdgeTimeInfo serverTime;
 
 } EdgeMessage;
 
