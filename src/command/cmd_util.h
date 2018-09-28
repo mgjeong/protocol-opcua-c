@@ -28,7 +28,7 @@
 #define EDGE_CMD_UTIL_H
 
 #include "opcua_common.h"
-#include <open62541.h>
+#include "open62541.h"
 
 /**
  * @brief Get the numeric identifier of the data type.
@@ -54,6 +54,9 @@ void sendErrorResponse(const EdgeMessage *msg, char *err_desc);
  */
 EdgeDiagnosticInfo *checkDiagnosticInfo(int nodesToProcess,
         UA_DiagnosticInfo *diagnosticInfo, int diagnosticInfoLength, int returnDiagnostic);
+
+
+EdgeVersatility* parseResponse(EdgeResponse *response, UA_Variant val);
 
 
 #endif // EDGE_CMD_UTIL_H

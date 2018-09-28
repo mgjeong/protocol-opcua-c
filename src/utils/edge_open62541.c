@@ -24,6 +24,104 @@
 
 #define TAG "edge_open62541"
 
+
+UA_StatusCode createScalarVariant(int type, void *data, UA_Variant *out)
+{
+    UA_StatusCode ret = UA_STATUSCODE_GOOD;
+    if (type == UA_TYPES_STRING)
+    {
+        UA_String val = UA_STRING_ALLOC((char * ) data);
+        ret = UA_Variant_setScalarCopy(out, &val, &UA_TYPES[type]);
+        UA_String_deleteMembers(&val);
+
+        EdgeFree(val.data);
+    }
+    else if (type == UA_TYPES_BYTESTRING)
+    {
+        UA_ByteString val = UA_BYTESTRING_ALLOC((char * ) data);
+        ret = UA_Variant_setScalarCopy(out, &val, &UA_TYPES[type]);
+        UA_ByteString_deleteMembers(&val);
+
+        EdgeFree(val.data);
+    }
+    else if (type == UA_TYPES_LOCALIZEDTEXT)
+    {
+        Edge_LocalizedText *lt = (Edge_LocalizedText *) data;
+        UA_LocalizedText val;
+        val.locale.length = lt->locale.length;
+        val.locale.data = (uint8_t*)EdgeCalloc(val.locale.length, sizeof(uint8_t));
+        memcpy(val.locale.data, lt->locale.data, lt->locale.length);
+        val.text.length = lt->text.length;
+        val.text.data = (uint8_t*)EdgeCalloc(val.text.length, sizeof(uint8_t));
+        memcpy(val.text.data, lt->text.data, lt->text.length);
+        ret = UA_Variant_setScalarCopy(out, &val, &UA_TYPES[type]);
+        EdgeFree(val.locale.data);
+        EdgeFree(val.text.data);
+    }
+    else if (type == UA_TYPES_QUALIFIEDNAME)
+    {
+        Edge_QualifiedName *eqn = (Edge_QualifiedName *) data;
+        UA_QualifiedName qn;
+        qn.namespaceIndex=eqn->namespaceIndex;
+        qn.name=*((UA_String *)&eqn->name);
+        ret = UA_Variant_setScalarCopy(out, &qn, &UA_TYPES[type]);
+    }
+    else if (type == UA_TYPES_NODEID)
+    {
+        Edge_NodeId *n1 = (Edge_NodeId *) data;
+        ret = UA_Variant_setScalarCopy(out, n1, &UA_TYPES[type]);
+    }
+    else
+    {
+        ret = UA_Variant_setScalarCopy(out, data, &UA_TYPES[type]);
+    }
+    return ret;
+}
+
+UA_StatusCode createArrayVariant(int type, void *data, int len, UA_Variant *out)
+{
+    UA_StatusCode ret = UA_STATUSCODE_GOOD;
+    // array
+    if (type == UA_TYPES_STRING)
+    {
+        size_t idx = 0;
+        char **data1 = (char **) data;
+        UA_String *array = (UA_String *) UA_Array_new(len, &UA_TYPES[type]);
+        for (idx = 0; idx < len; idx++)
+        {
+            array[idx] = UA_STRING_ALLOC(data1[idx]);
+        }
+        ret = UA_Variant_setArrayCopy(out, array, len, &UA_TYPES[type]);
+        for (idx = 0; idx < len; idx++)
+        {
+            UA_String_deleteMembers(&array[idx]);
+        }
+        UA_Array_delete(array, len, &UA_TYPES[type]);
+    }
+    else if (type == UA_TYPES_BYTESTRING)
+    {
+        size_t idx = 0;
+        char **data1 = (char **) data;
+        UA_ByteString *array = (UA_ByteString *) UA_Array_new(len, &UA_TYPES[type]);
+        for (idx = 0; idx < len; idx++)
+        {
+            array[idx] = UA_BYTESTRING_ALLOC(data1[idx]);
+        }
+        ret = UA_Variant_setArrayCopy(out, array, len, &UA_TYPES[type]);
+        for (idx = 0; idx < len; idx++)
+        {
+            UA_ByteString_deleteMembers(&array[idx]);
+        }
+        UA_Array_delete(array, len, &UA_TYPES[type]);
+    }
+    else
+    {
+        ret = UA_Variant_setArrayCopy(out, data, len,
+                &UA_TYPES[type]);
+    }
+    return ret;
+}
+
 char *convertUAStringToString(UA_String *uaStr)
 {
     VERIFY_NON_NULL_MSG(uaStr, "", NULL);
@@ -55,31 +153,23 @@ Edge_String *convertToEdgeString(UA_String *uaStr)
 
 EdgeApplicationType convertToEdgeApplicationType(UA_ApplicationType appType)
 {
-    // Setting SERVER as default application type.
-    EdgeApplicationType edgeAppType = EDGE_APPLICATIONTYPE_SERVER;    
-    if(appType==UA_APPLICATIONTYPE_SERVER)
-        edgeAppType = EDGE_APPLICATIONTYPE_SERVER;
-    if(appType==UA_APPLICATIONTYPE_CLIENT)
-        edgeAppType = EDGE_APPLICATIONTYPE_CLIENT;
-    if(appType==UA_APPLICATIONTYPE_CLIENTANDSERVER)
-        edgeAppType = EDGE_APPLICATIONTYPE_CLIENTANDSERVER;
-    if(appType==UA_APPLICATIONTYPE_DISCOVERYSERVER)
-        edgeAppType = EDGE_APPLICATIONTYPE_DISCOVERYSERVER;
+    // Setting SERVER as default application type. ****
+    EdgeApplicationType edgeAppType = EDGE_APPLICATIONTYPE_SERVER;
+    COND_CHECK((appType == UA_APPLICATIONTYPE_SERVER), EDGE_APPLICATIONTYPE_SERVER);
+    COND_CHECK((appType == UA_APPLICATIONTYPE_CLIENT), EDGE_APPLICATIONTYPE_CLIENT);
+    COND_CHECK((appType == UA_APPLICATIONTYPE_CLIENTANDSERVER), EDGE_APPLICATIONTYPE_CLIENTANDSERVER);
+    COND_CHECK((appType == UA_APPLICATIONTYPE_DISCOVERYSERVER), EDGE_APPLICATIONTYPE_DISCOVERYSERVER);
     return edgeAppType;
 }
 
 UA_ApplicationType convertEdgeApplicationType(EdgeApplicationType appType)
 {
-    // Setting SERVER as default application type.
-    UA_ApplicationType uaAppType = UA_APPLICATIONTYPE_SERVER;    
-    if(appType==EDGE_APPLICATIONTYPE_SERVER)
-        uaAppType = UA_APPLICATIONTYPE_SERVER;
-    if(appType==EDGE_APPLICATIONTYPE_CLIENT)
-        uaAppType = UA_APPLICATIONTYPE_CLIENT;
-    if(appType==EDGE_APPLICATIONTYPE_CLIENTANDSERVER)
-        uaAppType = UA_APPLICATIONTYPE_CLIENTANDSERVER;
-    if(appType==EDGE_APPLICATIONTYPE_DISCOVERYSERVER)
-        uaAppType = UA_APPLICATIONTYPE_DISCOVERYSERVER;
+    // Setting SERVER as default application type. *****
+    UA_ApplicationType uaAppType = UA_APPLICATIONTYPE_SERVER;
+    COND_CHECK((appType == EDGE_APPLICATIONTYPE_SERVER), UA_APPLICATIONTYPE_SERVER);
+    COND_CHECK((appType == EDGE_APPLICATIONTYPE_CLIENT), UA_APPLICATIONTYPE_CLIENT);
+    COND_CHECK((appType == EDGE_APPLICATIONTYPE_CLIENTANDSERVER), UA_APPLICATIONTYPE_CLIENTANDSERVER);
+    COND_CHECK((appType == EDGE_APPLICATIONTYPE_DISCOVERYSERVER), UA_APPLICATIONTYPE_DISCOVERYSERVER);
     return uaAppType;
 }
 
@@ -387,104 +477,22 @@ void freeEdgeVersatilityByType(EdgeVersatility *versatileValue, int type)
 
 bool isNodeClassValid(UA_NodeClass nodeClass)
 {
-    bool valid = true;
-    switch (nodeClass)
-    {
-        case UA_NODECLASS_UNSPECIFIED:
-        case UA_NODECLASS_OBJECT:
-        case UA_NODECLASS_VARIABLE:
-        case UA_NODECLASS_METHOD:
-        case UA_NODECLASS_OBJECTTYPE:
-        case UA_NODECLASS_VARIABLETYPE:
-        case UA_NODECLASS_REFERENCETYPE:
-        case UA_NODECLASS_DATATYPE:
-        case UA_NODECLASS_VIEW:
-            valid = true;
-            break;
-        default:
-            valid = false;
-            break;
-    }
-    return valid;
+    static const int NODECLASS_MASK = UA_NODECLASS_UNSPECIFIED | UA_NODECLASS_OBJECT
+            | UA_NODECLASS_VARIABLE | UA_NODECLASS_METHOD | UA_NODECLASS_OBJECTTYPE
+            | UA_NODECLASS_VARIABLETYPE | UA_NODECLASS_REFERENCETYPE | UA_NODECLASS_DATATYPE
+            | UA_NODECLASS_VIEW;
+    if (nodeClass & NODECLASS_MASK)
+        return true;
+    return false;
 }
 
 size_t get_size(int type, bool isArray)
 {
-    size_t size = -1;
-    switch (type)
-    {
-        case UA_NS0ID_BOOLEAN:
-            {
-                size = (isArray) ? sizeof(bool*) : sizeof(bool);
-            }
-            break;
-        case UA_NS0ID_SBYTE:
-            {
-                size = (isArray) ? sizeof(int8_t*) : sizeof(int8_t);
-            }
-            break;
-        case UA_NS0ID_BYTE:
-            {
-                size = (isArray) ? sizeof(uint8_t*) : sizeof(uint8_t);
-            }
-            break;
-        case UA_NS0ID_INT16:
-            {
-                size = (isArray) ? sizeof(int16_t*) : sizeof(int16_t);
-            }
-            break;
-        case UA_NS0ID_UINT16:
-            {
-                size = (isArray) ? sizeof(uint16_t*) : sizeof(uint16_t);
-            }
-            break;
-        case UA_NS0ID_INT32:
-            {
-                size = (isArray) ? sizeof(int32_t*) : sizeof(int32_t);
-            }
-            break;
-        case UA_NS0ID_UINT32:
-            {
-                size = (isArray) ? sizeof(uint32_t*) : sizeof(uint32_t);
-            }
-            break;
-        case UA_NS0ID_INT64:
-            {
-                size = (isArray) ? sizeof(int64_t*) : sizeof(int64_t);
-            }
-            break;
-        case UA_NS0ID_UINT64:
-            {
-                size = (isArray) ? sizeof(uint64_t*) : sizeof(uint64_t);
-            }
-            break;
-        case UA_NS0ID_FLOAT:
-            {
-                size = (isArray) ? sizeof(float*) : sizeof(float);
-            }
-            break;
-        case UA_NS0ID_DOUBLE:
-            {
-                size = (isArray) ? sizeof(double*) : sizeof(double);
-            }
-            break;
-        case UA_NS0ID_STRING:
-            {
-                size = (isArray) ? sizeof(char*) : sizeof(char);
-            }
-            break;
-        case UA_NS0ID_DATETIME:
-            {
-                size = (isArray) ? sizeof(UA_DateTime*) : sizeof(UA_DateTime);
-            }
-            break;
-        default:
-            {
-                size = -1;
-            }
-            break;
-    }
-    return size;
+    COND_CHECK((isArray), sizeof(void*));
+    size_t size[13] = {sizeof(bool), sizeof(int8_t), sizeof(uint8_t), sizeof(int16_t), sizeof(uint16_t),
+                      sizeof(int32_t), sizeof(uint32_t), sizeof(int64_t), sizeof(uint64_t),
+                      sizeof(float), sizeof(double), sizeof(char), sizeof(UA_DateTime)};
+    return size[type-1];
 }
 
 EdgeMessage* cloneEdgeMessage(EdgeMessage *msg)

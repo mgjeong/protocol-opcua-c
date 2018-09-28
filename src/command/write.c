@@ -22,6 +22,7 @@
 #include "common_client.h"
 #include "edge_logger.h"
 #include "edge_malloc.h"
+#include "edge_open62541.h"
 #include "message_dispatcher.h"
 #include "cmd_util.h"
 
@@ -68,73 +69,12 @@ static void writeGroup(UA_Client *client, const EdgeMessage *msg)
         if (message->isArray == 0)
         {
             /* scalar value to write */
-            if (type == UA_TYPES_STRING)
-            {
-                /* STRING */
-                char *value_to_write = (char*) message->value;
-                UA_String val = UA_STRING_ALLOC(value_to_write);
-                UA_Variant_setScalarCopy(&myVariant[i], &val, &UA_TYPES[type]);
-                UA_String_deleteMembers(&val);
-                EdgeFree(val.data);
-            }
-            else if (type == UA_TYPES_BYTESTRING)
-            {
-                /* BYTESTRING */
-                char *value_to_write = (char*) message->value;
-                UA_ByteString val = UA_BYTESTRING_ALLOC(value_to_write);
-                UA_Variant_setScalarCopy(&myVariant[i], &val, &UA_TYPES[type]);
-                UA_String_deleteMembers(&val);
-                EdgeFree(val.data);
-            }
-            else
-            {
-                /* Other data types */
-                UA_Variant_setScalarCopy(&myVariant[i], message->value, &UA_TYPES[type]);
-            }
+            createScalarVariant(type, message->value, &myVariant[i]);
         }
         else
         {
             /* array value to write */
-            if (type == UA_TYPES_STRING)
-            {
-                /* STRING array */
-                int idx = 0;
-                char **data = (char **) message->value;
-                UA_String *array = (UA_String *) UA_Array_new(message->arrayLength, &UA_TYPES[type]);
-                for (idx = 0; idx < message->arrayLength; idx++)
-                {
-                    array[idx] = UA_STRING_ALLOC(data[idx]);
-                }
-                UA_Variant_setArrayCopy(&myVariant[i], array, message->arrayLength, &UA_TYPES[type]);
-                for (idx = 0; idx < message->arrayLength; idx++)
-                {
-                    UA_String_deleteMembers(&array[idx]);
-                }
-                UA_Array_delete(array, message->arrayLength, &UA_TYPES[type]);
-            }
-            else if (type == UA_TYPES_BYTESTRING)
-            {
-                /* BYTESTRING array */
-                int idx = 0;
-                char **dataArray = (char**) message->value;
-                UA_ByteString *array = (UA_ByteString *) UA_Array_new(message->arrayLength, &UA_TYPES[type]);
-                for (idx = 0; idx < message->arrayLength; idx++)
-                {
-                    char *data = (char *) dataArray[idx];
-                    array[idx] = UA_BYTESTRING_ALLOC(data);
-                }
-                UA_Variant_setArrayCopy(&myVariant[i], array, message->arrayLength, &UA_TYPES[type]);
-                for (idx = 0; idx < message->arrayLength; idx++)
-                {
-                    UA_ByteString_deleteMembers(&array[idx]);
-                }
-                UA_Array_delete(array, message->arrayLength, &UA_TYPES[type]);
-            }
-            else
-            {
-                /* Other data types */
-                UA_Variant_setArrayCopy(&myVariant[i], message->value, message->arrayLength, &UA_TYPES[type]);
-            }
+            createArrayVariant(type, message->value, message->arrayLength, &myVariant[i]);
         }
         wv[i].value.value = myVariant[i];
     }

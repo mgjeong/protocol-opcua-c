@@ -23,6 +23,7 @@
 #include "edge_map.h"
 #include "edge_logger.h"
 #include "edge_malloc.h"
+#include "edge_open62541.h"
 
 #include <stdio.h>
 
@@ -84,67 +85,16 @@ static void addVariableNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeI
     attr.valueRank = -1;
 
     int type = (int) id - 1;
-    if (type == UA_TYPES_STRING)
-    {
-        UA_String val = UA_STRING_ALLOC((char * ) item->variableData);
-        UA_Variant_setScalarCopy(&attr.value, &val, &UA_TYPES[type]);
-        UA_String_deleteMembers(&val);
-
-        EdgeFree(val.data);
-    }
-    else if (type == UA_TYPES_BYTESTRING)
-    {
-        UA_ByteString val = UA_BYTESTRING_ALLOC((char * ) item->variableData);
-        UA_Variant_setScalarCopy(&attr.value, &val, &UA_TYPES[type]);
-        UA_ByteString_deleteMembers(&val);
-
-        EdgeFree(val.data);
-    }
-    else if (type == UA_TYPES_LOCALIZEDTEXT)
-    {
-        Edge_LocalizedText *lt = (Edge_LocalizedText *) item->variableData;
-        UA_LocalizedText val;
-        val.locale.length = lt->locale.length;
-        val.locale.data = (uint8_t*)EdgeCalloc(val.locale.length, sizeof(uint8_t));
-        memcpy(val.locale.data, lt->locale.data, lt->locale.length);
-        val.text.length = lt->text.length;
-        val.text.data = (uint8_t*)EdgeCalloc(val.text.length, sizeof(uint8_t));
-        memcpy(val.text.data, lt->text.data, lt->text.length);
-        UA_Variant_setScalarCopy(&attr.value, &val, &UA_TYPES[type]);
-        EdgeFree(val.locale.data);
-        EdgeFree(val.text.data);
-    }
-    else if (type == UA_TYPES_QUALIFIEDNAME)
-    {
-        Edge_QualifiedName *eqn = (Edge_QualifiedName *) item->variableData;
-        UA_QualifiedName qn;
-        qn.namespaceIndex=eqn->namespaceIndex;
-        qn.name=*((UA_String *)&eqn->name);
-        UA_Variant_setScalarCopy(&attr.value, &qn, &UA_TYPES[type]);
-    }
-    else if (type == UA_TYPES_NODEID)
-    {
-        Edge_NodeId *n1 = (Edge_NodeId *) item->variableData;
-        UA_Variant_setScalarCopy(&attr.value, n1, &UA_TYPES[type]);
-    }
-    else
-    {
-        UA_Variant_setScalarCopy(&attr.value, item->variableData, &UA_TYPES[type]);
-    }
+    createScalarVariant(type, item->variableData, &attr.value);
 
     UA_StatusCode status = UA_Server_addVariableNode(server, UA_NODEID_STRING(nsIndex, item->browseName),
             UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER), UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES),
             UA_QUALIFIEDNAME(nsIndex, name), UA_NODEID_NUMERIC(0, 63), attr, NULL, NULL);
 
-    if (status == UA_STATUSCODE_GOOD)
-    {
-        EDGE_LOG(TAG, "+++ addVariableNode success +++\n");
-    }
-    else
-    {
-        EDGE_LOG(TAG, "+++ addVariableNode failed +++\n");
-    }
     UA_Variant_deleteMembers(&attr.value);
+
+    COND_CHECK_NR_MSG((status != UA_STATUSCODE_GOOD), "+++ addVariableNode failed +++\n");
+    EDGE_LOG(TAG, "+++ addVariableNode success +++\n");
 }
 
 /**
@@ -175,57 +125,16 @@ static void addArrayNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem
     EDGE_LOG_V(TAG, "[%s] sampling interval : %lf\n", item->browseName, item->minimumSamplingInterval);
 
     int type = (int) id - 1;
-    if (type == UA_TYPES_STRING)
-    {
-        size_t idx = 0;
-        char **data1 = (char **) item->variableData;
-        UA_String *array = (UA_String *) UA_Array_new(item->arrayLength, &UA_TYPES[type]);
-        for (idx = 0; idx < item->arrayLength; idx++)
-        {
-            array[idx] = UA_STRING_ALLOC(data1[idx]);
-        }
-        UA_Variant_setArrayCopy(&attr.value, array, item->arrayLength, &UA_TYPES[type]);
-        for (idx = 0; idx < item->arrayLength; idx++)
-        {
-            UA_String_deleteMembers(&array[idx]);
-        }
-        UA_Array_delete(array, item->arrayLength, &UA_TYPES[type]);
-    }
-    else if (type == UA_TYPES_BYTESTRING)
-    {
-        size_t idx = 0;
-        char **data1 = (char **) item->variableData;
-        UA_ByteString *array = (UA_ByteString *) UA_Array_new(item->arrayLength, &UA_TYPES[type]);
-        for (idx = 0; idx < item->arrayLength; idx++)
-        {
-            array[idx] = UA_BYTESTRING_ALLOC(data1[idx]);
-        }
-        UA_Variant_setArrayCopy(&attr.value, array, item->arrayLength, &UA_TYPES[type]);
-        for (idx = 0; idx < item->arrayLength; idx++)
-        {
-            UA_ByteString_deleteMembers(&array[idx]);
-        }
-        UA_Array_delete(array, item->arrayLength, &UA_TYPES[type]);
-    }
-    else
-    {
-        UA_Variant_setArrayCopy(&attr.value, item->variableData, item->arrayLength,
-                &UA_TYPES[type]);
-    }
+    createArrayVariant(type, item->variableData, item->arrayLength, &attr.value);
 
     UA_StatusCode status = UA_Server_addVariableNode(server, UA_NODEID_STRING(nsIndex, item->browseName),
             UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER), UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES),
             UA_QUALIFIEDNAME(nsIndex, name), UA_NODEID_NUMERIC(0, 63), attr, NULL, NULL);
 
-    if (status == UA_STATUSCODE_GOOD)
-    {
-        EDGE_LOG(TAG, "+++ addArrayNode success +++\n");
-    }
-    else
-    {
-        EDGE_LOG(TAG, "+++ addArrayNode failed +++\n");
-    }
     UA_Variant_deleteMembers(&attr.value);
+
+    COND_CHECK_NR_MSG((status != UA_STATUSCODE_GOOD), "+++ addArrayNode failed +++\n");
+    EDGE_LOG(TAG, "+++ addArrayNode success +++\n");
 }
 
 /**
@@ -259,14 +168,8 @@ static void addObjectNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeIte
             sourceNodeId, UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES), UA_QUALIFIEDNAME(nsIndex, name),
             UA_NODEID_NUMERIC(0, UA_NS0ID_FOLDERTYPE), object_attr, NULL, NULL);
 
-    if (status == UA_STATUSCODE_GOOD)
-    {
-        EDGE_LOG(TAG, "+++ addObjectNode success +++\n");
-    }
-    else
-    {
-        EDGE_LOG(TAG, "+++ addObjectNode failed +++\n");
-    }
+    COND_CHECK_NR_MSG((status != UA_STATUSCODE_GOOD), "+++ addObjectNode failed +++\n");
+    EDGE_LOG(TAG, "+++ addObjectNode success +++\n");
 }
 
 /**
@@ -300,14 +203,8 @@ static void addObjectTypeNode(UA_Server *server, uint16_t nsIndex, const EdgeNod
             UA_NODEID_NUMERIC(0, UA_NS0ID_HASSUBTYPE), UA_QUALIFIEDNAME(nsIndex, name), object_attr, NULL,
             NULL);
 
-    if (status == UA_STATUSCODE_GOOD)
-    {
-        EDGE_LOG(TAG, "+++ addObjectTypeNode success +++\n");
-    }
-    else
-    {
-        EDGE_LOG(TAG, "+++ addObjectTypeNode failed +++\n");
-    }
+    COND_CHECK_NR_MSG((status != UA_STATUSCODE_GOOD), "+++ addObjectTypeNode failed +++\n");
+    EDGE_LOG(TAG, "+++ addObjectTypeNode success +++\n");
 }
 
 /**
@@ -329,26 +226,7 @@ static void addVariableTypeNode(UA_Server *server, uint16_t nsIndex, const EdgeN
     attr.dataType = UA_TYPES[(int) id - 1].typeId;
 
     int type = (int) id - 1;
-    if (type == UA_TYPES_STRING)
-    {
-        size_t idx = 0;
-        char **data1 = (char **) item->variableData;
-        UA_String *array = (UA_String *) UA_Array_new(item->arrayLength, &UA_TYPES[type]);
-        for (idx = 0; idx < item->arrayLength; idx++)
-        {
-            array[idx] = UA_STRING_ALLOC(data1[idx]);
-        }
-        UA_Variant_setArrayCopy(&attr.value, array, item->arrayLength, &UA_TYPES[type]);
-        for (idx = 0; idx < item->arrayLength; idx++)
-        {
-            UA_String_deleteMembers(&array[idx]);
-        }
-        UA_Array_delete(array, item->arrayLength, &UA_TYPES[type]);
-    }
-    else
-    {
-        UA_Variant_setArray(&attr.value, item->variableData, item->arrayLength, &UA_TYPES[type]);
-    }
+    createArrayVariant(type, item->variableData, item->arrayLength, &attr.value);
 
     UA_StatusCode status = UA_Server_addVariableTypeNode(server,
             UA_NODEID_STRING(nsIndex, item->browseName),
@@ -356,15 +234,10 @@ static void addVariableTypeNode(UA_Server *server, uint16_t nsIndex, const EdgeN
             UA_NODEID_NUMERIC(0, UA_NS0ID_HASSUBTYPE), UA_QUALIFIEDNAME(nsIndex, name),
             UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE), attr, NULL, NULL);
 
-    if (status == UA_STATUSCODE_GOOD)
-    {
-        EDGE_LOG(TAG, "+++ addVariableTypeNode success +++\n");
-    }
-    else
-    {
-        EDGE_LOG(TAG, "+++ addVariableTypeNode failed +++\n");
-    }
     //UA_Variant_deleteMembers(&attr.value);
+
+    COND_CHECK_NR_MSG((status != UA_STATUSCODE_GOOD), "+++ addVariableTypeNode failed +++\n");
+    EDGE_LOG(TAG, "+++ addVariableTypeNode success +++\n");
 }
 
 /**
@@ -398,14 +271,8 @@ static void addDataTypeNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeI
                 UA_EXPANDEDNODEID_STRING(nsIndex, item->browseName), true);
     }
 
-    if (status == UA_STATUSCODE_GOOD)
-    {
-        EDGE_LOG(TAG, "+++ addDataTypeNode success +++\n");
-    }
-    else
-    {
-        EDGE_LOG(TAG, "+++ addDataTypeNode failed +++\n");
-    }
+    COND_CHECK_NR_MSG((status != UA_STATUSCODE_GOOD), "+++ addDataTypeNode failed +++\n");
+    EDGE_LOG(TAG, "+++ addDataTypeNode success +++\n");
 }
 
 /**
@@ -439,14 +306,8 @@ static void addViewNode(UA_Server *server, uint16_t nsIndex, const EdgeNodeItem 
             sourceNodeId, UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES), UA_QUALIFIEDNAME(nsIndex, name), attr,
             NULL, NULL);
 
-    if (status == UA_STATUSCODE_GOOD)
-    {
-        EDGE_LOG(TAG, "+++ addViewNode success +++\n");
-    }
-    else
-    {
-        EDGE_LOG(TAG, "+++ addViewNode failed +++\n");
-    }
+    COND_CHECK_NR_MSG((status != UA_STATUSCODE_GOOD), "+++ addViewNode failed +++\n");
+    EDGE_LOG(TAG, "+++ addViewNode success +++\n");
 }
 
 EdgeResult addReferences(UA_Server *server, EdgeReference *reference, uint16_t src_nsIndex, uint16_t target_nsIndex)
@@ -466,17 +327,11 @@ EdgeResult addReferences(UA_Server *server, EdgeReference *reference, uint16_t s
     UA_StatusCode status = UA_Server_addReference(server,
             UA_NODEID_STRING(src_nsIndex, reference->sourcePath),
             UA_NODEID_NUMERIC(0, reference->referenceId), expanded_nodeId, reference->forward);
-    if (status == UA_STATUSCODE_GOOD)
-    {
-        result.code = STATUS_OK;
-        EDGE_LOG(TAG, "+++ addReference success +++\n");
-    }
-    else
-    {
-        result.code = STATUS_ERROR;
-        EDGE_LOG(TAG, "+++ addReference failed +++\n");
-    }
 
+    COND_CHECK_MSG((status != UA_STATUSCODE_GOOD), "+++ addReference failed +++\n", result);
+
+    result.code = STATUS_OK;
+    EDGE_LOG(TAG, "+++ addReference success +++\n");
     return result;
 }
 
@@ -525,10 +380,7 @@ static void addReferenceTypeNode(UA_Server *server, uint16_t nsIndex, const Edge
 
     status = UA_Server_addReference(server, UA_NODEID_STRING(nsIndex, item->browseName),
             UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES), expandedSourceNodeId, false);
-    if (status != UA_STATUSCODE_GOOD)
-    {
-        EDGE_LOG(TAG, "+++ UA_Server_addReference failed +++\n");
-    }
+    COND_CHECK_NR_MSG((status != UA_STATUSCODE_GOOD), "+++ UA_Server_addReference failed +++\n");
 }
 
 static keyValue getMethodMapElement(const edgeMap *map, keyValue key)
@@ -536,8 +388,7 @@ static keyValue getMethodMapElement(const edgeMap *map, keyValue key)
     edgeMapNode *temp = map->head;
     while (temp != NULL)
     {
-        if (!strcmp(temp->key, key))
-            return temp->value;
+        COND_CHECK_MSG((!strcmp(temp->key, key)), "", temp->value);
         temp = temp->next;
     }
     return NULL;
@@ -665,46 +516,12 @@ static UA_StatusCode methodCallback(UA_Server *server, const UA_NodeId *sessionI
             if (method->outArg[idx]->valType == SCALAR)
             {
                 // Scalar copy
-                if (type == UA_TYPES_STRING)
-                {
-                    UA_String val = UA_STRING_ALLOC((char * ) *out);
-                    UA_Variant_setScalarCopy(&output[idx], &val, &UA_TYPES[type]);
-                    UA_String_deleteMembers(&val);
-                    EdgeFree(val.data);
-                }
-                else
-                {
-                    UA_Variant *variant = &output[idx];
-                    UA_Variant_setScalarCopy(variant, out[idx], &UA_TYPES[type]);
-                }
+                createScalarVariant(type, *out, &output[idx]);
             }
             else if (method->outArg[idx]->valType == ARRAY_1D)
             {
                 // Array copy
-                if (type == UA_TYPES_STRING)
-                {
-                    char **data = (char **) out[idx];
-                    UA_String *array = (UA_String *) UA_Array_new(
-                            method->outArg[idx]->arrayLength, &UA_TYPES[type]);
-                    for (size_t idx1 = 0; idx1 < method->outArg[idx]->arrayLength; idx1++)
-                    {
-                        array[idx1] = UA_STRING_ALLOC(data[idx1]);
-                    }
-                    UA_Variant *variant = &output[idx];
-                    UA_Variant_setArrayCopy(variant, array, method->outArg[idx]->arrayLength,
-                            &UA_TYPES[type]);
-                    for (size_t idx1 = 0; idx1 < method->outArg[idx]->arrayLength; idx1++)
-                    {
-                        UA_String_deleteMembers(&array[idx1]);
-                    }
-                    UA_Array_delete(array, method->outArg[idx]->arrayLength, &UA_TYPES[type]);
-                }
-                else
-                {
-                    UA_Variant *variant = &output[idx];
-                    UA_Variant_setArrayCopy(variant, out[idx], method->outArg[idx]->arrayLength,
-                            &UA_TYPES[type]);
-                }
+                createArrayVariant(type, out[idx], method->outArg[idx]->arrayLength, &output[idx]);
             }
             EdgeFree(out[idx]);
         }
@@ -943,64 +760,11 @@ EdgeResult modifyNode(UA_Server *server, uint16_t nsIndex, const char *nodeUri, 
     UA_Variant *myVariant = UA_Variant_new();
     if (UA_Variant_isScalar(readval))
     {
-
-        if (type == &UA_TYPES[UA_TYPES_STRING])
-        {
-            UA_String val = UA_STRING_ALLOC((char * ) value->value);
-            ret = UA_Variant_setScalarCopy(myVariant, &val, type);
-            UA_String_deleteMembers(&val);
-            EdgeFree(val.data);
-        }
-        else if (type == &UA_TYPES[UA_TYPES_BYTESTRING])
-        {
-            UA_ByteString val = UA_BYTESTRING_ALLOC((char * ) value->value);
-            ret = UA_Variant_setScalarCopy(myVariant, &val, type);
-            UA_String_deleteMembers(&val);
-            EdgeFree(val.data);
-        }
-        else
-        {
-            ret = UA_Variant_setScalarCopy(myVariant, value->value, type);
-        }
+        ret = createScalarVariant(type->typeIndex, value->value, myVariant);
     }
     else
     {
-        if (type == &UA_TYPES[UA_TYPES_STRING])
-        {
-            size_t idx = 0;
-            char **data1 = (char **) value->value;
-            UA_String *array = (UA_String *) UA_Array_new(value->arrayLength, type);
-            for (idx = 0; idx < value->arrayLength; idx++)
-            {
-                array[idx] = UA_STRING_ALLOC(data1[idx]);
-            }
-            UA_Variant_setArrayCopy(myVariant, array, value->arrayLength, type);
-            for (idx = 0; idx < value->arrayLength; idx++)
-            {
-                UA_String_deleteMembers(&array[idx]);
-            }
-            UA_Array_delete(array, value->arrayLength, type);
-        }
-        else if (type == &UA_TYPES[UA_TYPES_BYTESTRING])
-        {
-            size_t idx = 0;
-            char **data1 = (char **) value->value;
-            UA_ByteString *array = (UA_ByteString *) UA_Array_new(value->arrayLength, type);
-            for (idx = 0; idx < value->arrayLength; idx++)
-            {
-                array[idx] = UA_BYTESTRING_ALLOC(data1[idx]);
-            }
-            UA_Variant_setArrayCopy(myVariant, array, value->arrayLength, type);
-            for (idx = 0; idx < value->arrayLength; idx++)
-            {
-                UA_ByteString_deleteMembers(&array[idx]);
-            }
-            UA_Array_delete(array, value->arrayLength, type);
-        }
-        else
-        {
-            UA_Variant_setArrayCopy(myVariant, value->value, value->arrayLength, type);
-        }
+        ret = createArrayVariant(type->typeIndex, value->value, value->arrayLength, myVariant);
     }
 
     if (ret != UA_STATUSCODE_GOOD)

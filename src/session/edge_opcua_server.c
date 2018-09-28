@@ -83,10 +83,8 @@ void printNode(void *visitorContext, const UA_Node *node)
 
     char *browseName = convertUAStringToString(&browseNameUA.name);
     printf("namespaceIndex : %d, type : %s, browseName : %s\n", nodeId.namespaceIndex, type, browseName);
-    if(IS_NOT_NULL(browseName))
-    {
-        EdgeFree(browseName);
-    }
+    VERIFY_NON_NULL_NR_MSG(browseName, "browseName is NULL");
+    EdgeFree(browseName);
 }
 
 void printNodeListInServer()
