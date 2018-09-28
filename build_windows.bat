@@ -47,7 +47,7 @@
 	
 :BUILD_PROTOCOL_OPCUA_C	
 	cd %cwd%
-    call scons TARGET_ARCH=windows AUTO_DOWNLOAD_DEP_LIBS=1
+    call scons TARGET_ARCH=windows AUTO_DOWNLOAD_DEP_LIBS=1 SUB_QUEUE=1
     copy %cwd%\extlibs\pthread-win32\dll\x64\pthreadVC2.dll %cwd%\example\out\pthreadVC2.dll
     GOTO END
 
