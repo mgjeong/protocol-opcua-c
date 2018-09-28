@@ -451,18 +451,11 @@ void freeEdgeDiagnosticInfo(EdgeDiagnosticInfo *info)
 
 void freeEdgeResponse(EdgeResponse *response)
 {
-    VERIFY_NON_NULL_NR_MSG(response, "NULL param EdgeResponse in freeEdgeResponse\n");
-    if(IS_NOT_NULL(response->message))
-        freeEdgeVersatilityByType(response->message, response->type);
-
-    if(IS_NOT_NULL(response->nodeInfo))
-        freeEdgeNodeInfo(response->nodeInfo);
-
-    if(IS_NOT_NULL(response->result))
-        EdgeFree(response->result);
-
-    if(IS_NOT_NULL(response->m_diagnosticInfo))
-        freeEdgeDiagnosticInfo(response->m_diagnosticInfo);
+    VERIFY_NON_NULL_NR_MSG(response, "NULL param EdgeResponse in freeEdgeResponse\n");    
+    freeEdgeVersatilityByType(response->message, response->type);
+    freeEdgeNodeInfo(response->nodeInfo);
+    EdgeFree(response->result);
+    freeEdgeDiagnosticInfo(response->m_diagnosticInfo);
 
     EdgeFree(response);
 }
@@ -480,27 +473,13 @@ void freeEdgeResponses(EdgeResponse **responses, int responseLength)
 void freeEdgeMessage(EdgeMessage *msg)
 {
     VERIFY_NON_NULL_NR_MSG(msg, "NULL param EdgeMessage in freeEdgeMessage\n");
-    if(IS_NOT_NULL(msg->endpointInfo))
-        freeEdgeEndpointInfo(msg->endpointInfo);
-
-    if(IS_NOT_NULL(msg->request))
-        freeEdgeRequest(msg->request);
-
-    if(IS_NOT_NULL(msg->requests))
-        freeEdgeRequests(msg->requests, msg->requestLength);
-
-    if(IS_NOT_NULL(msg->responses))
-        freeEdgeResponses(msg->responses, msg->responseLength);
-
-    if(IS_NOT_NULL(msg->result))
-        EdgeFree(msg->result);
-
-    if(IS_NOT_NULL(msg->browseParam))
-        EdgeFree(msg->browseParam);
-
-    if(IS_NOT_NULL(msg->browseResult))
-        freeEdgeBrowseResult(msg->browseResult, msg->browseResultLength);
-
+    freeEdgeEndpointInfo(msg->endpointInfo);
+    freeEdgeRequest(msg->request);
+    freeEdgeRequests(msg->requests, msg->requestLength);
+    freeEdgeResponses(msg->responses, msg->responseLength);
+    EdgeFree(msg->result);
+    EdgeFree(msg->browseParam);
+    freeEdgeBrowseResult(msg->browseResult, msg->browseResultLength);
     EdgeFree(msg);
 }
 

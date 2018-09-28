@@ -249,15 +249,11 @@ bool checkEndpointURI(char *endpoint) {
     COND_CHECK_MSG((retComp), "Error in compiling regex\n", result);
 
     int retRegex = regexec(&regex, endpoint, 0, NULL, 0);
-    if(REG_NOERROR == retRegex) {
-        EDGE_LOG(TAG, "Endpoint URI has port number\n");
-        result = true;
-    } else if(REG_NOMATCH == retRegex) {
-        EDGE_LOG(TAG, "Endpoint URI has no port number");
-    } else {
-        EDGE_LOG(TAG, "Error in regex\n");
-    }
     regfree(&regex);
+
+    COND_CHECK_MSG((REG_NOERROR == retRegex), "Endpoint URI has port number\n", true);
+    COND_CHECK_MSG((REG_NOMATCH == retRegex), "Endpoint URI has no port number\n", result);
+    EDGE_LOG(TAG, "Error in regex\n");
     return result;
 #else
     return true;
@@ -369,10 +365,8 @@ void onSendMessage(EdgeMessage* msg)
         EDGE_LOG(TAG, "\n[Received command] :: START SERVER \n");
         VERIFY_NON_NULL_NR_MSG(!b_serverInitialized, "Server already initialized\n");
         EdgeResult result = start_server(msg->endpointInfo);
-        if (result.code == STATUS_OK)
-        {
-            b_serverInitialized = true;
-        }
+        COND_CHECK_NR_MSG((result.code != STATUS_OK), "Error in starting server\n");
+        b_serverInitialized = true;
     }
     else if (CMD_START_CLIENT == msg->command)
     {
@@ -441,14 +435,12 @@ void onResponseMessage(EdgeMessage *msg)
 void onDiscoveryCallback(EdgeDevice *device)
 {
     VERIFY_NON_NULL_NR_MSG(discoveryCb, "NULL discoveryCb in onDiscoveryCallback\n"); // discovery callback not registered by application.
-
     discoveryCb->endpoint_found_cb(device);
 }
 
 void onStatusCallback(EdgeEndPointInfo *epInfo, EdgeStatusCode status)
 {
     VERIFY_NON_NULL_NR_MSG(statusCb, "NULL statusCb in onStatusCallback\n"); // status callback not registered by application.
-
     if (STATUS_SERVER_STARTED == status || STATUS_CLIENT_STARTED == status)
     {
         statusCb->start_cb(epInfo, status);
@@ -776,14 +768,11 @@ EdgeResult insertWriteAccessNodeWithValueType(EdgeMessage **msg, const char* nod
     VERIFY_NON_NULL_MSG(varient, "Error : Malloc failed for Versatility", result);
     varient->value = value;
     varient->arrayLength = 0;
+    varient->isArray = false;
     if (valueCount > 1)
     {
         varient->isArray = true;
         varient->arrayLength = valueCount;
-    }
-    else
-    {
-        varient->isArray = false;
     }
     (*msg)->requests[index]->value = varient;
     (*msg)->requestLength = ++index;

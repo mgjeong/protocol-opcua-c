@@ -36,6 +36,25 @@ extern "C"
 #endif
 
 /**
+ * @brief Create scalar variant .
+ * @param[in]  type data type.
+ * @param[in]  data Data.
+ * @param[out]  out Output Scalar variant.
+ * @return GOOD status on success. Otherwise error status
+ */
+UA_StatusCode createScalarVariant(int type, void *data, UA_Variant *out);
+
+/**
+ * @brief Create Array variant.
+ * @param[in]  type data type.
+ * @param[in]  data Array Data.
+ * @param[in]  len  Array Length
+ * @param[out]  out Output Array variant.
+ * @return GOOD status on success. Otherwise error status
+ */
+UA_StatusCode createArrayVariant(int type, void *data, int len, UA_Variant *out);
+
+/**
  * @brief Converts string of type UA_String to char string.
  * @remarks Allocated memory should be freed by the caller.
  * @param[in]  uaStr Data to be converted.

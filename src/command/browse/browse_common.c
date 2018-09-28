@@ -58,10 +58,8 @@ void setErrorResponseCallback(response_cb_t callback) {
 
 static unsigned char *convertUAStringToUnsignedChar(UA_String *uaStr)
 {
-    if (!uaStr || uaStr->length <= 0)
-    {
-        return NULL;
-    }
+    VERIFY_NON_NULL_MSG(uaStr, "uaStr is null\n", NULL);
+    COND_CHECK_MSG((uaStr->length <= 0), "", NULL);
 
     unsigned char *str = (unsigned char *) EdgeCalloc(uaStr->length+1, sizeof(unsigned char));
     VERIFY_NON_NULL_MSG(str, "EdgeCalloc FAILED for  unsigned char String\n", NULL);
@@ -258,7 +256,7 @@ static bool checkContinuationPoint(uint32_t msgId, UA_BrowseResult *browseResult
     VERIFY_NON_NULL_MSG(browseResult, "browseResult param is NULL", false);
     VERIFY_NON_NULL_MSG(srcNodeId, "srcNodeId param is NULL", false);
 
-    bool retVal = false;
+    bool retVal = true;
     /*if(browseResult.continuationPoint.length <= 0)
      {
      EDGE_LOG(TAG, "Error: " CONTINUATIONPOINT_EMPTY);
@@ -269,130 +267,112 @@ static bool checkContinuationPoint(uint32_t msgId, UA_BrowseResult *browseResult
     {
         EDGE_LOG(TAG, "Error: " CONTINUATIONPOINT_LONG);
         invokeErrorCb(msgId, srcNodeId, STATUS_ERROR, CONTINUATIONPOINT_LONG);
+        retVal = false;
     }
     else if (browseResult->continuationPoint.length > 0
             && (browseResult->referencesSize <= 0 || !browseResult->references))
     {
         EDGE_LOG(TAG, "Error: " STATUS_VIEW_REFERENCE_DATA_INVALID_VALUE);
         invokeErrorCb(msgId, srcNodeId, STATUS_ERROR, STATUS_VIEW_REFERENCE_DATA_INVALID_VALUE);
-    }
-    else
-    {
-        retVal = true;
+        retVal = false;
     }
     return retVal;
 }
 
 static bool checkBrowseName(uint32_t msgId, UA_String browseName, EdgeNodeId *srcNodeId)
 {
-    bool retVal = false;
+    bool retVal = true;
     if (browseName.length <= 0 || NULL == browseName.data)
     {
         EDGE_LOG(TAG, "Error: " BROWSENAME_EMPTY);
         invokeErrorCb(msgId, srcNodeId, STATUS_ERROR, BROWSENAME_EMPTY);
+        retVal = false;
     }
     else if (browseName.length >= 1000)
     {
         EDGE_LOG(TAG, "Error: " BROWSENAME_LONG);
         invokeErrorCb(msgId, srcNodeId, STATUS_ERROR, BROWSENAME_LONG);
+        retVal = false;
     }
-    else
-    {
-        retVal = true;
-    }
-
     return retVal;
 }
 
 static bool checkNodeClass(uint32_t msgId, UA_NodeClass nodeClass, EdgeNodeId *srcNodeId)
 {
-    bool retVal = false;
+    bool retVal = true;
     if (false == isNodeClassValid(nodeClass))
     {
         EDGE_LOG(TAG, "Error: " NODECLASS_INVALID);
         invokeErrorCb(msgId, srcNodeId, STATUS_ERROR, NODECLASS_INVALID);
+        retVal = false;
     }
     else if (UA_NODECLASS_UNSPECIFIED != BROWSE_NODECLASS_MASK &&
         (nodeClass & BROWSE_NODECLASS_MASK) == 0)
     {
         EDGE_LOG(TAG, "Error: " STATUS_VIEW_NOTINCLUDE_NODECLASS_VALUE);
         invokeErrorCb(msgId, srcNodeId, STATUS_ERROR, STATUS_VIEW_NOTINCLUDE_NODECLASS_VALUE);
-    }
-    else
-    {
-        retVal = true;
+        retVal = false;
     }
     return retVal;
 }
 
 static bool checkDisplayName(uint32_t msgId, UA_String displayName, EdgeNodeId *srcNodeId)
 {
-    bool retVal = false;
+    bool retVal = true;
     if (displayName.length <= 0 || NULL == displayName.data)
     {
         EDGE_LOG(TAG, "Error: " DISPLAYNAME_EMPTY);
         invokeErrorCb(msgId, srcNodeId, STATUS_ERROR, DISPLAYNAME_EMPTY);
+        retVal = false;
     }
     else if (displayName.length >= 1000)
     {
         EDGE_LOG(TAG, "Error: " DISPLAYNAME_LONG);
         invokeErrorCb(msgId, srcNodeId, STATUS_ERROR, DISPLAYNAME_LONG);
+        retVal = false;
     }
-    else
-    {
-        retVal = true;
-    }
-
     return retVal;
 }
 
 static bool checkNodeId(uint32_t msgId, UA_ExpandedNodeId nodeId, EdgeNodeId *srcNodeId)
 {
-    bool retVal = false;
+    bool retVal = true;
     if (UA_NodeId_isNull(&nodeId.nodeId))
     {
         EDGE_LOG(TAG, "Error: " NODEID_NULL);
         invokeErrorCb(msgId, srcNodeId, STATUS_ERROR, NODEID_NULL);
+        retVal = false;
     }
     else if (nodeId.serverIndex != 0)
     {
         EDGE_LOG(TAG, "Error: " NODEID_SERVERINDEX);
         invokeErrorCb(msgId, srcNodeId, STATUS_ERROR, NODEID_SERVERINDEX);
-    }
-    else
-    {
-        retVal = true;
+        retVal = false;
     }
     return retVal;
 }
 
 static bool checkReferenceTypeId(uint32_t msgId, UA_NodeId nodeId, EdgeNodeId *srcNodeId)
 {
-    bool retVal = false;
+    bool retVal = true;
     if (UA_NodeId_isNull(&nodeId))
     {
         EDGE_LOG(TAG, "Error: " REFERENCETYPEID_NULL);
         invokeErrorCb(msgId, srcNodeId, STATUS_ERROR, REFERENCETYPEID_NULL);
-    }
-    else
-    {
-        retVal = true;
+        retVal = false;
     }
     return retVal;
 }
 
 static bool checkTypeDefinition(uint32_t msgId, UA_ReferenceDescription *ref, EdgeNodeId *srcNodeId)
 {
-    bool retVal = false;
+    bool retVal = true;
     if ((ref->nodeClass == UA_NODECLASS_OBJECT || ref->nodeClass == UA_NODECLASS_VARIABLE)
             && UA_NodeId_isNull(&ref->typeDefinition.nodeId))
     {
         EDGE_LOG(TAG, "Error: " TYPEDEFINITIONNODEID_NULL);
         invokeErrorCb(msgId, srcNodeId, STATUS_ERROR, TYPEDEFINITIONNODEID_NULL);
-    }
-    else
-    {
-        retVal = true;
+        retVal = false;
     }
     return retVal;
 }
@@ -491,17 +471,10 @@ static unsigned char *joinPaths(unsigned char *path1, unsigned char *path2)
     }
 
     totLen = len1 + len2 + 1;
-    if(totLen == 1)
-    {
-        return NULL; // Both the paths are empty.
-    }
+    COND_CHECK((totLen == 1), NULL); // Both the paths are empty.
 
     unsigned char *result = (unsigned char *) EdgeCalloc(totLen+1, sizeof(unsigned char));
-    if(IS_NULL(result))
-    {
-        EDGE_LOG(TAG, "Memory allocation failed.");
-        return NULL;
-    }
+    VERIFY_NON_NULL_MSG(result, "Memory allocation failed.", NULL);
 
     if(len1 > 0)
     {
@@ -572,11 +545,7 @@ static bool enqueueBrowseItem(u_queue_t *browseQueue, BrowseItem *item)
     VERIFY_NON_NULL_MSG(item, "item param is NULL", false);
 
     u_queue_message_t *msg = (u_queue_message_t *) EdgeMalloc(sizeof(u_queue_message_t));
-    if(IS_NULL(msg))
-    {
-        EDGE_LOG(TAG, "Memory allocation failed.");
-        return false;
-    }
+    VERIFY_NON_NULL_MSG(msg, "Memory allocation failed.", false);
 
     msg->msg = item;
     msg->size = 0; // Size is not required.
@@ -602,34 +571,26 @@ static BrowseItem *dequeueBrowseItem(u_queue_t *browseQueue)
 
 static void destroyBrowseItemMembers(BrowseItem *item)
 {
-    if(IS_NOT_NULL(item))
-    {
-        if(IS_NOT_NULL(item->nodeId))
-        {
-            UA_NodeId_delete(item->nodeId);
-        }
-        EdgeFree(item->browseName);
-        EdgeFree(item->browsePath);
-    }
+    VERIFY_NON_NULL_NR_MSG(item, "browseItem is NULL");
+    EdgeFree(item->browseName);
+    EdgeFree(item->browsePath);
+    VERIFY_NON_NULL_NR_MSG(item->nodeId, "browseItem is NULL");
+    UA_NodeId_delete(item->nodeId);
 }
 
 static void destroyBrowseItem(BrowseItem *item)
 {
-    if(IS_NOT_NULL(item))
-    {
-        destroyBrowseItemMembers(item);
-        EdgeFree(item);
-    }
+    VERIFY_NON_NULL_NR_MSG(item, "browseItem is NULL");
+    destroyBrowseItemMembers(item);
+    EdgeFree(item);
 }
 
 static void destroyBrowseItems(BrowseItem **items, uint32_t size)
 {
-    if(IS_NOT_NULL(items))
+    VERIFY_NON_NULL_NR_MSG(items, "browseItem is NULL");
+    for(uint32_t i = 0; i < size; ++i)
     {
-        for(uint32_t i = 0; i < size; ++i)
-        {
-            destroyBrowseItem(items[i]);
-        }
+        destroyBrowseItem(items[i]);
     }
 }
 
@@ -655,10 +616,7 @@ void destroyViewList(List **ptr)
 static void destroyBrowseQueue(u_queue_t **browseQueue)
 {
     u_queue_t *queue = *browseQueue;
-    if(IS_NULL(queue))
-    {
-        return;
-    }
+    VERIFY_NON_NULL_NR_MSG(queue, "browseQueue is NULL\n");
 
     uint32_t size = u_queue_get_size(queue);
     for(uint32_t i = 0; i < size; ++i)
@@ -681,11 +639,7 @@ static BrowseItem *parseBrowseNodeFromReference(UA_ReferenceDescription *referen
     VERIFY_NON_NULL_MSG(srcBrowseItem, "srcBrowseItem param is NULL", NULL);
 
     BrowseItem *newItem = (BrowseItem *) EdgeCalloc(1, sizeof(BrowseItem));
-    if(IS_NULL(newItem))
-    {
-        EDGE_LOG(TAG, "Memory allocation failed.");
-        return NULL;
-    }
+    VERIFY_NON_NULL_MSG(newItem, "Memory allocation failed.", NULL);
 
     newItem->nodeId = cloneNodeId(&reference->nodeId.nodeId);
     if(IS_NULL(newItem->nodeId))
@@ -718,11 +672,7 @@ static BrowseItem *parseBrowseNodeFromRequest(EdgeRequest *req, uint32_t reqId)
 {
     VERIFY_NON_NULL_MSG(req, "req param is NULL", NULL);
     BrowseItem *newItem = (BrowseItem *) EdgeCalloc(1, sizeof(BrowseItem));
-    if(IS_NULL(newItem))
-    {
-        EDGE_LOG(TAG, "Memory allocation failed.");
-        return NULL;
-    }
+    VERIFY_NON_NULL_MSG(newItem, "Memory allocation failed.", NULL);
 
     newItem->nodeId = getNodeId(req);
     if(IS_NULL(newItem->nodeId))
@@ -760,11 +710,7 @@ static bool parseBrowseNodesFromRequest(EdgeMessage *msg, u_queue_t *browseQueue
     {
         EDGE_LOG(TAG, "Message Type: " SEND_REQUEST_DESC);
         BrowseItem *newItem = parseBrowseNodeFromRequest(msg->request, 0);
-        if(IS_NULL(newItem))
-        {
-            EDGE_LOG(TAG, "Memory allocation failed.");
-            return false;
-        }
+        VERIFY_NON_NULL_MSG(newItem, "Memory allocation failed.", false);
         if(!enqueueBrowseItem(browseQueue, newItem))
         {
             destroyBrowseItem(newItem);
@@ -779,11 +725,7 @@ static bool parseBrowseNodesFromRequest(EdgeMessage *msg, u_queue_t *browseQueue
         for (size_t i = 0; i < reqSize; ++i)
         {
             BrowseItem *newItem = parseBrowseNodeFromRequest(msg->requests[i], i);
-            if(IS_NULL(newItem))
-            {
-                EDGE_LOG(TAG, "Memory allocation failed.");
-                return false;
-            }
+            VERIFY_NON_NULL_MSG(newItem, "Memory allocation failed.", false);
             if(!enqueueBrowseItem(browseQueue, newItem))
             {
                 destroyBrowseItem(newItem);
@@ -952,11 +894,7 @@ static uint32_t dequeueItems(u_queue_t *browseQueue, uint32_t count,
     for(uint32_t idx = 0; idx < count; ++idx)
     {
         BrowseItem *item = dequeueBrowseItem(browseQueue);
-        if(IS_NULL(item))
-        {
-            EDGE_LOG(TAG, "Failed to dequeue a browse item.");
-            return idx;
-        }
+        VERIFY_NON_NULL_MSG(item, "Failed to dequeue a browse item.", idx);
         currentBrowseItems[idx] = item;
     }
 
@@ -973,11 +911,8 @@ bool hasCycle(unsigned char *srcBrowsePath, UA_String *browseName)
     while(IS_NOT_NULL(token))
     {
         tokenLen = strlen((char *)token);
-        if(tokenLen == browseName->length &&
-                !memcmp(token, browseName->data, browseName->length))
-        {
-            return true;
-        }
+        COND_CHECK((tokenLen == browseName->length &&
+                    !memcmp(token, browseName->data, browseName->length)), true);
         token = (unsigned char *)strtok(NULL, BROWSE_PATH_SEPERATOR);
     }
 
@@ -1102,11 +1037,8 @@ static bool handleBrowseResult(UA_Client *client, EdgeMessage *msg,
         VERIFY_NON_NULL_MSG(viewList, "viewList param is NULL", false);
     }
 
-    if (!checkContinuationPoint(msg->message_id, browseResult, srcNodeId))
-    {
-        // Returning true to avoid processing of other browse results.
-        return true;
-    }
+    // Returning true to avoid processing of other browse results.
+    COND_CHECK ((!checkContinuationPoint(msg->message_id, browseResult, srcNodeId)), true);
 
     // Handle references.
     size_t referencesSize = browseResult->referencesSize;
@@ -1135,11 +1067,7 @@ static bool handleBrowseResult(UA_Client *client, EdgeMessage *msg,
         {
             // Create a BrowseItem.
             BrowseItem *newItem = parseBrowseNodeFromReference(reference, srcBrowseItem);
-            if(IS_NULL(newItem))
-            {
-                EDGE_LOG(TAG, "Failed to parse browse item from a reference.");
-                return false;
-            }
+            VERIFY_NON_NULL_MSG(newItem, "Failed to parse browse item from a reference.", false);
 
             if(CMD_BROWSE_VIEW == msg->command &&
                 UA_NODECLASS_VIEW == reference->nodeClass)
