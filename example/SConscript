@@ -57,7 +57,7 @@ if architecture == 'linux' :
 	example_env.AppendUnique(LIBS = ['rt', 'm', 'pthread', 'opcua-adapter'])
 else :
 	example_env.AppendUnique(CPPPATH = ['../extlibs/pthread-win32/include/'])
-	example_env.AppendUnique(LIBS=File('../extlibs/pthread-win32/libs/x64/pthreadVC2.lib'))
+	example_env.AppendUnique(LIBS=File('../extlibs/pthread-win32/lib/x64/pthreadVC2.lib'))
 	example_env.AppendUnique(LIBS = ['opcua-adapter'])
 
 example_env.AppendUnique(LIBPATH=['../build'])
