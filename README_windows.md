@@ -23,6 +23,10 @@ This provides opcua protocol stack library
   - Default path for msbuild tool is : C:\Windows\Microsoft.NET\Framework64\v3.5
   - Add above path to PATH
 
+- wget for windows
+  - Download and install from https://sourceforge.net/projects/gnuwin32/files/
+  - Add wget to PATH
+
 ## Building OPC UA library and sample : [Auto Build script] ##
 
 - Open windows Command prompt

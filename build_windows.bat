@@ -14,7 +14,7 @@
 	cd %open62541_dir%
 	IF EXIST "open62541_%versionName%" (
 		ECHO open62541 library already exists
-		GOTO BUILD_PROTOCOL_OPCUA_C
+		GOTO PTHREAD_LIB
 	) ELSE (
 		cd %cwd%
 		cd ..	
@@ -40,10 +40,24 @@
 		:: remove the directory
 		cd ..\..\
 		rmdir /Q /S open62541_%versionName%
-		cd %cwd%
-		
+		cd %cwd%		
+		GOTO PTHREAD_LIB	
+	)
+
+:PTHREAD_LIB
+	ECHO pthread library
+	cd %cwd%\extlibs\
+	IF EXIST "pthread-win32" (
+		ECHO pthread-win32 already exists
+		GOTO BUILD_PROTOCOL_OPCUA_C
+	) ELSE (
+		ECHO make directory
+		mkdir pthread-win32
+		wget --no-check-certificate -r -np -nH --cut-dirs=3 https://sourceware.org/pub/pthreads-win32/dll-latest/dll/ -P pthread-win32
+		wget --no-check-certificate -r -np -nH --cut-dirs=3 https://sourceware.org/pub/pthreads-win32/dll-latest/include/ -P pthread-win32
+		wget --no-check-certificate -r -np -nH --cut-dirs=3 https://sourceware.org/pub/pthreads-win32/dll-latest/lib/ -P pthread-win32		
 		GOTO BUILD_PROTOCOL_OPCUA_C	
-	)	
+	)
 	
 :BUILD_PROTOCOL_OPCUA_C	
 	cd %cwd%

@@ -100,7 +100,7 @@ env.AppendUnique(CPPPATH= [
 ])
 
 if architecture == 'windows':
-	env.AppendUnique(LIBS=File('#/extlibs/pthread-win32/libs/x64/pthreadVC2.lib'))
+	env.AppendUnique(LIBS=File('#/extlibs/pthread-win32/lib/x64/pthreadVC2.lib'))
 	env.AppendUnique(LIBS=['wsock32', 'ws2_32'])
 	env.AppendUnique(CPPPATH= [extPath + '/pthread-win32/include'])
 else:
