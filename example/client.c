@@ -186,7 +186,7 @@ static void response_msg_cb (EdgeMessage *data)
                             /* Handle UEDGE_NODEID_INT32 output array */
                             for (int arrayIdx = 0; arrayIdx < arrayLen; arrayIdx++)
                             {
-                            
+
                                 printf("%u  ", ((uint32_t *) data->responses[idx]->message->value)[arrayIdx]);
                             }
                         }
@@ -619,7 +619,10 @@ static void status_stop_cb (EdgeEndPointInfo *epInfo, EdgeStatusCode status)
 
 static void status_network_cb (EdgeEndPointInfo *epInfo, EdgeStatusCode status)
 {
-
+    if (status == STATUS_DISCONNECTED)
+    {
+        printf(COLOR_GREEN "[Application Callback] Client disconnected with Server : [ %s ]\n\n" COLOR_RESET,epInfo->endpointUri);
+    }
 }
 
 /* discovery callback */
@@ -1054,7 +1057,7 @@ static void readHelper(int num_requests, char *ep)
             usleep(1000);
         #else
 	        Sleep(1);
-        #endif	
+        #endif
 
         printf("\nEnter the node #%d name to read :: ", (i + 1));
         scanf("%s", nodeName);
