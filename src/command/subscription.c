@@ -39,7 +39,7 @@
 
 #define TAG "subscription"
 
-#define EDGE_UA_SUBSCRIPTION_ITEM_SIZE (20)
+#define EDGE_UA_SUBSCRIPTION_ITEM_SIZE (100)
 
 #ifndef ENABLE_SUB_QUEUE
 #define EDGE_UA_MINIMUM_PUBLISHING_TIME (25)
@@ -473,6 +473,14 @@ static UA_StatusCode createSub(UA_Client *client, const EdgeMessage *msg)
             EDGE_LOG_V(TAG, "Error : Malloc failed for client_alias id %d in create subscription\n", i);
             goto EXIT;
         }
+
+         int alias_size = strlen(msg->requests[i]->nodeInfo->valueAlias);
+         if(alias_size > EDGE_UA_SUBSCRIPTION_ITEM_SIZE) {
+            EDGE_LOG_V(TAG, "Error : node size is larger than maximum size of the opcua stack\n", i);
+            printf("Error : node size is larger than maximum size of the opcua stack\n");
+            goto EXIT;
+         }
+
         client_alias[i]->client = client;
         client_alias[i]->valueAlias = (char *)EdgeMalloc(EDGE_UA_SUBSCRIPTION_ITEM_SIZE);
         if(IS_NULL(client_alias[i]->valueAlias))
@@ -481,8 +489,8 @@ static UA_StatusCode createSub(UA_Client *client, const EdgeMessage *msg)
             goto EXIT;
         }
         strncpy(client_alias[i]->valueAlias, msg->requests[i]->nodeInfo->valueAlias,
-            strlen(msg->requests[i]->nodeInfo->valueAlias));
-        client_alias[i]->valueAlias[strlen(msg->requests[i]->nodeInfo->valueAlias)] = '\0';
+                alias_size);
+        client_alias[i]->valueAlias[alias_size] = '\0';
 
         EDGE_LOG_V(TAG, "%s, %s, %d", msg->requests[i]->nodeInfo->valueAlias,
                 msg->requests[i]->nodeInfo->nodeId->nodeUri, msg->requests[i]->nodeInfo->nodeId->nameSpace);

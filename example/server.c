@@ -110,7 +110,7 @@ static void *server_sample_loop(void *ptr)
         {
             message->value = (void *) s_value;
             message->isArray = false;
-            modifyVariableNode(DEFAULT_NAMESPACE_VALUE, "robot_id", message);
+            modifyVariableNode(DEFAULT_NAMESPACE_VALUE, "accura2300s_xxx.xxx.xxx.xxx_Vab", message);
             EdgeFree(message);
         }
         else
@@ -287,7 +287,7 @@ static void testCreateNodes()
     printf("\n[%d] Variable node with string variant\n", ++index);
 
     EdgeNodeItem* item = NULL;
-    item = createVariableNodeItem("String1", EDGE_NODEID_STRING, "test1", VARIABLE_NODE, 100);
+    item = createVariableNodeItem("accura2300s_xxx.xxx.xxx.xxx_Vab", EDGE_NODEID_STRING, "test1", VARIABLE_NODE, 100);
     VERIFY_NON_NULL_NR(item);
     createNode(DEFAULT_NAMESPACE_VALUE, item);
     printf("\n|------------[Added]  %s\n", item->browseName);
