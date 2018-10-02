@@ -166,10 +166,29 @@ EdgeResult executeSubscriptionInServer(EdgeMessage *msg)
     return ret;
 }
 
+void edgeStatusCallback(UA_Client *client, UA_ClientState clientState)
+{
+    if(clientState == UA_CLIENTSTATE_DISCONNECTED)
+    {
+        if(IS_NOT_NULL(client->endpointUrl.data))
+        {
+            char *m_endpoint = (char*) EdgeCalloc(strlen((const char*)client->endpointUrl.data) + 1, sizeof(char));
+            strncpy(m_endpoint, (const char*)client->endpointUrl.data, strlen((const char*)client->endpointUrl.data));
+
+            EdgeEndPointInfo *ep = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
+            ep->endpointUri = m_endpoint;
+
+            g_statusCallback(ep, STATUS_DISCONNECTED);
+        }
+    }
+}
+
 bool connect_client(char *endpoint)
 {
     UA_StatusCode retVal;
     UA_ClientConfig config = UA_ClientConfig_default;
+    config.stateCallback = edgeStatusCallback;
+
     UA_Client *m_client = NULL;
     char *m_port = NULL;
     char *m_endpoint = (char*) EdgeCalloc(strlen(endpoint) + 1, sizeof(char));

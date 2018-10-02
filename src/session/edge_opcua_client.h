@@ -44,6 +44,82 @@ extern "C"
 {
 #endif
 
+#define LIST_HEAD(name, type) struct name { struct type *lh_first;} \
+
+typedef enum {
+    UA_SECURECHANNELSTATE_FRESH,
+    UA_SECURECHANNELSTATE_OPEN,
+    UA_SECURECHANNELSTATE_CLOSED
+} UA_SecureChannelState;
+
+typedef enum {
+    UA_CLIENTAUTHENTICATION_NONE,
+    UA_CLIENTAUTHENTICATION_USERNAME
+} UA_Client_Authentication;
+
+struct UA_SecureChannel {
+    UA_SecureChannelState   state;
+    UA_MessageSecurityMode  securityMode;
+    UA_ChannelSecurityToken securityToken; /* the channelId is contained in the securityToken */
+    UA_ChannelSecurityToken nextSecurityToken;
+
+    /* The endpoint and context of the channel */
+    const UA_SecurityPolicy *securityPolicy;
+    void *channelContext; /* For interaction with the security policy */
+    UA_Connection *connection;
+
+    /* Asymmetric encryption info */
+    UA_ByteString remoteCertificate;
+    UA_Byte remoteCertificateThumbprint[20]; /* The thumbprint of the remote certificate */
+
+    /* Symmetric encryption info */
+    UA_ByteString remoteNonce;
+    UA_ByteString localNonce;
+
+    UA_UInt32 receiveSequenceNumber;
+    UA_UInt32 sendSequenceNumber;
+
+    LIST_HEAD(session_pointerlist, UA_SessionHeader) sessions;
+    LIST_HEAD(chunk_pointerlist, ChunkEntry) chunks;
+};
+
+typedef struct UA_Client {
+    /* State */
+    UA_ClientState state;
+
+    UA_ClientConfig config;
+
+    /* Connection */
+    UA_Connection connection;
+    UA_String endpointUrl;
+
+    /* SecureChannel */
+    UA_SecurityPolicy securityPolicy;
+    UA_SecureChannel channel;
+    UA_UInt32 requestId;
+    UA_DateTime nextChannelRenewal;
+
+    /* Authentication */
+    UA_Client_Authentication authenticationMethod;
+    UA_String username;
+    UA_String password;
+
+    /* Session */
+    UA_UserTokenPolicy token;
+    UA_NodeId authenticationToken;
+    UA_UInt32 requestHandle;
+
+    /* Async Service */
+    LIST_HEAD(ListOfAsyncServiceCall, AsyncServiceCall) asyncServiceCalls;
+
+    /* Subscriptions */
+#ifdef UA_ENABLE_SUBSCRIPTIONS
+    UA_UInt32 monitoredItemHandles;
+    LIST_HEAD(ListOfUnacknowledgedNotifications, UA_Client_NotificationsAckNumber) pendingNotificationsAcks;
+    LIST_HEAD(ListOfClientSubscriptionItems, UA_Client_Subscription) subscriptions;
+#endif
+} UA_Client;
+
 /**
  * @brief Set the supported application types
  * @param[in]  supportedTypes application types to be supported
