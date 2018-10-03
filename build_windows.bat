@@ -29,7 +29,7 @@
 		mkdir build
 		cd build
 
-		cmake .. -G "Visual Studio 14 2015" -DCMAKE_BUILD_TYPE=Release -DUA_ENABLE_AMALGAMATION=ON -DUA_ENABLE_ENCRYPTION=OFF
+		cmake .. -DCMAKE_BUILD_TYPE=Release -DUA_ENABLE_AMALGAMATION=ON -DUA_ENABLE_ENCRYPTION=OFF
 
 		MSBuild open62541.vcxproj
 
