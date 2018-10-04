@@ -5,48 +5,65 @@ This provides opcua protocol stack library
 
 ## Prerequisites ##
 
-- Python
-  - Version : 3.x
-  - Install python-six with pip package manager (pip install six)
+- Python 3.x 
+  - Version : 3.x 
+  - Download from https://www.python.org
+  - you can find **Windows x86_64 executable installer** version
+  - install
+  - Add pyhton 3.X to the System PATH
+  - Also Install python-six with pip package manager (pip install six)
   ```shell
-  C:\[My Project]\pip install six
+  C:\[my protocol-opcua-c path]\pip install six
   ```
-    
+  
 - SCons
   - Version : 2.5.1 or above
-  - [How to install](https://scons.org/doc/1.2.0/HTML/scons-user/x166.html)
+  - Download and install from https://scons.org/pages/download.html or download page of https://scons.org
+  ```shell
+  e.g) Proir stable (3.0.0)
+          . ..
+          . Windows installer scons-3.0.0-setup.exe
+	  . ..
+  ```
+  - Add scons to the System PATH
 
 - cmake
   - Version : Upper 3.10
-  - Download and install https://cmake.org/download/
-  - Add wget to PATH
+  - Download https://cmake.org/download/ or download page of https://cmake.org
+  - e.g) you can find **cmake-3.12.3-wind64-x64.msi** of Windows wind64-x64 installer platform
+  - install
+  - Add cmake to the System PATH
 
-- Visual Studio 2015 Community Edition
+- Visual Studio 2015 Community Edition (Community Edition is needed License)
   - On launching the installer, select 'Custom' and then select 'VC++'
 
 - Microsoft .NET (msbuild: v3.5)
   - Default path for msbuild tool is : C:\Windows\Microsoft.NET\Framework64\v3.5
-  - Add above path to PATH
+  - Add above path to the System PATH
 
 - gnuwin/wget for windows
   - Download and install from https://sourceforge.net/projects/gnuwin32/files/
-    1. GnuWin
-    2. wget
-  - Add wget to PATH
+    1. GnuWin (e.g. sed-4.2.1-setup.exe) of Home path
+    2. wget (e.g. wget-1.11.4-1-setup.exe) of Home/wget/1.11.4-1 path
+  - Add wget to the System PATH
   
 - git for windows
   - Download and install from https://git-scm.com/
-  - Add wget to PATH
+  - Add git to the System PATH
+
 
 ## Building OPC UA library and sample : [Auto Build script] ##
 
-- Open windows Command prompt
+- Open Command prompt in windows
 
-- In case of VS 2015 community edition, 
-	- $ call C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat amd64
+- set vcvarall
+  1. In case of VS 2015 Community edition, 
+	- $ call C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat **amd64**
 
-  In case of VS 2017 community edition, 
-	- $ call C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat x86_amd64
+  2. (not support yet) In case of VS 2017 Community edition, 
+	- $ call C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat **x86_amd64**
+
+  3. (not support yet) In case of VS 2015~ Express edition, 
 
 - The above command will turn cmd to visual studio terminal.
 
