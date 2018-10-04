@@ -85,3 +85,6 @@ all header files into a single header file(open62541.h) and all source files int
 
 5. go to Step 4.
    Step 4 can be continued until continuation point list becomes empty.
+
+#### OPC-UA protocol stack library for Windows ####
+  - [How to build OPC-UA protocol stack library](https://github.sec.samsung.net/RS7-EdgeComputing/protocol-opcua-c/edit/master/README_windows.md)
