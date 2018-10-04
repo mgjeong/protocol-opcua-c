@@ -8,7 +8,10 @@ This provides opcua protocol stack library
 - Python
   - Version : 3.x
   - Install python-six with pip package manager (pip install six)
-    **C:\[My Project]>pip install six**
+  ```shell
+  C:\[My Project]\pip install six
+  ```
+    
 - SCons
   - Version : 2.5.1 or above
   - [How to install](https://scons.org/doc/1.2.0/HTML/scons-user/x166.html)
