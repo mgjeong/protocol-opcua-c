@@ -52,9 +52,10 @@ This provides opcua protocol stack library
 
 ## Building OPC UA library and sample : [Auto Build script] ##
 
+### Build ###
 - Open Command prompt in windows
 
-- set vcvarall
+- set vcvarall (turn cmd to visual studio terminal)
   1. In case of VS 2015 Community edition
     ```shell
     C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat **amd64**
@@ -65,9 +66,21 @@ This provides opcua protocol stack library
     ```
   3. (not support yet) In case of VS 2015~ Express edition, 
 
-- The above command will turn cmd to visual studio terminal.
-
 - $ cd ~\protocol-opcua-c
 
 - $ build_windows.bat
 
+### Run Sample ###
+- Move Sample path
+   ```shell
+   C:\~\protocol-opcua-c\example\out\
+   ```
+- Execute server
+   ```shell
+   C:\~\protocol-opcua-c\example\out\server.exe
+   ```
+- Execute client
+   ```shell
+   C:\~\protocol-opcua-c\example\out\client.exe
+   ```
+- Also you can find **opcua-adapter.dll** in **protocol-opcua-c\build**
