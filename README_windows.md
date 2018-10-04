@@ -8,24 +8,31 @@ This provides opcua protocol stack library
 - Python
   - Version : 3.x
   - Install python-six with pip package manager (pip install six)
-
+    **C:\[My Project]>pip install six**
 - SCons
   - Version : 2.5.1 or above
   - [How to install](https://scons.org/doc/1.2.0/HTML/scons-user/x166.html)
 
 - cmake
   - Version : Upper 3.10
-  - [Where to download](https://cmake.org/download/)
+  - Download and install https://cmake.org/download/
+  - Add wget to PATH
 
-- Visual Studio 2015 or above
+- Visual Studio 2015 Community Edition
   - On launching the installer, select 'Custom' and then select 'VC++'
 
 - Microsoft .NET (msbuild: v3.5)
   - Default path for msbuild tool is : C:\Windows\Microsoft.NET\Framework64\v3.5
   - Add above path to PATH
 
-- wget for windows
+- gnuwin/wget for windows
   - Download and install from https://sourceforge.net/projects/gnuwin32/files/
+    1. GnuWin
+    2. wget
+  - Add wget to PATH
+  
+- git for windows
+  - Download and install from https://git-scm.com/
   - Add wget to PATH
 
 ## Building OPC UA library and sample : [Auto Build script] ##
