@@ -58,13 +58,13 @@ This provides opcua protocol stack library
 - set vcvarall (turn cmd to visual studio terminal)
   1. In case of VS 2015 Community edition
     ```shell
-    C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat **amd64**
+    C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat amd64
     ```
-  2. ~~(not support yet) In case of VS 2017 Community edition
+  2. ~~(not support yet) In case of VS 2017 Community edition~~
     ```shell
-    C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat **x86_amd64**
+    C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat x86_amd64
     ```
-  3. (not support yet) In case of VS 2015~ Express edition
+  3. ~~(not support yet) In case of VS 2015~ Express edition~~
 
 - $ cd ~\protocol-opcua-c
 
