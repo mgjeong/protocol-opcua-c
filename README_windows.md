@@ -64,7 +64,7 @@ This provides opcua protocol stack library
     ```shell
     C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat x86_amd64
     ```
-  3. ~~(not support yet) In case of VS 2015~ Express edition~~
+  3. ~~(not support yet) In case of VS 2015 Express edition~~
 
 - $ cd ~\protocol-opcua-c
 
