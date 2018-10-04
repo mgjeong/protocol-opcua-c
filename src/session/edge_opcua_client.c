@@ -79,7 +79,7 @@ keyValue getSessionClient(char *endpoint)
 {
     VERIFY_NON_NULL_MSG(sessionClientMap, "sessionClientMap is NULL\n", NULL);
 
-    printf("Endpoint : %s\n", endpoint);
+    EDGE_LOG_V(TAG, "Endpoint : %s\n", endpoint);
     char *ep = NULL;
     getAddressPort(endpoint, &ep);
     VERIFY_NON_NULL_MSG(ep, "NULL EP received in getSessionClient \n", NULL);
@@ -168,17 +168,22 @@ EdgeResult executeSubscriptionInServer(EdgeMessage *msg)
 
 void edgeStatusCallback(UA_Client *client, UA_ClientState clientState)
 {
-    if(clientState == UA_CLIENTSTATE_DISCONNECTED)
+    if(IS_NOT_NULL(client->endpointUrl.data))
     {
-        if(IS_NOT_NULL(client->endpointUrl.data))
+        char *m_endpoint = (char*) EdgeCalloc(strlen((const char*)client->endpointUrl.data) + 1, sizeof(char));
+        strncpy(m_endpoint, (const char*)client->endpointUrl.data, strlen((const char*)client->endpointUrl.data));
+
+        EdgeEndPointInfo *ep = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
+        ep->endpointUri = m_endpoint;
+
+        if(clientState == UA_CLIENTSTATE_DISCONNECTED)
         {
-            char *m_endpoint = (char*) EdgeCalloc(strlen((const char*)client->endpointUrl.data) + 1, sizeof(char));
-            strncpy(m_endpoint, (const char*)client->endpointUrl.data, strlen((const char*)client->endpointUrl.data));
-
-            EdgeEndPointInfo *ep = (EdgeEndPointInfo *) EdgeCalloc(1, sizeof(EdgeEndPointInfo));
-            ep->endpointUri = m_endpoint;
-
+            removeClientFromSessionMap(ep->endpointUri);
             g_statusCallback(ep, STATUS_DISCONNECTED);
+        }
+        else if(clientState == UA_CLIENTSTATE_CONNECTED)
+        {
+            g_statusCallback(ep, STATUS_CONNECTED);
         }
     }
 }

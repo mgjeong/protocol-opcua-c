@@ -93,7 +93,7 @@ EdgeDiagnosticInfo *checkDiagnosticInfo(int nodesToProcess,
     diagnostics->localizedText = 0;
     diagnostics->additionalInfo = NULL;
     diagnostics->innerDiagnosticInfo = NULL;
-    
+
     if (0 == returnDiagnostic && 0 == diagnosticInfoLength)
     {
         /* ReturnDiagnostic not requested */
@@ -321,7 +321,7 @@ EdgeVersatility* parseResponse(EdgeResponse *response, UA_Variant val)
                 values[j] = (char *) EdgeMalloc(str[j].length + 1);
                 if(IS_NULL(values[j]))
                 {
-                    EDGE_LOG_V(TAG, "Error : Malloc failed for ByteString Array value %d in Read Group\n", i);
+                    EDGE_LOG_V(TAG, "Error : Malloc failed for ByteString Array value %d in Read Group\n", j);
                     strncpy(errorDesc, "Memory allocation failed.", ERROR_DESC_LENGTH);
                     freeEdgeResponse(response);
                     goto EXIT;
@@ -349,7 +349,7 @@ EdgeVersatility* parseResponse(EdgeResponse *response, UA_Variant val)
                 values[j] = (char *) EdgeMalloc(GUID_LENGTH + 1);
                 if(IS_NULL(values[j]))
                 {
-                    EDGE_LOG_V(TAG, "Error : Malloc failed for Guid Array value %d in Read Group\n", i);
+                    EDGE_LOG_V(TAG, "Error : Malloc failed for Guid Array value %d in Read Group\n", j);
                     strncpy(errorDesc, "Memory allocation failed.", ERROR_DESC_LENGTH);
                     freeEdgeResponse(response);
                     goto EXIT;
