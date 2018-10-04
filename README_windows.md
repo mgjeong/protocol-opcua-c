@@ -21,9 +21,7 @@ This provides opcua protocol stack library
   - Download and install from https://scons.org/pages/download.html or download page of https://scons.org
   ```shell
   e.g) Proir stable (3.0.0)
-          . ..
           . Windows installer scons-3.0.0-setup.exe
-	  . ..
   ```
   - Add scons to the System PATH
 
