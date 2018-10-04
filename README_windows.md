@@ -7,6 +7,7 @@ This provides opcua protocol stack library
 
 - Python
   - Version : 3.x
+  - Install python-six with pip package manager (pip install six)
 
 - SCons
   - Version : 2.5.1 or above
@@ -31,10 +32,13 @@ This provides opcua protocol stack library
 
 - Open windows Command prompt
 
-- $ cd C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC
+- In case of VS 2015 community edition, 
+	- $ call C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat amd64
 
-- $ call vcvarsall.bat amd64
-  - The above script will turn cmd to visual studio terminal.
+  In case of VS 2017 community edition, 
+	- $ call C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat x86_amd64
+
+- The above command will turn cmd to visual studio terminal.
 
 - $ cd ~\protocol-opcua-c
 
