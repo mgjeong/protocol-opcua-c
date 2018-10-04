@@ -1,4 +1,4 @@
-OPC-UA Protocol Stack (C)
+OPC-UA Protocol Stack (C) for windows
 ================================
 
 This provides opcua protocol stack library
@@ -55,12 +55,14 @@ This provides opcua protocol stack library
 - Open Command prompt in windows
 
 - set vcvarall
-  1. In case of VS 2015 Community edition, 
-	- $ call C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat **amd64**
-
+  1. In case of VS 2015 Community edition
+    ```shell
+    C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat **amd64**
+    ```
   2. (not support yet) In case of VS 2017 Community edition, 
-	- $ call C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat **x86_amd64**
-
+    ```shell
+    C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat **x86_amd64**
+    ```
   3. (not support yet) In case of VS 2015~ Express edition, 
 
 - The above command will turn cmd to visual studio terminal.
