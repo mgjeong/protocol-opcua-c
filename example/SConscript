@@ -32,7 +32,7 @@ extPath= '../extlibs/'
 open62541LibVersion = '_0.2'
 
 #example_env.Execute('rm -rf ' + outDir)
-example_env.Execute('mkdir ' + outDir)
+example_env.Execute('mkdir -p ' + outDir)
 
 if architecture == 'windows' :
 	example_env.AppendUnique(CPPDEFINES= ['HAVE_STRUCT_TIMESPEC', 'PTW32_BUILD_INLINED', 'PTW32_STATIC_LIB'])
