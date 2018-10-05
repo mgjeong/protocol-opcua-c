@@ -476,7 +476,7 @@ static UA_StatusCode createSub(UA_Client *client, const EdgeMessage *msg)
 
          int alias_size = strlen(msg->requests[i]->nodeInfo->valueAlias);
          if(alias_size > EDGE_UA_SUBSCRIPTION_ITEM_SIZE) {
-            EDGE_LOG_V(TAG, "Error : node size is larger than maximum size of the opcua stack\n", i);
+            EDGE_LOG_V(TAG, "Error : node size is larger than maximum size of the opcua stack [%d]\n", i);
             printf("Error : node size is larger than maximum size of the opcua stack\n");
             goto EXIT;
          }
