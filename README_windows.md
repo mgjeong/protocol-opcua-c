@@ -32,8 +32,8 @@ This provides opcua protocol stack library
   - install
   - Add cmake to the System PATH
 
-- Visual Studio 2015 Community Edition (Community Edition is needed License)
-  - On launching the installer, select 'Custom' and then select 'VC++'
+- Visual Studio 2015 Community Edition / Express edition (Community Edition is needed License)
+  - On launching the Community edition installer, select 'Custom' and then select 'VC++'
 
 - Microsoft .NET (msbuild: v3.5)
   - Default path for msbuild tool is : C:\Windows\Microsoft.NET\Framework64\v3.5
@@ -64,7 +64,10 @@ This provides opcua protocol stack library
     ```shell
     C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat x86_amd64
     ```
-  3. ~~(not support yet) In case of VS 2015 Express edition~~
+  3. ~~(not support yet) In case of VS 20157 Express edition~~
+    ```shell
+    C:\Program Files (x86)\Microsoft Visual Studio\2017\WDExpress\VC\Auxiliary\Build\vcvarsall.bat x86_amd64
+    ```
 
 - $ cd ~\protocol-opcua-c
 

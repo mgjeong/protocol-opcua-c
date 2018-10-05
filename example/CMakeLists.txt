@@ -1,0 +1,62 @@
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8.7)
+
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EXTRA_CFLAGS}")
+
+SET(BUILD_DIR "build/")
+SET(INC_PATH "include")
+SET(SRC_PATH "src")
+SET(EXTPATH "extlibs")
+
+SET(OPEN62541_VERSION "_0.2")
+
+ADD_DEFINITIONS("-DWINDOWS")
+ADD_DEFINITIONS("-DHAVE_STRUCT_TIMESPEC")
+ADD_DEFINITIONS("-DPTW32_BUILD_INLINED")
+ADD_DEFINITIONS("-DPTW32_STATIC_LIB")
+ADD_DEFINITIONS("-DENABLE_SUB_QUEUE")
+
+ADD_DEFINITIONS("/W3 /wd4710 /wd4711 /wd4668 /wd4996 /wd4018 /wd4005 /wd4047 /wd4024 /wd4013 /wd4244 /nologo")
+
+if(NOT "${CMAKE_GENERATOR}" MATCHES "(Win64|IA64)")
+	SET(PTHREAD_LIBRARY "${CMAKE_SOURCE_DIR}/${EXTPATH}/pthread-win32/lib/x86/pthreadVC2.lib")
+else()
+	SET(PTHREAD_LIBRARY "${CMAKE_SOURCE_DIR}/${EXTPATH}/pthread-win32/lib/x64/pthreadVC2.lib")
+endif()
+
+INCLUDE_DIRECTORIES (
+	${CMAKE_SOURCE_DIR}/${INC_PATH}
+	${CMAKE_SOURCE_DIR}/${EXTPATH}/open62541/open62541${OPEN62541_VERSION}
+	${CMAKE_SOURCE_DIR}/${EXTPATH}/pthread-win32/include
+	${CMAKE_SOURCE_DIR}/${SRC_PATH}/command
+	${CMAKE_SOURCE_DIR}/${SRC_PATH}/command/browse
+	${CMAKE_SOURCE_DIR}/${SRC_PATH}/node
+	${CMAKE_SOURCE_DIR}/${SRC_PATH}/queue
+	${CMAKE_SOURCE_DIR}/${SRC_PATH}/session
+	${CMAKE_SOURCE_DIR}/${SRC_PATH}/session/discovery
+	${CMAKE_SOURCE_DIR}/${SRC_PATH}/utils
+)
+
+SET(OPCUA_ADAPTER "${CMAKE_SOURCE_DIR}/out/opcua-adapter.lib")
+
+ADD_EXECUTABLE(server server.c sample_method.c)
+ADD_EXECUTABLE(client client.c)
+target_link_libraries(server ${PTHREAD_LIBRARY} ${OPCUA_ADAPTER} wsock32 ws2_32)
+target_link_libraries(client ${PTHREAD_LIBRARY} ${OPCUA_ADAPTER} wsock32 ws2_32)
+
+#INSTALL(TARGETS ${CMAKE_SOURCE_DIR}/build/example/Release/${proj_name} DESTINATION ${CMAKE_SOURCE_DIR}/out/)
+
+ADD_CUSTOM_COMMAND(
+    TARGET client
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+	${CMAKE_SOURCE_DIR}/build/example/Release/client.exe
+	${CMAKE_SOURCE_DIR}/example/out
+)
+
+ADD_CUSTOM_COMMAND(
+    TARGET server
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+	${CMAKE_SOURCE_DIR}/build/example/Release/server.exe
+	${CMAKE_SOURCE_DIR}/example/out
+)
