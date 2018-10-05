@@ -34,7 +34,7 @@ if [ -d "$build_dir" ]; then
 fi
 
 # Create build directory
-mkdir build
+mkdir -p build
 
 # Get into the build directory
 cd build
