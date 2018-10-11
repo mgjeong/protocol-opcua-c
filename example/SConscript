@@ -34,15 +34,11 @@ open62541LibVersion = '_0.2'
 #example_env.Execute('rm -rf ' + outDir)
 example_env.Execute('mkdir -p ' + outDir)
 
-if architecture == 'windows' :
-	example_env.AppendUnique(CPPDEFINES= ['HAVE_STRUCT_TIMESPEC', 'PTW32_BUILD_INLINED', 'PTW32_STATIC_LIB'])
-
 ######################################################################
 # Build flags
 ######################################################################
 
-if architecture == 'linux' :
-	example_env['CCFLAGS'] = ['-fvisibility=hidden', '-fPIC',  '-Wall', '-Werror', '-std=gnu99', '-g']
+example_env['CCFLAGS'] = ['-fvisibility=hidden', '-fPIC',  '-Wall', '-Werror', '-std=gnu99', '-g']
 
 example_env['CPPPATH'] = [incPath,
 			'../extlibs/open62541/open62541' + open62541LibVersion,
@@ -53,13 +49,7 @@ example_env['CPPPATH'] = [incPath,
 			srcPath + '/utils'
 ]
 
-if architecture == 'linux' :	
-	example_env.AppendUnique(LIBS = ['rt', 'm', 'pthread', 'opcua-adapter'])
-else :
-	example_env.AppendUnique(CPPPATH = ['../extlibs/pthread-win32/include/'])
-	example_env.AppendUnique(LIBS=File('../extlibs/pthread-win32/lib/x64/pthreadVC2.lib'))
-	example_env.AppendUnique(LIBS = ['opcua-adapter'])
-
+example_env.AppendUnique(LIBS = ['rt', 'm', 'pthread', 'opcua-adapter'])
 example_env.AppendUnique(LIBPATH=['../build'])
 example_env.AppendUnique(RPATH=['../../build'])
 

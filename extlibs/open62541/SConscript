@@ -105,9 +105,8 @@ if result != 0:
 ######################################################################
 # Build
 ######################################################################
-if architecture == 'linux':
-	command = 'sh build.sh'
-	result = os.system(command)
-	if result != 0:
-		print ('open62541 library build failed')
-		Exit(1)
+command = 'sh build.sh'
+result = os.system(command)
+if result != 0:
+	print ('open62541 library build failed')
+	Exit(1)
