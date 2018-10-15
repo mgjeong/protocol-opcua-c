@@ -151,16 +151,16 @@ extern "C"
 
         switch (id->identifierType)
         {
-            case INTEGER:
+            case EDGE_INTEGER:
                 printf("Numeric: %d\n", id->identifier.numeric);
                 break;
-            case STRING:
+            case EDGE_STRING:
                 printf("String: %s\n", (char *) id->identifier.string.data);
                 break;
-            case BYTESTRING:
+            case EDGE_BYTESTRING:
                 printf("Byte String: %s\n", (char *) id->identifier.byteString.data);
                 break;
-            case UUID:
+            case EDGE_UUID:
                 {
                     Edge_Guid val = id->identifier.guid;
                     char valueStr[37];
@@ -827,7 +827,7 @@ static void browseNodeWithoutCommand()
     EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_INVALID);
     EXPECT_EQ(NULL != msg, true);
 
-    EdgeNodeInfo* nodeInfo = createEdgeNodeInfoForNodeId(INTEGER, EDGE_NODEID_ROOTFOLDER,
+    EdgeNodeInfo* nodeInfo = createEdgeNodeInfoForNodeId(EDGE_INTEGER, EDGE_NODEID_ROOTFOLDER,
             SYSTEM_NAMESPACE_INDEX);
     EdgeBrowseParameter param = {DIRECTION_FORWARD, maxReferencesPerNode};
     EdgeResult result = insertBrowseParameter(&msg, nodeInfo, param);
@@ -841,7 +841,7 @@ static void browseNodeWithoutEndpoint()
     EdgeMessage *msg = createEdgeMessage(NULL, 1, CMD_BROWSE);
     EXPECT_EQ(NULL != msg, false);
 
-    EdgeNodeInfo* nodeInfo = createEdgeNodeInfoForNodeId(INTEGER, EDGE_NODEID_ROOTFOLDER,
+    EdgeNodeInfo* nodeInfo = createEdgeNodeInfoForNodeId(EDGE_INTEGER, EDGE_NODEID_ROOTFOLDER,
             SYSTEM_NAMESPACE_INDEX);
     EdgeBrowseParameter param = {DIRECTION_FORWARD, maxReferencesPerNode};
     insertBrowseParameter(&msg, nodeInfo, param);
@@ -886,7 +886,7 @@ static void browseNode()
     EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_BROWSE);
     EXPECT_EQ(NULL != msg, true);
 
-    EdgeNodeInfo* nodeInfo = createEdgeNodeInfoForNodeId(INTEGER, EDGE_NODEID_ROOTFOLDER,
+    EdgeNodeInfo* nodeInfo = createEdgeNodeInfoForNodeId(EDGE_INTEGER, EDGE_NODEID_ROOTFOLDER,
     		SYSTEM_NAMESPACE_INDEX);
     EdgeBrowseParameter param = {DIRECTION_FORWARD, maxReferencesPerNode};
     insertBrowseParameter(&msg, nodeInfo, param);
@@ -907,11 +907,11 @@ static void browseNodes()
     EdgeMessage *msg = createEdgeMessage(endpointUri, 3, CMD_BROWSE);
     EXPECT_EQ(NULL != msg, true);
 
-    EdgeNodeInfo* nodeInfo = createEdgeNodeInfoForNodeId(INTEGER, EDGE_NODEID_ROOTFOLDER,
+    EdgeNodeInfo* nodeInfo = createEdgeNodeInfoForNodeId(EDGE_INTEGER, EDGE_NODEID_ROOTFOLDER,
             SYSTEM_NAMESPACE_INDEX);
     EdgeBrowseParameter param = {DIRECTION_FORWARD, maxReferencesPerNode};
     insertBrowseParameter(&msg, nodeInfo, param);
-    nodeInfo = createEdgeNodeInfoForNodeId(INTEGER, EDGE_NODEID_OBJECTSFOLDER, SYSTEM_NAMESPACE_INDEX);
+    nodeInfo = createEdgeNodeInfoForNodeId(EDGE_INTEGER, EDGE_NODEID_OBJECTSFOLDER, SYSTEM_NAMESPACE_INDEX);
     insertBrowseParameter(&msg, nodeInfo, param);
     nodeInfo = createEdgeNodeInfo("{2;S;v=0}Object1");
     insertBrowseParameter(&msg, nodeInfo, param);
@@ -962,7 +962,7 @@ static void browse_next()
     EdgeMessage *msg = createEdgeMessage(endpointUri, 1, CMD_BROWSE);
     EXPECT_EQ(NULL != msg, true);
 
-    EdgeNodeInfo* nodeInfo = createEdgeNodeInfoForNodeId(INTEGER, EDGE_NODEID_ROOTFOLDER,
+    EdgeNodeInfo* nodeInfo = createEdgeNodeInfoForNodeId(EDGE_INTEGER, EDGE_NODEID_ROOTFOLDER,
             SYSTEM_NAMESPACE_INDEX);
     EdgeBrowseParameter param = {DIRECTION_FORWARD, maxReferencesPerNode};
     insertBrowseParameter(&msg, nodeInfo, param);
@@ -2078,7 +2078,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     printf("\n[%d] Variable node with NODEID (Numeric) variant: \n", ++index);
     Edge_NodeId *node =  (Edge_NodeId *) EdgeMalloc(sizeof(Edge_NodeId));
     node->namespaceIndex = DEFAULT_NAMESPACE_INDEX;
-    node->identifierType = INTEGER;
+    node->identifierType = EDGE_INTEGER;
     node->identifier.numeric = EDGE_NODEID_ROOTFOLDER;
 
     item = createVariableNodeItem("NodeId1", EDGE_NODEID_NODEID, node, VARIABLE_NODE, 100);
@@ -2091,7 +2091,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     printf("\n[%d] Variable node with NODEID (String) variant: \n", ++index);
     node =  (Edge_NodeId *) EdgeMalloc(sizeof(Edge_NodeId));
     node->namespaceIndex = DEFAULT_NAMESPACE_INDEX;
-    node->identifierType = STRING;
+    node->identifierType = EDGE_STRING;
     node->identifier.string = EdgeStringAlloc("StringNodeId");
 
     item = createVariableNodeItem("NodeId2", EDGE_NODEID_NODEID, node, VARIABLE_NODE, 100);
@@ -2105,7 +2105,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     printf("\n[%d] Variable node with NODEID (ByteString) variant: \n", ++index);
     node =  (Edge_NodeId *) EdgeMalloc(sizeof(Edge_NodeId));
     node->namespaceIndex = DEFAULT_NAMESPACE_INDEX;
-    node->identifierType = BYTESTRING;
+    node->identifierType = EDGE_BYTESTRING;
     node->identifier.byteString = EdgeStringAlloc("ByteStringNodeId");
 
     item = createVariableNodeItem("NodeId3", EDGE_NODEID_NODEID, node, VARIABLE_NODE, 100);
@@ -2119,7 +2119,7 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     printf("\n[%d] Variable node with NODEID (Guid) variant: \n", ++index);
     node =  (Edge_NodeId *) EdgeMalloc(sizeof(Edge_NodeId));
     node->namespaceIndex = DEFAULT_NAMESPACE_INDEX;
-    node->identifierType = UUID;
+    node->identifierType = EDGE_UUID;
     node->identifier.guid = guid;
 
     item = createVariableNodeItem("NodeId4", EDGE_NODEID_NODEID, node, VARIABLE_NODE, 100);
@@ -2226,11 +2226,11 @@ TEST_F(OPC_serverTests , ServerAddNodes_P)
     printf("\n[%d] Array node with NODEID variant: \n", ++index);
     Edge_NodeId nodeArr[2];
     nodeArr[0].namespaceIndex = DEFAULT_NAMESPACE_INDEX;
-    nodeArr[0].identifierType = INTEGER;
+    nodeArr[0].identifierType = EDGE_INTEGER;
     nodeArr[0].identifier.numeric = EDGE_NODEID_ROOTFOLDER;
 
     nodeArr[1].namespaceIndex = DEFAULT_NAMESPACE_INDEX;
-    nodeArr[1].identifierType = STRING;
+    nodeArr[1].identifierType = EDGE_STRING;
     nodeArr[1].identifier.string = EdgeStringAlloc("StringNodeId");
 
     item = createVariableNodeItem("NodeIdArray", EDGE_NODEID_NODEID, nodeArr, VARIABLE_NODE, 100);
