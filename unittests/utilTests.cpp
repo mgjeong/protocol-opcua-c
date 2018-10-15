@@ -223,19 +223,13 @@ TEST_F(OPC_util , freeEdgeVersatility_P)
     ASSERT_EQ(dummy==1, true);
 }
 
-TEST_F(OPC_util , isNodeClassValid_N)
-{
-    UA_NodeClass invalidNodeClass = (UA_NodeClass) -1;
-    ASSERT_EQ(isNodeClassValid(invalidNodeClass), false);
-}
-
 TEST_F(OPC_util , getEdgeNodeIdType_P)
 {
-    ASSERT_EQ(getEdgeNodeIdType('N'), INTEGER);
-    ASSERT_EQ(getEdgeNodeIdType('S'), STRING);
-    ASSERT_EQ(getEdgeNodeIdType('B'), BYTESTRING);
-    ASSERT_EQ(getEdgeNodeIdType('G'), UUID);
-    ASSERT_EQ(getEdgeNodeIdType('X'), INTEGER); // Random invalid value.
+    ASSERT_EQ(getEdgeNodeIdType('N'), EDGE_INTEGER);
+    ASSERT_EQ(getEdgeNodeIdType('S'), EDGE_STRING);
+    ASSERT_EQ(getEdgeNodeIdType('B'), EDGE_BYTESTRING);
+    ASSERT_EQ(getEdgeNodeIdType('G'), EDGE_UUID);
+    ASSERT_EQ(getEdgeNodeIdType('X'), EDGE_INTEGER); // Random invalid value.
 }
 
 TEST_F(OPC_util , getCharacterNodeIdType_P)
@@ -261,9 +255,6 @@ TEST_F(OPC_util , get_size_P)
     ASSERT_EQ(get_size(EDGE_NODEID_FLOAT, false) != -1, true);
     ASSERT_EQ(get_size(EDGE_NODEID_DOUBLE, false) != -1, true);
     ASSERT_EQ(get_size(EDGE_NODEID_STRING, false) != -1, true);
-
-    int invalidValue = -1;
-    ASSERT_EQ(get_size(invalidValue, false) == -1, true);
 }
 
 TEST_F(OPC_util , cloneEdgeEndpoint_P)
@@ -339,7 +330,7 @@ TEST_F(OPC_util , cloneNode_P)
     strcpy(nodeInfo->valueAlias, nodeName);
     nodeInfo->valueAlias[strlen(nodeName)] = '\0';
     nodeInfo->methodName = "methodName";
-    nodeInfo->nodeId->type = INTEGER;
+    nodeInfo->nodeId->type = EDGE_INTEGER;
     nodeInfo->nodeId->integerNodeId = EDGE_NODEID_ROOTFOLDER;
     nodeInfo->nodeId->nameSpace = SYSTEM_NAMESPACE_INDEX;
 
@@ -481,7 +472,7 @@ TEST_F(OPC_util , getEdgeNodeIdByteString_P)
     EdgeNodeId *edgeNode = getEdgeNodeId(&node);
     ASSERT_TRUE(edgeNode != NULL);
     ASSERT_TRUE(edgeNode->nameSpace == namespaceIdx);
-    ASSERT_TRUE(edgeNode->type == BYTESTRING);
+    ASSERT_TRUE(edgeNode->type == EDGE_BYTESTRING);
     ASSERT_TRUE(edgeNode->nodeId != NULL);
     ASSERT_TRUE(strcmp(edgeNode->nodeId, str) == 0);
 
@@ -499,7 +490,7 @@ TEST_F(OPC_util , getEdgeNodeIdGuid_P)
     EdgeNodeId *edgeNode = getEdgeNodeId(&node);
     ASSERT_TRUE(edgeNode != NULL);
     ASSERT_TRUE(edgeNode->nameSpace == namespaceIdx);
-    ASSERT_TRUE(edgeNode->type == UUID);
+    ASSERT_TRUE(edgeNode->type == EDGE_UUID);
     ASSERT_TRUE(edgeNode->nodeId != NULL);
     ASSERT_TRUE(strcmp(edgeNode->nodeId, str) == 0);
 
