@@ -198,10 +198,18 @@ static Edge_QualifiedName *convertToEdgeQualifiedName(UA_QualifiedName *qn)
 EdgeVersatility* parseResponse(EdgeResponse *response, UA_Variant val)
 {
     char errorDesc[ERROR_DESC_LENGTH] = {'\0'};
-    EdgeVersatility *versatility = (EdgeVersatility*) EdgeCalloc(1, sizeof(EdgeVersatility));
-    bool isScalar = UA_Variant_isScalar(&val);
+    EdgeVersatility *versatility = NULL;
+    bool isScalar = false;
+
+    isScalar = UA_Variant_isScalar(&val);
+    if (!isScalar && val.arrayLength == 0)
+        return versatility;
 
     response->type = get_response_type(val.type);
+    if (response->type < 0)
+        return versatility;
+
+    versatility = (EdgeVersatility*) EdgeCalloc(1, sizeof(EdgeVersatility));
 
     if (isScalar)
     {
