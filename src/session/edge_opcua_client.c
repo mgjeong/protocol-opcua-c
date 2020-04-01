@@ -212,9 +212,6 @@ bool connect_client(char *endpoint)
     VERIFY_NON_NULL_MSG(m_client, "NULL CLIENT received in connect_client\n", false);
 
     retVal = UA_Client_connect(m_client, m_endpoint);
-    /* Connect with User name and Password */
-    //retVal = UA_Client_connect_username(m_client, m_endpoint, "user2", "password1");
-    //retVal = UA_Client_connect_username(m_client, m_endpoint, "user1", "password");
     if (retVal != UA_STATUSCODE_GOOD)
     {
         EDGE_LOG_V(TAG, "\n [CLIENT] Unable to connect 0x%08x!\n", retVal);
